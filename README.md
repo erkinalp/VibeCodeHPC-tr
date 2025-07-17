@@ -151,8 +151,8 @@ tmux send-keys -t pm_session 'claude' C-m
 
 | Agent | 役割 | 主要成果物 | 責任範囲 |
 |-------|------|------------|----------|
-| **PM** | プロジェクト統括 | assign_history.txt<br/>resource_allocation.md | 要件定義・リソース配分・予算管理 |
-| **SE** | システム設計 | visible_paths.txt<br/>performance_trends.png | エージェント監視・統計分析 |
+| **PM** | プロジェクト統括 | assign_history.txt<br/>budget.md | 要件定義・リソース配分・予算管理 |
+| **SE** | システム設計 | PG_visible_dir.txt<br/>performance_trends.png | エージェント監視・統計分析 |
 | **CI** | ビルド・実行 | setup.md<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
 | **PG** | コード生成 | changes.md<br/>sota_local.txt | 並列化実装・性能測定・SOTA判定 |
 | **CD** | デプロイ管理 | GitHub/changes_public.md | SOTA達成コード公開・匿名化 |
