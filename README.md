@@ -48,8 +48,8 @@ OpenCodeAT/
 │   ├── 📄 directory_map.txt         # エージェント配置
 │   └── 📁 changes_query/            # 解析ツール
 ├── 📁 communication/                # tmux通信システム
-│   ├── 🔧 hpc_agent_send.sh
-│   └── 🔧 setup_hpc.sh
+│   ├── 🔧 agent-send.sh
+│   └── 🔧 setup.sh
 └── 📁 Flow/TypeII/single-node/      # ハードウェア階層
     ├── 📄 sota_global.txt           # Global SOTA
     ├── 📁 intel2024/                # コンパイラ環境
@@ -132,7 +132,7 @@ sequenceDiagram
 ### 2. 環境セットアップ
 ```bash
 cd OpenCodeAT
-./communication/setup_hpc.sh
+./communication/setup.sh
 tmux attach-session -t multiagent
 ```
 
