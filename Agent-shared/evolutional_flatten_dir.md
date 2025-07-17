@@ -1,10 +1,10 @@
 ## 既存のトップダウン型📁階層の問題点
 ☑ 構文木が一意に定まらない  /並列モジュール名　/コンパイラ名　の親子順序
 ☑ SIMD実装などが深い階層に散在して把握しにくくなる
-/MPI/gcc/SIMD (AVX2)
-/MPI/intel/SIMD (AVX512)
-/openMP/SIMD
-/hybrid_MPI_openMP/SIMD
+- /MPI/gcc/SIMD (AVX2)
+- /MPI/intel/SIMD (AVX512)
+- /openMP/SIMD
+- /hybrid_MPI_openMP/SIMD
 
 …かと言って📁を一切使わずに，実行ファイルだけ増やしていくと
 ジョブスクリプトやmakefileの修正が発生しversion管理が手間
@@ -23,13 +23,13 @@
 　　　ー📁B 　(指示書.md “Bのみ参照許可”)
 　　　ー📁A+B (指示書.md “AとBのみ参照許可”)
 具体的には以下のような並列分散（高速化）アプローチ
-📁MPI
-📁OpenMP
-📁OpenMP_MPI
+- 📁MPI
+- 📁OpenMP
+- 📁OpenMP_MPI
 や
-📁PP
-📁TP
-📁PP_TP
+- 📁PP
+- 📁TP
+- 📁PP_TP
 などが有効である
 各モジュールの記述順は以下のルールにより統一する
 
@@ -40,7 +40,7 @@
 ✖  AVX2_MPI
 ◎  PP_TP_EP（パイプライン垂直並列→Tensor水平並列→FFN層限定Expert並列）
 自然な実装(検討)順になるように 別の並列(高速化)戦略を _で区切る
-付属する情報はMPI-opt1のように-で書く．バージョンは…defaultなら省略？
+付属する情報はMPI-opt1のように-で書く．バージョンはdefaultなら省略
 
 ### Flatten Directoryを使わないデメリット
 case 1
@@ -79,9 +79,12 @@ A + B + Cのように組み合わせが指数的に増えていくと
 ※ さらにこの直下にはバンド幅等のベンチマークを
 
 例:
+```
 /Flow/TypeII/single-node📂
                         /gcc11.3.0📂
                         /intel2022.3📂
+```
+
 ### 命名規則
 複数ある場合，module loadする順番に左から右にかけて書く
 例）
@@ -91,13 +94,16 @@ A + B + Cのように組み合わせが指数的に増えていくと
 以下/Flow/TypeII/single-node/gcc11.3.0📂直下の階層のみに限定して説明する
 ### 【第1世代：種子期 🌱】
 個々の基本技術を、使用する並列モジュール単体で探求
+```
 /AVX2📁🤖
 /CUDA📁🤖
 /MPI📁🤖
 /OpenMP📁🤖
+```
 
 ### 【第2世代：交配期 🌿】
 第1世代の有望な成果同士を「融合」させるか、あるいは単一技術をさらに「深化」させる
+```
 /AVX2📁
 /CUDA📁
 /CUDA-shardMem📁🤖（深化）
@@ -105,9 +111,11 @@ A + B + Cのように組み合わせが指数的に増えていくと
 /OpenMP📁
 /OpenMP_AVX2📁🤖（融合）
 /OpenMP_MPI📁🤖（融合）
+```
 
 ### 【第3世代：品種改良期 🌳】
 第2世代で生まれた最高傑作に、さらに別の有望な技術を組み合わせ、究極の品種を創出
+```
 /AVX2📁
 /CUDA📁
 /CUDA-shardMem📁
@@ -118,6 +126,7 @@ A + B + Cのように組み合わせが指数的に増えていくと
 /OpenMP_AVX2📁
 /OpenMP_MPI📁
 /OpenMP_MPI_AVX2📁🤖(融合)
+```
 
 ※これらの進化的Flatten📁以下では最大1名のworker🤖が稼働でき，
 その📁においてworkerは何階層でも自由にディレクトリを作成できる
