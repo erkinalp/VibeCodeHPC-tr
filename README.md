@@ -1,7 +1,7 @@
-# 🎯OpenCodeAT - Multi-Agent HPC Code Optimization System
+# 🎯OpenCodeAT - CLI Multi-Agent System for Auto-Tuning HPC Code
 
 OpenCodeATは、HPCコードの自動最適化を行うマルチエージェントシステムです。
-Claude Code環境でtmux-based通信により、複数のAIエージェントが協調してコードの並列化・最適化を実現します。
+Claude Code等のCLI環境でtmux-based通信により、複数のAIエージェントが協調してコードの並列化・最適化を実現します。
 
 ## システム概要
 
@@ -9,7 +9,7 @@ Claude Code環境でtmux-based通信により、複数のAIエージェントが
 - **階層型マルチエージェント**: PM → SE → CI ↔ PG の企業的分業体制
 - **進化的階層設計**: ボトムアップ型のFlattened Directory構造による効率的探索
 - **自動最適化**: OpenMP、MPI、CUDA等の段階的並列化と技術融合
-- **SOTA追跡**: Local/Parent/Global/Projectの4階層でのSOTA管理
+- **SOTA追跡**: Local/Parent/Global/Projectの4階層での性能指標
 - **予算管理**: 計算資源の効率的配分と追跡
 - **統一ログ**: changes.mdによる一元的な進捗管理
 
@@ -24,7 +24,7 @@ Claude Code環境でtmux-based通信により、複数のAIエージェントが
 graph TD
     User[👤 User] --> PM[🤖 PM<br/>Project Manager]
     PM --> SE1[🤖 SE1<br/>System Engineer]
-    PM --> CD[🤖 CD<br/>Code Deployment]
+    PM --> CD[🤖 CD<br/>Continuous Delivery]
     
     SE1 --> CI1[🤖 CI1.1<br/>SSH & Build]
     SE1 --> CI2[🤖 CI1.2<br/>SSH & Build]
@@ -105,7 +105,7 @@ sequenceDiagram
 
 ☑️ **Claude Codeのインストール**
 - Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
-- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]。
+- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
 - 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
   ```bash
   npm install -g @anthropic-ai/claude-code
@@ -122,12 +122,17 @@ sequenceDiagram
   ```
 
 ☑️ **MCPサーバのセットアップ (wcgw)**
-- Claude CodeからHPC環境のコマンドを安全に実行するため、`wcgw` MCPサーバを追加します [cite: 66, 121]。
+- Claude CodeからHPC環境のコマンドを安全に実行するため、`wcgw` MCPサーバを追加します https://github.com/rusiaaman/wcgw
 - 以下のコマンドで `wcgw` を追加
   ```bash
   claude mcp add wcgw -- uv tool run --python 3.12 wcgw@latest
   ```
 - ２分後に別のターミナルを起動しClaude Code内で `/mcp` コマンドで接続を確認してください。
+
+> [!WARNNING]
+> wcgw を使用する場合、Windowsでは WSL 以外が非対応のため
+> powershell等のWindowsネイティブなCLIは使用できません
+> 代わりのMCPサーバ候補例 https://github.com/wonderwhy-er/DesktopCommanderMCP
 
 ### 2. 環境セットアップ
 ```bash
@@ -147,7 +152,7 @@ tmux send-keys -t pm_session 'claude' C-m
 # "requirement_definition.mdに基づいてプロジェクトを初期化してください"
 ```
 
-## 🔧 エージェント役割
+## 🤖 エージェント役割
 
 | Agent | 役割 | 主要成果物 | 責任範囲 |
 |-------|------|------------|----------|
@@ -155,7 +160,7 @@ tmux send-keys -t pm_session 'claude' C-m
 | **SE** | システム設計 | PG_visible_dir.txt<br/>performance_trends.png | エージェント監視・統計分析 |
 | **CI** | ビルド・実行 | setup.md<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
 | **PG** | コード生成 | changes.md<br/>sota_local.txt | 並列化実装・性能測定・SOTA判定 |
-| **CD** | デプロイ管理 | GitHub/changes_public.md | SOTA達成コード公開・匿名化 |
+| **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
 
 ## 📊 SOTA管理システム
 
@@ -203,10 +208,10 @@ cat OpenCodeAT/sota_project.txt
 ## 🧬 進化的最適化アプローチ
 
 ### 段階的進化プロセス
-- **🌱 種子期**: 単一技術の個別最適化 (`/OpenMP/`, `/MPI/`, `/CUDA/`)
-- **🌿 交配期**: 有望技術の融合 (`/OpenMP_MPI/`, `/CUDA_OpenMP/`)
-- **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
-- **🌲 進化継続**: さらなる技術統合と最適化...
+1.  **🌱 種子期**: 単一技術の個別最適化 (`/OpenMP/`, `/MPI/`, `/AVX512/`, `/CUDA/`)
+2.  **🌿 交配期**: 有望技術の融合 (`/OpenMP_MPI/`, `/MPI_CUDA/`)
+3.  **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
+4.  **🌲 進化継続**: さらなる技術統合と最適化...
 
 ### Flattened Directory の利点
 - **階層の曖昧性解消**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` の重複排除
@@ -218,25 +223,27 @@ cat OpenCodeAT/sota_project.txt
 ## 📋 高度な機能
 
 ### 統一ログシステム
-changes.mdを中心とした情報集約により、分散管理コストを削減。詳細仕様は[Agent-shared/about_changes.md](Agent-shared/about_changes.md)参照。
+changes.mdを中心としたフォーマットが統一されたログで情報共有を実現。
+- [ ] 詳細：[Agent-shared/about_changes.md](Agent-shared/about_changes.md)
+#### 成果物の全体像: 
+- [ ] [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
 
 ### SOTA管理システム
-4階層（Local/Parent/Global/Project）でのSOTA追跡により、効率的なベンチマーク管理を実現。Virtual Parent算出により重複ファイルを排除。詳細: [Agent-shared/sota_management.md](Agent-shared/sota_management.md)
+4階層（Local/Parent/Global/Project）でのSOTA追跡により、効率的なベンチマーク管理を実現。
+Virtual Parent算出により重複ファイルを排除。
+> [!TIPS]
+> **エージェント可視化**
+> SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
+- [ ] 詳細: [Agent-shared/sota_management.md](Agent-shared/sota_management.md)
 
-### エージェント可視化
-SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。詳細: [Agent-shared/document_generation_structure.md](Agent-shared/document_generation_structure.md)
 
 ## 🔒 セキュリティ
 
-- **機密情報保護**: `_remote_info/`はGit管理外
-- **自動匿名化**: GitHub公開時にユーザID等を匿名化
-- **SOTA達成コードのみ公開**: 性能向上を実現したコードのみ
-- **階層別アクセス制御**: Agent役割に応じた読み書き権限
+- [x] **機密情報保護**: `_remote_info/`はGit管理外
+- [x] **自動匿名化**: GitHub公開時にユーザID等を匿名化
+- [x] **SOTA達成コードのみ公開**: 性能向上を実現したコードのみ
+- [x] **階層別アクセス制御**: Agent役割に応じた読み書き権限
 
 ## 📄 ライセンス
 
 このプロジェクトは[Apache License 2.0](LICENSE)の下で公開されています。自由にご利用いただけますが、使用に関する責任は負いかねます。
-
----
-
-🧬 **進化的HPC最適化で、コードの可能性を解き放つ！** 🚀✨
