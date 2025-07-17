@@ -129,6 +129,9 @@ sequenceDiagram
   ```
 - ２分後に別のターミナルを起動しClaude Code内で `/mcp` コマンドで接続を確認してください。
 
+![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
+---
+
 > [!WARNING]
 > wcgw を使用する場合、Windowsでは WSL 以外が非対応のため
 > powershell等のWindowsネイティブなCLIは使用できません
