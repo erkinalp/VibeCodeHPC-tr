@@ -39,29 +39,31 @@ graph TD
 ## 📁 ディレクトリ構造
 
 ```
-OpenCodeAT/
+OpenCodeAT/🤖PM
 ├── 📄 CLAUDE.md                     # 全エージェント共通ルール
 ├── 📄 requirement_definition.md     # 要件定義書
 ├── 📄 sota_project.txt              # プロジェクト全体SOTA
+│
 ├── 📁 Agent-shared/                 # 全エージェント共有
 │   ├── 📄 changes_unified.md        # 統一フォーマット仕様
 │   ├── 📄 directory_map.txt         # エージェント配置
-│   └── 📁 changes_query/            # 解析ツール
+│   └── 📁 changes_query/            # ログ検索ツール
+│
 ├── 📁 communication/                # tmux通信システム
 │   ├── 🔧 agent-send.sh
 │   └── 🔧 setup.sh
-└── 📁 Flow/TypeII/single-node/      # ハードウェア階層
-    ├── 📄 sota_global.txt           # Global SOTA
-    ├── 📁 intel2024/                # コンパイラ環境
-    │   ├── 📁 CI1.1/                # SSH・ビルド
-    │   └── 📁 OpenMP/               # 並列化戦略
-    │       └── 📁 PG1.1.1/          # コード生成
-    │           ├── 📄 changes.md    # 進捗記録
-    │           ├── 📄 sota_local.txt
-    │           └── 📄 matrix_v1.2.3.c
-    └── 📁 gcc11.3.0/                # 別コンパイラ
-        └── 📁 CUDA/
-            └── 📁 PG1.2.1/
+│
+├── 📁 GitHub/🤖CD
+│
+└── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
+    ├── 📄 sota_global.txt           # 指定ハード内の Global SOTA
+    ├── 📁 intel2024/🤖CI1.1         # コンパイラ環境                       
+    │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
+    │        ├── 📄 changes.md       # 進捗記録
+    │        ├── 📄 sota_local.txt
+    │        └── 📄 matrix_v1.2.3.c
+    └── 📁 gcc11.3.0/🤖CI1.2        # 別コンパイラ
+        └── 📁 CUDA/🤖PG1.2.1
 ```
 
 ## 🔄 ワークフロー
