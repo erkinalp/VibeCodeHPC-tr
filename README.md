@@ -133,6 +133,8 @@ unzip OpenCodeAT-jp-{バージョン}.zip
 cd OpenCodeAT-jp-{バージョン}
 ```
 
+---
+
 #### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
 GitHubのGUIでリポジトリ作成（Privateも可）
 
@@ -186,12 +188,21 @@ gh auth login
 
 #### ☑️ **SSHエージェントの設定 (ssh-agent)**
 - スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
-- ssh-agentを有効にする手順は後日掲載します
-- ターミナルで以下のコマンドを実行し、パスフレーズを一度入力してください。
+- ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
+- ターミナルで以下のコマンドを実行し、パスフレーズを入力してください。
   ```bash
   eval "$(ssh-agent -s)"
   ssh-add ~/.ssh/your_private_key
   ```
+- 確認コマンド
+  ```bash
+  ssh-add -l
+  ```
+> [!NOTE]
+> このターミナルを閉じるまでは有効で、tmuxのターミナル分割でも引き継がれます。
+
+
+---
 
 #### ☑️ **Claude Codeのインストールと認証**
 - Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
@@ -201,6 +212,8 @@ gh auth login
   npm install -g @anthropic-ai/claude-code
   claude
   ```
+
+---
 
 #### ☑️ **MCPサーバのセットアップ (wcgw)**
 - Claude CodeからHPC環境のコマンドを安全に実行するため、`wcgw` MCPサーバを追加します https://github.com/rusiaaman/wcgw
