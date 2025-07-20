@@ -147,12 +147,13 @@ tmux attach-session -t multiagent
 ```
 
 ### 3. プロジェクト開始
+要件定義（skipした場合はPMと対話的に作成）
 ```bash
-# 要件定義作成
 cp requirement_definition_template.md requirement_definition.md
 # requirement_definition.mdを編集
-
-# PM起動
+```
+PMを起動
+```bash
 tmux send-keys -t pm_session 'claude' C-m
 # "requirement_definition.mdに基づいてプロジェクトを初期化してください"
 ```
