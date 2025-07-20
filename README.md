@@ -8,15 +8,14 @@ Claude Code等のCLI環境でtmux-based通信により、複数のAIエージェ
 ### 特徴
 - **階層型マルチエージェント**: PM → SE → CI ↔ PG の企業的分業体制
 - **進化的階層設計**: ボトムアップ型のFlattened Directory構造による効率的探索
-- **自動最適化**: OpenMP、MPI、CUDA等の段階的並列化と技術融合
+- **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
 - **SOTA追跡**: Local/Parent/Global/Projectの4階層での性能指標
 - **予算管理**: 計算資源の効率的配分と追跡
 - **統一ログ**: changes.mdによる一元的な進捗管理
 
 ### 対応環境
 - **スパコン**: 不老、富岳等のHPCシステム
-- **並列化**: OpenMP、MPI、CUDA、OpenACC、AVX512
-- **コンパイラ**: Intel OneAPI、GCC、NVIDIA HPC SDK
+- **コンパイラ**: Intel OneAPI、GCC、NVIDIA HPC SDK...
 
 ## 🏗️ エージェント構成
 
@@ -48,6 +47,8 @@ OpenCodeAT/🤖PM
 │   ├── 📄 changes_unified.md        # 統一フォーマット仕様
 │   ├── 📄 directory_map.txt         # エージェント配置
 │   └── 📁 changes_query/            # ログ検索ツール
+│
+├── 📁 BaseCode/                     # 既存のオリジナルコード
 │
 ├── 📁 communication/                # tmux通信システム
 │   ├── 🔧 agent-send.sh
@@ -109,6 +110,7 @@ sequenceDiagram
 
 > [!NOTE]
 > OpenCodeATは git clone を用いずzipでダウンロードし展開することを推奨
+> 
 > 理由：GitHub/📁以下で、プロジェクトの匿名版コピーを管理するCDエージェントのGit認証と混同を避けるため
 
 #### GUIの場合
@@ -117,6 +119,7 @@ sequenceDiagram
 
 #### CLIの場合
 あるいは以下のコマンドでもよい
+
 OpenCodeATをダウンロード
 ```bash
 wget https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/archive/refs/tags/v{バージョン}.zip
@@ -149,17 +152,24 @@ git remote add origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 # 既に origin がある場合は:
 git remote set-url origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 ```
-GitのHTTPS(２段階)認証の方法
+##### GitのHTTPS(２段階)認証の方法
 ➡以下のように選択肢は様々
 https://zenn.dev/miya789/articles/manager-core-for-two-factor-authentication
 
-##### 選択肢１：GCM
+<details>
+<summary>選択肢１：GCM</summary>
+
 Git Credential Manager (GCM)が推奨。
 https://github.com/git-ecosystem/git-credential-manager/releases
+
 WSLで使用する際の注意
 https://zenn.dev/jeffi7/articles/dccb6f29fbb640
+</details>
 
-##### 選択肢2：gh
+
+<details>
+<summary>選択肢２：gh</summary>
+
 gh (GitHub CLIツール)ダウンロード
 ```bash
 sudo apt update
@@ -169,7 +179,8 @@ ghでの認証
 ```bash
 gh auth login
 ```
-ブラウザ経由等でログイン
+ブラウザ経由でログイン
+</details>
 
 ---
 
@@ -182,7 +193,7 @@ gh auth login
   ssh-add ~/.ssh/your_private_key
   ```
 
-#### ☑️ **Claude Codeのインストール**
+#### ☑️ **Claude Codeのインストールと認証**
 - Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
 - `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
 - 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
@@ -204,7 +215,8 @@ gh auth login
 
 > [!WARNING]
 > wcgw を使用する場合、Windowsでは WSL 以外が非対応のため
-> powershell等のWindowsネイティブなCLIは使用できません
+> powershell等のWindowsネイティブなCLIは使用できません。
+> 
 > 代わりのMCPサーバ候補例 https://github.com/wonderwhy-er/DesktopCommanderMCP
 
 ### 2. 環境セットアップ
@@ -240,7 +252,7 @@ tmux send-keys -t pm_session 'claude' C-m
 
 ### 4階層SOTA追跡
 - **Local**: PG自身のディレクトリ内での最高性能
-- **Parent**: 継承元フォルダ全体での最高性能（Virtual算出）
+- **Parent**: 継承元フォルダ全体での最高性能（仮想的に算出）
 - **Global**: ハードウェア全体での最高性能
 - **Project**: プロジェクト全体での最高性能
 
@@ -265,20 +277,6 @@ technical_comment: "collapse(2)で15%向上、MPI分割で20%向上"
 next_steps: "ループアンローリングとブロッキング最適化を実装"
 ```
 
-## 🔍 解析・モニタリング
-
-### SOTA確認
-```bash
-# Local SOTA
-cat PG1.1.1/sota_local.txt
-
-# Global SOTA  
-cat Flow/TypeII/single-node/sota_global.txt
-
-# Project SOTA
-cat OpenCodeAT/sota_project.txt
-```
-
 ## 🧬 進化的最適化アプローチ
 
 ### 段階的進化プロセス
@@ -287,20 +285,20 @@ cat OpenCodeAT/sota_project.txt
 3.  **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
 4.  **🌲 進化継続**: さらなる技術統合と最適化...
 
-### Flattened Directory の利点
+### 📁Flattened Directory の利点
 - **階層の曖昧性解消**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` の重複排除
 - **並列探索効率化**: 複数エージェントによる同時最適化
 - **技術継承**: 上位世代が下位世代の成果を参照可能
 
-詳細: [Agent-shared/evolutional_flatten_dir.md](Agent-shared/evolutional_flatten_dir.md)
+- [ ] 詳細: [Agent-shared/evolutional_flatten_dir.md](Agent-shared/evolutional_flatten_dir.md)
 
-## 📋 高度な機能
+## 🔍 高度な機能
 
 ### 統一ログシステム
 changes.mdを中心としたフォーマットが統一されたログで情報共有を実現。
 - [ ] 詳細：[Agent-shared/about_changes.md](Agent-shared/about_changes.md)
 #### 成果物の全体像: 
-- [ ] [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
+- [ ] 詳細: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
 
 ### SOTA管理システム
 4階層（Local/Parent/Global/Project）でのSOTA追跡により、効率的なベンチマーク管理を実現。
