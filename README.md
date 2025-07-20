@@ -105,16 +105,75 @@ sequenceDiagram
 ### 1. 事前セットアップ
 本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
 
-☑️ **Claude Codeのインストール**
-- Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
-- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
-- 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
-  ```bash
-  npm install -g @anthropic-ai/claude-code
-  claude
-  ```
+#### ☑️ OpenCodeATリポジトリのコードをダウンロード
 
-☑️ **SSHエージェントの設定 (ssh-agent)**
+> [!NOTE]
+> OpenCodeATは git clone を用いずzipでダウンロードし展開することを推奨
+> 理由：GitHub/📁以下で、プロジェクトの匿名版コピーを管理するCDエージェントのGit認証と混同を避けるため
+
+#### GUIの場合
+[release](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/releases)から
+ダウンロードした.zipを展開
+
+#### CLIの場合
+あるいは以下のコマンドでもよい
+OpenCodeATをダウンロード
+```bash
+wget https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/archive/refs/tags/v{バージョン}.zip
+```
+zip解凍
+```bash
+unzip OpenCodeAT-jp-{バージョン}.zip
+```
+展開後、OpenCodeATのルートへ移動
+```bash
+cd OpenCodeAT-jp-{バージョン}
+```
+
+#### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
+GitHubのGUIでリポジトリ作成（Privateも可）
+
+GitHub/📁に移動
+```bash
+cd GitHub
+```
+Gitの設定済み情報が表示するコマンド
+```bash
+git config -l
+```
+GitHubアカウント情報を登録
+```bash
+git config --global user.email xxx@yyy.zzz
+git config --global user.name YOUR_GITHUB_NAME
+git remote add origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
+# 既に origin がある場合は:
+git remote set-url origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
+```
+GitのHTTPS(２段階)認証の方法
+➡以下のように選択肢は様々
+https://zenn.dev/miya789/articles/manager-core-for-two-factor-authentication
+
+##### 選択肢１：GCM
+Git Credential Manager (GCM)が推奨。
+https://github.com/git-ecosystem/git-credential-manager/releases
+WSLで使用する際の注意
+https://zenn.dev/jeffi7/articles/dccb6f29fbb640
+
+##### 選択肢2：gh
+gh (GitHub CLIツール)ダウンロード
+```bash
+sudo apt update
+sudo apt install gh
+```
+ghでの認証
+```bash
+gh auth login
+```
+ブラウザ経由等でログイン
+
+---
+
+#### ☑️ **SSHエージェントの設定 (ssh-agent)**
 - スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
 - ssh-agentを有効にする手順は後日掲載します
 - ターミナルで以下のコマンドを実行し、パスフレーズを一度入力してください。
@@ -123,7 +182,16 @@ sequenceDiagram
   ssh-add ~/.ssh/your_private_key
   ```
 
-☑️ **MCPサーバのセットアップ (wcgw)**
+#### ☑️ **Claude Codeのインストール**
+- Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
+- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
+- 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
+  ```bash
+  npm install -g @anthropic-ai/claude-code
+  claude
+  ```
+
+#### ☑️ **MCPサーバのセットアップ (wcgw)**
 - Claude CodeからHPC環境のコマンドを安全に実行するため、`wcgw` MCPサーバを追加します https://github.com/rusiaaman/wcgw
 - 以下のコマンドで `wcgw` を追加
   ```bash
