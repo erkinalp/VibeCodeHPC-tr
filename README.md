@@ -150,6 +150,10 @@ Gitの設定済み情報が表示するコマンド
 ```bash
 git config -l
 ```
+GitHubディレクトリの初期設定
+```bash
+git init
+```
 GitHubアカウント情報を登録
 ```bash
 git config --global user.email xxx@yyy.zzz
@@ -309,7 +313,7 @@ next_steps: "ループアンローリングとブロッキング最適化を実�
 
 - [ ] 詳細: [Agent-shared/evolutional_flatten_dir.md](Agent-shared/evolutional_flatten_dir.md)
 
-## 🔍 高度な機能
+## 🔍 ファイルベースの情報共有
 
 ### 統一ログシステム
 changes.mdを中心としたフォーマットが統一されたログで情報共有を実現。
@@ -317,9 +321,6 @@ changes.mdを中心としたフォーマットが統一されたログで情報�
 #### 成果物の全体像: 
 - [ ] 詳細: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
 
-### SOTA管理システム
-4階層（Local/Parent/Global/Project）でのSOTA追跡により、効率的なベンチマーク管理を実現。
-Virtual Parent算出により重複ファイルを排除。
 > [!TIP]
 > **エージェント可視化**
 > SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
