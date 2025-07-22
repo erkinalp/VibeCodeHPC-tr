@@ -225,11 +225,24 @@ gh auth login
 
 #### ☑️ **MCPサーバのセットアップ (wcgw)**
 - Claude CodeからHPC環境のコマンドを安全に実行するため、`wcgw` MCPサーバを追加します https://github.com/rusiaaman/wcgw
-- 以下のコマンドで `wcgw` を追加
+- **事前準備**: uvがインストールされていることを確認
+  ```bash
+  # uvのインストール（未インストールの場合）
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  # または
+  pip install uv
+  ```
+- CIエージェントが自動的にwcgw設定を行います（詳細は以下）
+  <details>
+  <summary>手動設定が必要な場合（クリックで展開）</summary>
+  
+  以下のコマンドで `wcgw` を追加：
   ```bash
   claude mcp add wcgw -- uv tool run --python 3.12 wcgw@latest
   ```
-- ２分後に別のターミナルを起動しClaude Code内で `/mcp` コマンドで接続を確認してください。
+  
+  2分後に別のターミナルを起動しClaude Code内で `/mcp` コマンドで接続を確認してください。
+  </details>
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---
