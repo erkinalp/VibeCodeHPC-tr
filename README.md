@@ -241,10 +241,36 @@ gh auth login
 > 代わりのMCPサーバ候補例 https://github.com/wonderwhy-er/DesktopCommanderMCP
 
 ### 2. 環境セットアップ
+
+> [!IMPORTANT]
+> OpenCodeATは2つのtmuxセッションを使用します：
+> - `pm_session`: PMエージェント専用（ユーザとの対話用）
+> - `opencodeat`: その他のエージェント（SE, CI, PG, CD）
+> 
+> 推奨エージェント数は6～12です（PMを除く）。1920x1280以上の解像度ではtmux no space for new paneエラーを避けるため。
+
 ```bash
 cd OpenCodeAT
-./communication/setup.sh
-tmux attach-session -t multiagent
+./communication/setup.sh [エージェント数(PM除く)]  # 例: ./communication/setup.sh 11
+
+# コマンドラインオプション:
+#   [エージェント数]  : SE, CI, PG, CD エージェントの総数 (6-20, PMを除く)
+#   --clean-only     : 既存セッションのクリーンアップのみ実行
+#   --dry-run        : 実際のセットアップを行わずに計画を表示
+#   --help           : ヘルプメッセージを表示
+
+# 推奨構成例:
+#   6エージェント: SE(1) + CI(1) + PG(2) + CD(1) + 状態表示(1)
+#   8エージェント: SE(1) + CI(2) + PG(3) + CD(1) + 状態表示(1)
+#   10エージェント: SE(2) + CI(2) + PG(4) + CD(1) + 状態表示(1)
+#   12エージェント: SE(2) + CI(3) + PG(5) + CD(1) + 状態表示(1)
+
+# 2つのターミナルタブでそれぞれアタッチ
+# タブ1: PMエージェント用
+tmux attach-session -t pm_session
+
+# タブ2: その他のエージェント用（タブを複製して）
+tmux attach-session -t opencodeat
 ```
 
 ### 3. プロジェクト開始
@@ -255,7 +281,7 @@ cp requirement_definition_template.md requirement_definition.md
 ```
 PMを起動
 ```bash
-tmux send-keys -t pm_session 'claude' C-m
+tmux send-keys -t pm_session 'claude --dangerously-skip-permissions' C-m
 # "requirement_definition.mdに基づいてプロジェクトを初期化してください"
 ```
 

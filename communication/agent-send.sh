@@ -3,12 +3,12 @@
 # 🧬 OpenCodeAT Agent間メッセージ送信システム
 # HPC最適化用マルチエージェント通信
 
-# directory_map.txt読み込み
+# agent_and_pane_id_table.txt読み込み
 load_agent_map() {
-    local map_file="./Agent-shared/directory_map.txt"
+    local table_file="./Agent-shared/agent_and_pane_id_table.txt"
     
-    if [[ ! -f "$map_file" ]]; then
-        echo "❌ エラー: directory_map.txt が見つかりません"
+    if [[ ! -f "$table_file" ]]; then
+        echo "❌ エラー: agent_and_pane_id_table.txt が見つかりません"
         echo "先に ./communication/setup.sh を実行してください"
         return 1
     fi
@@ -16,20 +16,21 @@ load_agent_map() {
     # associative array宣言
     declare -gA AGENT_MAP
     
-    # directory_map.txt解析
+    # agent_and_pane_id_table.txt解析
     while IFS= read -r line; do
         # コメントと空行をスキップ
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${line// }" ]] && continue
         
-        # agent_name: session=xxx, pane=yyy 形式を解析
-        if [[ "$line" =~ ^([^:]+):[[:space:]]*tmux_session=([^,]+),[[:space:]]*tmux_pane=(.+)$ ]]; then
+        # AGENT_NAME: session=SESSION_NAME, window=WINDOW, pane=PANE_INDEX
+        if [[ "$line" =~ ^([^:]+):[[:space:]]*session=([^,]+),[[:space:]]*window=([^,]+),[[:space:]]*pane=(.+)$ ]]; then
             local agent_name="${BASH_REMATCH[1]// /}"
             local session="${BASH_REMATCH[2]// /}"
-            local pane="${BASH_REMATCH[3]// /}"
-            AGENT_MAP["$agent_name"]="$session:$pane"
+            local window="${BASH_REMATCH[3]// /}"
+            local pane="${BASH_REMATCH[4]// /}"
+            AGENT_MAP["$agent_name"]="$session:$window.$pane"
         fi
-    done < "$map_file"
+    done < "$table_file"
 }
 
 # エージェント→tmuxターゲット変換
@@ -57,21 +58,45 @@ get_agent_role() {
         "CI") echo "SSH・ビルド・実行" ;;
         "PG") echo "コード生成・最適化" ;;
         "CD") echo "GitHub・デプロイ管理" ;;
+        "ST") echo "状態表示・監視" ;;
         *) echo "専門エージェント" ;;
     esac
 }
 
-# エージェント色コード取得
+# エージェント色コード取得（グループ対応）
 get_agent_color() {
     local agent_name="$1"
+    
+    if [ "$agent_name" = "STATUS" ]; then
+        echo "1;37"  # 白
+        return
+    fi
     
     case "${agent_name:0:2}" in
         "PM") echo "1;35" ;;  # マゼンタ
         "SE") echo "1;36" ;;  # シアン
-        "CI") echo "1;33" ;;  # イエロー
-        "PG") echo "1;32" ;;  # グリーン
-        "CD") echo "1;31" ;;  # レッド
-        *) echo "1;37" ;;     # ホワイト
+        "CI") 
+            # グループごとに色を変える
+            if [[ "$agent_name" =~ CI1\.1 ]]; then
+                echo "1;33"  # 黄
+            elif [[ "$agent_name" =~ CI1\.2 ]]; then
+                echo "1;93"  # 明るい黄
+            else
+                echo "1;33"  # デフォルト黄
+            fi
+            ;;
+        "PG") 
+            # CIグループと同じ色
+            if [[ "$agent_name" =~ PG1\.1\. ]]; then
+                echo "1;32"  # 緑
+            elif [[ "$agent_name" =~ PG1\.2\. ]]; then
+                echo "1;92"  # 明るい緑
+            else
+                echo "1;32"  # デフォルト緑
+            fi
+            ;;
+        "CD") echo "1;31" ;;  # 赤
+        *) echo "1;37" ;;     # 白
     esac
 }
 
@@ -89,8 +114,8 @@ show_usage() {
 基本コマンド:
   PM "requirement_definition.mdを確認してください"
   SE1 "監視状況を報告してください"
-  CI1 "SSH接続を確認してください"
-  PG1 "コード最適化を開始してください"
+  CI1.1 "SSH接続を確認してください"
+  PG1.1.1 "コード最適化を開始してください"
   CD "GitHub同期を実行してください"
 
 特殊コマンド:
@@ -112,15 +137,15 @@ show_usage() {
 
 例:
   $0 SE1 "[依頼] PG1.1.1にOpenMP最適化タスクを配布してください"
-  $0 PG1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
-  $0 CI1 "[報告] job_12345 実行完了、結果をchanges.mdに追記しました"
+  $0 PG1.1.1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
+  $0 CI1.1 "[報告] job_12345 実行完了、結果をchanges.mdに追記しました"
   
   # 再配置例（絶対パス）
-  $0 PG1 "!cd /absolute/path/to/OpenCodeAT/Flow/TypeII/single-node/gcc/OpenMP_MPI"
+  $0 PG1.1.1 "!cd /absolute/path/to/OpenCodeAT/Flow/TypeII/single-node/gcc/OpenMP_MPI"
   
   # 再配置例（相対パス - エージェントの現在位置から）
-  $0 PG2 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
-  $0 SE1 "!cd ../multi-node"              # 上位階層へ移動
+  $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
+  $0 SE1 "!cd ../multi-node"                  # 上位階層へ移動
   
   $0 --broadcast "[緊急] 全エージェント状況報告してください"
 EOF
@@ -138,7 +163,7 @@ show_agents() {
     fi
     
     # エージェント種別ごとに表示
-    local agent_types=("PM" "SE" "CI" "PG" "CD")
+    local agent_types=("PM" "SE" "CI" "PG" "CD" "STATUS")
     
     for type in "${agent_types[@]}"; do
         echo ""
@@ -146,7 +171,7 @@ show_agents() {
         local found=false
         
         for agent in "${!AGENT_MAP[@]}"; do
-            if [[ "$agent" =~ ^${type}[0-9]*$ ]]; then
+            if [[ "$agent" =~ ^${type} ]] || [[ "$agent" == "STATUS" && "$type" == "STATUS" ]]; then
                 local target="${AGENT_MAP[$agent]}"
                 local role=$(get_agent_role "$agent")
                 local color=$(get_agent_color "$agent")
@@ -187,11 +212,13 @@ show_status() {
     for agent in "${!AGENT_MAP[@]}"; do
         local target="${AGENT_MAP[$agent]}"
         local session="${target%%:*}"
-        local pane="${target##*:}"
+        local window_pane="${target##*:}"
+        local window="${window_pane%%.*}"
+        local pane="${window_pane##*.}"
         
         # セッション・ペイン存在確認
         if tmux has-session -t "$session" 2>/dev/null; then
-            if tmux list-panes -t "$session" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
+            if tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
                 echo "✅ $agent : アクティブ"
                 ((active_count++))
             else
@@ -208,11 +235,14 @@ show_status() {
     # tmuxセッション情報
     echo ""
     echo "📺 tmuxセッション情報:"
-    if tmux has-session -t opencodeat 2>/dev/null; then
-        tmux list-sessions -F "#{session_name}: #{session_windows} windows" | grep opencodeat || echo "opencodeat: 情報取得失敗"
-    else
-        echo "opencodeat: 未起動"
-    fi
+    for session in "pm_session" "opencodeat"; do
+        if tmux has-session -t "$session" 2>/dev/null; then
+            local pane_count=$(tmux list-panes -t "$session" | wc -l)
+            echo "$session: $pane_count panes"
+        else
+            echo "$session: 未起動"
+        fi
+    done
 }
 
 # ブロードキャスト送信
@@ -225,6 +255,11 @@ broadcast_message() {
     echo "================================"
     
     for agent in "${!AGENT_MAP[@]}"; do
+        # STATUS paneはスキップ
+        if [[ "$agent" == "STATUS" ]]; then
+            continue
+        fi
+        
         local target="${AGENT_MAP[$agent]}"
         
         if send_message "$target" "$message" "$agent"; then
@@ -238,7 +273,7 @@ broadcast_message() {
     echo "📊 ブロードキャスト結果:"
     echo "  成功: $sent_count"
     echo "  失敗: $failed_count"
-    echo "  総計: ${#AGENT_MAP[@]}"
+    echo "  総計: $((sent_count + failed_count))"
 }
 
 # メッセージ送信
@@ -248,7 +283,9 @@ send_message() {
     local agent_name="$3"
     
     local session="${target%%:*}"
-    local pane="${target##*:}"
+    local window_pane="${target##*:}"
+    local window="${window_pane%%.*}"
+    local pane="${window_pane##*.}"
     
     # セッション存在確認
     if ! tmux has-session -t "$session" 2>/dev/null; then
@@ -257,7 +294,7 @@ send_message() {
     fi
     
     # ペイン存在確認
-    if ! tmux list-panes -t "$session" -F "#{pane_title}" 2>/dev/null | grep -q "^$pane$"; then
+    if ! tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
         echo "❌ $agent_name: ペイン '$pane' が見つかりません"
         return 1
     fi
@@ -266,15 +303,15 @@ send_message() {
     echo "📤 $agent_name ← '$message'"
     
     # Claude Codeのプロンプトを一度クリア
-    tmux send-keys -t "$session:$pane" C-c 2>/dev/null
+    tmux send-keys -t "$session:$window.$pane" C-c 2>/dev/null
     sleep 0.2
     
     # メッセージ送信
-    tmux send-keys -t "$session:$pane" "$message"
+    tmux send-keys -t "$session:$window.$pane" "$message"
     sleep 0.1
     
     # エンター押下
-    tmux send-keys -t "$session:$pane" C-m
+    tmux send-keys -t "$session:$window.$pane" C-m
     sleep 0.3
     
     return 0
@@ -292,7 +329,7 @@ log_message() {
 
 # メイン処理
 main() {
-    # directory_map.txt読み込み
+    # agent_and_pane_id_table.txt読み込み
     if ! load_agent_map; then
         exit 1
     fi
