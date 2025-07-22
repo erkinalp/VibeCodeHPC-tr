@@ -36,6 +36,23 @@ GitHub公開用にプロジェクトをコピーすること。プロジェク�
 ### フェーズ3: SOTAコードのリリース
 そのエージェントが担当している並列化アプローチでSOTAを更新したコードのみGitHubにアップロードする。changes.mdも公開することで、逆に何が上手くいかなかったかという情報は補完される。
 
+### フェーズ4: 既存リポジトリの取り扱い（該当する場合）
+
+#### OpenCodeATベースのプロジェクト
+- 既存のOpenCodeAT型プロジェクトの場合：fork→作業継続→プルリクエスト
+- 中断された作業の再開に適している
+
+#### 通常のGitHubリポジトリ（BaseCode用）
+- OpenCodeAT型でない既存コードが指定された場合：
+  ```bash
+  # wgetでzipをダウンロード
+  wget https://github.com/user/repo/archive/refs/heads/main.zip
+  # BaseCodeディレクトリに展開
+  unzip main.zip -d BaseCode/
+  ```
+- git cloneではなくwget使用（CDエージェントは基本1つのため）
+- 複数リポジトリ管理が必要な場合はPMと相談
+
 ## 🔒 最重要セキュリティ事項
 
 ### 個人情報の自動匿名化
