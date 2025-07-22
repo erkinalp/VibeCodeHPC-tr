@@ -9,7 +9,8 @@ load_agent_map() {
     
     if [[ ! -f "$map_file" ]]; then
         echo "❌ エラー: directory_map.txt が見つかりません"
-        echo "先に ./communication/setup.sh を実行してください"
+        echo "./communication/setup.sh を実行済みでtmuxによる複数ターミナルが見えているかユーザに確認すること"
+        echo "PMは Agent-shared/directory_map.txt を作成・更新する義務があります。PM.mdなどの必要書類に目を通しましたか?"
         return 1
     fi
     
@@ -75,7 +76,7 @@ start_claude() {
     sleep 0.2
     
     # claudeコマンド送信
-    tmux send-keys -t "$session:$pane" "claude"
+    tmux send-keys -t "$session:$pane" "claude --dangerously-skip-permissions"
     sleep 0.1
     tmux send-keys -t "$session:$pane" C-m
     

@@ -191,7 +191,7 @@ show_status() {
         
         # セッション・ペイン存在確認
         if tmux has-session -t "$session" 2>/dev/null; then
-            if tmux list-panes -t "$session" -F "#{pane_title}" 2>/dev/null | grep -q "^$pane$"; then
+            if tmux list-panes -t "$session" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
                 echo "✅ $agent : アクティブ"
                 ((active_count++))
             else

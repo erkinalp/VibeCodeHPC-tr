@@ -134,107 +134,89 @@ cleanup_sessions() {
 # tmuxセッション作成
 create_tmux_session() {
     local total_agents=$1
-    local agents=($2)
-    
+    local agents_str="$2"
+    read -ra agents <<< "$agents_str"
+
     log_info "📺 OpenCodeAT tmuxセッション作成開始 (${total_agents}エージェント)..."
-    
-    # メインセッション作成
+
+    # ★★対策：最適な行と列の数を計算★★
+    local cols=$(echo "sqrt($total_agents)" | bc)
+    if (( cols * cols < total_agents )); then
+        cols=$((cols + 1))
+    fi
+    local rows=$(echo "($total_agents + $cols - 1) / $cols" | bc)
+    log_info "グリッド構成を計算: ${cols}列 x ${rows}行"
+
+    # セッションを作成
     tmux new-session -d -s opencodeat -n "hpc-agents"
-    
-    # セッション作成確認
-    if ! tmux has-session -t opencodeat 2>/dev/null; then
-        log_error "opencodeatセッションの作成に失敗しました"
-        return 1
-    fi
-    
-    # 最適なグリッド計算
-    local cols rows
-    if [ $total_agents -le 4 ]; then
-        cols=2; rows=2
-    elif [ $total_agents -le 9 ]; then
-        cols=3; rows=3
-    elif [ $total_agents -le 16 ]; then
-        cols=4; rows=4
-    elif [ $total_agents -le 25 ]; then
-        cols=5; rows=5
-    else
-        cols=6; rows=6
-    fi
-    
-    log_info "グリッド構成: ${cols}x${rows} (${total_agents}エージェント)"
-    
-    # 最初のペインはすでに存在するので、残りを作成
-    local panes_needed=$((total_agents - 1))
-    local current_panes=1
-    
-    # 水平分割で列を作成
-    for ((col=1; col<cols && current_panes<total_agents; col++)); do
-        tmux split-window -h -t "opencodeat:hpc-agents"
-        ((current_panes++))
+    log_info "サーバー起動待機中..."
+    sleep 1
+
+    # 最初のペイン（左上）は作成済み
+    local pane_count=1
+
+    # ★★対策：グリッドを論理的に作成★★
+    # 1. 最初の「列」を作成 (行を分割)
+    for ((j=1; j < rows && pane_count < total_agents; j++)); do
+        tmux split-window -v
+        sleep 0.2
+        ((pane_count++))
     done
-    
-    # 各列を垂直分割で行を作成
-    for ((col=0; col<cols && current_panes<total_agents; col++)); do
-        for ((row=1; row<rows && current_panes<total_agents; row++)); do
-            # 該当する列の最初のペインを選択
-            tmux select-pane -t "opencodeat:hpc-agents.${col}"
+
+    # 2. 残りの「列」を右側に追加していく
+    for ((i=1; i < cols && pane_count < total_agents; i++)); do
+        # 最初の列の一番上のペインを選択して、右に分割（新しい列を作る）
+        tmux select-pane -t ".0"
+        tmux split-window -h
+        sleep 0.2
+        ((pane_count++))
+        
+        # 新しくできた列をさらに下に分割
+        for ((j=1; j < rows && pane_count < total_agents; j++)); do
             tmux split-window -v
-            ((current_panes++))
+            sleep 0.2
+            ((pane_count++))
         done
     done
-    
-    # ペイン配置の確認
-    local actual_panes=$(tmux list-panes -t "opencodeat:hpc-agents" | wc -l)
-    log_info "作成されたペイン数: $actual_panes / $total_agents"
-    
-    # エージェント配置
-    local pane_ids=($(tmux list-panes -t "opencodeat:hpc-agents" -F "#{pane_id}"))
-    
-    for ((i=0; i<total_agents; i++)); do
-        if [ $i -lt ${#pane_ids[@]} ]; then
-            local pane_id="${pane_ids[$i]}"
-            local agent_name="${agents[$i]}"
-            
-            # ペインタイトル設定
-            tmux select-pane -t "$pane_id" -T "$agent_name"
-            
-            # 作業ディレクトリ設定
-            tmux send-keys -t "$pane_id" "cd $(pwd)" C-m
-            
-            # エージェント別カラープロンプト
-            local color_code
-            case "${agent_name:0:2}" in
-                "PM") color_code="1;35" ;;  # マゼンタ
-                "SE") color_code="1;36" ;;  # シアン
-                "CI") color_code="1;33" ;;  # イエロー
-                "PG") color_code="1;32" ;;  # グリーン
-                "CD") color_code="1;31" ;;  # レッド
-                *) color_code="1;37" ;;     # ホワイト
-            esac
-            
-            tmux send-keys -t "$pane_id" "export PS1='(\[\033[${color_code}m\]${agent_name}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
-            
-            # ウェルカムメッセージ
-            tmux send-keys -t "$pane_id" "echo '=== ${agent_name} エージェント ==='" C-m
-            tmux send-keys -t "$pane_id" "echo 'OpenCodeAT HPC最適化システム'" C-m
-            
-            # 役割表示
-            local role
-            case "${agent_name:0:2}" in
-                "PM") role="プロジェクト管理・要件定義" ;;
-                "SE") role="システム設計・監視" ;;
-                "CI") role="SSH・ビルド・実行" ;;
-                "PG") role="コード生成・最適化" ;;
-                "CD") role="GitHub・デプロイ管理" ;;
-                *) role="専門エージェント" ;;
-            esac
-            
-            tmux send-keys -t "$pane_id" "echo '役割: ${role}'" C-m
-        fi
+
+    # 最後にレイアウトを整える
+    tmux select-layout tiled
+    log_info "ペイン作成完了。エージェント設定中..."
+    sleep 0.5
+
+    # --- ここから下の処理は変更不要 ---
+    local pane_indices=($(tmux list-panes -t "opencodeat:hpc-agents" -F "#{pane_index}"))
+
+    for i in "${!pane_indices[@]}"; do
+        if (( i >= total_agents )); then break; fi
+        local pane_index="${pane_indices[$i]}"
+        local pane_target="opencodeat:hpc-agents.${pane_index}"
+        local agent_name="${agents[$i]}"
+        
+        tmux select-pane -t "$pane_target" -T "$agent_name"
+        tmux send-keys -t "$pane_target" "cd $(pwd)" C-m
+        
+        local color_code
+        case "${agent_name:0:2}" in
+            "PM") color_code="1;35" ;; "SE") color_code="1;36" ;; "CI") color_code="1;33" ;;
+            "PG") color_code="1;32" ;; "CD") color_code="1;31" ;; *) color_code="1;37" ;;
+        esac
+        
+        tmux send-keys -t "$pane_target" "export PS1='(\[\033[${color_code}m\]${agent_name}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+        tmux send-keys -t "$pane_target" "echo '=== ${agent_name} エージェント ==='" C-m
+        
+        local role
+        case "${agent_name:0:2}" in
+            "PM") role="プロジェクト管理・要件定義" ;; "SE") role="システム設計・監視" ;; "CI") role="SSH・ビルド・実行" ;;
+            "PG") role="コード生成・最適化" ;; "CD") role="GitHub・デプロイ管理" ;; *) role="専門エージェント" ;;
+        esac
+        
+        tmux send-keys -t "$pane_target" "echo '役割: ${role}'" C-m
     done
     
     log_success "✅ OpenCodeAT tmuxセッション作成完了"
 }
+
 
 # 設定ファイル生成
 generate_config_files() {
