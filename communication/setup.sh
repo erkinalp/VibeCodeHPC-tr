@@ -24,10 +24,10 @@ show_usage() {
 🧬 OpenCodeAT Multi-Agent HPC Environment Setup
 
 使用方法:
-  $0 [エージェント数(PM除く)] [オプション]
+  $0 [ワーカー数(PM除く)] [オプション]
 
 パラメータ:
-  エージェント数  : SE, CI, PG, CD エージェントの総数 (推奨: 6-12)
+  ワーカー数      : PM以外のエージェント総数 (最小: 3)
   
 オプション:
   --clean-only     : 既存セッションのクリーンアップのみ実行
@@ -35,15 +35,16 @@ show_usage() {
   --help           : このヘルプを表示
 
 例:
-  $0 11            # PM + 11エージェント構成でセットアップ
+  $0 11            # PM + 11ワーカー構成でセットアップ
   $0 --clean-only  # クリーンアップのみ
-  $0 --dry-run 11  # 11エージェント構成の計画表示
+  $0 --dry-run 11  # 11ワーカー構成の計画表示
 
-推奨構成 (1920x1280以上の画面解像度で推奨):
-  6エージェント: PM(別) + SE(1) + CI(1) + PG(2) + CD(1) + 状態表示(1)
-  8エージェント: PM(別) + SE(1) + CI(2) + PG(3) + CD(1) + 状態表示(1)
-  10エージェント: PM(別) + SE(2) + CI(2) + PG(4) + CD(1) + 状態表示(1)
-  12エージェント: PM(別) + SE(2) + CI(3) + PG(5) + CD(1) + 状態表示(1)
+参考構成例（実際の配置はPMが決定）:
+  3人: SE(1) + CI(1) + PG(1) ※最小構成
+  6人: SE(1) + CI(1) + PG(3) + CD(1)
+  8人: SE(2) + CI(2) + PG(3) + CD(1)
+  11人: SE(2) + CI(2) + PG(6) + CD(1)
+  15人: SE(2) + CI(3) + PG(9) + CD(1)
 EOF
 }
 
@@ -231,21 +232,19 @@ EOF
 
 # メインエージェントセッション作成
 create_main_session() {
-    local total_agents=$1  # 状態表示pane含む
-    local agents_str="$2"
-    read -ra agents <<< "$agents_str"
+    local total_panes=$1  # ユーザ入力数 + 1 (STATUS用)
     
-    log_info "📺 メインエージェントセッション作成開始 (${total_agents}エージェント)..."
+    log_info "📺 メインエージェントセッション作成開始 (${total_panes}ペイン)..."
     
-    # 固定レイアウト計算（状態表示pane含む）
+    # 固定レイアウト計算
     local cols rows
-    if [ $total_agents -le 4 ]; then
+    if [ $total_panes -le 4 ]; then
         cols=2; rows=2
-    elif [ $total_agents -le 9 ]; then
+    elif [ $total_panes -le 9 ]; then
         cols=3; rows=3
-    elif [ $total_agents -le 12 ]; then
+    elif [ $total_panes -le 12 ]; then
         cols=3; rows=4
-    elif [ $total_agents -le 16 ]; then
+    elif [ $total_panes -le 16 ]; then
         cols=4; rows=4
     else
         cols=5; rows=4
@@ -268,18 +267,18 @@ create_main_session() {
     local pane_count=1
     
     # 最初の列を作成
-    for ((j=1; j < rows && pane_count < total_agents; j++)); do
+    for ((j=1; j < rows && pane_count < total_panes; j++)); do
         tmux split-window -v -t "opencodeat:hpc-agents"
         ((pane_count++))
     done
     
     # 残りの列を作成
-    for ((i=1; i < cols && pane_count < total_agents; i++)); do
+    for ((i=1; i < cols && pane_count < total_panes; i++)); do
         tmux select-pane -t "opencodeat:hpc-agents.0"
         tmux split-window -h -t "opencodeat:hpc-agents"
         ((pane_count++))
         
-        for ((j=1; j < rows && pane_count < total_agents; j++)); do
+        for ((j=1; j < rows && pane_count < total_panes; j++)); do
             tmux split-window -v -t "opencodeat:hpc-agents"
             ((pane_count++))
         done
@@ -288,79 +287,48 @@ create_main_session() {
     # レイアウト調整
     tmux select-layout -t "opencodeat:hpc-agents" tiled
     
-    # エージェント設定
+    # 全ペインの初期化
     local pane_indices=($(tmux list-panes -t "opencodeat:hpc-agents" -F "#{pane_index}"))
     
     for i in "${!pane_indices[@]}"; do
-        if (( i >= ${#agents[@]} )); then break; fi
-        
         local pane_index="${pane_indices[$i]}"
         local pane_target="opencodeat:hpc-agents.${pane_index}"
-        local agent_name="${agents[$i]}"
         
-        tmux select-pane -t "$pane_target" -T "$agent_name"
         tmux send-keys -t "$pane_target" "cd $(pwd)" C-m
         
-        # エージェントタイプとグループで色分け
-        local color_code
-        if [ "$agent_name" = "STATUS" ]; then
-            color_code="1;37"  # 白
-        else
-            case "${agent_name:0:2}" in
-                "SE") color_code="1;36" ;;  # シアン
-                "CI") 
-                    # グループごとに色を変える
-                    if [[ "$agent_name" =~ CI1\.1 ]]; then
-                        color_code="1;33"  # 黄
-                    else
-                        color_code="1;93"  # 明るい黄
-                    fi
-                    ;;
-                "PG") 
-                    # CIグループと同じ色
-                    if [[ "$agent_name" =~ PG1\.1\. ]]; then
-                        color_code="1;32"  # 緑
-                    else
-                        color_code="1;92"  # 明るい緑
-                    fi
-                    ;;
-                "CD") color_code="1;31" ;;  # 赤
-                *) color_code="1;37" ;;     # 白
-            esac
-        fi
-        
-        tmux send-keys -t "$pane_target" "export PS1='(\[\033[${color_code}m\]${agent_name}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
-        
-        if [ "$agent_name" = "STATUS" ]; then
+        if [ $i -eq 0 ]; then
+            # 最初のペインはSTATUS用
+            tmux select-pane -t "$pane_target" -T "STATUS"
+            tmux send-keys -t "$pane_target" "export PS1='(\[\033[1;37m\]STATUS\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
             tmux send-keys -t "$pane_target" "echo '[OpenCodeAT エージェント配置状態]'" C-m
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
-            tmux send-keys -t "$pane_target" "./tmp/update_status_display.sh 2>/dev/null || echo '状態表示スクリプト準備中...'" C-m
+            tmux send-keys -t "$pane_target" "echo 'PMがエージェントを配置中...'" C-m
+            tmux send-keys -t "$pane_target" "echo ''" C-m
+            tmux send-keys -t "$pane_target" "echo 'ワーカー数: $((total_panes - 1))'" C-m
+            tmux send-keys -t "$pane_target" "echo 'Agent-shared/directory_map.txt を参照してください'" C-m
         else
-            tmux send-keys -t "$pane_target" "echo '=== ${agent_name} エージェント ==='" C-m
-            
-            local role
-            case "${agent_name:0:2}" in
-                "SE") role="システム設計・監視" ;;
-                "CI") role="SSH・ビルド・実行" ;;
-                "PG") role="コード生成・最適化" ;;
-                "CD") role="GitHub・デプロイ管理" ;;
-                *) role="専門エージェント" ;;
-            esac
-            
-            tmux send-keys -t "$pane_target" "echo '役割: ${role}'" C-m
+            # その他のペインはエージェント配置待ち
+            local pane_number=$i
+            tmux select-pane -t "$pane_target" -T "Pane${pane_number}"
+            tmux send-keys -t "$pane_target" "export PS1='(\[\033[1;90m\]待機中${pane_number}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+            tmux send-keys -t "$pane_target" "clear" C-m
+            tmux send-keys -t "$pane_target" "echo '=== エージェント配置待ち (Pane ${pane_number}) ==='" C-m
+            tmux send-keys -t "$pane_target" "echo ''" C-m
+            tmux send-keys -t "$pane_target" "echo 'PMがdirectory_map.txtで配置を決定します'" C-m
+            tmux send-keys -t "$pane_target" "echo 'その後、エージェントが起動されます'" C-m
         fi
     done
     
     log_success "✅ メインエージェントセッション作成完了"
 }
 
-# agent_and_pane_id_table.txt生成
+# agent_and_pane_id_table.txt生成（初期状態）
 generate_agent_pane_table() {
-    local agents=($1)
+    local total_panes=$1
     local table_file="./Agent-shared/agent_and_pane_id_table.txt"
     
-    log_info "📝 エージェント配置表生成中..."
+    log_info "📝 エージェント配置表（初期状態）生成中..."
     
     mkdir -p ./Agent-shared
     
@@ -368,41 +336,45 @@ generate_agent_pane_table() {
 # OpenCodeAT Agent and Pane ID Table
 # Generated: $(date)
 # Format: AGENT_NAME: session=SESSION_NAME, window=WINDOW, pane=PANE_INDEX
+# 
+# 注意: 初期状態では具体的なエージェント名は未定
+# PMがdirectory_map.txtで配置を決定後、エージェント名が確定します
 
 PM: session=pm_session, window=0, pane=0
 EOF
     
-    # opencodeatセッションのエージェント
+    # opencodeatセッションのペイン（初期状態）
     local pane_indices=($(tmux list-panes -t "opencodeat:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
     
-    for i in "${!agents[@]}"; do
-        if [ $i -lt ${#pane_indices[@]} ]; then
-            echo "${agents[$i]}: session=opencodeat, window=0, pane=${pane_indices[$i]}" >> "$table_file"
+    for i in "${!pane_indices[@]}"; do
+        if [ $i -eq 0 ]; then
+            echo "STATUS: session=opencodeat, window=0, pane=${pane_indices[$i]}" >> "$table_file"
+        else
+            echo "待機中${i}: session=opencodeat, window=0, pane=${pane_indices[$i]}" >> "$table_file"
         fi
     done
     
     log_success "✅ agent_and_pane_id_table.txt 生成完了"
 }
 
-# 実行計画表示
+# 実行計画表示（シンプル版）
 show_execution_plan() {
-    local total_agents=$1
-    local distribution=($2)
-    local agents=($3)
+    local worker_count=$1
     
     echo ""
-    echo "📋 実行計画:"
-    echo "============"
-    echo "PMを除くエージェント数: $total_agents"
-    echo "構成: PM(別セッション) + SE(${distribution[0]}) + CI(${distribution[1]}) + PG(${distribution[2]}) + CD(${distribution[3]}) + 状態表示(1)"
+    echo "📋 セットアップ情報:"
+    echo "===================="
+    echo "ワーカー数: $worker_count (PM除く)"
+    echo "ペイン数: $((worker_count + 1)) (STATUS含む)"
     echo ""
-    echo "エージェント一覧:"
-    echo "  PM (別セッション)"
-    local i=1
-    for agent in "${agents[@]}"; do
-        printf "  %2d. %s\n" $i "$agent"
-        ((i++))
-    done
+    echo "参考構成例（実際の配置はPMが決定）:"
+    echo "  3人: SE(1) + CI(1) + PG(1) ※最小構成"
+    echo "  6人: SE(1) + CI(1) + PG(3) + CD(1)"
+    echo "  8人: SE(2) + CI(2) + PG(3) + CD(1)"
+    echo "  11人: SE(2) + CI(2) + PG(6) + CD(1)"
+    echo "  15人: SE(2) + CI(3) + PG(9) + CD(1)"
+    echo ""
+    echo "推奨: SEは2人が理想的、CIとPGはプロジェクトの特性に応じて調整"
     echo ""
 }
 
@@ -441,36 +413,25 @@ main() {
                 log_error "dry-runにはエージェント数が必要です"
                 exit 1
             fi
-            local total_agents=$2
+            local worker_count=$2
             ;;
         *)
             if [[ ! "$1" =~ ^[0-9]+$ ]]; then
                 log_error "エージェント数は数値で指定してください"
                 exit 1
             fi
-            local total_agents=$1
+            local worker_count=$1
             ;;
     esac
     
-    # エージェント数チェック（PMを除く）
-    if [[ $total_agents -lt 6 || $total_agents -gt 20 ]]; then
-        log_error "エージェント数は6-20の範囲で指定してください（PM除く）"
+    # エージェント数チェック（PMを除く、最小構成: SE + CI + PG = 3）
+    if [[ $worker_count -lt 3 ]]; then
+        log_error "エージェント数は3以上を指定してください（PM除く、最小構成: SE + CI + PG）"
         exit 1
     fi
     
-    # エージェント構成計算
-    local distribution
-    distribution=($(calculate_agent_distribution $total_agents))
-    if [[ $? -ne 0 ]]; then
-        exit 1
-    fi
-    
-    # エージェント名生成
-    local agents
-    agents=($(generate_agent_names "${distribution[@]}"))
-    
-    # 実行計画表示
-    show_execution_plan $total_agents "${distribution[*]}" "${agents[*]}"
+    # 実行計画表示（シンプル版）
+    show_execution_plan $worker_count
     
     # dry-runの場合はここで終了
     if [[ "$1" == "--dry-run" ]]; then
@@ -481,18 +442,19 @@ main() {
     # 既存セッションの確認とリネーム
     handle_existing_sessions
     
+    # エージェント数をファイルに記録（PMがリソース配分計画に使用）
+    echo "$worker_count" > ./Agent-shared/max_agent_number.txt
+    log_info "エージェント数を記録: $worker_count (PM除く)"
+    
     # PMセッション作成
     create_pm_session
     
-    # 状態表示スクリプト生成
-    generate_status_display_script "${agents[*]}"
+    # メインセッション作成（ワーカー数 + STATUS用）
+    local total_panes=$((worker_count + 1))
+    create_main_session $total_panes
     
-    # メインセッション作成（状態表示pane含む）
-    local total_with_status=$((${#agents[@]}))
-    create_main_session $total_with_status "${agents[*]}"
-    
-    # agent_and_pane_id_table.txt生成
-    generate_agent_pane_table "${agents[*]}"
+    # agent_and_pane_id_table.txt生成（初期状態）
+    generate_agent_pane_table $total_panes
     
     # 完了メッセージ
     echo ""
@@ -510,8 +472,9 @@ main() {
     echo "     # pm_sessionで以下を実行:"
     echo "     claude --dangerously-skip-permissions"
     echo ""
-    echo "  3. 📊 エージェント配置確認:"
-    echo "     cat ./Agent-shared/agent_and_pane_id_table.txt"
+    echo "  3. 📊 エージェント配置:"
+    echo "     cat ./Agent-shared/agent_and_pane_id_table.txt  # ペイン番号確認"
+    echo "     cat ./Agent-shared/max_agent_number.txt       # ワーカー数: $worker_count"
     echo ""
     
     # セッション作成確認
