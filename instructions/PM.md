@@ -86,7 +86,9 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flatt
 
 
 ### フェーズ4: プロジェクト初期化
-ディレクトリ階層を適切に構成し、適切なディレクトリ上でclaudeやgeminiといったコマンドでエージェントを起動する。起動にはスクリプトを使用する。
+1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
+2. ディレクトリ階層を適切に構成
+3. 適切なディレクトリ上でclaudeやgeminiといったコマンドでエージェントを起動する（起動にはスクリプトを使用）
 
 
 
@@ -142,6 +144,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 
 ### ファイル管理
 - /Agent-shared/directory_map.txt（エージェント配置管理）
+- /Agent-shared/max_agent_number.txt（ワーカー数記録）
 - /Agent-shared/budget_history.md（予算使用履歴）
 - _remote_info/（スパコン固有情報）
 
