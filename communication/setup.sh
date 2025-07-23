@@ -138,32 +138,11 @@ generate_agent_names() {
     echo "${agents[@]}"
 }
 
-# 既存セッションクリーンアップ
-cleanup_sessions() {
-    log_info "🧹 既存セッションクリーンアップ開始..."
+# セッション重複チェックとリネーム
+handle_existing_sessions() {
+    log_info "🔍 既存セッションの確認とリネーム処理..."
     
-    # OpenCodeAT関連セッション削除
-    tmux kill-session -t opencodeat 2>/dev/null && log_info "opencodeatセッション削除完了" || log_info "opencodeatセッションは存在しませんでした"
-    tmux kill-session -t pm_session 2>/dev/null && log_info "pm_sessionセッション削除完了" || log_info "pm_sessionセッションは存在しませんでした"
-    
-    # 古いセッション削除
-    tmux kill-session -t multiagent 2>/dev/null && log_info "multiagentセッション削除完了" || log_info "multiagentセッションは存在しませんでした"
-    
-    # 一時ファイルクリア
-    mkdir -p ./tmp
-    rm -f ./tmp/agent*_done.txt 2>/dev/null && log_info "既存の完了ファイルをクリア" || log_info "完了ファイルは存在しませんでした"
-    
-    # ログディレクトリ作成
-    mkdir -p ./communication/logs
-    
-    log_success "✅ クリーンアップ完了"
-}
-
-# PMセッション作成
-create_pm_session() {
-    log_info "📺 PMセッション作成中..."
-    
-    # 既存のpm_sessionがあれば番号を付けてリネーム
+    # pm_sessionの処理
     if tmux has-session -t pm_session 2>/dev/null; then
         local timestamp=$(date +%Y%m%d_%H%M%S)
         local new_name="pm_session_old_${timestamp}"
@@ -172,10 +151,37 @@ create_pm_session() {
             log_error "pm_sessionのリネームに失敗。強制終了します"
             tmux kill-session -t pm_session 2>/dev/null || true
         }
-        sleep 0.5
     fi
     
-    # 新しいPMセッション作成
+    # opencodeatの処理
+    if tmux has-session -t opencodeat 2>/dev/null; then
+        local timestamp=$(date +%Y%m%d_%H%M%S)
+        local new_name="opencodeat_old_${timestamp}"
+        log_info "既存のopencodeatを${new_name}にリネーム"
+        tmux rename-session -t opencodeat "${new_name}" 2>/dev/null || {
+            log_error "opencodeatのリネームに失敗。強制終了します"
+            tmux kill-session -t opencodeat 2>/dev/null || true
+        }
+    fi
+    
+    # 古いmultiagentセッションがあれば削除
+    tmux kill-session -t multiagent 2>/dev/null && log_info "古いmultiagentセッション削除"
+    
+    # ディレクトリ準備
+    mkdir -p ./Agent-shared
+    mkdir -p ./communication/logs
+    mkdir -p ./tmp
+    rm -f ./tmp/agent*_done.txt 2>/dev/null
+    
+    sleep 0.5
+    log_success "✅ セッション準備完了"
+}
+
+# PMセッション作成
+create_pm_session() {
+    log_info "📺 PMセッション作成中..."
+    
+    # 新しいPMセッション作成（handle_existing_sessionsで既に処理済み）
     tmux new-session -d -s pm_session -n "project-manager"
     
     # セッションが作成されたか確認
@@ -247,19 +253,7 @@ create_main_session() {
     
     log_info "グリッド構成: ${cols}列 x ${rows}行"
     
-    # 既存のopencodeatセッションがあれば番号を付けてリネーム
-    if tmux has-session -t opencodeat 2>/dev/null; then
-        local timestamp=$(date +%Y%m%d_%H%M%S)
-        local new_name="opencodeat_old_${timestamp}"
-        log_info "既存のopencodeatを${new_name}にリネーム"
-        tmux rename-session -t opencodeat "${new_name}" 2>/dev/null || {
-            log_error "opencodeatのリネームに失敗。強制終了します"
-            tmux kill-session -t opencodeat 2>/dev/null || true
-        }
-        sleep 0.5
-    fi
-    
-    # セッションを作成
+    # セッションを作成（handle_existing_sessionsで既に処理済み）
     tmux new-session -d -s opencodeat -n "hpc-agents"
     
     # セッションが作成されたか確認
@@ -431,7 +425,15 @@ main() {
             exit 0
             ;;
         --clean-only)
-            cleanup_sessions
+            log_info "クリーンアップモード"
+            # 古いセッションを完全に削除
+            tmux kill-session -t opencodeat 2>/dev/null && log_info "opencodeatセッション削除"
+            tmux kill-session -t pm_session 2>/dev/null && log_info "pm_sessionセッション削除"
+            tmux list-sessions 2>/dev/null | grep -E "opencodeat_old_|pm_session_old_" | cut -d: -f1 | while read session; do
+                tmux kill-session -t "$session" 2>/dev/null && log_info "${session}削除"
+            done
+            rm -rf ./tmp/agent*_done.txt 2>/dev/null
+            log_success "✅ クリーンアップ完了"
             exit 0
             ;;
         --dry-run)
@@ -476,8 +478,8 @@ main() {
         exit 0
     fi
     
-    # クリーンアップ
-    cleanup_sessions
+    # 既存セッションの確認とリネーム
+    handle_existing_sessions
     
     # PMセッション作成
     create_pm_session
