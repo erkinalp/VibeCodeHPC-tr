@@ -163,7 +163,29 @@ cleanup_sessions() {
 create_pm_session() {
     log_info "📺 PMセッション作成中..."
     
+    # 既存のpm_sessionがあれば番号を付けてリネーム
+    if tmux has-session -t pm_session 2>/dev/null; then
+        local timestamp=$(date +%Y%m%d_%H%M%S)
+        local new_name="pm_session_old_${timestamp}"
+        log_info "既存のpm_sessionを${new_name}にリネーム"
+        tmux rename-session -t pm_session "${new_name}" 2>/dev/null || {
+            log_error "pm_sessionのリネームに失敗。強制終了します"
+            tmux kill-session -t pm_session 2>/dev/null || true
+        }
+        sleep 0.5
+    fi
+    
+    # 新しいPMセッション作成
     tmux new-session -d -s pm_session -n "project-manager"
+    
+    # セッションが作成されたか確認
+    if ! tmux has-session -t pm_session 2>/dev/null; then
+        log_error "pm_sessionの作成に失敗しました"
+        log_info "既存のセッション一覧:"
+        tmux list-sessions || echo "セッションなし"
+        return 1
+    fi
+    
     tmux send-keys -t "pm_session:project-manager" "cd $(pwd)" C-m
     tmux send-keys -t "pm_session:project-manager" "export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
     tmux send-keys -t "pm_session:project-manager" "clear" C-m
@@ -225,8 +247,27 @@ create_main_session() {
     
     log_info "グリッド構成: ${cols}列 x ${rows}行"
     
+    # 既存のopencodeatセッションがあれば番号を付けてリネーム
+    if tmux has-session -t opencodeat 2>/dev/null; then
+        local timestamp=$(date +%Y%m%d_%H%M%S)
+        local new_name="opencodeat_old_${timestamp}"
+        log_info "既存のopencodeatを${new_name}にリネーム"
+        tmux rename-session -t opencodeat "${new_name}" 2>/dev/null || {
+            log_error "opencodeatのリネームに失敗。強制終了します"
+            tmux kill-session -t opencodeat 2>/dev/null || true
+        }
+        sleep 0.5
+    fi
+    
     # セッションを作成
     tmux new-session -d -s opencodeat -n "hpc-agents"
+    
+    # セッションが作成されたか確認
+    if ! tmux has-session -t opencodeat 2>/dev/null; then
+        log_error "opencodeatセッションの作成に失敗しました"
+        return 1
+    fi
+    
     sleep 1
     
     # グリッド作成
@@ -470,6 +511,24 @@ main() {
     echo "  3. 📊 エージェント配置確認:"
     echo "     cat ./Agent-shared/agent_and_pane_id_table.txt"
     echo ""
+    
+    # セッション作成確認
+    echo "🔍 セッション作成確認:"
+    if tmux has-session -t pm_session 2>/dev/null; then
+        echo "  ✅ pm_session: 作成成功"
+    else
+        echo "  ❌ pm_session: 作成失敗"
+    fi
+    
+    if tmux has-session -t opencodeat 2>/dev/null; then
+        echo "  ✅ opencodeat: 作成成功"
+    else
+        echo "  ❌ opencodeat: 作成失敗"
+    fi
+    
+    echo ""
+    echo "現在のtmuxセッション一覧:"
+    tmux list-sessions || echo "セッションなし"
 }
 
 main "$@"
