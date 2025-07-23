@@ -87,8 +87,10 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flatt
 
 ### フェーズ4: プロジェクト初期化
 1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
-2. ディレクトリ階層を適切に構成
-3. 適切なディレクトリ上でclaudeやgeminiといったコマンドでエージェントを起動する（起動にはスクリプトを使用）
+2. `/Agent-shared/agent_and_pane_id_table.txt`を確認し、既存のセッション構成を把握
+3. ディレクトリ階層を適切に構成
+4. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
+5. 適切なディレクトリ上でclaudeやgeminiといったコマンドでエージェントを起動する（起動にはスクリプトを使用）
 
 
 

@@ -293,10 +293,29 @@ tmux attach-session -t opencodeat
 cp requirement_definition_template.md requirement_definition.md
 # requirement_definition.mdを編集
 ```
-PMを起動
+
+PMを手動起動
 ```bash
-tmux send-keys -t pm_session 'claude --dangerously-skip-permissions' C-m
-# "requirement_definition.mdに基づいてプロジェクトを初期化してください"
+# pm_sessionで以下を実行:
+claude --dangerously-skip-permissions
+```
+
+起動後、以下のプロンプトをコピーして貼り付け：
+```
+あなたはPM（Project Manager）です。OpenCodeATプロジェクトを開始します。
+
+まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
+- CLAUDE.md（全エージェント共通ルール）
+- instructions/PM.md（あなたの役割詳細）
+- requirement_definition.md（プロジェクト要件）※存在する場合
+- Agent-shared/以下の全ての.mdと.txtファイル（.pyファイルは除く）
+
+特に重要：
+- max_agent_number.txt（利用可能なワーカー数）
+- agent_and_pane_id_table.txt（既存セッション構成）
+- directory_map.txt（エージェント配置管理）
+
+全て読み込んだ後、既存の opencodeat セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
 ```
 
 ## 🤖 エージェント役割
