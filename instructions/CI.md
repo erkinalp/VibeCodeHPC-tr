@@ -199,10 +199,33 @@ mcp__desktop-commander__interact_with_process(
 ### フェーズ2: コマンド実行およびファイル転送
 適宜workerのchanges.mdを参照し、SSH先でテストしていないコードがあればmakeやジョブ実行を行う。
 
+#### コンパイル実行と警告文の処理
+1. **make実行時の出力保存**
+   ```bash
+   # makeの出力を保存しながら実行
+   make 2>&1 | tee /results/compile_v1.2.3.log
+   ```
+
+2. **警告文の解析**
+   - 並列化モジュール特有の警告を確認
+   - OpenMP、MPI、CUDA等の警告メッセージを抽出
+   - 重要な警告がある場合は`compile_status: warning`に設定
+
+3. **changes.md更新**
+   ```markdown
+   compile_status: warning
+   compile_warnings: "OpenMP: ループ依存性の警告 - collapse句が最適化されない可能性"
+   compile_output_path: "/results/compile_v1.2.3.log"
+   ```
+
+4. **PGへの通知**
+   - 重要な警告がある場合は、ジョブ投入前にPGに確認を求める
+   - `agent_send.sh PG1.1.1 "[警告] コンパイル警告あり - changes.md確認してください"`
+
 #### 結果処理方法
 - **短縮結果**: 標準出力に表示された結果が短ければ直接changes.mdに書き込む
 - **詳細結果**: 結果がworkerの/resultsなどのフォルダ（なければ作成）し、ファイルに書き込み、パスをChanges.mdに書き込むこと
-- **例**: make時のOpenACCの警告文など
+- **警告文**: 並列化に関する警告は必ずchanges.mdのcompile_warningsに記録
 
 #### ファイル転送（SFTPセッション使用）
 ```bash

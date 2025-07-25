@@ -12,7 +12,9 @@ timestamp: "2025-07-16 12:34:56 UTC"
 code_files: "mat-mat-noopt_v1.2.3.c"
 
 # Build & Execution (CI updates)
-compile_status: success | fail | pending
+compile_status: success | fail | warning | pending
+compile_warnings: "OpenMP collapse clause に関する警告: ループ依存性の可能性"
+compile_output_path: "/results/compile_v1.2.3.log"
 job_id: "87654321"
 job_status: pending | running | completed | failed | timeout
 test_status: pass | fail | partial | skip
@@ -55,7 +57,7 @@ error_analysis: "なし"
 ## Field Specifications
 
 ### **Status Values**
-- **compile_status**: success, fail, pending
+- **compile_status**: success, fail, warning, pending
 - **job_status**: pending, running, completed, failed, timeout
 - **test_status**: pass, fail, partial, skip
 - **sota_level**: local, parent, global, project

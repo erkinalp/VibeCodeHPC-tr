@@ -361,7 +361,8 @@ timestamp: "2025-07-16 12:34:56 UTC"
 code_files: "matrix_v1.2.3.c"
 
 # Build & Execution (CI updates)
-compile_status: success | fail | pending
+compile_status: success | fail | warning | pending
+compile_warnings: "並列化に関する警告メッセージ"
 job_status: completed | failed | timeout
 performance_metric: "285.7 GFLOPS"
 compute_cost: "12.5 node-hours"
