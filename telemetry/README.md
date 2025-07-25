@@ -38,9 +38,18 @@ export OTEL_RESOURCE_ATTRIBUTES="agent_id=SE1,tmux_pane=${TMUX_PANE}"
 
 ### 2. メトリクス収集
 ```bash
-# コンソール出力をファイルにリダイレクト
-claude --dangerously-skip-permissions 2>&1 | tee telemetry/raw_metrics/agent_${AGENT_ID}_$(date +%Y%m%d_%H%M%S).log
+# 標準エラー出力のみをファイルにリダイレクト（対話的使用に影響なし）
+claude --dangerously-skip-permissions 2>telemetry/raw_metrics/agent_${AGENT_ID}_$(date +%Y%m%d_%H%M%S).log
+
+# または、ヘルパースクリプトを使用
+./telemetry/start_agent_with_telemetry.sh SE1
 ```
+
+#### ⚠️ 重要な制約事項
+- OpenTelemetryメトリクスは**標準エラー出力(stderr)**に出力されます
+- Claude CodeがREPL環境のため、`tee`でのリダイレクトは対話を妨げます
+- 現在の実装では、メトリクスが実際に収集されるかはClaude Codeの内部実装に依存します
+- **サブエージェント統計のみが確実に動作します**（`claude -p`は単発実行のため）
 
 ### 3. 可視化
 ```bash

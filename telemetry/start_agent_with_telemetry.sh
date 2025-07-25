@@ -65,14 +65,22 @@ export PS1="(\[\033[1;33m\]${AGENT_ID}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$
 alias claude-p="$TELEMETRY_DIR/claude_p_wrapper.sh"
 echo "📊 Sub-agent tracking enabled. Use 'claude-p' instead of 'claude -p'"
 
-# Claude Codeを起動（出力をログファイルにも記録）
+# Claude Codeを起動（標準エラー出力のみログファイルにリダイレクト）
 echo "Starting claude with options: --dangerously-skip-permissions $@"
-claude --dangerously-skip-permissions "$@" 2>&1 | tee "$LOG_FILE"
+echo ""
+echo "⚠️  Note: OpenTelemetry metrics will be collected in the background"
+echo "    The interactive session will work normally"
+echo ""
+
+# 標準エラー出力をログファイルにリダイレクトしてClaude Codeを起動
+# 標準出力は通常通り表示されるため、対話的な使用に影響なし
+claude --dangerously-skip-permissions "$@" 2>"$LOG_FILE"
 
 # 終了時の処理
 echo ""
 echo "✅ Agent $AGENT_ID session ended"
-echo "📊 Metrics saved to: $LOG_FILE"
+echo "📊 Metrics may have been saved to: $LOG_FILE"
 echo ""
-echo "To analyze metrics, run:"
+echo "To check if metrics were collected, run:"
+echo "  ls -la $LOG_FILE"
 echo "  python $TELEMETRY_DIR/collect_metrics.py $LOG_FILE $AGENT_ID"
