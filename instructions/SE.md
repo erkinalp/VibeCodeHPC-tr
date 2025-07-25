@@ -37,6 +37,7 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 - ログ可視化
 - テストコード作成
 - changes.mdレポート生成
+- コンテキスト使用率の監視と可視化
 
 #### ファイル管理
 成果物（グラフ化するためのPythonコード等も含む）は/Agent-shared📂以下に集約管理することを推奨する：
@@ -76,6 +77,22 @@ SOTAを更新していない点は除外し、単調増加のグラフとして�
 
 有用だと考えられる統計手法などを用いて、エージェントが順調に成果を挙げているかを確認すること。
 
+#### コンテキスト使用率監視
+SEは定期的に以下のタスクを実行すること：
+
+1. **メトリクス収集**
+   - 各エージェントのtelemetryログを`telemetry/collect_metrics.py`で処理
+   - コンテキスト使用率の時系列データを収集
+
+2. **可視化更新**
+   - `telemetry/visualize_context.py`を実行
+   - 全エージェントのコンテキスト使用率グラフを生成
+   - 危険域（80%以上）に達したエージェントをPMに報告
+
+3. **auto-compact監視**
+   - `telemetry/auto_compact/auto_compact.log`を確認
+   - auto-compact発生頻度を集計してPMに報告
+
 ### changes.mdレポート生成
 
 複数のPGエージェントのchanges.mdを統合し、プロジェクト全体の進捗を把握できるレポートを生成する。
@@ -113,6 +130,9 @@ Agent-shared/changes_report_template.py をベースに、プロジェクトに�
 - agent-send.sh（エージェント間通信）
 - Python matplotlib（グラフ作成）
 - 統計解析ツール
+- telemetry/collect_metrics.py（メトリクス収集）
+- telemetry/visualize_context.py（コンテキスト使用率可視化）
+- Agent-shared/changes_report_template.py（changes.mdレポート生成）
 
 ### ファイル管理
 - /Agent-shared/directory_map.txt（エージェント配置管理）

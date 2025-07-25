@@ -296,6 +296,13 @@ create_main_session() {
         
         tmux send-keys -t "$pane_target" "cd $(pwd)" C-m
         
+        # OpenTelemetry環境変数を設定（全ペイン共通）
+        tmux send-keys -t "$pane_target" "export CLAUDE_CODE_ENABLE_TELEMETRY=1" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_METRICS_EXPORTER=console" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_METRIC_EXPORT_INTERVAL=10000" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_LOGS_EXPORTER=console" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_LOG_USER_PROMPTS=0" C-m
+        
         if [ $i -eq 0 ]; then
             # 最初のペインはSTATUS用
             tmux select-pane -t "$pane_target" -T "STATUS"
@@ -311,12 +318,20 @@ create_main_session() {
             # その他のペインはエージェント配置待ち
             local pane_number=$i
             tmux select-pane -t "$pane_target" -T "Pane${pane_number}"
+            
+            # エージェント用のOTEL_RESOURCE_ATTRIBUTES準備（後でagent_idが決まったら更新）
+            tmux send-keys -t "$pane_target" "export TMUX_PANE_ID='${pane_index}'" C-m
+            tmux send-keys -t "$pane_target" "export OTEL_RESOURCE_ATTRIBUTES=\"tmux_pane=\${TMUX_PANE},pane_index=${pane_index}\"" C-m
+            
             tmux send-keys -t "$pane_target" "export PS1='(\[\033[1;90m\]待機中${pane_number}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
             tmux send-keys -t "$pane_target" "echo '=== エージェント配置待ち (Pane ${pane_number}) ==='" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
             tmux send-keys -t "$pane_target" "echo 'PMがdirectory_map.txtで配置を決定します'" C-m
             tmux send-keys -t "$pane_target" "echo 'その後、エージェントが起動されます'" C-m
+            tmux send-keys -t "$pane_target" "echo ''" C-m
+            tmux send-keys -t "$pane_target" "echo '📊 OpenTelemetryが有効化されています'" C-m
+            tmux send-keys -t "$pane_target" "echo '   メトリクス収集間隔: 10秒'" C-m
         fi
     done
     

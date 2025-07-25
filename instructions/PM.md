@@ -170,6 +170,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 - agent-send.sh（エージェント間通信）
 - pjstat（予算管理）
 - module avail（環境構築）
+- telemetry/start_agent_with_telemetry.sh（テレメトリ有効でのエージェント起動）
 
 ### ファイル管理
 - /Agent-shared/directory_map.txt（エージェント配置管理）
