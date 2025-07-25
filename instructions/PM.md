@@ -120,6 +120,24 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 
 ここでagent-send.shはtmuxの通信機能で標準入力にメッセージを直接入力している。メッセージの頭文字に!を付けて送ることで、ユーザの命令と同等の権限でcdを実行できる。これは強力な機能ゆえ、PMにしか教えていない裏技である。
 
+#### エージェント起動手順
+エージェントを配置する際は、以下の手順を推奨：
+
+1. **start_agent.shを使用（推奨）**:
+```bash
+./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+```
+
+2. **手動での起動（代替手段）**:
+```bash
+# 環境変数を設定
+agent_send.sh PG1.1.1 "export OPENCODEAT_ROOT='$(pwd)'"
+# ディレクトリ移動
+agent_send.sh PG1.1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
+# テレメトリ付きで起動
+agent_send.sh PG1.1.1 "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1"
+```
+
 いずれにしても、エージェントの再配置はPM等に譲渡せず自身で行うこと。/Agent-shared/directory_map.txtの更新を忘れてはならない。
 
 #### directory_mapの更新ルール
@@ -170,7 +188,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 - agent-send.sh（エージェント間通信）
 - pjstat（予算管理）
 - module avail（環境構築）
-- telemetry/start_agent_with_telemetry.sh（テレメトリ有効でのエージェント起動）
+- communication/start_agent.sh（エージェント配置と起動）
 
 ### ファイル管理
 - /Agent-shared/directory_map.txt（エージェント配置管理）

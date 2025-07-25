@@ -5,6 +5,10 @@
 
 set -e  # エラー時に停止
 
+# プロジェクトルートの取得（setup.shの親ディレクトリ）
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # 色付きログ関数
 log_info() {
     echo -e "\033[1;32m[INFO]\033[0m $1"
@@ -193,7 +197,7 @@ create_pm_session() {
         return 1
     fi
     
-    tmux send-keys -t "pm_session:project-manager" "cd $(pwd)" C-m
+    tmux send-keys -t "pm_session:project-manager" "cd $PROJECT_ROOT" C-m
     tmux send-keys -t "pm_session:project-manager" "export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
     tmux send-keys -t "pm_session:project-manager" "clear" C-m
     tmux send-keys -t "pm_session:project-manager" "echo '=== PM (Project Manager) エージェント ==='" C-m
@@ -294,7 +298,7 @@ create_main_session() {
         local pane_index="${pane_indices[$i]}"
         local pane_target="opencodeat:hpc-agents.${pane_index}"
         
-        tmux send-keys -t "$pane_target" "cd $(pwd)" C-m
+        tmux send-keys -t "$pane_target" "cd $PROJECT_ROOT" C-m
         
         # OpenTelemetry環境変数を設定（全ペイン共通）
         tmux send-keys -t "$pane_target" "export CLAUDE_CODE_ENABLE_TELEMETRY=1" C-m

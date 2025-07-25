@@ -13,8 +13,13 @@ AGENT_ID=$1
 shift  # 残りの引数はclaude用
 
 # プロジェクトルートの取得
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# 環境変数が設定されていればそれを使用、なければスクリプトの場所から推定
+if [ -n "$OPENCODEAT_ROOT" ]; then
+    PROJECT_ROOT="$OPENCODEAT_ROOT"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+fi
 TELEMETRY_DIR="$PROJECT_ROOT/telemetry"
 
 # ログファイルの準備
@@ -25,8 +30,14 @@ LOG_FILE="$LOG_DIR/agent_${AGENT_ID}_$(date +%Y%m%d_%H%M%S).log"
 # エージェントタイプによってプロンプトスタイルを設定
 AGENT_TYPE=$(echo $AGENT_ID | grep -oE '^[A-Z]+')
 
-# OTEL_RESOURCE_ATTRIBUTESの更新（agent_idを追加）
-export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},agent_id=${AGENT_ID},agent_type=${AGENT_TYPE}"
+# 現在の作業ディレクトリを取得
+WORKING_DIR=$(pwd)
+# プロジェクトルートからの相対パス
+RELATIVE_DIR=${WORKING_DIR#$PROJECT_ROOT}
+RELATIVE_DIR=${RELATIVE_DIR#/}  # 先頭のスラッシュを除去
+
+# OTEL_RESOURCE_ATTRIBUTESの更新（agent_id、作業ディレクトリを追加）
+export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},agent_id=${AGENT_ID},agent_type=${AGENT_TYPE},working_dir=${RELATIVE_DIR}"
 
 # auto-compactフックの設定確認
 SETTINGS_FILE="$HOME/.claude/settings.json"

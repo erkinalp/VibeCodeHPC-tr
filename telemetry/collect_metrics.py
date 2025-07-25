@@ -26,6 +26,9 @@ class MetricsCollector:
             'session_id': re.compile(
                 r'session\.id="([^"]+)"'
             ),
+            'working_dir': re.compile(
+                r'working_dir="([^"]+)"'
+            ),
             'api_request': re.compile(
                 r'event\.name="api_request".*?input_tokens=(\d+).*?output_tokens=(\d+).*?model="([^"]+)"'
             ),
@@ -57,10 +60,15 @@ class MetricsCollector:
             timestamp_match = self.patterns['timestamp'].search(line)
             timestamp = timestamp_match.group(1) if timestamp_match else datetime.utcnow().isoformat()
             
+            # 作業ディレクトリの抽出
+            working_dir_match = self.patterns['working_dir'].search(line)
+            working_dir = working_dir_match.group(1) if working_dir_match else "unknown"
+            
             metric = {
                 'timestamp': timestamp,
                 'agent_id': agent_id,
                 'session_id': session_id,
+                'working_dir': working_dir,
                 'token_type': token_type,
                 'value': int(value),
                 'metric_type': 'token_usage'
