@@ -24,6 +24,7 @@
 - **CI (Continuous Integration)**: @instructions/CI.md - SSH接続・環境構築・リモート実行
 - **PG (Program Generator)**: @instructions/PG.md - コード生成・最適化実装
 - **CD (Code Deployment)**: @instructions/CD.md - GitHub管理・セキュリティ対応
+- **ID (Information Display)**: @instructions/ID.md - エージェント配置の可視化・STATUSペイン表示
 
 ## 基本フロー
 PM → SE → CI ↔ PG → PM

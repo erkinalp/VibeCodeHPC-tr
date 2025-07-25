@@ -90,7 +90,14 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flatt
 2. `/Agent-shared/agent_and_pane_id_table.txt`を確認し、既存のセッション構成を把握
 3. ディレクトリ階層を適切に構成
 4. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
-5. 適切なディレクトリ上でclaudeやgeminiといったコマンドでエージェントを起動する（起動にはスクリプトを使用）
+5. STATUSペイン（pane 0）にIDエージェントを起動：
+   ```bash
+   # STATUSペインでIDエージェントを起動
+   tmux send-keys -t "opencodeat:0.0" "claude --dangerously-skip-permissions" C-m
+   # IDであることを通知
+   agent_send.sh STATUS "あなたはIDです。STATUSペインでエージェント配置情報を表示してください"
+   ```
+6. その他のペインに各エージェントを配置（SE、CI、PG、CD）
 
 
 
@@ -132,6 +139,9 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flatt
    - エージェント配置直後
    - エージェント移動直後
    - プロジェクトフェーズ移行時
+6. **IDエージェントへの通知**:
+   - directory_map.txt更新後は必ずIDに通知
+   - 例: `agent_send.sh ID "[更新] directory_map更新完了"`
 #### セマフォ風エージェント管理
 タスクを完了したコード生成Worker：PGm.n.k（m,n,kは自然数）がSSHエージェント：CIm.nの最後の一人で、このPGが別のディレクトリに移動するなら、このCIも異動する必要がある。
 
