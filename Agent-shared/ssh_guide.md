@@ -74,7 +74,7 @@ agent-send.sh CI1.1 "!cd Flow/TypeII/single-node/gcc11.3.0/OpenMP && claude --da
 
 # 方法2: MCP必要な場合（CI）
 # 1. MCPサーバ追加
-claude mcp add
+claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 # 2. 2分待機（timeout）
 sleep 120
 # 3. 終了

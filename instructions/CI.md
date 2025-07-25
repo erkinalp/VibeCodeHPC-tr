@@ -60,7 +60,7 @@ CI Agent 1つにつき：
    ```bash
    # 自分のIDを確認（例：CI1.1）
    # MCPサーバ追加コマンドを実行
-   claude mcp add desktop-commander -- node /path/to/desktop-commander/dist/index.js
+   claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
    ```
 
 2. **MCP設定完了後の再起動**

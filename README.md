@@ -223,8 +223,8 @@ gh auth login
 
 ---
 
-#### ☑️ **MCPサーバのセットアップ (wcgw)**
-- Claude CodeからHPC環境のコマンドを安全に実行するため、`wcgw` MCPサーバを追加します https://github.com/rusiaaman/wcgw
+#### ☑️ **MCPサーバのセットアップ (Desktop Commander)**
+- Claude CodeからHPC環境のコマンドを安全に実行するため、Desktop Commander MCPサーバを使用します
 - **事前準備**: uvがインストールされていることを確認
   ```bash
   # uvのインストール（未インストールの場合）
@@ -232,26 +232,31 @@ gh auth login
   # または
   pip install uv
   ```
-- CIエージェントが自動的にwcgw設定を行います（詳細は以下）
+- CIエージェントがDesktop Commander経由でSSH接続を管理します
   <details>
-  <summary>手動設定が必要な場合（クリックで展開）</summary>
+  <summary>Desktop Commander MCPの設定方法（クリックで展開）</summary>
   
-  以下のコマンドで `wcgw` を追加：
+  以下のコマンドでDesktop Commander MCPサーバを追加：
   ```bash
-  claude mcp add wcgw -- uv tool run --python 3.12 wcgw@latest
+  claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
   ```
   
-  2分後に別のターミナルを起動しClaude Code内で `/mcp` コマンドで接続を確認してください。
+  **PMエージェントの場合**（別セッションにいるため）：
+  ```bash
+  # PM以外のエージェントから実行
+  agent-send.sh PM "!claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander"
+  ```
+  
+  設定後、Claude Code内で `/mcp` コマンドで接続を確認してください。
+  詳細は公式ドキュメントを参照：https://github.com/wonderwhy-er/DesktopCommanderMCP
   </details>
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---
 
-> [!WARNING]
-> wcgw を使用する場合、Windowsでは WSL 以外が非対応のため
-> powershell等のWindowsネイティブなCLIは使用できません。
-> 
-> 代わりのMCPサーバ候補例 https://github.com/wonderwhy-er/DesktopCommanderMCP
+> [!NOTE]
+> Desktop Commander MCPはクロスプラットフォーム対応で、Windows/Mac/Linuxで動作します。
+> SSH接続はPID（プロセスID）で管理され、複数のCIエージェントが独立したセッションを保持できます。
 
 ### 2. 環境セットアップ
 
