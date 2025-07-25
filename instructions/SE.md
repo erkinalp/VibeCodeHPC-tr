@@ -87,6 +87,23 @@ SOTAを更新していない点は除外し、単調増加のグラフとして�
 
 有用だと考えられる統計手法などを用いて、エージェントが順調に成果を挙げているかを確認すること。
 
+#### サブエージェント使用統計
+SEは定期的にサブエージェント（claude -p）の使用状況を分析すること：
+
+1. **統計収集と分析**
+   ```bash
+   python telemetry/analyze_sub_agent.py
+   ```
+
+2. **効果的な使用パターンの特定**
+   - 高圧縮率（< 0.5）を達成しているエージェントの手法を共有
+   - 頻繁にアクセスされるファイルの把握
+   - トークン節約量の定量化
+
+3. **推奨事項の作成**
+   - サブエージェントを活用すべき場面の特定
+   - 各エージェントへの使用方法のアドバイス
+
 #### コンテキスト使用率監視
 SEは定期的に以下のタスクを実行すること：
 
@@ -164,6 +181,7 @@ Agent-shared/changes_report_template.py をベースに、プロジェクトに�
 - telemetry/collect_metrics.py（メトリクス収集）
 - telemetry/visualize_context.py（コンテキスト使用率可視化）
 - telemetry/monitor_agents.py（エージェント健全性監視）
+- telemetry/analyze_sub_agent.py（サブエージェント使用統計）
 - Agent-shared/changes_report_template.py（changes.mdレポート生成）
 
 ### ファイル管理

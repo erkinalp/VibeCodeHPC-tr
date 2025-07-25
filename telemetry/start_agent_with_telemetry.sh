@@ -61,6 +61,10 @@ echo ""
 # プロンプトスタイルの更新
 export PS1="(\[\033[1;33m\]${AGENT_ID}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ "
 
+# サブエージェントのエイリアスを設定
+alias claude-p="$TELEMETRY_DIR/claude_p_wrapper.sh"
+echo "📊 Sub-agent tracking enabled. Use 'claude-p' instead of 'claude -p'"
+
 # Claude Codeを起動（出力をログファイルにも記録）
 echo "Starting claude with options: --dangerously-skip-permissions $@"
 claude --dangerously-skip-permissions "$@" 2>&1 | tee "$LOG_FILE"
