@@ -8,7 +8,7 @@ Claude Code等のCLI環境でtmux-based通信により、複数のAIエージェ
 ### 特徴
 - **階層型マルチエージェント**: PM → SE → CI ↔ PG の企業的分業体制
 - **プロジェクト地図**: 組織をリアルタイムに視覚化する`directory_map`
-- **進化的探索**: ボトムアップ型の`Flattened`📁構造による効率的探索
+- **進化的探索**: ボトムアップ型の`Flat`📁構造による効率的探索
 - **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
 - **予算管理**: 計算資源💰の効率的配分と追跡
 - **統一ログ**: `changes.md`による一元的な進捗管理
@@ -380,12 +380,12 @@ next_steps: "ループアンローリングとブロッキング最適化を実�
 3.  **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
 4.  **🌲 進化継続**: さらなる技術統合と最適化...
 
-### 📁Flattened Directory の利点
+### 📁Flat Directory の利点
 - **階層の曖昧性解消**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` の重複排除
 - **並列探索効率化**: 複数エージェントによる同時最適化
 - **技術継承**: 上位世代が下位世代の成果を参照可能
 
-- [ ] 詳細: [Agent-shared/evolutional_flatten_dir.md](Agent-shared/evolutional_flatten_dir.md)
+- [ ] 詳細: [Agent-shared/evolutional_flat_dir.md](Agent-shared/evolutional_flat_dir.md)
 
 ## 🔍 ファイルベースの情報共有
 

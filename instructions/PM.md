@@ -80,7 +80,7 @@ PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G  
 
 
 ### フェーズ3: 📁階層設計
-Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flatten_dir.md`）を参考にして、ユーザの要件に合致する📁の階層設計を行うこと。
+Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_dir.md`）を参考にして、ユーザの要件に合致する📁の階層設計を行うこと。
 
 `Agent-Shared/directory_map.txt`に📁階層を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
 
