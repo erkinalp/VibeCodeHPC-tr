@@ -28,6 +28,16 @@
 #### workerの監視
 workerが適切なディレクトリ上で作業を行っているか確認する。コンテキストを維持するために、必要に応じてガイダンスを提供する。
 
+定期的に以下のコマンドを実行してエージェントの健全性を監視：
+```bash
+python telemetry/monitor_agents.py --se-id [自分のID] --once
+```
+
+または、バックグラウンドで継続的監視（5分間隔）：
+```bash
+python telemetry/monitor_agents.py --se-id [自分のID] --interval 300 &
+```
+
 
 ### フェーズ3: 環境整備タスク
 プロジェクトが安定期に入ったり、他のPMに比べ自分の管轄するエージェントが少なくて暇な時は、以下のようにプロジェクトを円滑に進めるための環境整備を進める。
@@ -87,11 +97,32 @@ SEは定期的に以下のタスクを実行すること：
 2. **可視化更新**
    - `telemetry/visualize_context.py`を実行
    - 全エージェントのコンテキスト使用率グラフを生成
-   - 危険域（80%以上）に達したエージェントをPMに報告
 
-3. **auto-compact監視**
-   - `telemetry/auto_compact/auto_compact.log`を確認
-   - auto-compact発生頻度を集計してPMに報告
+3. **95%接近時の特別監視**
+   - コンテキスト使用率が95%に近いエージェントのログを重点的に監視
+   - auto-compact直後のエージェントに以下のメッセージを送信：
+     ```
+     agent_send.sh [AGENT_ID] "[SE] auto-compactを検知しました。プロジェクトの継続性のため、以下のファイルを再読み込みしてください：
+     - CLAUDE.md（共通ルール）
+     - instructions/[役割].md（あなたの役割）
+     - 現在のディレクトリのchanges.md（進捗状況）
+     - Agent-shared/directory_map.txt（エージェント配置）"
+     ```
+
+4. **エージェント健全性監視**
+   - **逸脱行動の検知**：
+     - 担当外の並列化技術を実装（例：OpenMP担当がMPIを実装）
+     - 指定ディレクトリ外での作業
+     - 不適切なファイル削除や上書き
+     → 発見時は該当エージェントに指摘、改善されない場合はPMに報告
+   
+   - **無応答エージェントの検知**：
+     - 30分以上changes.mdが更新されていない
+     - コマンド実行形跡がない
+     → 以下の手順で対応：
+       1. `agent_send.sh [AGENT_ID] "[SE] 作業状況を確認させてください。現在の進捗を教えてください。"`
+       2. 5分待って応答がなければPMに報告：
+          `agent_send.sh PM "[SE] [AGENT_ID]が30分以上無応答です。確認をお願いします。"`
 
 ### changes.mdレポート生成
 
@@ -132,6 +163,7 @@ Agent-shared/changes_report_template.py をベースに、プロジェクトに�
 - 統計解析ツール
 - telemetry/collect_metrics.py（メトリクス収集）
 - telemetry/visualize_context.py（コンテキスト使用率可視化）
+- telemetry/monitor_agents.py（エージェント健全性監視）
 - Agent-shared/changes_report_template.py（changes.mdレポート生成）
 
 ### ファイル管理

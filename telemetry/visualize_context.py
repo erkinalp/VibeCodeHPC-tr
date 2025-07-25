@@ -98,8 +98,9 @@ class ContextVisualizer:
                    alpha=0.8)
         
         # 危険ゾーンの表示
-        ax.axhspan(80, 100, alpha=0.2, color='red', label='Danger Zone (80-100%)')
-        ax.axhspan(60, 80, alpha=0.1, color='orange', label='Warning Zone (60-80%)')
+        ax.axhspan(95, 100, alpha=0.3, color='red', label='Critical Zone (95-100%)')
+        ax.axhspan(80, 95, alpha=0.2, color='orange', label='Alert Zone (80-95%)')
+        ax.axhspan(60, 80, alpha=0.1, color='yellow', label='Warning Zone (60-80%)')
         
         # フォーマット設定
         ax.set_xlabel('Time', fontsize=12)
@@ -161,8 +162,9 @@ class ContextVisualizer:
                    ha='left', va='center', fontsize=10)
         
         # 危険ラインの表示
-        ax.axvline(x=80, color='red', linestyle='--', alpha=0.7, label='Danger Threshold')
-        ax.axvline(x=60, color='orange', linestyle='--', alpha=0.5, label='Warning Threshold')
+        ax.axvline(x=95, color='red', linestyle='--', alpha=0.7, label='Critical Threshold')
+        ax.axvline(x=80, color='orange', linestyle='--', alpha=0.5, label='Alert Threshold')
+        ax.axvline(x=60, color='yellow', linestyle='--', alpha=0.3, label='Warning Threshold')
         
         # フォーマット設定
         ax.set_xlabel('Maximum Context Usage (%)', fontsize=12)
@@ -290,7 +292,10 @@ class ContextVisualizer:
                 data_points = len(agent_data)
                 
                 # 危険度に応じて強調
-                if max_context > 80:
+                if max_context > 95:
+                    agent_id = f"**{agent_id}**"
+                    status = " 🚨"
+                elif max_context > 80:
                     agent_id = f"**{agent_id}**"
                     status = " ⚠️"
                 elif max_context > 60:
@@ -302,10 +307,19 @@ class ContextVisualizer:
                        f"{avg_context:.1f}% | {last_context:.1f}% | {data_points} |\n")
             
             # 警告事項
-            high_usage = df[df['context_percentage'] > 80]['agent_id'].unique()
+            critical_usage = df[df['context_percentage'] > 95]['agent_id'].unique()
+            high_usage = df[(df['context_percentage'] > 80) & (df['context_percentage'] <= 95)]['agent_id'].unique()
+            
+            if len(critical_usage) > 0:
+                f.write("\n## 🚨 Critical Context Usage (>95%)\n\n")
+                f.write("These agents need immediate attention:\n")
+                for agent in critical_usage:
+                    max_usage = df[df['agent_id'] == agent]['context_percentage'].max()
+                    f.write(f"- **{agent}: {max_usage:.1f}%** - Auto-compact imminent\n")
+            
             if len(high_usage) > 0:
-                f.write("\n## ⚠️ High Context Usage Alerts\n\n")
-                f.write("The following agents have exceeded 80% context usage:\n")
+                f.write("\n## ⚠️ High Context Usage (80-95%)\n\n")
+                f.write("These agents are approaching critical levels:\n")
                 for agent in high_usage:
                     max_usage = df[df['agent_id'] == agent]['context_percentage'].max()
                     f.write(f"- {agent}: {max_usage:.1f}%\n")
