@@ -138,7 +138,7 @@ agent_send.sh PG1.1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
 agent_send.sh PG1.1.1 "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1"
 ```
 
-いずれにしても、エージェントの再配置はPM等に譲渡せず自身で行うこと。/Agent-shared/directory_map.txtの更新を忘れてはならない。
+いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_map.txtの更新を忘れてはならない。
 
 #### directory_mapの更新ルール
 1. **即時更新**: エージェントを割り当てた直後に必ず更新する
