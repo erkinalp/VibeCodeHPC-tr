@@ -87,7 +87,12 @@ SOTAを更新していない点は除外し、単調増加のグラフとして�
 - 失敗パターンの分析
 
 #### 生成方法
-Agent-shared/changes_report_generator.py を使用して、複数のchanges.mdを解析・統合する。必要に応じてPMに報告する。
+Agent-shared/changes_report_template.py をベースに、プロジェクトに応じてカスタマイズしたレポート生成スクリプトを作成する。テンプレートクラスを継承して、以下をカスタマイズ：
+- `extract_metadata()`: ディレクトリ構造からプロジェクト固有の情報を抽出
+- `aggregate_data()`: 必要な集計ロジックを実装
+- `generate_report()`: レポートフォーマットをカスタマイズ
+
+これによりHPC最適化以外のプロジェクトでも柔軟に対応可能。
 
 ## 🤝 他エージェントとの連携
 
