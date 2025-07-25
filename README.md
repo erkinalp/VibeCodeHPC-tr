@@ -225,18 +225,12 @@ gh auth login
 
 #### ☑️ **MCPサーバのセットアップ (Desktop Commander)**
 - Claude CodeからHPC環境のコマンドを安全に実行するため、Desktop Commander MCPサーバを使用します
-- **事前準備**: uvがインストールされていることを確認
-  ```bash
-  # uvのインストール（未インストールの場合）
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  # または
-  pip install uv
-  ```
+- プロジェクト開始時にPM・SE・CIエージェントが協力して自動設定を行います
 - CIエージェントがDesktop Commander経由でSSH接続を管理します
   <details>
-  <summary>Desktop Commander MCPの設定方法（クリックで展開）</summary>
+  <summary>手動設定が必要な場合（クリックで展開）</summary>
   
-  以下のコマンドでDesktop Commander MCPサーバを追加：
+  自動設定に失敗した場合は、以下のコマンドでDesktop Commander MCPサーバを追加：
   ```bash
   claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
   ```
