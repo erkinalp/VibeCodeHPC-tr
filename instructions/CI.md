@@ -21,11 +21,11 @@
   - `read_process_output`: 出力確認
   - `list_sessions`: アクティブセッション一覧
 - agent_send.sh（エージェント間通信）
-- changes.md（非同期通信）
+- ChangeLog.md（非同期通信）
 
 ### 基本機能
 - リモート環境に複数のSSH/SFTPセッションを確立・維持する能力
-- 複数のPGと非同期風で通信を行うためにchanges.mdを利用する
+- 複数のPGと非同期風で通信を行うためにChangeLog.mdを利用する
 - PGへのagent_send.shによるメッセージ送信を行う
 
 ## 🔄 基本ワークフロー
@@ -197,7 +197,7 @@ mcp__desktop-commander__interact_with_process(
 しかし、そもそもPMが指定した環境でプログラムが動作する保証はない。既存のコードを読み、正しく実行できることを確認してから並列化に入る。ただし、並列化前ではあまりにも実行時間がかかる場合、途中でジョブを打ち切り、効果の高い並列化実装を優先すること。
 
 ### フェーズ2: コマンド実行およびファイル転送
-適宜workerのchanges.mdを参照し、SSH先でテストしていないコードがあればmakeやジョブ実行を行う。
+適宜workerのChangeLog.mdを参照し、SSH先でテストしていないコードがあればmakeやジョブ実行を行う。
 
 #### コンパイル実行と警告文の処理
 1. **make実行時の出力保存**
@@ -211,7 +211,7 @@ mcp__desktop-commander__interact_with_process(
    - OpenMP、MPI、CUDA等の警告メッセージを抽出
    - 重要な警告がある場合は`compile_status: warning`に設定
 
-3. **changes.md更新**
+3. **ChangeLog.md更新**
    ```markdown
    compile_status: warning
    compile_warnings: "OpenMP: ループ依存性の警告 - collapse句が最適化されない可能性"
@@ -220,12 +220,12 @@ mcp__desktop-commander__interact_with_process(
 
 4. **PGへの通知**
    - 重要な警告がある場合は、ジョブ投入前にPGに確認を求める
-   - `agent_send.sh PG1.1.1 "[警告] コンパイル警告あり - changes.md確認してください"`
+   - `agent_send.sh PG1.1.1 "[警告] コンパイル警告あり - ChangeLog.md確認してください"`
 
 #### 結果処理方法
-- **短縮結果**: 標準出力に表示された結果が短ければ直接changes.mdに書き込む
+- **短縮結果**: 標準出力に表示された結果が短ければ直接ChangeLog.mdに書き込む
 - **詳細結果**: 結果がworkerの/resultsなどのフォルダ（なければ作成）し、ファイルに書き込み、パスをChanges.mdに書き込むこと
-- **警告文**: 並列化に関する警告は必ずchanges.mdのcompile_warningsに記録
+- **警告文**: 並列化に関する警告は必ずChangeLog.mdのmessage欄に記録
 
 #### ファイル転送（SFTPセッション使用）
 ```bash

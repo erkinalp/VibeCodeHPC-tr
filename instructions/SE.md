@@ -21,7 +21,7 @@
 ### フェーズ2: 恒常タスク
 
 #### directory_mapの参照と更新
-適宜最新のmapを参照し、必要に応じて別のPMや既存📁、workerが作成するChanges.mdの一部を参照して、workerに特定のファイルまたは📁への参照（読み取り専用）許可を与え、車輪の再発明を防ぐ。
+適宜最新のmapを参照し、必要に応じて別のPMや既存📁、workerが作成するChangeLog.mdの一部を参照して、workerに特定のファイルまたは📁への参照（読み取り専用）許可を与え、車輪の再発明を防ぐ。
 
 参照許可は各PG直下にvisible_path_PG1.2.3.txtというファイルを作成し、アクセス可能なパスを明記する。
 
@@ -46,7 +46,7 @@ python telemetry/monitor_agents.py --se-id [自分のID] --interval 300 &
 - エージェント統計
 - ログ可視化
 - テストコード作成
-- changes.mdレポート生成
+- ChangeLog.mdレポート生成
 - コンテキスト使用率の監視と可視化
 
 #### ファイル管理
@@ -57,7 +57,7 @@ python telemetry/monitor_agents.py --se-id [自分のID] --interval 300 &
 - /reports
 
 #### 特に優先して作成する可視化ツール
-Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し、指定したディレクトリ（配列で指定できると良い）内にある全てのchanges.mdを読み取って、以下のようなグラフを作成すること：
+Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し、指定したディレクトリ（配列で指定できると良い）内にある全てのChangeLog.mdを読み取って、以下のようなグラフを作成すること：
 
 ##### グラフ仕様
 - **横軸**: コード生成回数 or 開始からの時刻 or コードのバージョン等
@@ -122,7 +122,7 @@ SEは定期的に以下のタスクを実行すること：
      agent_send.sh [AGENT_ID] "[SE] auto-compactを検知しました。プロジェクトの継続性のため、以下のファイルを再読み込みしてください：
      - CLAUDE.md（共通ルール）
      - instructions/[役割].md（あなたの役割）
-     - 現在のディレクトリのchanges.md（進捗状況）
+     - 現在のディレクトリのChangeLog.md（進捗状況）
      - Agent-shared/directory_map.txt（エージェント配置）"
      ```
 
@@ -134,16 +134,16 @@ SEは定期的に以下のタスクを実行すること：
      → 発見時は該当エージェントに指摘、改善されない場合はPMに報告
    
    - **無応答エージェントの検知**：
-     - 30分以上changes.mdが更新されていない
+     - 30分以上ChangeLog.mdが更新されていない
      - コマンド実行形跡がない
      → 以下の手順で対応：
        1. `agent_send.sh [AGENT_ID] "[SE] 作業状況を確認させてください。現在の進捗を教えてください。"`
        2. 5分待って応答がなければPMに報告：
           `agent_send.sh PM "[SE] [AGENT_ID]が30分以上無応答です。確認をお願いします。"`
 
-### changes.mdレポート生成
+### ChangeLog.mdレポート生成
 
-複数のPGエージェントのchanges.mdを統合し、プロジェクト全体の進捗を把握できるレポートを生成する。
+複数のPGエージェントのChangeLog.mdを統合し、プロジェクト全体の進捗を把握できるレポートを生成する。
 
 #### レポート内容
 - 各PGの試行回数と成功率の集計
@@ -152,7 +152,7 @@ SEは定期的に以下のタスクを実行すること：
 - 失敗パターンの分析
 
 #### 生成方法
-Agent-shared/changes_report_template.py をベースに、プロジェクトに応じてカスタマイズしたレポート生成スクリプトを作成する。テンプレートクラスを継承して、以下をカスタマイズ：
+Agent-shared/changelog_report_template.py をベースに、プロジェクトに応じてカスタマイズしたレポート生成スクリプトを作成する。テンプレートクラスを継承して、以下をカスタマイズ：
 - `extract_metadata()`: ディレクトリ構造からプロジェクト固有の情報を抽出
 - `aggregate_data()`: 必要な集計ロジックを実装
 - `generate_report()`: レポートフォーマットをカスタマイズ
@@ -182,11 +182,11 @@ Agent-shared/changes_report_template.py をベースに、プロジェクトに�
 - telemetry/visualize_context.py（コンテキスト使用率可視化）
 - telemetry/monitor_agents.py（エージェント健全性監視）
 - telemetry/analyze_sub_agent.py（サブエージェント使用統計）
-- Agent-shared/changes_report_template.py（changes.mdレポート生成）
+- Agent-shared/changelog_report_template.py（ChangeLog.mdレポート生成）
 
 ### ファイル管理
 - /Agent-shared/directory_map.txt（エージェント配置管理）
-- changes.md（ワーカーの進捗記録）
+- ChangeLog.md（ワーカーの進捗記録）
 - visible_path_PG*.txt（アクセス許可ファイル）
 - /Agent-shared/以下の各種ログファイル
 

@@ -6,48 +6,69 @@ import glob
 import os
 import argparse
 
-def parse_changes_md(file_path):
+def parse_changelog_md(file_path):
     """
-    Parses a changes.md file and returns a list of dictionaries.
-    Updated for unified format: version, change_summary, timestamp, code_files, 
-    compile_status, job_status, performance_metric, compute_cost, 
-    sota_level, technical_comment, next_steps
+    Parses a ChangeLog.md file and returns a list of dictionaries.
+    Supports the new ChangeLog format with version entries and details sections.
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Use regex to find all records - updated for new format
+    # Use regex to find all records - new ChangeLog format
     records = []
-    # Pattern for unified format
-    pattern = re.compile(r"##\s+version:\s*(?P<version>.*?)\n"
-                         r"\s*change_summary:\s*\"(?P<summary>.*?)\"\n"
-                         r"\s*timestamp:\s*\"(?P<timestamp>.*?)\"\n"
-                         r"\s*code_files:\s*\"(?P<code_files>.*?)\"\n"
-                         r"(?:.|\n)*?"  # Skip Build & Execution section
-                         r"\s*compile_status:\s*(?P<compile_status>.*?)\n"
-                         r"\s*job_status:\s*(?P<job_status>.*?)\n"
-                         r"\s*performance_metric:\s*\"(?P<performance>.*?)\"\n"
-                         r"\s*compute_cost:\s*\"(?P<compute_cost>.*?)\"\n"
-                         r"(?:.|\n)*?"  # Skip to Analysis section
-                         r"\s*sota_level:\s*(?P<sota_level>.*?)\n"
-                         r"\s*technical_comment:\s*\"(?P<technical_comment>.*?)\"\n"
-                         r"\s*next_steps:\s*\"(?P<next_steps>.*?)\"", re.DOTALL)
-
-    for match in pattern.finditer(content):
-        record = match.groupdict()
-        # Extract GFLOPS value from performance_metric
-        perf_match = re.search(r'(\d+\.?\d*)', record['performance'])
-        if perf_match:
-            record['gflops'] = float(perf_match.group(1))
-        else:
-            record['gflops'] = 0.0
+    # Pattern for new ChangeLog format with ### v1.2.3 entries
+    version_pattern = r'###\s+v([\d.]+)'
+    matches = list(re.finditer(version_pattern, content))
+    
+    for i, match in enumerate(matches):
+        version = f"v{match.group(1)}"
+        start = match.start()
+        end = matches[i+1].start() if i+1 < len(matches) else len(content)
+        entry_content = content[start:end]
         
-        # Extract compute cost as float
-        cost_match = re.search(r'(\d+\.?\d*)', record['compute_cost'])
-        if cost_match:
-            record['node_hours'] = float(cost_match.group(1))
-        else:
-            record['node_hours'] = 0.0
+        record = {"version": version}
+        
+        # Extract fields from new format
+        change_match = re.search(r'\*\*変更点\*\*:\s*"([^"]+)"', entry_content)
+        if change_match:
+            record["summary"] = change_match.group(1)
+        
+        result_match = re.search(r'\*\*結果\*\*:\s*([^`]+)\s*`([^`]+)`', entry_content)
+        if result_match:
+            record["result_type"] = result_match.group(1).strip()
+            result_value = result_match.group(2).strip()
+            # Extract numeric performance value
+            perf_match = re.search(r'(\d+\.?\d*)\s*(MFLOPS|GFLOPS)', result_value)
+            if perf_match:
+                value = float(perf_match.group(1))
+                unit = perf_match.group(2)
+                # Convert MFLOPS to GFLOPS for consistency
+                record['gflops'] = value / 1000 if unit == 'MFLOPS' else value
+            else:
+                record['gflops'] = 0.0
+        
+        # Extract technical comment
+        comment_match = re.search(r'\*\*コメント\*\*:\s*"([^"]+)"', entry_content)
+        if comment_match:
+            record['technical_comment'] = comment_match.group(1)
+        
+        # Extract compile status from details section
+        compile_match = re.search(r'compile\*\*[\s\S]*?status:\s*`([^`]+)`', entry_content)
+        if compile_match:
+            record['compile_status'] = compile_match.group(1)
+        
+        # Extract job status
+        job_match = re.search(r'job\*\*[\s\S]*?status:\s*`([^`]+)`', entry_content)
+        if job_match:
+            record['job_status'] = job_match.group(1)
+        
+        # Extract SOTA scope if present
+        sota_match = re.search(r'\*\*sota\*\*[\s\S]*?scope:\s*`([^`]+)`', entry_content)
+        if sota_match:
+            record['sota_level'] = sota_match.group(1)
+        
+        # Set default node_hours for now
+        record['node_hours'] = 0.0
             
         records.append(record)
     return records
@@ -102,16 +123,16 @@ def plot_sota_history(df, output_path):
     plt.close()
 
 def main_visualizer():
-    """Main function to find, parse, and plot all changes.md files."""
+    """Main function to find, parse, and plot all ChangeLog.md files."""
     # This script should be run from the project root (e.g., /OpenCodeAT)
-    search_path = './**/changes.md'
+    search_path = './**/ChangeLog.md'
     all_records = []
     for md_file in glob.glob(search_path, recursive=True):
         print(f"Parsing {md_file}...")
-        all_records.extend(parse_changes_md(md_file))
+        all_records.extend(parse_changelog_md(md_file))
 
     if not all_records:
-        print("No changes.md files found or no records parsed.")
+        print("No ChangeLog.md files found or no records parsed.")
         return
 
     df = pd.DataFrame(all_records)
@@ -124,25 +145,25 @@ def main_visualizer():
 
 def main_searcher():
     """Main function for the search tool."""
-    parser = argparse.ArgumentParser(description="Search through changes.md files.")
+    parser = argparse.ArgumentParser(description="Search through ChangeLog.md files.")
     parser.add_argument('keyword', type=str, help="Keyword to search for in version, summary, or comment.")
     parser.add_argument('--sota_only', action='store_true', help="Only show SOTA records.")
     parser.add_argument('--limit', type=int, default=5, help="Limit the number of results.")
     
     args = parser.parse_args()
 
-    search_path = './**/changes.md'
+    search_path = './**/ChangeLog.md'
     all_records = []
     for md_file in glob.glob(search_path, recursive=True):
-        all_records.extend(parse_changes_md(md_file))
+        all_records.extend(parse_changelog_md(md_file))
 
     if not all_records:
         print("No records found.")
         return
 
     df = pd.DataFrame(all_records)
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df = df.sort_values(by='timestamp', ascending=False)
+    # Sort by version (newest first)
+    df = df.sort_values(by='version', ascending=False)
 
     if args.sota_only:
         # Filter for SOTA records using new format
@@ -150,24 +171,24 @@ def main_searcher():
 
     # Search keyword in relevant fields
     df_filtered = df[df.apply(
-        lambda row: args.keyword.lower() in str(row['version']).lower() or \
-                    args.keyword.lower() in str(row['summary']).lower() or \
-                    args.keyword.lower() in str(row['technical_comment']).lower() or \
-                    args.keyword.lower() in str(row['next_steps']).lower(),
+        lambda row: args.keyword.lower() in str(row.get('version', '')).lower() or \
+                    args.keyword.lower() in str(row.get('summary', '')).lower() or \
+                    args.keyword.lower() in str(row.get('technical_comment', '')).lower(),
         axis=1
     )]
 
     # Print results with updated format
     print(f"--- Found {len(df_filtered)} records for '{args.keyword}' ---")
     for _, row in df_filtered.head(args.limit).iterrows():
-        print(f"Version: {row['version']} ({row['timestamp']})")
-        print(f"  Summary: {row['summary']}")
-        print(f"  Code Files: {row['code_files']}")
-        print(f"  Performance: {row['performance']} ({row['compute_cost']})")
-        print(f"  SOTA Level: {row['sota_level']}")
-        print(f"  Technical Comment: {row['technical_comment']}")
-        print(f"  Next Steps: {row['next_steps']}")
-        print("-" * 20)
+        print(f"Version: {row['version']}")
+        print(f"  変更点: {row.get('summary', 'N/A')}")
+        print(f"  コメント: {row.get('technical_comment', 'N/A')}")
+        print(f"  性能: {row.get('gflops', 0):.1f} GFLOPS")
+        print(f"  コンパイル: {row.get('compile_status', 'N/A')}")
+        print(f"  ジョブ: {row.get('job_status', 'N/A')}")
+        if 'sota_level' in row and row['sota_level']:
+            print(f"  SOTA: {row['sota_level']}")
+        print("-" * 40)
 
 
 if __name__ == '__main__':

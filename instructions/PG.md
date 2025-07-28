@@ -15,7 +15,7 @@
 ## ⚒️ ツールと環境
 
 ### 使用ツール
-- changes.md（進捗記録）
+- ChangeLog.md（進捗記録）
 - agent_send.sh（エージェント間通信）
 - 各種コンパイラとライブラリ
 - バージョン管理システム
@@ -38,28 +38,16 @@
 - コードはバージョン管理し、ファイル名を `元の名前_vX.Y.Z.c` のように変更して保存する
 
 #### 2. 記録
-コードを1回生成・修正するごとに、即座に自身の `changes.md` に規定のフォーマットで追記する。
+コードを1回生成・修正するごとに、即座に自身の `ChangeLog.md` に規定のフォーマットで追記する。
 
 **追記フォーマット:**
-```
-- version: v1.2.3
-  change_summary: "ikjループ順序でjループを8段アンローリング"
-  timestamp: "2025-07-04 13:00:00 UTC"
-  compile_request_id: "PG1-CI-123"
-  compile_status: "requested"
-  job_request_id: ""
-  job_id: ""
-  job_status: ""
-  test_status: ""
-  performance: ""
-  sota: ""
-  comment: ""
-```
+`ChangeLog_format.md`および`ChangeLog_format_PM_override.md`に従う。
+新しいバージョンが上に来るように追記し、`<details>`タグで詳細を折り畳む。
 
 ### フェーズ3: コンパイル結果の確認と判断
 
 #### 警告文の確認
-CIからコンパイル完了の通知を受けたら、changes.mdの`compile_status`と`compile_warnings`を確認する。
+CIからコンパイル完了の通知を受けたら、ChangeLog.mdの`compile_status`と`message`を確認する。
 
 1. **`compile_status: warning`の場合**
    - compile_warningsの内容を精査
@@ -78,7 +66,7 @@ CIからコンパイル完了の通知を受けたら、changes.mdの`compile_st
 3. **対応アクション**
    - 重要な警告がある場合は、次のバージョンで修正
    - `compile_output_path`のログファイルで詳細確認が必要な場合はCIに依頼
-   - changes.mdに判断理由を記録
+   - ChangeLog.mdに判断理由を記録
 
 ### フェーズ4: ディレクトリ管理
 あなたが現在存在するディレクトリ以下は自由に階層を作成し、適宜コードの整理を行うこと。ただし生成したコードは削除せず/archivedなどのフォルダに移動すること
@@ -101,7 +89,7 @@ makefileの修正はせず、ファイルは上書きせず手元に実行ファ
 - 後方互換性を伴うバグ修正
 
 ## 🔍 実行結果の参照について
-changes.mdの他、/resultsなどにジョブID.out、ジョブID.errが転送される場合がある。これらの結果はスパコン上に保存されているので、重要でなくなった時点で適宜削除し、必要になった際はCI（SSHエージェント）に要求すること。
+ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errが転送される場合がある。これらの結果はスパコン上に保存されているので、重要でなくなった時点で適宜削除し、必要になった際はCI（SSHエージェント）に要求すること。
 
 ## 🤝 他エージェントとの連携
 

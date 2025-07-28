@@ -138,7 +138,7 @@ show_usage() {
 例:
   $0 SE1 "[依頼] PG1.1.1にOpenMP最適化タスクを配布してください"
   $0 PG1.1.1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
-  $0 CI1.1 "[報告] job_12345 実行完了、結果をchanges.mdに追記しました"
+  $0 CI1.1 "[報告] job_12345 実行完了、結果をChangeLog.mdに追記しました"
   
   # 再配置例（絶対パス）
   $0 PG1.1.1 "!cd /absolute/path/to/OpenCodeAT/Flow/TypeII/single-node/gcc/OpenMP_MPI"

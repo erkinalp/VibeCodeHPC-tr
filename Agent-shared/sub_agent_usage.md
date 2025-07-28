@@ -31,8 +31,8 @@ claude -p "実行前後のグラフの違いを分析" < performance_comparison.
 
 ### 3. 大規模データの前処理
 ```bash
-# 巨大なchanges.mdから重要な情報だけ抽出
-claude -p "SOTA更新があった項目だけをリストアップ" < changes_unified.md
+# 巨大なChangeLog.mdから重要な情報だけ抽出
+claude -p "SOTA更新があった項目だけをリストアップ" < changelog_unified.md
 
 # JSON形式で構造化データを取得
 claude -p "性能データを時系列でJSON形式に整理" --output-format json < performance_logs.txt
@@ -56,8 +56,8 @@ claude -p "性能データを時系列でJSON形式に整理" --output-format js
 
 3. **複数ファイルの統合分析**
    ```bash
-   # 各PGのchanges.mdを統合して分析
-   for file in PG*/changes.md; do
+   # 各PGのChangeLog.mdを統合して分析
+   for file in PG*/ChangeLog.md; do
      echo "=== $file ===" 
      cat "$file"
    done | claude -p "全PGの進捗を横断的に分析して成功パターンを抽出"
@@ -118,9 +118,9 @@ analyze_all_changes() {
     3. 最も効果的だった最適化手法TOP5
     4. 失敗パターンの共通点"
     
-    # 全changes.mdを結合
+    # 全ChangeLog.mdを結合
     for dir in "${target_dirs[@]}"; do
-        find "$dir" -name "changes.md" -exec cat {} \;
+        find "$dir" -name "ChangeLog.md" -exec cat {} \;
     done | claude -p "$analysis_prompt" --output-format json
 }
 
@@ -137,11 +137,11 @@ echo "$result" | jq '.result' | python3 create_performance_graph.py
 
 ```bash
 # 効率的な例：事前にフィルタリング
-grep -E "SOTA|performance" changes.md | \
+grep -E "SOTA|performance" ChangeLog.md | \
   claude -p "性能向上があった項目だけをまとめて"
 
 # 非効率な例：全データを渡す
-claude -p "changes.mdからSOTAに関する行だけ抽出して" < changes.md
+claude -p "ChangeLog.mdからSOTAに関する行だけ抽出して" < ChangeLog.md
 ```
 
 ## 注意事項

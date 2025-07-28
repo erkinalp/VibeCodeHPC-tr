@@ -12,7 +12,7 @@ OpenCodeAT/
 │   └── intel2024/
 │       ├── OpenMP_MPI/
 │       │   ├── PG1.1.1/
-│       │   │   ├── changes.md
+│       │   │   ├── ChangeLog.md
 │       │   │   └── sota_local.txt    # Local階層SOTA
 │       │   └── visible_paths.txt
 │       └── OpenMP/
@@ -88,7 +88,7 @@ if any(results.values()):
 
 ### **1. 高速比較**
 - **直接読み取り**: 1ファイルで即座に判定
-- **changes.md走査不要**: SQLライクな検索が不要
+- **ChangeLog.md走査不要**: SQLライクな検索が不要
 
 ### **2. 堅牢性**
 - **専用管理**: SOTA情報の専用ファイル

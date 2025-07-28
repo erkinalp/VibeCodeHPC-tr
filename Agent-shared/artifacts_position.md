@@ -1,7 +1,7 @@
 #　📋 OpenCodeAT 設計成果物・ドキュメント一覧
 
 ## 核心原則
-- changes.md中心設計: 情報の集約化（分散させるのは本当に必要な場合のみ）
+- ChangeLog.md中心設計: 情報の集約化（分散させるのは本当に必要な場合のみ）
 - 階層配置の明確化: Agent-shared vs 各エージェント直下
 
 ## 必須ドキュメント
@@ -16,7 +16,7 @@ OpenCodeAT/
 ├── history/
 │   └── sota_project_history.txt # Project SOTA履歴（writer:PG, reader:PM）
 └── GitHub/                      # CD管理（writer:CD, reader:all）
-    ├── changes_public.md        # 統合・匿名化版
+    ├── changelog_public.md      # 統合・匿名化版
     └── repository_name
 ```
 
@@ -27,10 +27,12 @@ OpenCodeAT/
 Agent-shared/
 ├── directory_map.txt            # エージェント配置（writer:PM, reader:all）
 ├── budget_history.md            # 予算履歴（writer:PM, reader:CI）
-├── changes_unified.md           # 統一changes.mdフォーマット（writer:PM, reader:all）
+├── ChangeLog_format.md          # ChangeLog.md基本フォーマット（writer:PM, reader:all）
+├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:運営, reader:PM）
+├── ChangeLog_format_PM_override.md # PMオーバーライド仕様（writer:PM, reader:all）※PMがテンプレートから生成
 ├── sota_management.md           # SOTA管理システム仕様（writer:PM, reader:all）
-├── changes_query/               # changes.md解析ツール群（writer:all）
-│   ├── query_changes.py         # SQLライクなchanges.md検索
+├── changelog_query/             # ChangeLog.md解析ツール群（writer:all）
+│   ├── query_changelog.py       # SQLライクなChangeLog.md検索
 │   ├── [その他解析コード自由配置]
 │   └── README.md                # 使用方法・クエリ例
 └── SE-shared/                   # SE専用ツール（writer:SE, reader:SE/PM）
@@ -80,7 +82,7 @@ CI1.1/
 ### PG階層
 ```
 PG1.1.1/
-├── changes.md                   # 【必須】全情報統合（→Agent-shared/changes_unified.md参照）
+├── ChangeLog.md                 # 【必須】全情報統合（→Agent-shared/ChangeLog_format.md参照）
 ├── visible_paths.txt            # 参照許可パス一覧（SE管理）
 ├── sota_local.txt               # Local階層SOTA（writer:PG, reader:all）
 └── results/                     # 実行結果ファイル
@@ -90,7 +92,7 @@ PG1.1.1/
 
 ## 情報統合の考え方
 
-### changes.md統合項目（一部）
+### ChangeLog.md統合項目（一部）
 - code_versions: バージョン履歴
 - optimization_notes: 最適化メモ
 - performance_data: 性能データ
@@ -103,16 +105,16 @@ PG1.1.1/
 
 ## 取得・解析方法
 
-### changes.md解析
+### ChangeLog.md解析
 ```bash
 # バージョン一覧取得例
-grep "^## version:" changes.md | sed 's/## version: //'
+grep "^### v" ChangeLog.md | sed 's/### //'
 
 # 性能データ抽出例
-grep "performance_metric:" changes.md | awk -F'"' '{print $2}'
+grep "performance:" ChangeLog.md | grep -o '`[^`]*`' | tr -d '`'
 
 # SOTA履歴取得例
-grep -A1 "sota_level: global" changes.md | grep "current_sota:"
+grep -A1 "\*\*sota\*\*" ChangeLog.md | grep "scope: \`project\`"
 ```
 
 ### SOTA情報取得
@@ -129,9 +131,9 @@ cat OpenCodeAT/sota_project.txt
 
 ### 統合クエリ例
 ```bash
-# Agent-shared/changes_query/内の解析ツール活用
-python3 Agent-shared/changes_query/query_changes.py --performance-trend
-python3 Agent-shared/changes_query/query_changes.py --sota-comparison
+# Agent-shared/changelog_query/内の解析ツール活用
+python3 Agent-shared/changelog_query/query_changelog.py --performance-trend
+python3 Agent-shared/changelog_query/query_changelog.py --sota-comparison
 ```
 
-要点: changes.mdのフォーマットがしっかりしていれば、エージェントが必要に応じて正規表現やPythonでパースして部分的に取得できる。加えて、SOTA情報は専用ファイルで高速アクセス可能。
+要点: ChangeLog.mdのフォーマットがしっかりしていれば、エージェントが必要に応じて正規表現やPythonでパースして部分的に取得できる。加えて、SOTA情報は専用ファイルで高速アクセス可能。

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-changes.mdレポート生成テンプレート
+ChangeLog.mdレポート生成テンプレート
 SEエージェントが必要に応じてカスタマイズして使用する汎用的なレポート生成ツール
 """
 
@@ -12,9 +12,9 @@ from pathlib import Path
 from collections import defaultdict
 from typing import Dict, List, Tuple, Optional, Any
 
-class ChangesReportTemplate:
+class ChangeLogReportTemplate:
     """
-    汎用的なchanges.md解析・レポート生成クラス
+    汎用的なChangeLog.md解析・レポート生成クラス
     SEエージェントが継承・カスタマイズして使用することを想定
     """
     
@@ -23,7 +23,7 @@ class ChangesReportTemplate:
         self.reports_dir = self.project_root / "Agent-shared" / "reports"
         self.reports_dir.mkdir(parents=True, exist_ok=True)
         
-    def find_target_files(self, filename: str = "changes.md", 
+    def find_target_files(self, filename: str = "ChangeLog.md", 
                          exclude_dirs: List[str] = ["Agent-shared", "GitHub", "BaseCode"]) -> List[Path]:
         """
         プロジェクト内の対象ファイルを検索
@@ -44,39 +44,73 @@ class ChangesReportTemplate:
     def parse_entry(self, content: str) -> List[Dict[str, Any]]:
         """
         ファイル内容をパース（カスタマイズ可能）
-        デフォルトではchanges.mdの標準フォーマットをパース
+        ChangeLog.mdの新フォーマットをパース
         """
         entries = []
-        # version: v1.2.3 のパターンでエントリを分割
-        version_pattern = r'(?:^|\n)(?:##?\s*)?version:\s*(v[\d.]+)'
+        
+        # ### v1.2.3 のパターンでエントリを分割
+        version_pattern = r'###\s+v([\d.]+)'
         
         # エントリごとに分割
-        splits = re.split(version_pattern, content)
+        matches = list(re.finditer(version_pattern, content))
         
-        for i in range(1, len(splits), 2):
-            if i+1 < len(splits):
-                version = splits[i]
-                entry_content = splits[i+1]
+        for i, match in enumerate(matches):
+            version = f"v{match.group(1)}"
+            start = match.start()
+            end = matches[i+1].start() if i+1 < len(matches) else len(content)
+            entry_content = content[start:end]
+            
+            entry = {"version": version}
+            
+            # 新フォーマットのフィールドを抽出
+            # 変更点、結果、コメント
+            change_match = re.search(r'\*\*変更点\*\*:\s*"([^"]+)"', entry_content)
+            if change_match:
+                entry["change_summary"] = change_match.group(1)
+            
+            result_match = re.search(r'\*\*結果\*\*:\s*([^`]+)\s*`([^`]+)`', entry_content)
+            if result_match:
+                entry["result_type"] = result_match.group(1).strip()
+                entry["result_value"] = result_match.group(2).strip()
+            
+            comment_match = re.search(r'\*\*コメント\*\*:\s*"([^"]+)"', entry_content)
+            if comment_match:
+                entry["technical_comment"] = comment_match.group(1)
+            
+            # <details>内の情報をパース
+            details_match = re.search(r'<details>([\s\S]*?)</details>', entry_content)
+            if details_match:
+                details_content = details_match.group(1)
                 
-                entry = {"version": version}
+                # compile情報
+                compile_match = re.search(r'-\s*\[([x\s])\]\s*\*\*compile\*\*[\s\S]*?status:\s*`([^`]+)`', details_content)
+                if compile_match:
+                    entry["compile_complete"] = compile_match.group(1) == 'x'
+                    entry["compile_status"] = compile_match.group(2)
                 
-                # 標準フィールドの抽出（必要に応じて追加・変更可能）
-                patterns = {
-                    "change_summary": r'change_summary:\s*"([^"]*)"',
-                    "timestamp": r'timestamp:\s*"([^"]*)"',
-                    "compile_status": r'compile_status:\s*(\w+)',
-                    "job_status": r'job_status:\s*(\w+)',
-                    "performance_metric": r'performance_metric:\s*"([^"]*)"',
-                    "sota_level": r'sota_level:\s*(\w+)',
-                    "technical_comment": r'technical_comment:\s*"([^"]*)"'
-                }
+                # job情報
+                job_match = re.search(r'-\s*\[([x\s])\]\s*\*\*job\*\*[\s\S]*?status:\s*`([^`]+)`', details_content)
+                if job_match:
+                    entry["job_complete"] = job_match.group(1) == 'x'
+                    entry["job_status"] = job_match.group(2)
                 
-                for field, pattern in patterns.items():
-                    match = re.search(pattern, entry_content)
-                    if match:
-                        entry[field] = match.group(1)
+                # test情報
+                test_match = re.search(r'-\s*\[([x\s])\]\s*\*\*test\*\*[\s\S]*?status:\s*`([^`]+)`', details_content)
+                if test_match:
+                    entry["test_complete"] = test_match.group(1) == 'x'
+                    entry["test_status"] = test_match.group(2)
                 
-                entries.append(entry)
+                # performance
+                perf_match = re.search(r'performance:\s*`([^`]+)`', details_content)
+                if perf_match:
+                    entry["performance"] = perf_match.group(1)
+                
+                # sota
+                sota_match = re.search(r'-\s*\[x\]\s*\*\*sota\*\*[\s\S]*?scope:\s*`([^`]+)`', details_content)
+                if sota_match:
+                    entry["sota_scope"] = sota_match.group(1)
+            
+            entries.append(entry)
         
         return entries
     
@@ -132,9 +166,9 @@ class ChangesReportTemplate:
                 stats["by_status"][compile_status] += 1
                 
                 # SOTA更新の集計
-                sota_level = entry.get("sota_level", "none")
-                if sota_level != "none":
-                    stats["sota_updates"][sota_level] += 1
+                sota_scope = entry.get("sota_scope")
+                if sota_scope:
+                    stats["sota_updates"][sota_scope] += 1
                 
                 # タイムライン用データ
                 if "timestamp" in entry:
@@ -159,7 +193,7 @@ class ChangesReportTemplate:
             report_type: レポートの種類
         """
         now = datetime.now(timezone.utc)
-        report = f"# Changes Report - {report_type.title()}\n\n"
+        report = f"# ChangeLog Report - {report_type.title()}\n\n"
         report += f"Generated at: {now.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
         
         # 基本統計
@@ -191,7 +225,7 @@ class ChangesReportTemplate:
         
         # ファイル検索
         target_files = self.find_target_files(
-            filename=params.get("filename", "changes.md"),
+            filename=params.get("filename", "ChangeLog.md"),
             exclude_dirs=params.get("exclude_dirs", ["Agent-shared", "GitHub", "BaseCode"])
         )
         
@@ -229,7 +263,7 @@ class ChangesReportTemplate:
 
 
 # 使用例（SEエージェントがカスタマイズして使用）
-class HPCOptimizationReport(ChangesReportTemplate):
+class HPCOptimizationReport(ChangeLogReportTemplate):
     """HPC最適化プロジェクト用のカスタマイズ例"""
     
     def extract_metadata(self, file_path: Path) -> Dict[str, Any]:
@@ -260,7 +294,7 @@ class HPCOptimizationReport(ChangesReportTemplate):
 
 if __name__ == "__main__":
     # 基本的な使用
-    reporter = ChangesReportTemplate()
+    reporter = ChangeLogReportTemplate()
     reporter.run()
     
     # カスタマイズした使用

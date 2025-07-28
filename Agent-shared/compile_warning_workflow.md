@@ -5,7 +5,7 @@
 
 ## 実装内容
 
-### 1. changes.mdフォーマットの拡張
+### 1. ChangeLog.mdフォーマットの拡張
 以下のフィールドを追加：
 - `compile_status`: success | fail | **warning** | pending
 - `compile_warnings`: 警告メッセージの要約
@@ -22,16 +22,18 @@
    - データ競合の可能性（重要度：高）
    - 最適化の提案（重要度：低）
 
-3. **changes.md更新**
+3. **ChangeLog.md更新**
+   `<details>`内の`message`欄に警告を記載：
    ```markdown
-   compile_status: warning
-   compile_warnings: "OpenMP: ループ依存性の警告 - collapse句が最適化されない可能性"
-   compile_output_path: "/results/compile_v1.2.3.log"
+   - [x] **compile**
+       - status: `warning`
+       - message: "OpenMP: ループ依存性の警告 - collapse句が最適化されない可能性"
+       - log: `/results/compile_v1.2.3.log`
    ```
 
 4. **PGへの通知**
    ```bash
-   agent_send.sh PG1.1.1 "[警告] コンパイル警告あり - changes.md確認してください"
+   agent_send.sh PG1.1.1 "[警告] コンパイル警告あり - ChangeLog.md確認してください"
    ```
 
 ### 3. PGエージェントの判断基準

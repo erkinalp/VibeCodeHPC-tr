@@ -89,15 +89,19 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
 2. `/Agent-shared/agent_and_pane_id_table.txt`を確認し、既存のセッション構成を把握
 3. ディレクトリ階層を適切に構成
-4. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
-5. STATUSペイン（pane 0）にIDエージェントを起動：
+4. **ChangeLogフォーマット定義**：
+   - `/Agent-shared/ChangeLog_format_PM_override_template.md`を参考に
+   - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
+   - 性能指標、ログパス規則、その他プロジェクト固有ルールを定義
+5. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
+6. STATUSペイン（pane 0）にIDエージェントを起動：
    ```bash
    # STATUSペインでIDエージェントを起動
    tmux send-keys -t "opencodeat:0.0" "claude --dangerously-skip-permissions" C-m
    # IDであることを通知
    agent_send.sh STATUS "あなたはIDです。STATUSペインでエージェント配置情報を表示してください"
    ```
-6. その他のペインに各エージェントを配置（SE、CI、PG、CD）
+7. その他のペインに各エージェントを配置（SE、CI、PG、CD）
 
 
 

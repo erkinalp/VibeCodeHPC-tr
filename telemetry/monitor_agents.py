@@ -121,7 +121,7 @@ class AgentMonitor:
             "プロジェクトの継続性のため、以下のファイルを再読み込みしてください：\n"
             "- CLAUDE.md（共通ルール）\n"
             f"- instructions/{agent_id.split('.')[0]}.md（あなたの役割）\n"
-            "- 現在のディレクトリのchanges.md（進捗状況）\n"
+            "- 現在のディレクトリのChangeLog.md（進捗状況）\n"
             "- Agent-shared/directory_map.txt（エージェント配置）"
         )
         self.send_agent_message(agent_id, message)
@@ -130,8 +130,8 @@ class AgentMonitor:
         """各エージェントの最終活動時刻を確認"""
         activity = {}
         
-        # changes.mdの更新時刻をチェック
-        for changes_file in self.project_root.rglob("changes.md"):
+        # ChangeLog.mdの更新時刻をチェック
+        for changes_file in self.project_root.rglob("ChangeLog.md"):
             # Agent-shared内は除外
             if "Agent-shared" in str(changes_file):
                 continue
