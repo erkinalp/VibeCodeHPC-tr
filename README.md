@@ -271,15 +271,50 @@ gh auth login
 # Grafana + Prometheus環境の自動セットアップ
 ./telemetry/setup_grafana.sh
 
-# 確認（Windows側のブラウザでアクセス）
-# http://localhost:3000 (admin/admin)
+# ブラウザでアクセスして確認
+# URL: http://localhost:3000
+# 初期ユーザー名: admin
+# 初期パスワード: admin
 ```
 
 ![Grafana起動成功時の画面表示例](_images/Grafana.png)
 
+<details>
+<summary>📊 Grafanaでメトリクスを確認する方法（クリックで展開）</summary>
+
+#### メトリクスの確認手順
+1. **Explore機能を使う**（最も簡単）
+   - 左メニューから「Explore」（コンパスアイコン）をクリック
+   - データソースで「Prometheus」を選択
+   - メトリクス名を入力して「Run query」
+
+2. **よく使うメトリクス**
+   
+   エージェント別トークン使用量：
+   ```promql
+   agent_token_usage{agent_id="SE1"}
+   ```
+   
+   ツール実行回数（全エージェント）：
+   ```promql
+   sum by (agent_id, tool_name) (tool_execution_total)
+   ```
+   
+   セッション別コスト：
+   ```promql
+   sum by (session_id) (session_cost)
+   ```
+
+3. **ダッシュボード作成**（オプション）
+   - 「Dashboards」→「New」→「New Dashboard」
+   - 「Add visualization」でグラフを追加
+   - クエリは後から自由に変更可能
+   - 過去のデータも遡って確認できます
+
+</details>
+
 > [!NOTE]
 > - 短時間のテストや既に他のOTLPバックエンドがある場合はスキップ可能
-> - WSL環境の場合、Windows側のブラウザでアクセスしてください
 
 #### 2.2. tmuxセッションセットアップ
 
