@@ -3,6 +3,8 @@
 OpenCodeATは、HPCコードの自動最適化を行うマルチエージェントシステムです。
 Claude Code等のCLI環境でtmux-based通信により、複数のAIエージェントが協調してコードの並列化・最適化を実現します。
 
+![マルチエージェント実行時のスクショ](_images/MultiAgentUI.png)
+
 ## システム概要
 
 ### 特徴
