@@ -402,6 +402,10 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 > SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
 - [ ] 詳細: [Agent-shared/sota_management.md](Agent-shared/sota_management.md)
 
+## 📊 OpenTelemetry監視
+
+エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
+- 詳細設定: [telemetry/README_OTEL.md](telemetry/README_OTEL.md)
 
 ## 🔒 セキュリティ
 

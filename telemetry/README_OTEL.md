@@ -3,7 +3,7 @@
 ## 概要
 
 このドキュメントは、OpenCodeATプロジェクトにおけるOpenTelemetry設定について説明します。
-Issue #10と#12の解決として、consoleからOTLPへの移行とエージェント別監視を実装しています。
+OTLPプロトコルを使用したエージェント別監視を実装しています。
 
 ## 🚀 クイックスタート
 
@@ -20,7 +20,7 @@ Issue #10と#12の解決として、consoleからOTLPへの移行とエージェ
 
 基本的なOpenTelemetry設定のテンプレートです。初回起動時に自動的に`otel_config.env`にコピーされます：
 
-- **エクスポーター**: `otlp`（consoleから変更）
+- **エクスポーター**: `otlp`
 - **プロトコル**: `grpc`
 - **エンドポイント**: `http://localhost:4317`（デフォルト）
 - **エクスポート間隔**: メトリクス60秒、ログ5秒
@@ -29,7 +29,6 @@ Issue #10と#12の解決として、consoleからOTLPへの移行とエージェ
 
 1. `otel_config.env`を編集（初回は自動作成される）
 2. 必要に応じてエンドポイントや認証情報を設定
-3. デバッグ時は`OTEL_METRICS_EXPORTER=console,otlp`でconsole出力も有効化可能
 
 ## 🏷️ エージェント識別
 
@@ -99,11 +98,10 @@ export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-langfuse-token"
 3. デバッグモードで確認
    ```bash
    # otel_config.envを編集
-   export OTEL_METRICS_EXPORTER=console,otlp
-   export OTEL_METRIC_EXPORT_INTERVAL=10000  # 10秒
+   export OTEL_METRIC_EXPORT_INTERVAL=10000  # 10秒（短い間隔で確認）
    ```
 
-### consoleログが表示される場合
+### 設定が反映されない場合
 
 `otel_config.env`が正しく読み込まれているか確認してください。
 起動時に「✅ Loaded OpenTelemetry configuration」が表示されることを確認。
