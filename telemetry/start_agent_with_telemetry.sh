@@ -22,6 +22,19 @@ else
 fi
 TELEMETRY_DIR="$PROJECT_ROOT/telemetry"
 
+# OpenTelemetry設定ファイルの読み込み
+if [ -f "$TELEMETRY_DIR/otel_config.env" ]; then
+    source "$TELEMETRY_DIR/otel_config.env"
+    echo "✅ Loaded OpenTelemetry configuration from otel_config.env"
+elif [ -f "$TELEMETRY_DIR/otel_config.env.example" ]; then
+    # .envファイルが存在しない場合は.env.exampleをコピー
+    cp "$TELEMETRY_DIR/otel_config.env.example" "$TELEMETRY_DIR/otel_config.env"
+    source "$TELEMETRY_DIR/otel_config.env"
+    echo "✅ Created otel_config.env from example and loaded configuration"
+else
+    echo "⚠️  otel_config.env not found, using default configuration"
+fi
+
 # ログファイルの準備
 LOG_DIR="$TELEMETRY_DIR/raw_metrics"
 mkdir -p "$LOG_DIR"
@@ -36,8 +49,11 @@ WORKING_DIR=$(pwd)
 RELATIVE_DIR=${WORKING_DIR#$PROJECT_ROOT}
 RELATIVE_DIR=${RELATIVE_DIR#/}  # 先頭のスラッシュを除去
 
-# OTEL_RESOURCE_ATTRIBUTESの更新（agent_id、作業ディレクトリを追加）
-export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},agent_id=${AGENT_ID},agent_type=${AGENT_TYPE},working_dir=${RELATIVE_DIR}"
+# チームIDの推定（CI1.1 → team.1, PG1.2.3 → team.1.2）
+TEAM_ID=$(echo $AGENT_ID | grep -oE '^[A-Z]+[0-9]+(\.[0-9]+)?' | sed 's/^[A-Z]*/team./')
+
+# OTEL_RESOURCE_ATTRIBUTESの更新（agent_id、チーム、作業ディレクトリを追加）
+export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},agent.id=${AGENT_ID},agent.type=${AGENT_TYPE},team.id=${TEAM_ID},working.dir=${RELATIVE_DIR}"
 
 # auto-compactフックの設定確認
 SETTINGS_FILE="$HOME/.claude/settings.json"
