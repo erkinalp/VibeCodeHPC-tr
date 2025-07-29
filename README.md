@@ -275,6 +275,8 @@ gh auth login
 # http://localhost:3000 (admin/admin)
 ```
 
+![Grafana起動成功時の画面表示例](_images/Grafana.png)
+
 > [!NOTE]
 > - 短時間のテストや既に他のOTLPバックエンドがある場合はスキップ可能
 > - WSL環境の場合、Windows側のブラウザでアクセスしてください
