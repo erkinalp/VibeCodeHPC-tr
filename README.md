@@ -407,7 +407,23 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 ## 📊 OpenTelemetry監視
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
-- 詳細設定: [telemetry/README.md](telemetry/README.md)
+
+### クイックセットアップ（Grafana）
+```bash
+# 自動セットアップスクリプトを実行
+./telemetry/setup_grafana.sh
+
+# Grafanaにアクセス
+# http://localhost:3000 (admin/admin)
+```
+
+このスクリプトは自動的に：
+- .envファイルの確認・作成
+- Docker環境の確認
+- Grafana + Prometheus + OTel Collectorの起動
+- 接続情報の表示
+
+詳細設定: [telemetry/README.md](telemetry/README.md)
 
 ## 🔒 セキュリティ
 
