@@ -127,20 +127,24 @@ sequenceDiagram
 ダウンロードした.zipを展開
 
 #### CLIの場合
-あるいは以下のコマンドでもよい
+<details>
+<summary>コマンドラインでダウンロードする場合（クリックで展開）</summary>
 
 OpenCodeATをダウンロード
 ```bash
 wget https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/archive/refs/tags/v{バージョン}.zip
 ```
+
 zip解凍
 ```bash
 unzip OpenCodeAT-jp-{バージョン}.zip
 ```
+
 展開後、OpenCodeATのルートへ移動
 ```bash
 cd OpenCodeAT-jp-{バージョン}
 ```
+</details>
 
 ---
 
@@ -203,8 +207,14 @@ gh auth login
 - スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
 - ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
 - ターミナルで以下のコマンドを実行し、パスフレーズを入力してください。
+  
+  ssh-agentを起動：
   ```bash
   eval "$(ssh-agent -s)"
+  ```
+  
+  秘密鍵を追加（パスフレーズを入力）：
+  ```bash
   ssh-add ~/.ssh/your_private_key
   ```
 - 確認コマンド
@@ -240,11 +250,6 @@ gh auth login
   claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
   ```
   
-  **PMエージェントの場合**（別セッションにいるため）：
-  ```bash
-  # PM以外のエージェントから実行
-  agent-send.sh PM "!claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander"
-  ```
   
   設定後、Claude Code内で `/mcp` コマンドで接続を確認してください。
   詳細は公式ドキュメントを参照：https://github.com/wonderwhy-er/DesktopCommanderMCP
