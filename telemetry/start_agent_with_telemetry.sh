@@ -23,16 +23,20 @@ fi
 TELEMETRY_DIR="$PROJECT_ROOT/telemetry"
 
 # OpenTelemetry設定ファイルの読み込み
-if [ -f "$TELEMETRY_DIR/otel_config.env" ]; then
+# 優先順位: 1. プロジェクトルート/.env  2. telemetry/otel_config.env  3. telemetry/otel_config.env.example
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    source "$PROJECT_ROOT/.env"
+    echo "✅ Loaded OpenTelemetry configuration from .env"
+elif [ -f "$TELEMETRY_DIR/otel_config.env" ]; then
     source "$TELEMETRY_DIR/otel_config.env"
-    echo "✅ Loaded OpenTelemetry configuration from otel_config.env"
+    echo "✅ Loaded OpenTelemetry configuration from telemetry/otel_config.env"
 elif [ -f "$TELEMETRY_DIR/otel_config.env.example" ]; then
-    # .envファイルが存在しない場合は.env.exampleをコピー
-    cp "$TELEMETRY_DIR/otel_config.env.example" "$TELEMETRY_DIR/otel_config.env"
-    source "$TELEMETRY_DIR/otel_config.env"
-    echo "✅ Created otel_config.env from example and loaded configuration"
+    # .envファイルが存在しない場合は.env.exampleをプロジェクトルートにコピー
+    cp "$TELEMETRY_DIR/otel_config.env.example" "$PROJECT_ROOT/.env"
+    source "$PROJECT_ROOT/.env"
+    echo "✅ Created .env from example and loaded configuration"
 else
-    echo "⚠️  otel_config.env not found, using default configuration"
+    echo "⚠️  No OpenTelemetry configuration found, using default configuration"
 fi
 
 # ログディレクトリの準備（サブエージェント統計用）
@@ -61,6 +65,12 @@ if [ ! -f "$SETTINGS_FILE" ] || ! grep -q "PreCompact" "$SETTINGS_FILE"; then
     python "$TELEMETRY_DIR/setup_auto_compact_hook.py" --agent-id "$AGENT_ID"
 fi
 
+# OTEL_EXPORTER_OTLP_PROTOCOLが未設定の場合はデフォルト値を設定
+if [ -z "$OTEL_EXPORTER_OTLP_PROTOCOL" ]; then
+    export OTEL_EXPORTER_OTLP_PROTOCOL="grpc"
+    echo "⚠️  OTEL_EXPORTER_OTLP_PROTOCOL not set, using default: grpc"
+fi
+
 # 起動メッセージ
 echo "🚀 Starting agent: $AGENT_ID"
 echo "📊 OpenTelemetry enabled (OTLP exporter)"
@@ -68,6 +78,7 @@ echo ""
 echo "Environment:"
 echo "  CLAUDE_CODE_ENABLE_TELEMETRY=$CLAUDE_CODE_ENABLE_TELEMETRY"
 echo "  OTEL_METRICS_EXPORTER=$OTEL_METRICS_EXPORTER"
+echo "  OTEL_EXPORTER_OTLP_PROTOCOL=$OTEL_EXPORTER_OTLP_PROTOCOL"
 echo "  OTEL_EXPORTER_OTLP_ENDPOINT=$OTEL_EXPORTER_OTLP_ENDPOINT"
 echo "  OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES"
 echo ""
