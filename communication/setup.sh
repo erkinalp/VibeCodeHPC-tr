@@ -306,6 +306,7 @@ create_main_session() {
         tmux send-keys -t "$pane_target" "export OTEL_METRIC_EXPORT_INTERVAL=10000" C-m
         tmux send-keys -t "$pane_target" "export OTEL_LOGS_EXPORTER=otlp" C-m
         tmux send-keys -t "$pane_target" "export OTEL_LOG_USER_PROMPTS=0" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc" C-m
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" C-m
         
         if [ $i -eq 0 ]; then

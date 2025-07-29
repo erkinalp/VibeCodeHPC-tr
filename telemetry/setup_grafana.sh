@@ -96,10 +96,13 @@ start_grafana() {
     
     cd "$SCRIPT_DIR"
     
-    # Docker Compose v2の場合
+    # イメージをpull
+    log_info "📥 Dockerイメージをダウンロード中..."
     if docker compose version &> /dev/null 2>&1; then
+        docker compose pull
         docker compose up -d
     else
+        docker-compose pull
         docker-compose up -d
     fi
     
@@ -108,9 +111,16 @@ start_grafana() {
     
     if docker ps | grep -q "grafana"; then
         log_success "✅ Grafana環境の起動完了"
+        echo ""
+        echo "🐳 起動中のコンテナ:"
+        docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -E "(grafana|prometheus|otel)"
     else
         log_error "Grafana環境の起動に失敗しました"
-        docker logs opencodeat-grafana 2>&1 | tail -20
+        # コンテナ名は docker compose のプロジェクト名に依存
+        GRAFANA_CONTAINER=$(docker ps -a --format "{{.Names}}" | grep grafana | head -1)
+        if [ -n "$GRAFANA_CONTAINER" ]; then
+            docker logs "$GRAFANA_CONTAINER" 2>&1 | tail -20
+        fi
         exit 1
     fi
 }
@@ -124,8 +134,22 @@ show_connection_info() {
     echo ""
     echo "🌐 アクセスURL:"
     echo "   Grafana: http://localhost:3000"
+    
+    # WSL環境の場合の追加情報
+    if grep -qi microsoft /proc/version; then
+        echo "   WSL環境の場合: Windows側のブラウザでアクセス"
+        # WSL2の場合、実際のIPアドレスも表示
+        if command -v ip &> /dev/null; then
+            WSL_IP=$(ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
+            echo "   または: http://${WSL_IP}:3000"
+        fi
+    fi
+    
+    echo ""
+    echo "🔐 ログイン情報:"
     echo "   ユーザー名: admin"
     echo "   パスワード: admin"
+    echo "   ※初回ログイン時にパスワード変更を求められます"
     echo ""
     echo "📡 エージェント接続設定:"
     echo "   OTLP エンドポイント: http://localhost:4317"
