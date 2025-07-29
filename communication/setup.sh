@@ -302,10 +302,11 @@ create_main_session() {
         
         # OpenTelemetry環境変数を設定（全ペイン共通）
         tmux send-keys -t "$pane_target" "export CLAUDE_CODE_ENABLE_TELEMETRY=1" C-m
-        tmux send-keys -t "$pane_target" "export OTEL_METRICS_EXPORTER=console" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_METRICS_EXPORTER=otlp" C-m
         tmux send-keys -t "$pane_target" "export OTEL_METRIC_EXPORT_INTERVAL=10000" C-m
-        tmux send-keys -t "$pane_target" "export OTEL_LOGS_EXPORTER=console" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_LOGS_EXPORTER=otlp" C-m
         tmux send-keys -t "$pane_target" "export OTEL_LOG_USER_PROMPTS=0" C-m
+        tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" C-m
         
         if [ $i -eq 0 ]; then
             # 最初のペインはSTATUS用
@@ -335,7 +336,7 @@ create_main_session() {
             tmux send-keys -t "$pane_target" "echo 'その後、エージェントが起動されます'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
             tmux send-keys -t "$pane_target" "echo '📊 OpenTelemetryが有効化されています'" C-m
-            tmux send-keys -t "$pane_target" "echo '   メトリクス収集間隔: 10秒'" C-m
+            tmux send-keys -t "$pane_target" "echo '   OTLP エンドポイント: http://localhost:4317'" C-m
         fi
     done
     

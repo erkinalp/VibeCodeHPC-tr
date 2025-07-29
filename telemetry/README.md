@@ -1,67 +1,94 @@
 # OpenCodeAT テレメトリシステム
 
-このディレクトリは、Claude CodeのOpenTelemetryメトリクスを収集・可視化するためのシステムです。
+このディレクトリは、エージェントのメトリクス収集・可視化とOpenTelemetry設定を管理します。
+
+## 📊 機能
+
+### 1. OpenTelemetry監視
+- **OTLP (gRPC)** プロトコルでメトリクスとログをエクスポート
+- エージェントID、チームID、作業ディレクトリでタグ付け
+- Grafana、LangFuse等のバックエンドで可視化
+
+### 2. コンテキスト使用率監視  
+- 各エージェントの使用トークン数を追跡（200,000トークン上限）
+- Auto-compact発生を検知・記録
+- 時系列グラフで可視化
+
+### 3. サブエージェント統計
+- `claude -p` の使用状況を分析
+- トークン節約効果の定量化
+
+## 🚀 使用方法
+
+### エージェント起動
+```bash
+# OpenTelemetry自動設定でエージェントを起動
+./telemetry/start_agent_with_telemetry.sh PG1.1.1
+```
+
+起動時に以下が自動設定されます：
+- OpenTelemetry有効化（`otel_config.env.example`から自動生成）
+- エージェント識別属性の設定
+- サブエージェント統計の有効化
+
+### 設定のカスタマイズ
+
+`otel_config.env`を編集してエンドポイントや認証情報を設定：
+```bash
+# デフォルトはローカルのOTel Collector
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+
+# LangFuse等の外部サービスを使用する場合
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://your-endpoint.com
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-token"
+```
 
 ## 📁 ディレクトリ構造
 
 ```
 telemetry/
-├── raw_metrics/      # 生のメトリクスデータ（JSON/CSV形式）
-├── context_usage/    # コンテキスト使用率の時系列データ
-├── auto_compact/     # auto-compact発生ログ
-└── visualization/    # 可視化結果（グラフ画像）
+├── otel_config.env.example    # OpenTelemetry設定テンプレート  
+├── docker-compose.yml         # ローカルテスト環境（Grafana + Prometheus）
+├── sub_agent_logs/            # サブエージェント使用ログ
+├── context_usage/             # コンテキスト使用率データ
+├── auto_compact/              # Auto-compact発生ログ
+└── visualization/             # 生成されたグラフ
 ```
 
-## 📊 収集メトリクス
+## 🔧 バックエンド設定
 
-### 1. トークン使用量
-- `claude_code.token.usage` - input/output/cacheRead/cacheCreation別
-- エージェントID、tmux_paneで識別
-
-### 2. コンテキスト使用率
-- 使用トークン数 / 200,000 × 100 (%)
-- 各エージェントの時系列推移を記録
-
-### 3. Auto-compact発生
-- PreCompactフックで検知
-- 発生時刻とエージェントIDを記録
-
-## 🚀 使用方法
-
-### 1. エージェント起動時の設定
+### ローカル開発環境
 ```bash
-export CLAUDE_CODE_ENABLE_TELEMETRY=1
-export OTEL_METRICS_EXPORTER=console
-export OTEL_METRIC_EXPORT_INTERVAL=10000  # 10秒間隔
-export OTEL_RESOURCE_ATTRIBUTES="agent_id=SE1,tmux_pane=${TMUX_PANE}"
+# Docker ComposeでOTel Collector、Prometheus、Grafanaを起動
+docker-compose -f telemetry/docker-compose.yml up -d
+
+# Grafanaにアクセス
+# http://localhost:3000 (admin/admin)
 ```
 
-### 2. メトリクス収集
-```bash
-# 標準エラー出力のみをファイルにリダイレクト（対話的使用に影響なし）
-claude --dangerously-skip-permissions 2>telemetry/raw_metrics/agent_${AGENT_ID}_$(date +%Y%m%d_%H%M%S).log
+### 本番環境
+- Grafana Cloud
+- LangFuse（OpenTelemetryトレーシング対応）
+- Datadog、New Relic等のOTLP対応サービス
 
-# または、ヘルパースクリプトを使用
-./telemetry/start_agent_with_telemetry.sh SE1
-```
+## 📈 可視化ツール
 
-#### ⚠️ 重要な制約事項
-- OpenTelemetryメトリクスは**標準エラー出力(stderr)**に出力されます
-- Claude CodeがREPL環境のため、`tee`でのリダイレクトは対話を妨げます
-- 現在の実装では、メトリクスが実際に収集されるかはClaude Codeの内部実装に依存します
-- **サブエージェント統計のみが確実に動作します**（`claude -p`は単発実行のため）
-
-### 3. 可視化
+### コンテキスト使用率
 ```bash
 python telemetry/visualize_context.py
 ```
 
-## 📈 出力例
+### サブエージェント統計
+```bash
+python telemetry/analyze_sub_agent.py
+```
 
-- `visualization/context_usage_timeline.png` - 全エージェントのコンテキスト使用率推移
-- `visualization/token_usage_by_agent.png` - エージェント別トークン使用量
-- `visualization/auto_compact_events.png` - auto-compact発生頻度
+### エージェント健全性監視（SE用）
+```bash
+python telemetry/monitor_agents.py --se-id SE1
+```
 
-## ⚙️ 設定ファイル
+## 📚 参考資料
 
-エージェントごとのauto-compactフック設定は、各エージェントの`~/.claude/settings.json`に自動追加されます。
+- [Claude Code監視ドキュメント](https://docs.anthropic.com/ja/docs/claude-code/monitoring-usage)
+- [OpenTelemetry仕様](https://opentelemetry.io/docs/)

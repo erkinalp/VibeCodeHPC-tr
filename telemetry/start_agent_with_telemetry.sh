@@ -35,10 +35,9 @@ else
     echo "⚠️  otel_config.env not found, using default configuration"
 fi
 
-# ログファイルの準備
-LOG_DIR="$TELEMETRY_DIR/raw_metrics"
-mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/agent_${AGENT_ID}_$(date +%Y%m%d_%H%M%S).log"
+# ログディレクトリの準備（サブエージェント統計用）
+SUB_AGENT_LOG_DIR="$TELEMETRY_DIR/sub_agent_logs"
+mkdir -p "$SUB_AGENT_LOG_DIR"
 
 # エージェントタイプによってプロンプトスタイルを設定
 AGENT_TYPE=$(echo $AGENT_ID | grep -oE '^[A-Z]+')
@@ -64,13 +63,12 @@ fi
 
 # 起動メッセージ
 echo "🚀 Starting agent: $AGENT_ID"
-echo "📊 OpenTelemetry enabled"
-echo "📝 Logging to: $LOG_FILE"
+echo "📊 OpenTelemetry enabled (OTLP exporter)"
 echo ""
 echo "Environment:"
 echo "  CLAUDE_CODE_ENABLE_TELEMETRY=$CLAUDE_CODE_ENABLE_TELEMETRY"
 echo "  OTEL_METRICS_EXPORTER=$OTEL_METRICS_EXPORTER"
-echo "  OTEL_METRIC_EXPORT_INTERVAL=$OTEL_METRIC_EXPORT_INTERVAL"
+echo "  OTEL_EXPORTER_OTLP_ENDPOINT=$OTEL_EXPORTER_OTLP_ENDPOINT"
 echo "  OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES"
 echo ""
 
@@ -81,22 +79,19 @@ export PS1="(\[\033[1;33m\]${AGENT_ID}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$
 alias claude-p="$TELEMETRY_DIR/claude_p_wrapper.sh"
 echo "📊 Sub-agent tracking enabled. Use 'claude-p' instead of 'claude -p'"
 
-# Claude Codeを起動（標準エラー出力のみログファイルにリダイレクト）
+# Claude Codeを起動
 echo "Starting claude with options: --dangerously-skip-permissions $@"
 echo ""
-echo "⚠️  Note: OpenTelemetry metrics will be collected in the background"
-echo "    The interactive session will work normally"
+echo "⚠️  Note: OpenTelemetry metrics are sent to OTLP endpoint"
+echo "    Configure your collector at: $OTEL_EXPORTER_OTLP_ENDPOINT"
 echo ""
 
-# 標準エラー出力をログファイルにリダイレクトしてClaude Codeを起動
-# 標準出力は通常通り表示されるため、対話的な使用に影響なし
-claude --dangerously-skip-permissions "$@" 2>"$LOG_FILE"
+# Claude Codeを起動（リダイレクトなし）
+claude --dangerously-skip-permissions "$@"
 
 # 終了時の処理
 echo ""
 echo "✅ Agent $AGENT_ID session ended"
-echo "📊 Metrics may have been saved to: $LOG_FILE"
+echo "📊 Metrics were sent to OTLP endpoint: $OTEL_EXPORTER_OTLP_ENDPOINT"
 echo ""
-echo "To check if metrics were collected, run:"
-echo "  ls -la $LOG_FILE"
-echo "  python $TELEMETRY_DIR/collect_metrics.py $LOG_FILE $AGENT_ID"
+echo "To view metrics, check your configured backend (Grafana, LangFuse, etc.)"

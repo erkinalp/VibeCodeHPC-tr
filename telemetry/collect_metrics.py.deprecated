@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""
+[DEPRECATED] このスクリプトはconsoleエクスポーターを前提としていたため、現在は使用されません。
+
+OpenCodeATではOTLPエクスポーターを使用し、メトリクスは直接バックエンド（Grafana、LangFuse等）に
+送信されます。メトリクスの確認は、設定したバックエンドのUIから行ってください。
+
+元の機能：
+- Claude CodeのOpenTelemetryコンソール出力を解析
+- 構造化データとして保存
+
+現在の代替手段：
+- Grafanaダッシュボード: docker-compose.yml で起動
+- LangFuse: OTEL_EXPORTER_OTLP_ENDPOINTを設定
+"""
+
+print("This script is deprecated. Please use OTLP backend (Grafana, LangFuse, etc.) to view metrics.")
+print("See telemetry/README.md for current setup instructions.")
