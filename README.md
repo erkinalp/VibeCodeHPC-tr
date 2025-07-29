@@ -84,26 +84,28 @@ sequenceDiagram
     
     User->>PM: requirement_definition.md
     PM->>PM: 要件分析・リソース計画
-    PM->>SE: エージェント配置指示
-    SE->>SE: directory_map.txt更新
-    SE->>PM: 配置完了報告
+    PM->>PM: エージェント配置決定
+    PM->>PM: directory_map.txt作成・更新
+    PM->>SE: 配置完了通知
+    SE->>SE: エージェント監視開始
 ```
 
 ### 2. コード最適化サイクル
 
 ```mermaid
 sequenceDiagram
+    participant PM as PM
     participant SE as SE
     participant CI as CI
     participant PG as PG
     
-    SE->>PG: 最適化タスク配布
+    PM->>PG: 最適化タスク割り当て
     PG->>PG: コード生成・ChangeLog.md作成
     PG->>CI: コンパイル・実行要求
     CI->>CI: SSH・make・ジョブ実行
     CI->>PG: 実行結果・性能データ
     PG->>PG: SOTA判定・分析
-    PG->>SE: 完了報告
+    SE->>SE: 統計分析・可視化（非同期）
 ```
 
 ## 🚀 クイックスタート
@@ -331,15 +333,15 @@ claude --dangerously-skip-permissions
 
 ### エージェント動作パターン
 
-#### 1. **イベントドリブン型** (PG, ID, PM中盤以降)
+#### 1. **📨 イベントドリブン型** (PG, ID, PM中盤以降)
 - **特徴**: メッセージ受信時にのみ反応し、完了後は待機
 - **例**: PGがコード生成→CIに実行依頼→結果待ち→次の最適化
 
-#### 2. **ポーリング型** (SE, CI, CD)
+#### 2. **⏳ ポーリング型** (SE, CI, CD)
 - **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
 - **例**: SEがChangeLog.mdを定期監視→統計グラフ更新
 
-#### 3. **フロー駆動型** (PM初期)
+#### 3. **🔄 フロー駆動型** (PM初期)
 - **特徴**: 一連のタスクを順次実行し、各ステップで判断
 - **例**: 要件定義→環境調査→階層設計→エージェント配置
 
@@ -393,7 +395,7 @@ next_steps: "ループアンローリングとブロッキング最適化を実�
 ### 統一ログシステム
 ChangeLog.mdを中心としたフォーマットが統一されたログで情報共有を実現。
 - [ ] 詳細：[Agent-shared/ChangeLog_format.md](Agent-shared/ChangeLog_format.md)
-- [ ] PMオーバーライド：[Agent-shared/ChangeLog_format_PM_override.md](Agent-shared/ChangeLog_format_PM_override.md)
+- [ ] PMオーバーライドテンプレート：[Agent-shared/ChangeLog_format_PM_override_template.md](Agent-shared/ChangeLog_format_PM_override_template.md)
 #### 成果物の全体像: 
 - [ ] 詳細: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
 
@@ -405,7 +407,7 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 ## 📊 OpenTelemetry監視
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
-- 詳細設定: [telemetry/README_OTEL.md](telemetry/README_OTEL.md)
+- 詳細設定: [telemetry/README.md](telemetry/README.md)
 
 ## 🔒 セキュリティ
 
