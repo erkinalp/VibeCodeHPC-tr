@@ -301,6 +301,10 @@ cp requirement_definition_template.md requirement_definition.md
 PMを手動起動
 ```bash
 # pm_sessionで以下を実行:
+# 方法1: telemetry付きで起動（推奨、メトリクス収集あり）
+./telemetry/start_agent_with_telemetry.sh PM
+
+# 方法2: telemetryなしで起動（メトリクス収集なし）
 claude --dangerously-skip-permissions
 ```
 
