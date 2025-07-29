@@ -259,6 +259,23 @@ gh auth login
 
 ### 2. 環境セットアップ
 
+#### 2.1. OpenTelemetry監視環境（オプション、推奨）
+エージェントのメトリクスを可視化したい場合は、先にGrafana環境を起動します：
+
+```bash
+# Grafana + Prometheus環境の自動セットアップ
+./telemetry/setup_grafana.sh
+
+# 確認（Windows側のブラウザでアクセス）
+# http://localhost:3000 (admin/admin)
+```
+
+> [!NOTE]
+> - 短時間のテストや既に他のOTLPバックエンドがある場合はスキップ可能
+> - WSL環境の場合、Windows側のブラウザでアクセスしてください
+
+#### 2.2. tmuxセッションセットアップ
+
 > [!IMPORTANT]
 > OpenCodeATは2つのtmuxセッションを使用します：
 > - `pm_session`: PMエージェント専用（ユーザとの対話用）
@@ -414,20 +431,7 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
 
-### クイックセットアップ（Grafana）
-```bash
-# 自動セットアップスクリプトを実行
-./telemetry/setup_grafana.sh
-
-# Grafanaにアクセス
-# http://localhost:3000 (admin/admin)
-```
-
-このスクリプトは自動的に：
-- .envファイルの確認・作成
-- Docker環境の確認
-- Grafana + Prometheus + OTel Collectorの起動
-- 接続情報の表示
+セットアップ方法は上記の「2.1. OpenTelemetry監視環境」を参照してください。
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
 
