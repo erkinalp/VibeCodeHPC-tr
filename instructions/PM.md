@@ -314,11 +314,9 @@ claude --dangerously-skip-permissions -c
 
 ## 🖼️ tmux全体監視（mcp-screenshot）
 
-### セットアップ（初回のみ）
-```bash
-claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
-# 設定後、Claude Codeを再起動して有効化
-```
+### 前提条件
+ユーザが事前にMCPサーバを設定している必要があります。
+未設定の場合は、README.mdのセットアップ手順を参照してください。
 
 ### 使用方法
 PMがプロジェクト全体の状況を視覚的に確認する際に使用：

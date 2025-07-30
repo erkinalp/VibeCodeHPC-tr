@@ -246,30 +246,27 @@ gh auth login
 
 #### ☑️ **MCPサーバのセットアップ**
 
-##### 1. Desktop Commander（必須）
-- Claude CodeからHPC環境のコマンドを安全に実行するため、Desktop Commander MCPサーバを使用します
-- プロジェクト開始時にPM・SE・CIエージェントが協力して自動設定を行います
-- CIエージェントがDesktop Commander経由でSSH接続を管理します
-  <details>
-  <summary>手動設定が必要な場合（クリックで展開）</summary>
-  
-  自動設定に失敗した場合は、以下のコマンドでDesktop Commander MCPサーバを追加：
-  ```bash
-  claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
-  ```
-  
-  設定後、Claude Code内で `/mcp` コマンドで接続を確認してください。
-  詳細は公式ドキュメントを参照：https://github.com/wonderwhy-er/DesktopCommanderMCP
-  </details>
+プロジェクト開始前に以下のMCPサーバを設定することを推奨します：
 
-##### 2. mcp-screenshot（PMオプション）
-- PMがtmux全体の状況を視覚的に監視するためのツール
-- プロジェクト開始後にPMが必要に応じて設定：
-  ```bash
-  claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
-  # 設定後、Claude Codeを再起動して有効化
-  ```
-- 詳細な使用方法は[instructions/PM.md](instructions/PM.md#-tmux全体監視mcp-screenshot)を参照
+```bash
+# PM用（必須）: SSH/SFTP接続管理
+claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
+
+# PM用（推奨）: tmux全体監視
+claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
+
+# 設定後、Claude Codeを再起動して有効化
+```
+
+##### Desktop Commander
+- HPC環境へのSSH/SFTP接続を管理
+- PMとCIエージェントが主に使用
+- 詳細: https://github.com/wonderwhy-er/DesktopCommanderMCP
+
+##### mcp-screenshot
+- tmux全体の状況を視覚的に確認
+- PMの定期巡回や障害対応で活用
+- 詳細な使用方法: [instructions/PM.md](instructions/PM.md#-tmux全体監視mcp-screenshot)
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---

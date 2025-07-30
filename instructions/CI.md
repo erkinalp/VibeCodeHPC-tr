@@ -55,21 +55,16 @@ CI Agent 1つにつき：
 
 各セッションのPIDを記録し、用途別に使い分けることで効率的な運用が可能です。
 
-#### Desktop Commander初期設定（プロジェクト開始時）
-1. **MCP設定の手順**（SEまたはPMから指示された場合）
-   ```bash
-   # 自分のIDを確認（例：CI1.1）
-   # MCPサーバ追加コマンドを実行
-   claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
-   ```
+#### Desktop Commander利用開始
+1. **前提条件**
+   - ユーザまたはPMが事前にDesktop Commander MCPサーバを設定済み
+   - 未設定の場合はPMに確認
 
-2. **MCP設定完了後の再起動**
+2. **接続確認**
    ```bash
-   # SEに再起動を依頼
-   agent-send.sh SE1 "[CI1.1] MCP設定完了。restart_agent_after_mcp_setup.shで再起動をお願いします"
-   
-   # SEがrestart_agent_after_mcp_setup.shを実行後、自動的に再起動される
-   # 再起動後、/mcpコマンドでMCPツールを確認
+   # Claude Code内で使用可能なMCPツールを確認
+   /mcp
+   # desktop-commanderが表示されることを確認
    ```
 
 3. **セッション管理方針**
