@@ -492,6 +492,16 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
 
+### 代替案: ccusage（簡易トークン使用量確認）
+
+OpenTelemetryを使用しない場合でも、以下のコマンドでプロジェクト全体のトークン使用量を確認できます：
+
+```bash
+npx ccusage@latest
+```
+
+[ccusage](https://github.com/ryoppippi/ccusage)は、Claude Codeのローカルログファイル（JSONL）からトークン使用量を分析するCLIツールです。セットアップ不要で即座に使用状況を確認できます。
+
 ## 🔒 セキュリティ
 
 - [x] **機密情報保護**: `_remote_info/`はGit管理外
