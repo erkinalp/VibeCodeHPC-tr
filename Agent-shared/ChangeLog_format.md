@@ -67,7 +67,7 @@
 - **compile**: `success`, `warning`, `error`
 - **job**: `success`, `error`, `timeout`, `canceled`
 - **test**: `pass`, `fail`, `partial`
-- **sota**: スコープは `local`（このPG内）, `hardware`（ハードウェア構成内）, `project`（プロジェクト全体）
+- **sota**: スコープは `local`（このPG内）, `family`（同一ミドルウェア内の親子世代）, `hardware`（ハードウェア構成内）, `project`（プロジェクト全体）
 
 ### 4. 必須項目と任意項目
 #### 必須項目

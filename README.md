@@ -81,7 +81,7 @@ OpenCodeAT/🤖PM
 │
 └── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
     ├── 📄 hardware_info.txt         # ハードウェア仕様（理論性能含む）
-    ├── 📄 sota_global.txt           # 指定ハード内の Global SOTA
+    ├── 📄 sota_hardware.txt         # 指定ハード内の Hardware SOTA
     ├── 📁 intel2024/🤖CI1.1         # コンパイラ環境                       
     │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
     │        ├── 📄 ChangeLog.md      # 進捗記録
@@ -464,6 +464,7 @@ claude --dangerously-skip-permissions
 - max_agent_number.txt（利用可能なワーカー数）
 - agent_and_pane_id_table.txt（既存セッション構成）
 - directory_map.txt（エージェント配置管理）
+- sota_management.md（SOTA管理方法とfamilyの重要性）
 
 全て読み込んだ後、既存の opencodeat セッションを活用してプロジェクトを初朞化してください。新規セッションは作成しないでください。
 ```
@@ -477,8 +478,8 @@ claude --dangerously-skip-permissions
 | 名称 | 最高性能のスコープ |
 |---------|------------------------|
 | **Local** | PG自身のディレクトリ内 |
-| **Parent** | 継承元フォルダ全体（仮想的に算出） |
-| **Global** | ハードウェア全体 |
+| **Family** | 同一ミドルウェア内の親子世代全体 |
+| **Hardware** | ハードウェア全体 |
 | **Project** | プロジェクト全体 |
 
 各階層でのSOTA判定により、効率的なベンチマーク比較と最適化方針決定を自動化。

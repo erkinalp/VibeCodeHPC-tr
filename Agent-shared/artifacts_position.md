@@ -74,7 +74,7 @@ Flow/TypeII/single-node/
 │   ├── Network: 通信バンド幅、レイテンシ
 │   ├── Storage: ディスクI/O性能
 │   └── Accelerator: GPU/FPGA情報
-├── sota_global.txt             # Global階層SOTA（writer:PG, reader:all）
+├── sota_hardware.txt           # Hardware階層SOTA（writer:PG, reader:all）
 ├── intel2024/
 └── gcc11.3.0/
 ```
@@ -129,8 +129,8 @@ grep -A1 "\*\*sota\*\*" ChangeLog.md | grep "scope: \`project\`"
 # Local SOTA確認
 cat PG1.1.1/sota_local.txt
 
-# Global SOTA確認  
-cat Flow/TypeII/single-node/sota_global.txt
+# Hardware SOTA確認  
+cat Flow/TypeII/single-node/sota_hardware.txt
 
 # Project SOTA確認
 cat OpenCodeAT/sota_project.txt
