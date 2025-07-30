@@ -67,3 +67,17 @@ __pycache__/
 # - sota_*.txt (performance tracking)
 # - Agent-shared/ configuration files
 # - Source code with anonymized references
+
+# ===========================================
+# TELEMETRY AND MONITORING
+# ===========================================
+
+# Claude Code telemetry logs
+claude_code_prompts*.jsonl
+claude_code_events*.jsonl
+telemetry/sub_agent_logs/
+
+# Docker volumes (if using local monitoring)
+**/grafana-data/
+**/prometheus-data/
+**/loki-data/

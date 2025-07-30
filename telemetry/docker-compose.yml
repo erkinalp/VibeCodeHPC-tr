@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  otel-network:
+    driver: bridge
+
 services:
   # OpenTelemetry Collector
   otel-collector:
@@ -14,6 +18,9 @@ services:
       - "8889:8889"   # Prometheus exporter metrics
     depends_on:
       - prometheus
+      - loki
+    networks:
+      - otel-network
 
   # Prometheus
   prometheus:
@@ -26,6 +33,19 @@ services:
       - '--storage.tsdb.path=/prometheus'
     ports:
       - "9090:9090"
+    networks:
+      - otel-network
+
+  # Loki
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - otel-network
 
   # Grafana
   grafana:
@@ -37,9 +57,15 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - otel-network
 
 volumes:
   prometheus-data:
   grafana-data:
+  loki-data:

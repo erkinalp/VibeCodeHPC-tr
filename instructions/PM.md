@@ -52,6 +52,9 @@
   - 並列化戦略（実装順序や適用箇所）
   - 許容される精度（テストコード 指定/生成）
   - 予算（ジョブ）
+  - **テレメトリ設定**: OpenTelemetryによるメトリクス収集の有無
+    - 有効（デフォルト）: Grafana/Prometheus/Lokiで可視化可能（要Docker）
+    - 無効: 軽量動作、外部依存なし（`OPENCODEAT_ENABLE_TELEMETRY=false`）
 
 
 
@@ -144,7 +147,11 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 
 1. **start_agent.shを使用（推奨）**:
 ```bash
+# テレメトリ有効（デフォルト）
 ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+
+# テレメトリ無効
+OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 ```
 
 2. **手動での起動（代替手段）**:

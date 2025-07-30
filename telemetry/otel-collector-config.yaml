@@ -26,18 +26,21 @@ exporters:
     namespace: opencodeat
     const_labels:
       project: "opencodeat"
+  
+  otlphttp:
+    endpoint: http://loki:3100/otlp
     
-  logging:
-    loglevel: info
+  debug:
+    verbosity: normal
 
 service:
   pipelines:
     metrics:
       receivers: [otlp]
       processors: [batch, attributes]
-      exporters: [prometheus, logging]
+      exporters: [prometheus, debug]
     
     logs:
       receivers: [otlp]
       processors: [batch, attributes]
-      exporters: [logging]
+      exporters: [otlphttp, debug]
