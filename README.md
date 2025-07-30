@@ -141,12 +141,12 @@ sequenceDiagram
     SE->>SE: 統計分析・可視化（非同期）
 ```
 
-## 🚀 クイックスタート
+# 🚀 クイックスタート
 
-### 1. 事前セットアップ
+## 1. 事前セットアップ
 本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
 
-#### ☑️ OpenCodeATリポジトリのコードをダウンロード
+### ☑️ OpenCodeATリポジトリのコードをダウンロード
 
 > [!NOTE]
 > 以下の理由から OpenCodeATは git clone を用いずzipでダウンロードし展開することを推奨
@@ -154,8 +154,7 @@ sequenceDiagram
 > GitHub/📁でプロジェクトの匿名版コピーを管理するCDエージェントのGit認証との混同を避ける
 
 #### GUIの場合
-[release](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/releases)から
-ダウンロードした.zipを展開
+[release](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/releases)から(mainからでもOK) ダウンロードした.zipを展開
 
 #### CLIの場合
 <details>
@@ -179,7 +178,7 @@ cd OpenCodeAT-jp-{バージョン}
 
 ---
 
-#### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
+### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
 GitHubのGUIでリポジトリ作成（Privateも可）
 
 GitHub/📁に移動
@@ -202,7 +201,7 @@ git remote add origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 # 既に origin がある場合は:
 git remote set-url origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 ```
-##### GitのHTTPS(２段階)認証の方法
+#### GitのHTTPS(２段階)認証の方法
 ➡以下のように選択肢は様々
 https://zenn.dev/miya789/articles/manager-core-for-two-factor-authentication
 
@@ -234,7 +233,7 @@ gh auth login
 
 ---
 
-#### ☑️ **SSHエージェントの設定 (ssh-agent)**
+### ☑️ **SSHエージェントの設定 (ssh-agent)**
 - スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
 - ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
   
@@ -257,7 +256,7 @@ gh auth login
 
 ---
 
-#### ☑️ **Claude Codeのインストールと認証**
+### ☑️ **Claude Codeのインストールと認証**
 - Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
 - `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
 - 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
@@ -268,34 +267,45 @@ gh auth login
 
 ---
 
-#### ☑️ **MCPサーバのセットアップ**
+### ☑️ **MCPサーバのセットアップ**
 
-プロジェクト開始前に以下のMCPサーバを設定することを推奨します：
+開始直前に以下のMCPサーバを設定することを推奨します：
 
-**Desktop Commander MCP** - HPC環境へのSSH/SFTP接続を管理  
-[https://github.com/wonderwhy-er/DesktopCommanderMCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
+プロジェクトルート📂で起動するPM🤖にMCPサーバを与えます
 ```bash
-# PMとCIエージェントが使用
-claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
+cd OpenCodeAT-jp-main
+```
+Claude Codeを起動
+```bash
+claude
 ```
 
-**mcp-screenshot** - tmux全体の状況を視覚的に確認  
-[https://github.com/kazuph/mcp-screenshot](https://github.com/kazuph/mcp-screenshot)
+[Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
+PMがHPC環境へのSSH/SFTP接続を管理に活用（CI🤖も使用）
 ```bash
-# PMの定期巡回や障害対応で活用
-claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
+!claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
+```
+
+[mcp-screenshot](https://github.com/kazuph/mcp-screenshot)
+PMが障害対応等でtmux全体の状況を視覚的な確認に活用
+```bash
+!claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 ```
 
 設定後、Claude Codeを再起動して有効化してください。
+```
+exit
+```
+再起動方法は以下に示す２通り（OpenTelemetry有無）
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---
 
-### 2. 環境セットアップ
+## 2. 環境セットアップ
 
 ```bash
 # プロジェクトディレクトリに移動
-cd OpenCodeAT-jp
+cd OpenCodeAT-jp-main
 ```
 
 ### 🔭 監視オプション
@@ -391,7 +401,7 @@ npx ccusage@latest
 > 最小エージェント数は3です（SE + CI + PG）。解像度に応じて調整してください。
 
 ```bash
-cd OpenCodeAT-jp
+cd OpenCodeAT-jp-main
 ./communication/setup.sh [ワーカー数(PM除く)]  # 例: ./communication/setup.sh 11
 
 # コマンドラインオプション:
@@ -463,10 +473,13 @@ claude --dangerously-skip-permissions
 ## 📈 SOTA管理システム
 
 ### 4階層SOTA追跡
-- **Local**: PG自身のディレクトリ内での最高性能
-- **Parent**: 継承元フォルダ全体での最高性能（仮想的に算出）
-- **Global**: ハードウェア全体での最高性能
-- **Project**: プロジェクト全体での最高性能
+
+| 名称 | 最高性能のスコープ |
+|---------|------------------------|
+| **Local** | PG自身のディレクトリ内 |
+| **Parent** | 継承元フォルダ全体（仮想的に算出） |
+| **Global** | ハードウェア全体 |
+| **Project** | プロジェクト全体 |
 
 各階層でのSOTA判定により、効率的なベンチマーク比較と最適化方針決定を自動化。
 
@@ -474,9 +487,10 @@ claude --dangerously-skip-permissions
 
 エージェント間の情報共有を実現する統一ログシステム。
 
-実際のChangeLog.md例：
+実際の`ChangeLog.md`例：
 
 ---
+
 ### v1.1.0
 **変更点**: "ブロッキング最適化とスレッド数調整"  
 **結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
@@ -502,10 +516,10 @@ claude --dangerously-skip-permissions
     - nodes: `8`
     - threads_per_node: `32`
     - block_size: `128`
-
 </details>
 
 ---
+
 ### v1.0.0
 **変更点**: "初期OpenMP実装"  
 **結果**: ベースライン確立 `248.3 GFLOPS`  
@@ -527,7 +541,6 @@ claude --dangerously-skip-permissions
 - **params**:
     - nodes: `8`
     - threads_per_node: `32`
-
 </details>
 
 ---
@@ -570,7 +583,7 @@ claude --dangerously-skip-permissions
 ## 🔭 OpenTelemetry監視
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
-監視設定は「2. 環境セットアップ」の監視オプションを参照してください。
+監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
 
