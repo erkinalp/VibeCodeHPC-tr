@@ -244,7 +244,9 @@ gh auth login
 
 ---
 
-#### ☑️ **MCPサーバのセットアップ (Desktop Commander)**
+#### ☑️ **MCPサーバのセットアップ**
+
+##### 1. Desktop Commander（必須）
 - Claude CodeからHPC環境のコマンドを安全に実行するため、Desktop Commander MCPサーバを使用します
 - プロジェクト開始時にPM・SE・CIエージェントが協力して自動設定を行います
 - CIエージェントがDesktop Commander経由でSSH接続を管理します
@@ -256,10 +258,18 @@ gh auth login
   claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
   ```
   
-  
   設定後、Claude Code内で `/mcp` コマンドで接続を確認してください。
   詳細は公式ドキュメントを参照：https://github.com/wonderwhy-er/DesktopCommanderMCP
   </details>
+
+##### 2. mcp-screenshot（PMオプション）
+- PMがtmux全体の状況を視覚的に監視するためのツール
+- プロジェクト開始後にPMが必要に応じて設定：
+  ```bash
+  claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
+  # 設定後、Claude Codeを再起動して有効化
+  ```
+- 詳細な使用方法は[instructions/PM.md](instructions/PM.md#-tmux全体監視mcp-screenshot)を参照
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---

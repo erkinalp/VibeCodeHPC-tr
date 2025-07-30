@@ -240,6 +240,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 - pjstat（予算管理）
 - module avail（環境構築）
 - communication/start_agent.sh（エージェント配置と起動）
+- mcp-screenshot（tmux全体監視用、要MCP設定）
 
 ### ファイル管理
 - /Agent-shared/directory_map.txt（エージェント配置管理）
@@ -310,3 +311,48 @@ claude --dangerously-skip-permissions -c
 - 定期的にエージェントの生存確認を行う
 - 重要な作業前にChangeLog.mdへの記録を確実に行う
 - CDエージェントなど重要度の低いエージェントは後回しにして、コアエージェント（SE、CI、PG）を優先的に監視
+
+## 🖼️ tmux全体監視（mcp-screenshot）
+
+### セットアップ（初回のみ）
+```bash
+claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
+# 設定後、Claude Codeを再起動して有効化
+```
+
+### 使用方法
+PMがプロジェクト全体の状況を視覚的に確認する際に使用：
+
+#### 基本的な使い方
+```
+/capture region="full"  # 全画面スクリーンショット
+/capture region="left"  # 左半分（デフォルト）
+/capture region="right" # 右半分
+```
+
+#### 推奨：サブエージェントでの画像確認
+トークン消費を抑えるため、画像確認は`-p`オプションで実行：
+
+```bash
+# 1. スクリーンショットを撮影
+/capture region="full"
+# 出力例（Windows）: Screenshot saved to: C:\Users\[username]\Downloads\20250130\screenshot-full-2025-01-30T...png
+# 出力例（Mac）: Screenshot saved to: /Users/[username]/Downloads/20250130/screenshot-full-2025-01-30T...png
+
+# 2. 画像パスの変換（Windows/WSLの場合）
+# 出力されたWindowsパス: C:\Users\[username]\Downloads\...
+# WSLでのパス: /mnt/c/Users/[username]/Downloads/...
+
+# 3. サブエージェントで画像を確認（推奨）
+# Windows/WSLの場合（パスを変換して使用）：
+claude -p "以下の画像を見て、各tmuxペインでどのエージェントが何をしているか要約して: /mnt/c/Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
+# Macの場合（そのまま使用）：
+claude -p "以下の画像を見て、各tmuxペインでどのエージェントが何をしているか要約して: /Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
+
+# 4. 必要に応じて本体で詳細確認
+```
+
+### 活用シーン
+- **定期巡回時**: 全エージェントの稼働状況を一覧確認
+- **トラブル時**: 無応答エージェントの画面状態を確認
+- **進捗報告**: User-shared/reports/にスクリーンショットを含める
