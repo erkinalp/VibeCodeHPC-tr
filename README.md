@@ -277,17 +277,12 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 
 ### 2. 環境セットアップ
 
-#### 2.1. OpenTelemetry監視環境（オプション、推奨）
-エージェントのメトリクスを可視化したい場合は、先にGrafana環境を起動します：
-
 ```bash
-# Grafana + Prometheus環境の自動セットアップ
-./telemetry/setup_grafana.sh
+# プロジェクトディレクトリに移動
+cd OpenCodeAT-jp
 
-# ブラウザでアクセスして確認
-# URL: http://localhost:3000
-# 初期ユーザー名: admin
-# 初期パスワード: admin
+# （オプション）テレメトリを無効化する場合
+export OPENCODEAT_ENABLE_TELEMETRY=false
 ```
 
 ![Grafana起動成功時の画面表示例](_images/Grafana.png)
@@ -329,7 +324,7 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 > [!NOTE]
 > - 短時間のテストや既に他のOTLPバックエンドがある場合はスキップ可能
 
-#### 2.2. tmuxセッションセットアップ
+#### 2.1. tmuxセッションセットアップ
 
 > [!IMPORTANT]
 > OpenCodeATは2つのtmuxセッションを使用します：
@@ -495,7 +490,26 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
 
-セットアップ方法は上記の「2.1. OpenTelemetry監視環境」を参照してください。
+### 監視環境のセットアップ（オプション）
+
+```bash
+# Grafana + Prometheus + Loki環境の自動セットアップ
+./telemetry/setup_grafana.sh
+
+# ブラウザでアクセスして確認
+# URL: http://localhost:3000
+# ユーザー名: admin / パスワード: admin
+```
+
+### テレメトリの有効/無効切り替え
+
+```bash
+# テレメトリを無効化（軽量動作）
+export OPENCODEAT_ENABLE_TELEMETRY=false
+
+# エージェント起動時に指定も可能
+OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
+```
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
 
