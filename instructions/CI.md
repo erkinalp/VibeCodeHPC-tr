@@ -199,6 +199,25 @@ mcp__desktop-commander__interact_with_process(
 ### フェーズ2: コマンド実行およびファイル転送
 適宜workerのChangeLog.mdを参照し、SSH先でテストしていないコードがあればmakeやジョブ実行を行う。
 
+#### ジョブ実行方式の選択
+**重要**: 要件定義書でジョブ実行方式が指定されていない場合は、必ずバッチジョブを使用すること。
+
+1. **バッチジョブ（デフォルト）**
+   ```bash
+   # ジョブスクリプトを作成してsbatch/qsub等で投入
+   interact_with_process(pid=ssh_pid, input="sbatch job_script.sh")
+   ```
+
+2. **インタラクティブジョブ（明示的に指定された場合のみ）**
+   ```bash
+   # salloc/qrsh等でインタラクティブセッションを取得
+   interact_with_process(pid=ssh_pid, input="salloc -N 1 -t 00:10:00")
+   ```
+
+3. **ログインノード実行（絶対に避ける）**
+   - 多くのスパコンでは禁止されている
+   - 小規模なコンパイルとファイル操作のみ許可
+
 #### コンパイル実行と警告文の処理
 1. **make実行時の出力保存**
    ```bash

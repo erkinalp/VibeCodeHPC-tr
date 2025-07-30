@@ -41,6 +41,7 @@
 - [x/✗] **test**
     - status: `[pass/fail]`
     - performance: `[数値]`
+    - unit: `[単位]`
     - accuracy: `[精度値]` ※必要に応じて
 - [x/✗] **sota**
     - scope: `[local/hardware/project]` ※更新時のみ

@@ -33,10 +33,31 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 python telemetry/monitor_agents.py --se-id [自分のID] --once
 ```
 
-または、バックグラウンドで継続的監視（5分間隔）：
+または、バックグラウンドで継続的監視（2分間隔）：
 ```bash
-python telemetry/monitor_agents.py --se-id [自分のID] --interval 300 &
+python telemetry/monitor_agents.py --se-id [自分のID] --interval 120 &
 ```
+
+#### 進捗監視と迅速な介入
+**重要**: OpenCodeATは短期集中型のため、停滞は即座に対処する
+
+1. **PG/CDの進捗確認（3-10分間隔、計算時間に応じて調整）**
+   - ChangeLog.mdの更新間隔を監視（PG）
+   - GitHubへのpush状況を確認（CD）
+   - 停滞を検知したら**明示的に質問**: 
+     ```bash
+     agent_send.sh PG1.1.1 "[SE] 現在CI待ちですか？それとも作業中ですか？"
+     agent_send.sh CD "[SE] GitHub同期の進捗はいかがですか？"
+     ```
+
+2. **CI待ち状態への対応**
+   - PGから「CI待ち」の返答があった場合、即座に該当CIに確認
+   - `agent_send.sh CI1.1 "[SE] PG1.1.1がジョブ結果を待っています。ジョブIDと予想完了時刻を教えてください"`
+
+3. **迅速なエスカレーション**
+   - CIから**1-2分以内**に返答がない場合（CIは基本的に即応可能）
+   - `agent_send.sh PM "[SE緊急] CI1.1無応答でPG1.1.1が停滞中"`
+   - 連鎖的な停止を防ぐため、早期介入が重要
 
 
 ### フェーズ3: 環境整備タスク
@@ -50,13 +71,16 @@ python telemetry/monitor_agents.py --se-id [自分のID] --interval 300 &
 - コンテキスト使用率の監視と可視化
 
 #### ファイル管理
-成果物（グラフ化するためのPythonコード等も含む）は/Agent-shared📂以下に集約管理することを推奨する：
-- /Agent_analyzer
-- /log_analyzer/images
-- /test
-- /reports
+- **技術的ツール**: /Agent-shared/以下に配置
+  - 解析スクリプト（Python等）
+  - テンプレート
+- **ユーザ向け成果物**: /User-shared/以下に配置
+  - /reports/（日次・週次レポート）
+  - /visualizations/（グラフ・図表）
 
 #### 特に優先して作成する可視化ツール
+**重要**: レポート.mdの手動作成より、Pythonでの自動グラフ生成を優先すること
+
 Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し、指定したディレクトリ（配列で指定できると良い）内にある全てのChangeLog.mdを読み取って、以下のようなグラフを作成すること：
 
 ##### グラフ仕様
@@ -81,6 +105,21 @@ Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し
 ```
 
 SOTAを更新していない点は除外し、単調増加のグラフとしても見れるようにして、定期的に画像を更新すること。
+
+##### グラフ画像の活用方法
+1. **生成した画像の保存先**: `Agent-shared/visualizations/`
+2. **レポート.mdでの参照**: 相対パスで画像を参照
+   ```markdown
+   ## 性能推移
+   ![性能トレンド](../visualizations/performance_trends.png)
+   ```
+3. **サブエージェントでの確認**（トークン節約）:
+   ```bash
+   # グラフ生成後の確認
+   claude -p "このグラフから読み取れる主要な傾向を3点挙げて" < performance_trends.png
+   
+   # 最終確認のみ本体で実施
+   ```
 
 ##### 注意事項
 画像はtokenを消費するので、何回も確認する場合はサブエージェントを起動してチェックさせ、最終確認だけ自分が行うなど工夫すること。SEとしての本分を忘れないように注意すること。

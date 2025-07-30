@@ -15,9 +15,13 @@ OpenCodeAT/
 ├── sota_project.txt             # Project階層SOTA（writer:PG, reader:all）
 ├── history/
 │   └── sota_project_history.txt # Project SOTA履歴（writer:PG, reader:PM）
-└── GitHub/                      # CD管理（writer:CD, reader:all）
-    ├── changelog_public.md      # 統合・匿名化版
-    └── repository_name
+├── GitHub/                      # CD管理（writer:CD, reader:all）
+│   ├── changelog_public.md      # 統合・匿名化版
+│   └── repository_name
+└── User-shared/                 # ユーザ向け成果物（writer:SE/PM, reader:User）
+    ├── final_report.md          # 最終報告書
+    ├── reports/                 # 統合レポート
+    └── visualizations/          # グラフ・図表
 ```
 
 ## Agent-shared階層
