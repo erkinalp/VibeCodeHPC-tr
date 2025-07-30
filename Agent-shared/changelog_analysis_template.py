@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-ChangeLog.mdレポート生成テンプレート
-SEエージェントが必要に応じてカスタマイズして使用する汎用的なレポート生成ツール
+ChangeLog.md解析テンプレート
+SEエージェントが必要に応じてカスタマイズして使用する汎用的な解析ツール
+
+配置場所: Agent-shared/tools/changelog_analyzer.py
+出力先: Agent-shared/reports/ (技術的な解析結果)
+
+注意: これは一次レポート(ChangeLog.md)を解析するツールです。
+二次レポート(User-shared/reports/)はSEが手動で作成します。
 """
 
 import os
@@ -12,10 +18,13 @@ from pathlib import Path
 from collections import defaultdict
 from typing import Dict, List, Tuple, Optional, Any
 
-class ChangeLogReportTemplate:
+class ChangeLogAnalysisTemplate:
     """
-    汎用的なChangeLog.md解析・レポート生成クラス
+    汎用的なChangeLog.md解析クラス
     SEエージェントが継承・カスタマイズして使用することを想定
+    
+    このクラスは技術的な解析を行うためのもので、
+    人間向けの二次レポート作成は別途手動で行います。
     """
     
     def __init__(self, project_root: str = "."):
@@ -258,13 +267,14 @@ class ChangeLogReportTemplate:
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(report)
         
-        print(f"\n📄 Report saved to: {report_path}")
+        print(f"\n📄 Analysis report saved to: {report_path}")
+        print(f"💡 Note: This is a technical analysis. For user-facing reports, create manually in User-shared/reports/")
         return report_path
 
 
 # 使用例（SEエージェントがカスタマイズして使用）
-class HPCOptimizationReport(ChangeLogReportTemplate):
-    """HPC最適化プロジェクト用のカスタマイズ例"""
+class HPCOptimizationAnalysis(ChangeLogAnalysisTemplate):
+    """HPC最適化プロジェクト用の解析カスタマイズ例"""
     
     def extract_metadata(self, file_path: Path) -> Dict[str, Any]:
         """プロジェクト固有のメタデータ抽出"""
@@ -294,9 +304,11 @@ class HPCOptimizationReport(ChangeLogReportTemplate):
 
 if __name__ == "__main__":
     # 基本的な使用
-    reporter = ChangeLogReportTemplate()
-    reporter.run()
+    analyzer = ChangeLogAnalysisTemplate()
+    analyzer.run()
     
     # カスタマイズした使用
-    # hpc_reporter = HPCOptimizationReport()
-    # hpc_reporter.run()
+    # hpc_analyzer = HPCOptimizationReport()
+    # hpc_analyzer.run()
+    
+    # 注: このスクリプトはAgent-shared/tools/に配置することを推奨

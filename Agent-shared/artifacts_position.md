@@ -39,6 +39,9 @@ Agent-shared/
 │   ├── query_changelog.py       # SQLライクなChangeLog.md検索
 │   ├── [その他解析コード自由配置]
 │   └── README.md                # 使用方法・クエリ例
+├── tools/                       # 共通ツール群
+│   ├── changelog_analysis_template.py  # ChangeLog解析テンプレート
+│   └── report_generator.py      # レポート生成補助ツール
 └── SE-shared/                   # SE専用ツール（writer:SE, reader:SE/PM）
     ├── log_analyzer.py          # ログ解析ツール
     └── performance_trends.png   # 統計グラフ

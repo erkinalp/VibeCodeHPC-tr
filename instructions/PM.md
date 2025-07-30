@@ -18,6 +18,11 @@
 情報が不十分な場合は、ユーザに尋ねるかWEBリサーチを行うこと。
 ※ただしCPUやGPUなどの情報はlscpuやnvidia-smiコマンドで確認する
 
+**重要**: プロジェクト開始時は必ず以下のドキュメントを熟読すること：
+- `CLAUDE.md`（全エージェント共通ルール）
+- `Agent-shared/typical_hpc_code.md`（階層設計の具体例）
+- `Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
+
 #### 共有ファイルについて
 スパコン上のプロジェクトのディレクトリ選択は以下の通りとする：
 - /home か、より高速で大容量な /data /work 等を使用する
@@ -81,6 +86,16 @@ PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G  
 
 ### フェーズ3: 📁階層設計
 Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_dir.md`）を参考にして、ユーザの要件に合致する📁の階層設計を行うこと。
+
+#### 特に重要な設計文書
+- **`evolutional_flat_dir.md`**: 進化的探索アプローチの詳細
+- **`typical_hpc_code.md`**: HPC最適化の典型的な階層構造
+
+#### 段階的並列化戦略（重要）
+**第1世代では単一技術のみから開始すること**：
+- ❌ 避けるべき: いきなり `/OpenMP_MPI/` のような複合技術
+- ✅ 推奨: `/OpenMP/`, `/MPI/`, `/CUDA/` など単一技術
+- 理由: 各技術の基礎性能を把握してから融合することで、効果的な最適化が可能
 
 `Agent-Shared/directory_map.txt`に📁階層を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
 
