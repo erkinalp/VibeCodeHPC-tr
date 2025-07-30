@@ -212,14 +212,13 @@ gh auth login
 #### ☑️ **SSHエージェントの設定 (ssh-agent)**
 - スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
 - ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
-- ターミナルで以下のコマンドを実行し、パスフレーズを入力してください。
   
   ssh-agentを起動：
   ```bash
   eval "$(ssh-agent -s)"
   ```
   
-  秘密鍵を追加（パスフレーズを入力）：
+  秘密鍵を追加：
   ```bash
   ssh-add ~/.ssh/your_private_key
   ```
@@ -248,32 +247,24 @@ gh auth login
 
 プロジェクト開始前に以下のMCPサーバを設定することを推奨します：
 
+**Desktop Commander MCP** - HPC環境へのSSH/SFTP接続を管理  
+[https://github.com/wonderwhy-er/DesktopCommanderMCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
 ```bash
-# PM用（必須）: SSH/SFTP接続管理
+# PMとCIエージェントが使用
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
-
-# PM用（推奨）: tmux全体監視
-claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
-
-# 設定後、Claude Codeを再起動して有効化
 ```
 
-##### Desktop Commander
-- HPC環境へのSSH/SFTP接続を管理
-- PMとCIエージェントが主に使用
-- 詳細: https://github.com/wonderwhy-er/DesktopCommanderMCP
+**mcp-screenshot** - tmux全体の状況を視覚的に確認  
+[https://github.com/kazuph/mcp-screenshot](https://github.com/kazuph/mcp-screenshot)
+```bash
+# PMの定期巡回や障害対応で活用
+claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
+```
 
-##### mcp-screenshot
-- tmux全体の状況を視覚的に確認
-- PMの定期巡回や障害対応で活用
-- 詳細な使用方法: [instructions/PM.md](instructions/PM.md#-tmux全体監視mcp-screenshot)
+設定後、Claude Codeを再起動して有効化してください。
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---
-
-> [!NOTE]
-> Desktop Commander MCPはクロスプラットフォーム対応で、Windows/Mac/Linuxで動作します。
-> SSH接続はPID（プロセスID）で管理され、複数のCIエージェントが独立したセッションを保持できます。
 
 ### 2. 環境セットアップ
 
@@ -298,11 +289,13 @@ cd OpenCodeAT-jp
 
 #### テレメトリの無効化（軽量動作）
 
+環境変数で無効化:
 ```bash
-# 環境変数で無効化
 export OPENCODEAT_ENABLE_TELEMETRY=false
+```
 
-# または起動時に指定
+または起動時に指定:
+```bash
 OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path
 ```
 
@@ -366,7 +359,7 @@ npx ccusage@latest
 > 最小エージェント数は3です（SE + CI + PG）。解像度に応じて調整してください。
 
 ```bash
-cd OpenCodeAT
+cd OpenCodeAT-jp
 ./communication/setup.sh [ワーカー数(PM除く)]  # 例: ./communication/setup.sh 11
 
 # コマンドラインオプション:
@@ -374,19 +367,27 @@ cd OpenCodeAT
 #   --clean-only     : 既存セッションのクリーンアップのみ実行
 #   --dry-run        : 実際のセットアップを行わずに計画を表示
 #   --help           : ヘルプメッセージを表示
+```
 
-# 参考構成例（実際の配置はPMが決定）:
-#   3人: SE(1) + CI(1) + PG(1) ※最小構成
-#   6人: SE(1) + CI(1) + PG(3) + CD(1)
-#   8人: SE(2) + CI(2) + PG(3) + CD(1)
-#   11人: SE(2) + CI(2) + PG(6) + CD(1)
-#   15人: SE(2) + CI(3) + PG(9) + CD(1)
+#### 参考構成例（実際の配置はPMが決定）
 
-# 2つのターミナルタブでそれぞれアタッチ
-# タブ1: PMエージェント用
+| Workers | SE | CI | PG | CD | 備考 |
+|---------|----|----|----|----|------|
+| 3 | 1 | 1 | 1 | 0 | 最小構成 |
+| 6 | 1 | 1 | 3 | 1 | 標準構成 |
+| 8 | 2 | 2 | 3 | 1 | SE増強 |
+| 11 | 2 | 2 | 6 | 1 | 推奨構成 |
+| 15 | 2 | 3 | 9 | 1 | 大規模 |
+
+#### 2つのターミナルタブでそれぞれアタッチ
+
+タブ1（PMエージェント用）:
+```bash
 tmux attach-session -t pm_session
+```
 
-# タブ2: その他のエージェント用（タブを複製して）
+タブ2（その他のエージェント用）:
+```bash
 tmux attach-session -t opencodeat
 ```
 
@@ -434,7 +435,7 @@ claude --dangerously-skip-permissions
 | **CI** | ビルド・実行 | hardware_info.txt<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
 | **PG** | コード生成 | ChangeLog.md<br/>sota_local.txt | 並列化実装・性能測定・SOTA判定 |
 | **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
-| **ID** | 情報表示 | STATUSペイン表示 | エージェント配置の可視化 |
+| **ID** | 情報表示 | エージェント配置図 | tmux全体の可視化 |
 
 ### エージェント動作パターン
 
@@ -444,7 +445,7 @@ claude --dangerously-skip-permissions
 
 #### 2. **⏳ ポーリング型** (PM, SE, CI, CD)
 - **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
-- **例**: SEがChangeLog.mdを定期監視→統計グラフ更新
+- **例**: SEが`ChangeLog.md`を定期監視→統計グラフ更新
 - **例**: PMが全エージェントを巡回監視→リソース再配分
 
 #### 3. **➡️ フロー駆動型** (PM初期のみ)
@@ -466,30 +467,79 @@ claude --dangerously-skip-permissions
 エージェント間の情報共有を実現する統一ログシステム。
 
 <details>
-<summary>フォーマット詳細（クリックで展開）</summary>
+<summary>実際のChangeLog.md例（クリックで展開）</summary>
 
 ```markdown
+# ChangeLog
+PG1.1.1による最適化の記録
+
 ---
-## version: v1.1.0
-change_summary: "OpenMP collapse(2)とMPI領域分割を追加"
-timestamp: "2025-07-16 12:34:56 UTC"
-code_files: "matrix_v1.1.0.c"
+## version: v1.2.0
+change_summary: "ブロッキング最適化とスレッド数調整"
+timestamp: "2025-07-30 14:25:30 UTC"
+code_files: "matrix_multiply_v1.2.0.c"
 
 # Build & Execution (CI updates)
 compile_status: success
+compile_output_path: "/results/compile_v1.2.0.log"
+job_id: "123456"
+job_status: completed
+performance_metric: "312.4 GFLOPS"
+performance_unit: "GFLOPS"
+efficiency: "65.1%"
+compute_cost: "8.5 node-hours"
+execution_output_path: "/results/123456.out"
+execution_error_path: "/results/123456.err"
+
+# Analysis (PG updates)
+sota_level: local
+technical_comment: "ブロックサイズを64から128に変更、理論性能の65%達成"
+next_steps: "SIMD命令の追加検討"
+
+<details>
+<summary>詳細ログ</summary>
+
+コンパイルオプション: -O3 -fopenmp -march=native
+実行環境: 8ノード、各32コア
+問題サイズ: 16384x16384
+
+</details>
+
+---
+## version: v1.1.0
+change_summary: "OpenMP collapse(2)追加"
+timestamp: "2025-07-30 12:15:00 UTC"
+code_files: "matrix_multiply_v1.1.0.c"
+
+# Build & Execution (CI updates)
+compile_status: success
+job_status: completed
 performance_metric: "285.7 GFLOPS"
+efficiency: "59.5%"
+compute_cost: "10.2 node-hours"
+
+# Analysis (PG updates)
+sota_level: local
+technical_comment: "2重ループの並列化により15%性能向上"
+next_steps: "ブロッキング最適化の実装"
+
+---
+## version: v1.0.0
+change_summary: "初期OpenMP実装"
+timestamp: "2025-07-30 10:00:00 UTC"
+code_files: "matrix_multiply_v1.0.0.c"
+
+# Build & Execution (CI updates)
+compile_status: success
+job_status: completed
+performance_metric: "248.3 GFLOPS"
+efficiency: "51.7%"
 compute_cost: "12.5 node-hours"
 
 # Analysis (PG updates)
 sota_level: local
-technical_comment: "collapse(2)で15%向上、MPI分割で20%向上"
----
-
-## version: v1.0.0
-change_summary: "初期並列化実装"
-timestamp: "2025-07-16 10:00:00 UTC"
-code_files: "matrix_v1.0.0.c"
-...
+technical_comment: "基本的なOpenMP並列化を実装"
+next_steps: "collapse句の追加を検討"
 ```
 
 </details>
