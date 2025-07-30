@@ -75,7 +75,7 @@ python telemetry/monitor_agents.py --se-id [自分のID] --interval 120 &
   - 解析スクリプト（Python等）
   - テンプレート
 - **ユーザ向け成果物**: /User-shared/以下に配置
-  - /reports/（日次・週次レポート）
+  - /reports/（統合レポート）
   - /visualizations/（グラフ・図表）
 
 #### 特に優先して作成する可視化ツール

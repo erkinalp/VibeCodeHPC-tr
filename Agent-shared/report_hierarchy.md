@@ -46,10 +46,6 @@ OpenCodeAT/
 └── User-shared/                 # ユーザ用（成果物）
     ├── final_report.md          # 最終報告書
     ├── reports/
-    │   ├── daily/
-    │   │   └── 2025-07-30.md
-    │   ├── weekly/
-    │   │   └── 2025-W30.md
     │   └── performance_summary.md
     └── visualizations/
         ├── sota_trends.png
@@ -71,7 +67,7 @@ class UserReportGenerator:
         self.output_dir = Path('User-shared/reports')
         self.viz_dir = Path('User-shared/visualizations')
         
-    def generate_weekly_report(self):
+    def generate_summary_report(self):
         # ChangeLog.mdからデータ収集
         data = self.collect_performance_data()
         
@@ -82,21 +78,22 @@ class UserReportGenerator:
         report = self.format_report(data)
         
         # 保存
-        week = datetime.date.today().isocalendar()[1]
-        report_path = self.output_dir / f'weekly/2025-W{week}.md'
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        report_path = self.output_dir / f'summary_{timestamp}.md'
         report_path.write_text(report, encoding='utf-8')
 ```
 
 ## レポート作成のタイミング
 
-### 自動生成
-- **一次**: PGがコード生成時に即座に記録
-- **二次（日次）**: SEが毎日定時に生成
-- **二次（週次）**: SEが週末に生成
+### 短期集中型プロジェクトでの運用
+- **一次**: PGがコード生成時に即座に記録（ChangeLog.md）
+- **二次**: SEが必要に応じて統合レポート生成
+- **最終**: PMがプロジェクト終了時に作成
 
-### 手動作成
-- **最終報告**: PMがプロジェクト終了時
+### 作成タイミング
+- **統合レポート**: 重要なマイルストーン達成時
 - **中間報告**: 予算50%消費時点（推奨）
+- **最終報告**: プロジェクト完了時
 
 ## 言語使用の指針
 
