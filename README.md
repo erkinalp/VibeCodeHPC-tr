@@ -273,19 +273,26 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 cd OpenCodeAT-jp
 ```
 
-<details>
-<summary>🔭 監視オプション（クリックで展開）</summary>
+### 🔭 監視オプション
 
 #### 📊 Grafana + Prometheus + Loki環境（推奨）
 
+監視環境の自動セットアップ:
 ```bash
-# 監視環境の自動セットアップ
 ./telemetry/setup_grafana.sh
-
-# ブラウザでアクセス
-# URL: http://localhost:3000
-# ユーザー名: admin / パスワード: admin
 ```
+
+ブラウザでアクセス:
+```
+http://localhost:3000
+```
+
+ログイン情報:
+- ユーザー名: `admin`
+- パスワード: `admin`
+
+<details>
+<summary>その他の監視オプション（クリックで展開）</summary>
 
 #### テレメトリの無効化（軽量動作）
 
@@ -313,7 +320,7 @@ npx ccusage@latest
 ![Grafana起動成功時の画面表示例](_images/Grafana.png)
 
 <details>
-<summary>📊 Grafanaでメトリクスを確認する方法（クリックで展開）</summary>
+<summary>📊 Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）（クリックで展開）</summary>
 
 #### メトリクスの確認手順
 1. **Explore機能を使う**（最も簡単）
@@ -466,83 +473,63 @@ claude --dangerously-skip-permissions
 
 エージェント間の情報共有を実現する統一ログシステム。
 
-<details>
-<summary>実際のChangeLog.md例（クリックで展開）</summary>
-
-```markdown
-# ChangeLog
-PG1.1.1による最適化の記録
+実際のChangeLog.md例：
 
 ---
-## version: v1.2.0
-change_summary: "ブロッキング最適化とスレッド数調整"
-timestamp: "2025-07-30 14:25:30 UTC"
-code_files: "matrix_multiply_v1.2.0.c"
-
-# Build & Execution (CI updates)
-compile_status: success
-compile_output_path: "/results/compile_v1.2.0.log"
-job_id: "123456"
-job_status: completed
-performance_metric: "312.4 GFLOPS"
-performance_unit: "GFLOPS"
-efficiency: "65.1%"
-compute_cost: "8.5 node-hours"
-execution_output_path: "/results/123456.out"
-execution_error_path: "/results/123456.err"
-
-# Analysis (PG updates)
-sota_level: local
-technical_comment: "ブロックサイズを64から128に変更、理論性能の65%達成"
-next_steps: "SIMD命令の追加検討"
+### v1.1.0
+**変更点**: "ブロッキング最適化とスレッド数調整"  
+**結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
+**コメント**: "ブロックサイズを64から128に変更、キャッシュ効率が大幅改善"  
 
 <details>
-<summary>詳細ログ</summary>
 
-コンパイルオプション: -O3 -fopenmp -march=native
-実行環境: 8ノード、各32コア
-問題サイズ: 16384x16384
+- [x] **compile**
+    - status: `success`
+    - request_id: `PG1.1.1-CI1.1-001`
+    - log: `/results/compile_v1.1.0.log`
+- [x] **job**
+    - id: `123456`
+    - status: `success`
+- [x] **test**
+    - status: `pass`
+    - performance: `312.4`
+    - unit: `GFLOPS`
+    - efficiency: `65.1%`
+- [x] **sota**
+    - scope: `local`
+- **params**:
+    - nodes: `8`
+    - threads_per_node: `32`
+    - block_size: `128`
 
 </details>
 
 ---
-## version: v1.1.0
-change_summary: "OpenMP collapse(2)追加"
-timestamp: "2025-07-30 12:15:00 UTC"
-code_files: "matrix_multiply_v1.1.0.c"
+### v1.0.0
+**変更点**: "初期OpenMP実装"  
+**結果**: ベースライン確立 `248.3 GFLOPS`  
+**コメント**: "基本的なOpenMP並列化を外側ループに適用"  
 
-# Build & Execution (CI updates)
-compile_status: success
-job_status: completed
-performance_metric: "285.7 GFLOPS"
-efficiency: "59.5%"
-compute_cost: "10.2 node-hours"
+<details>
 
-# Analysis (PG updates)
-sota_level: local
-technical_comment: "2重ループの並列化により15%性能向上"
-next_steps: "ブロッキング最適化の実装"
-
----
-## version: v1.0.0
-change_summary: "初期OpenMP実装"
-timestamp: "2025-07-30 10:00:00 UTC"
-code_files: "matrix_multiply_v1.0.0.c"
-
-# Build & Execution (CI updates)
-compile_status: success
-job_status: completed
-performance_metric: "248.3 GFLOPS"
-efficiency: "51.7%"
-compute_cost: "12.5 node-hours"
-
-# Analysis (PG updates)
-sota_level: local
-technical_comment: "基本的なOpenMP並列化を実装"
-next_steps: "collapse句の追加を検討"
-```
+- [x] **compile**
+    - status: `success`
+    - request_id: `PG1.1.1-CI1.1-002`
+- [x] **job**
+    - id: `123454`
+    - status: `success`
+- [x] **test**
+    - status: `pass`
+    - performance: `248.3`
+    - unit: `GFLOPS`
+    - efficiency: `51.7%`
+- **params**:
+    - nodes: `8`
+    - threads_per_node: `32`
 
 </details>
+
+---
 
 - 詳細：[Agent-shared/ChangeLog_format.md](Agent-shared/ChangeLog_format.md)
 - PMオーバーライド：[Agent-shared/ChangeLog_format_PM_override_template.md](Agent-shared/ChangeLog_format_PM_override_template.md)
