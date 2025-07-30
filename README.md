@@ -280,10 +280,42 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 ```bash
 # プロジェクトディレクトリに移動
 cd OpenCodeAT-jp
-
-# （オプション）テレメトリを無効化する場合
-export OPENCODEAT_ENABLE_TELEMETRY=false
 ```
+
+<details>
+<summary>🔭 監視オプション（クリックで展開）</summary>
+
+#### 📊 Grafana + Prometheus + Loki環境（推奨）
+
+```bash
+# 監視環境の自動セットアップ
+./telemetry/setup_grafana.sh
+
+# ブラウザでアクセス
+# URL: http://localhost:3000
+# ユーザー名: admin / パスワード: admin
+```
+
+#### テレメトリの無効化（軽量動作）
+
+```bash
+# 環境変数で無効化
+export OPENCODEAT_ENABLE_TELEMETRY=false
+
+# または起動時に指定
+OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path
+```
+
+#### 代替案: ccusage（簡易確認）
+
+```bash
+# セットアップ不要でトークン使用量を確認
+npx ccusage@latest
+```
+
+[ccusage](https://github.com/ryoppippi/ccusage)は、JSONLログからトークン使用量を分析するCLIツールです。
+
+</details>
 
 ![Grafana起動成功時の画面表示例](_images/Grafana.png)
 
@@ -430,24 +462,40 @@ claude --dangerously-skip-permissions
 各階層でのSOTA判定により、効率的なベンチマーク比較と最適化方針決定を自動化。
 
 ### ChangeLog.md統一フォーマット
-```yaml
-## version: v1.2.3 (PG writes)
+
+エージェント間の情報共有を実現する統一ログシステム。
+
+<details>
+<summary>フォーマット詳細（クリックで展開）</summary>
+
+```markdown
+---
+## version: v1.1.0
 change_summary: "OpenMP collapse(2)とMPI領域分割を追加"
 timestamp: "2025-07-16 12:34:56 UTC"
-code_files: "matrix_v1.2.3.c"
+code_files: "matrix_v1.1.0.c"
 
 # Build & Execution (CI updates)
-compile_status: success | fail | warning | pending
-compile_warnings: "並列化に関する警告メッセージ"
-job_status: completed | failed | timeout
+compile_status: success
 performance_metric: "285.7 GFLOPS"
 compute_cost: "12.5 node-hours"
 
 # Analysis (PG updates)
-sota_level: local | parent | global | project
+sota_level: local
 technical_comment: "collapse(2)で15%向上、MPI分割で20%向上"
-next_steps: "ループアンローリングとブロッキング最適化を実装"
+---
+
+## version: v1.0.0
+change_summary: "初期並列化実装"
+timestamp: "2025-07-16 10:00:00 UTC"
+code_files: "matrix_v1.0.0.c"
+...
 ```
+
+</details>
+
+- 詳細：[Agent-shared/ChangeLog_format.md](Agent-shared/ChangeLog_format.md)
+- PMオーバーライド：[Agent-shared/ChangeLog_format_PM_override_template.md](Agent-shared/ChangeLog_format_PM_override_template.md)
 
 ## 🧬 進化的最適化アプローチ
 
@@ -455,7 +503,6 @@ next_steps: "ループアンローリングとブロッキング最適化を実�
 1.  **🌱 種子期**: 単一技術の個別最適化 (`/OpenMP/`, `/MPI/`, `/AVX512/`, `/CUDA/`)
 2.  **🌿 交配期**: 有望技術の融合 (`/OpenMP_MPI/`, `/MPI_CUDA/`)
 3.  **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
-4.  **🌲 進化継続**: さらなる技術統合と最適化...
 
 ### 📁Flat Directory の利点
 - **階層の曖昧性解消**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` の重複排除
@@ -466,18 +513,14 @@ next_steps: "ループアンローリングとブロッキング最適化を実�
 
 ## 🔍 ファイルベースの情報共有
 
-### 統一ログシステム
-ChangeLog.mdを中心としたフォーマットが統一されたログで情報共有を実現。
-- [ ] 詳細：[Agent-shared/ChangeLog_format.md](Agent-shared/ChangeLog_format.md)
-- [ ] PMオーバーライドテンプレート：[Agent-shared/ChangeLog_format_PM_override_template.md](Agent-shared/ChangeLog_format_PM_override_template.md)
-#### 成果物の全体像: 
-- [ ] 詳細: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
+### 成果物の管理
+- 成果物配置: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
+- SOTA管理: [Agent-shared/sota_management.md](Agent-shared/sota_management.md)
+- レポート階層: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
 > [!TIP]
 > **エージェント可視化**
 > SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
-- [ ] 詳細: [Agent-shared/sota_management.md](Agent-shared/sota_management.md)
-- [ ] レポート階層: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
 > [!IMPORTANT]
 > **ユーザ向け成果物**
@@ -486,42 +529,12 @@ ChangeLog.mdを中心としたフォーマットが統一されたログで情�
 > - 統合レポート（reports/）
 > - 性能グラフ・図表（visualizations/）
 
-## 📊 OpenTelemetry監視
+## 🔭 OpenTelemetry監視
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
-
-### 監視環境のセットアップ（オプション）
-
-```bash
-# Grafana + Prometheus + Loki環境の自動セットアップ
-./telemetry/setup_grafana.sh
-
-# ブラウザでアクセスして確認
-# URL: http://localhost:3000
-# ユーザー名: admin / パスワード: admin
-```
-
-### テレメトリの有効/無効切り替え
-
-```bash
-# テレメトリを無効化（軽量動作）
-export OPENCODEAT_ENABLE_TELEMETRY=false
-
-# エージェント起動時に指定も可能
-OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
-```
+監視設定は「2. 環境セットアップ」の監視オプションを参照してください。
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
-
-### 代替案: ccusage（簡易トークン使用量確認）
-
-OpenTelemetryを使用しない場合でも、以下のコマンドでプロジェクト全体のトークン使用量を確認できます：
-
-```bash
-npx ccusage@latest
-```
-
-[ccusage](https://github.com/ryoppippi/ccusage)は、Claude Codeのローカルログファイル（JSONL）からトークン使用量を分析するCLIツールです。セットアップ不要で即座に使用状況を確認できます。
 
 ## 🔒 セキュリティ
 
