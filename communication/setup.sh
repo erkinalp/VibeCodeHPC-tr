@@ -198,7 +198,12 @@ create_pm_session() {
     fi
     
     tmux send-keys -t "pm_session:project-manager" "cd $PROJECT_ROOT" C-m
-    tmux send-keys -t "pm_session:project-manager" "export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+    # bash/zsh対応プロンプト設定
+    tmux send-keys -t "pm_session:project-manager" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
+    tmux send-keys -t "pm_session:project-manager" "  export PROMPT=$'%{\033[1;35m%}(PM)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
+    tmux send-keys -t "pm_session:project-manager" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
+    tmux send-keys -t "pm_session:project-manager" "  export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+    tmux send-keys -t "pm_session:project-manager" "fi" C-m
     tmux send-keys -t "pm_session:project-manager" "clear" C-m
     tmux send-keys -t "pm_session:project-manager" "echo '=== PM (Project Manager) エージェント ==='" C-m
     tmux send-keys -t "pm_session:project-manager" "echo 'OpenCodeAT HPC最適化システム'" C-m
@@ -312,7 +317,12 @@ create_main_session() {
         if [ $i -eq 0 ]; then
             # 最初のペインはSTATUS用
             tmux select-pane -t "$pane_target" -T "STATUS"
-            tmux send-keys -t "$pane_target" "export PS1='(\[\033[1;37m\]STATUS\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+            # bash/zsh対応プロンプト設定
+            tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
+            tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;37m%}(STATUS)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
+            tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
+            tmux send-keys -t "$pane_target" "  export PS1='(\[\033[1;37m\]STATUS\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+            tmux send-keys -t "$pane_target" "fi" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
             tmux send-keys -t "$pane_target" "echo '[OpenCodeAT エージェント配置状態]'" C-m
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
@@ -329,7 +339,12 @@ create_main_session() {
             tmux send-keys -t "$pane_target" "export TMUX_PANE_ID='${pane_index}'" C-m
             tmux send-keys -t "$pane_target" "export OTEL_RESOURCE_ATTRIBUTES=\"tmux_pane=\${TMUX_PANE},pane_index=${pane_index}\"" C-m
             
-            tmux send-keys -t "$pane_target" "export PS1='(\[\033[1;90m\]待機中${pane_number}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+            # bash/zsh対応プロンプト設定
+            tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
+            tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;90m%}(待機中${pane_number})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
+            tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
+            tmux send-keys -t "$pane_target" "  export PS1='(\[\033[1;90m\]待機中${pane_number}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+            tmux send-keys -t "$pane_target" "fi" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
             tmux send-keys -t "$pane_target" "echo '=== エージェント配置待ち (Pane ${pane_number}) ==='" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m

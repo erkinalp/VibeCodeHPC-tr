@@ -36,8 +36,12 @@ echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 # 4. テレメトリ設定に基づいてClaude起動
 if [ "${OPENCODEAT_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting agent without telemetry"
-    # プロンプト設定
-    ./communication/agent-send.sh "$AGENT_ID" "export PS1='(\\[\\033[1;33m\\]${AGENT_ID}\\[\\033[0m\\]) \\[\\033[1;32m\\]\\w\\[\\033[0m\\]\\$ '"
+    # bash/zsh対応プロンプト設定
+    ./communication/agent-send.sh "$AGENT_ID" "if [ -n \"\$ZSH_VERSION\" ]; then"
+    ./communication/agent-send.sh "$AGENT_ID" "  export PROMPT=$'%{\033[1;33m%}(${AGENT_ID})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '"
+    ./communication/agent-send.sh "$AGENT_ID" "elif [ -n \"\$BASH_VERSION\" ]; then"
+    ./communication/agent-send.sh "$AGENT_ID" "  export PS1='(\\[\\033[1;33m\\]${AGENT_ID}\\[\\033[0m\\]) \\[\\033[1;32m\\]\\w\\[\\033[0m\\]\\$ '"
+    ./communication/agent-send.sh "$AGENT_ID" "fi"
     # Claude起動
     ./communication/agent-send.sh "$AGENT_ID" "claude --dangerously-skip-permissions $@"
     echo "✅ Agent $AGENT_ID started without telemetry at $TARGET_DIR"

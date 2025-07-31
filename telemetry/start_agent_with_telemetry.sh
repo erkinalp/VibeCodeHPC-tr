@@ -83,8 +83,12 @@ echo "  OTEL_EXPORTER_OTLP_ENDPOINT=$OTEL_EXPORTER_OTLP_ENDPOINT"
 echo "  OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES"
 echo ""
 
-# プロンプトスタイルの更新
-export PS1="(\[\033[1;33m\]${AGENT_ID}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ "
+# bash/zsh対応プロンプト設定
+if [ -n "$ZSH_VERSION" ]; then
+    export PROMPT=$'%{\033[1;33m%}('${AGENT_ID}')%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '
+elif [ -n "$BASH_VERSION" ]; then
+    export PS1="(\[\033[1;33m\]${AGENT_ID}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ "
+fi
 
 # サブエージェントのエイリアスを設定
 alias claude-p="$TELEMETRY_DIR/claude_p_wrapper.sh"
