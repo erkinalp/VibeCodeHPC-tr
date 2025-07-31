@@ -137,6 +137,9 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    
    # 他のエージェント起動準備などを進める（5秒程度）
    
+   # Claude起動確認（初回は特に重要）
+   tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}" | grep "0: claude"
+   
    # IDエージェントの初期化メッセージ
    agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
 
@@ -159,6 +162,11 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 - **序盤から待機エージェントを作るのは避ける**: 全エージェントを即座に活用
 - **進化的mkdirはランタイムで動的に実行**: 事前に全ディレクトリを作成せず、必要に応じて作成
 - **最小構成から開始**: まず基本的な並列化戦略から着手し、成果を見て拡張
+
+#### 初回起動時の注意事項
+- **必ずClaude起動を確認**: `tmux list-panes`コマンドで確認
+- **起動失敗時の対処**: bashのままの場合は手動でclaudeコマンドを再送信
+- **初期化メッセージは必須**: Claude起動確認後に必ず送信
 
 #### エージェント再割り当て
 セキュリティの観点からエージェント自身でcdすることは禁止されている。一方でユーザが下記のように：
@@ -185,7 +193,12 @@ OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/T
 # Claude起動中に他のエージェントの起動や別タスクを進める
 # 例: 次のエージェントのstart_agent.sh実行、directory_map.txt更新など
 
-# ステップ3: 初期化メッセージを送信（5秒程度経過後）
+# ステップ3: 起動確認（特に初回は必須）
+# tmuxでClaude起動を確認
+tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
+# ※ペイン番号はagent_and_pane_id_table.txtで確認
+
+# ステップ4: 初期化メッセージを送信（Claude起動確認後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
 
 まず以下のファイルを読み込んでプロジェクトを理解してください：
