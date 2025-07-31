@@ -357,34 +357,16 @@ npx ccusage@latest
 <details>
 <summary>📊 Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）（クリックで展開）</summary>
 
-#### メトリクスの確認手順
-1. **Explore機能を使う**（最も簡単）
-   - 左メニューから「Explore」（コンパスアイコン）をクリック
-   - データソースで「Prometheus」を選択
-   - メトリクス名を入力して「Run query」
+#### 基本的な使い方
+1. **Drilldown → Metrics** を選択
+   - ログイン後、特に事前準備なしで利用可能
+   - Cost（コスト）やToken数が自動的に可視化される
+   - エージェント別・時系列でのトークン消費を確認
 
-2. **よく使うメトリクス**
-   
-   エージェント別トークン使用量：
-   ```promql
-   agent_token_usage{agent_id="SE1"}
-   ```
-   
-   ツール実行回数（全エージェント）：
-   ```promql
-   sum by (agent_id, tool_name) (tool_execution_total)
-   ```
-   
-   セッション別コスト：
-   ```promql
-   sum by (session_id) (session_cost)
-   ```
-
-3. **ダッシュボード作成**（オプション）
-   - 「Dashboards」→「New」→「New Dashboard」
-   - 「Add visualization」でグラフを追加
-   - クエリは後から自由に変更可能
-   - 過去のデータも遡って確認できます
+2. **注意事項**
+   - Claude CodeのOpenTelemetryメトリクスはOTLP経由で送信
+   - デフォルトではローカルのCollector（4317ポート）に接続
+   - 詳細な設定は`telemetry/otel_config.env`で調整可能
 
 </details>
 
