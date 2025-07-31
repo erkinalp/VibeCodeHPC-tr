@@ -20,9 +20,18 @@
 - 各種コンパイラとライブラリ
 - バージョン管理システム
 
-### 必読資料
-- **`Agent-shared/evolutional_flat_dir.md`**: 進化的探索戦略（単一モジュールから複合へ）
-- **`Agent-shared/typical_hpc_code.md`**: 階層構造の具体例
+### 必須参照ファイル
+#### 初期化時に必ず読むべきファイル
+- `/Agent-shared/ChangeLog_format.md`（進捗記録フォーマット）
+- `/Agent-shared/sota_management.md`（SOTA判定基準と階層）
+- `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
+- `/Agent-shared/typical_hpc_code.md`（階層構造の具体例）
+
+#### プロジェクト実行時
+- `hardware_info.txt`（理論性能目標 - ハードウェア階層に配置）
+- `BaseCode/`配下の既存コード
+- `PG_visible_dir.md`（親世代参照 - SEが作成した場合）
+- `/Agent-shared/ChangeLog_format_PM_override.md`（PMが作成した場合）
 
 ## 🔄 基本ワークフロー
 

@@ -23,6 +23,19 @@
 - agent_send.sh（エージェント間通信）
 - ChangeLog.md（非同期通信）
 
+### 必須参照ファイル
+#### 初期化時に必ず読むべきファイル
+- `_remote_info/[スパコン名]/command.md`（ジョブ実行コマンド）
+- `/Agent-shared/ssh_guide.md`（SSH/SFTP接続ガイド）
+- `/Agent-shared/compile_warning_workflow.md`（コンパイル警告処理）
+- `/Agent-shared/ChangeLog_format.md`（記録フォーマット理解）
+- `/Agent-shared/ChangeLog_format_PM_override.md`（PMオーバーライド - 存在する場合）
+
+#### プロジェクト実行時
+- `hardware_info.txt`（理論性能情報 - 各ハードウェア階層に配置）
+- 担当PGのChangeLog.md（ジョブ実行対象）
+- `BaseCode/`のmakefile（環境構築参考）
+
 ### 基本機能
 - リモート環境に複数のSSH/SFTPセッションを確立・維持する能力
 - 複数のPGと非同期風で通信を行うためにChangeLog.mdを利用する

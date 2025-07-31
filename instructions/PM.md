@@ -329,12 +329,19 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 - communication/start_agent.sh（エージェント配置と起動）
 - mcp-screenshot（tmux全体監視用、要MCP設定）
 
-### ファイル管理
-- /Agent-shared/directory_map.txt（エージェント配置管理）
-- /Agent-shared/max_agent_number.txt（ワーカー数記録）
-- /Agent-shared/budget_history.md（予算使用履歴）
-- _remote_info/（スパコン固有情報）
-- /User-shared/final_report.md（最終報告書 - プロジェクト終了時に作成）
+### 必須参照ファイル
+#### 初期化時に必ず読むべきファイル
+- `_remote_info/`配下の全ファイル（特にcommand.md、user_id.txt）
+- `/Agent-shared/max_agent_number.txt`（利用可能ワーカー数）
+- `/Agent-shared/agent_and_pane_id_table.txt`（tmux構成）
+- `/Agent-shared/typical_hpc_code.md`（階層設計参考）
+- `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
+
+#### プロジェクト管理用
+- `/Agent-shared/directory_map.txt`（エージェント配置管理）
+- `/Agent-shared/budget_history.md`（予算使用履歴）
+- `/Agent-shared/ChangeLog_format_PM_override_template.md`（フォーマット定義用）
+- `/User-shared/final_report.md`（最終報告書 - プロジェクト終了時に作成）
 
 ## ⚠️ 制約事項
 

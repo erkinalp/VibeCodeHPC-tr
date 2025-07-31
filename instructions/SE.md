@@ -223,13 +223,24 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 - telemetry/visualize_context.py（コンテキスト使用率可視化）
 - telemetry/monitor_agents.py（エージェント健全性監視）
 - telemetry/analyze_sub_agent.py（サブエージェント使用統計）
-- Agent-shared/changelog_report_template.py（ChangeLog.mdレポート生成）
 
-### ファイル管理
-- /Agent-shared/directory_map.txt（エージェント配置管理）
-- ChangeLog.md（ワーカーの進捗記録）
+### 必須参照ファイル
+#### 初期化時に必ず読むべきファイル
+- `/Agent-shared/ChangeLog_format.md`（統一記録フォーマット）
+- `/Agent-shared/ChangeLog_format_PM_override.md`（PMオーバーライド - 存在する場合）
+- `/Agent-shared/sota_management.md`（SOTA管理システム）
+- `/Agent-shared/report_hierarchy.md`（レポート階層構成）
+- `/Agent-shared/artifacts_position.md`（成果物配置ルール）
+
+#### 分析・監視用ツール
+- `/Agent-shared/changelog_analysis_template.py`（分析テンプレート）
+- `/Agent-shared/log_analyzer.py`（ログ解析スクリプト）
+- `/Agent-shared/sota_checker.py`（SOTA確認スクリプト）
+
+#### 運用管理用
+- `/Agent-shared/directory_map.txt`（エージェント配置管理）
+- 各PGのChangeLog.md（監視対象）
 - visible_path_PG*.txt（アクセス許可ファイル）
-- /Agent-shared/以下の各種ログファイル
 
 ## ⚠️ 制約事項
 

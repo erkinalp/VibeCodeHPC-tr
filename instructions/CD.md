@@ -20,6 +20,17 @@
 - .gitignore（セキュリティ管理）
 - コピー・変換スクリプト
 
+### 必須参照ファイル
+#### 初期化時に必ず読むべきファイル
+- `_remote_info/user_id.txt`（匿名化対象の把握）
+- `/Agent-shared/sota_management.md`（公開対象のSOTA判定）
+- `/Agent-shared/artifacts_position.md`（成果物の場所）
+
+#### プロジェクト実行時
+- 各PGのChangeLog.md（公開対象の進捗）
+- 各PGのsota_local.txt（SOTA達成確認）
+- `.gitignore`（セキュリティルール）
+
 ### セキュリティ対策
 gitコマンドは全エージェントが実行可能だが、Gitエージェントを設け、この専用プロンプト内に、セキュリティリスクを低減する策を多重的に盛り込む。
 
