@@ -70,7 +70,7 @@ cat huge_job_output.log | claude -p "エラーメッセージを抽出して要�
 ### エージェント割り当て時の手順
 ```bash
 # 方法1: MCP不要な場合（PG等）
-agent-send.sh CI1.1 "!cd Flow/TypeII/single-node/gcc11.3.0/OpenMP && claude --dangerously-skip-permissions"
+agent_send.sh CI1.1 "!cd Flow/TypeII/single-node/gcc11.3.0/OpenMP && claude --dangerously-skip-permissions"
 
 # 方法2: MCP必要な場合（CI）
 # 1. MCPサーバ追加

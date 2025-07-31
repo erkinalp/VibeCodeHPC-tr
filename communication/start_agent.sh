@@ -25,27 +25,27 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 
 # 1. プロジェクトルートを環境変数として設定
-./communication/agent-send.sh "$AGENT_ID" "export OPENCODEAT_ROOT='$PROJECT_ROOT'"
+./communication/agent_send.sh "$AGENT_ID" "export OPENCODEAT_ROOT='$PROJECT_ROOT'"
 
 # 2. ターゲットディレクトリに移動
-./communication/agent-send.sh "$AGENT_ID" "!cd $PROJECT_ROOT$TARGET_DIR"
+./communication/agent_send.sh "$AGENT_ID" "!cd $PROJECT_ROOT$TARGET_DIR"
 
 # 3. 現在地を確認
-./communication/agent-send.sh "$AGENT_ID" "pwd"
+./communication/agent_send.sh "$AGENT_ID" "pwd"
 
 # 4. テレメトリ設定に基づいてClaude起動
 if [ "${OPENCODEAT_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting agent without telemetry"
     # bash/zsh対応プロンプト設定
-    ./communication/agent-send.sh "$AGENT_ID" "if [ -n \"\$ZSH_VERSION\" ]; then"
-    ./communication/agent-send.sh "$AGENT_ID" "  export PROMPT=$'%{\033[1;33m%}(${AGENT_ID})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '"
-    ./communication/agent-send.sh "$AGENT_ID" "elif [ -n \"\$BASH_VERSION\" ]; then"
-    ./communication/agent-send.sh "$AGENT_ID" "  export PS1='(\\[\\033[1;33m\\]${AGENT_ID}\\[\\033[0m\\]) \\[\\033[1;32m\\]\\w\\[\\033[0m\\]\\$ '"
-    ./communication/agent-send.sh "$AGENT_ID" "fi"
+    ./communication/agent_send.sh "$AGENT_ID" "if [ -n \"\$ZSH_VERSION\" ]; then"
+    ./communication/agent_send.sh "$AGENT_ID" "  export PROMPT=$'%{\033[1;33m%}(${AGENT_ID})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '"
+    ./communication/agent_send.sh "$AGENT_ID" "elif [ -n \"\$BASH_VERSION\" ]; then"
+    ./communication/agent_send.sh "$AGENT_ID" "  export PS1='(\\[\\033[1;33m\\]${AGENT_ID}\\[\\033[0m\\]) \\[\\033[1;32m\\]\\w\\[\\033[0m\\]\\$ '"
+    ./communication/agent_send.sh "$AGENT_ID" "fi"
     # Claude起動
-    ./communication/agent-send.sh "$AGENT_ID" "claude --dangerously-skip-permissions $@"
+    ./communication/agent_send.sh "$AGENT_ID" "claude --dangerously-skip-permissions $@"
     echo "✅ Agent $AGENT_ID started without telemetry at $TARGET_DIR"
 else
-    ./communication/agent-send.sh "$AGENT_ID" "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh $AGENT_ID $@"
+    ./communication/agent_send.sh "$AGENT_ID" "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh $AGENT_ID $@"
     echo "✅ Agent $AGENT_ID started with telemetry at $TARGET_DIR"
 fi

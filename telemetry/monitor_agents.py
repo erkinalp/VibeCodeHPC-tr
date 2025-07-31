@@ -103,7 +103,7 @@ class AgentMonitor:
     
     def send_agent_message(self, agent_id: str, message: str):
         """エージェントにメッセージを送信"""
-        cmd = ["./communication/agent-send.sh", agent_id, message]
+        cmd = ["./communication/agent_send.sh", agent_id, message]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, 
                                   cwd=self.project_root)

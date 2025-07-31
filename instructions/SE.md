@@ -216,7 +216,7 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 ## ⚒️ ツールと環境
 
 ### 使用ツール
-- agent-send.sh（エージェント間通信）
+- agent_send.sh（エージェント間通信）
 - Python matplotlib（グラフ作成）
 - 統計解析ツール
 - telemetry/collect_metrics.py（メトリクス収集）

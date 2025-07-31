@@ -31,7 +31,7 @@ EOF
 send_to_agent() {
     local agent_id="$1"
     local command="$2"
-    ./agent-send.sh "$agent_id" "$command"
+    ./agent_send.sh "$agent_id" "$command"
 }
 
 # エージェントの再起動

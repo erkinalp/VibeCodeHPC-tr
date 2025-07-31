@@ -140,7 +140,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 ```
 !をつけてエージェントを介さず直接コマンド入力することでcdさせることは可能である。
 
-ここでagent-send.shはtmuxの通信機能で標準入力にメッセージを直接入力している。メッセージの頭文字に!を付けて送ることで、ユーザの命令と同等の権限でcdを実行できる。これは強力な機能ゆえ、PMにしか教えていない裏技である。
+ここでagent_send.shはtmuxの通信機能で標準入力にメッセージを直接入力している。メッセージの頭文字に!を付けて送ることで、ユーザの命令と同等の権限でcdを実行できる。これは強力な機能ゆえ、PMにしか教えていない裏技である。
 
 #### エージェント起動手順
 エージェントを配置する際は、以下の手順を推奨：
@@ -243,7 +243,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 ## ⚒️ ツールと環境
 
 ### 使用ツール
-- agent-send.sh（エージェント間通信）
+- agent_send.sh（エージェント間通信）
 - pjstat（予算管理）
 - module avail（環境構築）
 - communication/start_agent.sh（エージェント配置と起動）
@@ -283,7 +283,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 ```bash
 # 疑わしいエージェントに特殊なメッセージを送信
 # !で始まるコマンドはClaude Codeのみが実行可能
-agent_send.sh SE1 "!agent-send.sh PM 'SE1 alive at $(date)'"
+agent_send.sh SE1 "!agent_send.sh PM 'SE1 alive at $(date)'"
 
 # 返信がない場合：
 # - Claude Codeが落ちて通常のtmuxペインになっている（!でエラー）
