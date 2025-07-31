@@ -346,19 +346,22 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 ### エージェント停止時の復帰方法
 エージェントが停止した場合（EOFシグナルやエラーによる終了）、以下の手順で復帰させます：
 
-#### 1. エージェントの生存確認（Claude Code判定）
+#### 1. エージェントの生存確認（tmuxコマンドで確認）
 ```bash
-# 疑わしいエージェントに特殊なメッセージを送信
-# !で始まるコマンドはClaude Codeのみが実行可能
-agent_send.sh SE1 "!agent_send.sh PM 'SE1 alive at $(date)'"
+# opencodeatセッションの全ペインの実行中コマンドを確認
+tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}"
 
-# 返信がない場合：
-# - Claude Codeが落ちて通常のtmuxペインになっている（!でエラー）
-# - または完全に応答不能
+# 出力例：
+# 0: claude  （IDエージェントが実行中）
+# 1: bash    （エージェント未起動またはClaude終了）
+# 2: claude  （CI1.1が実行中）
+# 3: bash    （エージェント未起動またはClaude終了）
 
-# この方法の利点：
-# - Claude Codeの生存を確実に判定できる
-# - 通常のechoコマンドと違い、偽陽性がない
+# 特定のエージェントIDとペインの対応は
+# Agent-shared/agent_and_pane_id_table.txt を参照
+
+# pm_sessionも同様に確認
+tmux list-panes -t pm_session:0 -F "#{pane_index}: #{pane_current_command}"
 ```
 
 #### 2. エージェントの再起動
