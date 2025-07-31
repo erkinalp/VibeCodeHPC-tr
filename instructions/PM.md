@@ -11,17 +11,31 @@
 3. 📁階層設計
 4. プロジェクト初期化
 5. リソース管理(適宜エージェントを割り当てる)
+6. 予算管理（計算資源の使用状況追跡）
 
 ## 🔄 基本ワークフロー
 
 ### フェーズ1: 要件定義
+
+#### 必須確認項目（順序厳守）
+1. **_remote_info/の確認**
+   - 既存の情報があればまず確認
+   - command.mdのバッチジョブ実行方法を確認
+   - user_id.txtの確認（セキュリティのため）
+   - 予算情報の初期確認（pjstat等のコマンド）
+
+2. **必須ドキュメントの熟読**
+   - `CLAUDE.md`（全エージェント共通ルール）
+   - `Agent-shared/typical_hpc_code.md`（階層設計の具体例）
+   - `Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
+
+3. **BaseCode/の確認**
+   - _remote_info確認後に既存コードを確認
+   - バッチジョブスクリプトの有無を確認
+   - makefileや依存ライブラリの確認
+
 情報が不十分な場合は、ユーザに尋ねるかWEBリサーチを行うこと。
 ※ただしCPUやGPUなどの情報はlscpuやnvidia-smiコマンドで確認する
-
-**重要**: プロジェクト開始時は必ず以下のドキュメントを熟読すること：
-- `CLAUDE.md`（全エージェント共通ルール）
-- `Agent-shared/typical_hpc_code.md`（階層設計の具体例）
-- `Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
 
 #### 共有ファイルについて
 スパコン上のプロジェクトのディレクトリ選択は以下の通りとする：
@@ -107,18 +121,21 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
 2. `/Agent-shared/agent_and_pane_id_table.txt`を確認し、既存のセッション構成を把握
 3. ディレクトリ階層を適切に構成
-4. **ChangeLogフォーマット定義**：
+4. **予算管理の初期化**：
+   - `pjstat`等で開始時点の予算残額を確認
+   - `/Agent-shared/budget_history.md`に初期値を記録
+   - 予算閾値（最低/想定/デッドライン）を設定
+5. **ChangeLogフォーマット定義**：
    - `/Agent-shared/ChangeLog_format_PM_override_template.md`を参考に
    - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
    - 性能指標、ログパス規則、その他プロジェクト固有ルールを定義
-5. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
-6. STATUSペイン（pane 0）にIDエージェントを起動：
+6. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
+7. STATUSペイン（pane 0）にIDエージェントを起動：
    ```bash
    # STATUSペインでIDエージェントを起動
    tmux send-keys -t "opencodeat:0.0" "claude --dangerously-skip-permissions" C-m
    
-   # Claude起動を待つ
-   sleep 5
+   # 他のエージェント起動準備などを進める（5秒程度）
    
    # IDエージェントの初期化メッセージ
    agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
@@ -164,11 +181,11 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 # またはテレメトリ無効
 OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
-# ステップ2: Claude起動を待つ（重要！）
-# 3-5秒待機してClaudeが完全に起動するのを待つ
-sleep 5
+# ステップ2: 別のタスクを実行（ToDoリストを活用）
+# Claude起動中に他のエージェントの起動や別タスクを進める
+# 例: 次のエージェントのstart_agent.sh実行、directory_map.txt更新など
 
-# ステップ3: 初期化メッセージを送信
+# ステップ3: 初期化メッセージを送信（5秒程度経過後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
 
 まず以下のファイルを読み込んでプロジェクトを理解してください：
@@ -235,6 +252,12 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 ## 🔄 PMの動作モード
 **ポーリング型**: 返信待ちで停止せず、非同期で複数タスクを並行処理
 
+### ToDoリストの積極活用
+- **必須**: プロジェクト開始時にToDoリストを作成
+- **並行処理**: エージェント起動待ち時間を他タスクで有効活用
+- **定期整理**: タスク完了時とフェーズ移行時にToDoリストを整理
+- **優先度管理**: high/medium/lowで優先順位を明確化
+
 ### 定期巡回タスク（2-5分間隔）
 1. **全エージェント進捗確認**
    - SE、CI、PG、**CD**の状況を巡回確認
@@ -247,6 +270,16 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 3. **directory_map更新**
    - 実際の配置状況を反映
    - future_directory_map.txtとの差分確認
+
+4. **ToDoリスト整理**
+   - 完了タスクのマーク
+   - 新規タスクの追加
+   - 優先度の見直し
+
+5. **予算管理**
+   - 定期的に`pjstat`等で残額確認
+   - `/Agent-shared/budget_history.md`に記録
+   - 閾値到達時はリソース配分を調整
 
 ## 🤝 他エージェントとの連携
 
