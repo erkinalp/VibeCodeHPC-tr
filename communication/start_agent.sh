@@ -46,6 +46,6 @@ if [ "${OPENCODEAT_ENABLE_TELEMETRY}" = "false" ]; then
     ./communication/agent_send.sh "$AGENT_ID" "claude --dangerously-skip-permissions $@"
     echo "✅ Agent $AGENT_ID started without telemetry at $TARGET_DIR"
 else
-    ./communication/agent_send.sh "$AGENT_ID" "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh $AGENT_ID $@"
+    ./communication/agent_send.sh "$AGENT_ID" "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh $AGENT_ID $TARGET_DIR $@"
     echo "✅ Agent $AGENT_ID started with telemetry at $TARGET_DIR"
 fi

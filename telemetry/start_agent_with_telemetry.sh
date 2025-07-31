@@ -22,6 +22,17 @@ else
 fi
 TELEMETRY_DIR="$PROJECT_ROOT/telemetry"
 
+# 第2引数がディレクトリパスの場合、そこに移動
+if [ $# -ge 1 ] && [ -d "$PROJECT_ROOT$1" ]; then
+    TARGET_DIR="$1"
+    echo "📁 Moving to target directory: $TARGET_DIR"
+    cd "$PROJECT_ROOT$TARGET_DIR" || {
+        echo "❌ Failed to change directory to $PROJECT_ROOT$TARGET_DIR"
+        exit 1
+    }
+    shift  # ディレクトリ引数を除去
+fi
+
 # OpenTelemetry設定ファイルの読み込み
 # 優先順位: 1. プロジェクトルート/.env  2. telemetry/otel_config.env  3. telemetry/otel_config.env.example
 if [ -f "$PROJECT_ROOT/.env" ]; then

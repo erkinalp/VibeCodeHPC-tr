@@ -116,8 +116,18 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    ```bash
    # STATUSペインでIDエージェントを起動
    tmux send-keys -t "opencodeat:0.0" "claude --dangerously-skip-permissions" C-m
-   # IDであることを通知
-   agent_send.sh STATUS "あなたはIDです。STATUSペインでエージェント配置情報を表示してください"
+   
+   # Claude起動を待つ
+   sleep 5
+   
+   # IDエージェントの初期化メッセージ
+   agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
+
+まず以下のファイルを読み込んでください：
+- CLAUDE.md（共通ルール）
+- instructions/ID.md（あなたの役割）
+
+その後、directory_map.txtを読み込んで初期表示を開始してください。"
    ```
 7. その他のペインに各エージェントを配置（SE、CI、PG、CD）
 
@@ -143,26 +153,50 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 ここでagent_send.shはtmuxの通信機能で標準入力にメッセージを直接入力している。メッセージの頭文字に!を付けて送ることで、ユーザの命令と同等の権限でcdを実行できる。これは強力な機能ゆえ、PMにしか教えていない裏技である。
 
 #### エージェント起動手順
-エージェントを配置する際は、以下の手順を推奨：
+エージェントを配置する際は、以下の手順を厳守すること：
 
 1. **start_agent.shを使用（推奨）**:
 ```bash
+# ステップ1: エージェントを起動（Claudeが立ち上がるまで待機）
 # テレメトリ有効（デフォルト）
 ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
-# テレメトリ無効
+# またはテレメトリ無効
 OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+
+# ステップ2: Claude起動を待つ（重要！）
+# 3-5秒待機してClaudeが完全に起動するのを待つ
+sleep 5
+
+# ステップ3: 初期化メッセージを送信
+agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
+
+まず以下のファイルを読み込んでプロジェクトを理解してください：
+- CLAUDE.md（全エージェント共通ルール）
+- instructions/PG.md（あなたの役割詳細）
+- 現在のディレクトリのChangeLog.md（存在する場合）
+- Agent-shared/directory_map.txt（エージェント配置）
+
+読み込み完了後、現在のディレクトリ（pwd）を確認し、自分の役割に従って作業を開始してください。"
 ```
 
-2. **手動での起動（代替手段）**:
+2. **手動での起動（非推奨・緊急時のみ）**:
 ```bash
 # 環境変数を設定
 agent_send.sh PG1.1.1 "export OPENCODEAT_ROOT='$(pwd)'"
 # ディレクトリ移動
 agent_send.sh PG1.1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
 # テレメトリ付きで起動
-agent_send.sh PG1.1.1 "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1"
+agent_send.sh PG1.1.1 "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP"
+# 待機
+sleep 5
+# 初期化メッセージ送信（上記と同じ）
 ```
+
+**重要な注意事項**:
+- `start_agent.sh`はClaude起動コマンドを送信するだけで、初期化メッセージは送らない
+- Claude起動後、必ず初期化メッセージを送信すること
+- 初期化メッセージなしでは、エージェントは自分の役割を理解できない
 
 いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_map.txtの更新を忘れてはならない。
 
