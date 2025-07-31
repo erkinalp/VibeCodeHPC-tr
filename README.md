@@ -14,10 +14,6 @@ Claude Code等のCLI環境でtmux-based通信により、複数のAIエージェ
 - **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
 - **予算管理**: 計算資源💰の効率的配分と追跡
 - **統一ログ**: `ChangeLog.md`による一元的な進捗管理
-- **SOTA追跡**: 4階層での性能指標
-  ```
-  エージェント別 / 進化的階層別 / 指定ハードウェア内 / Project全体
-  ```
 
 ### 対応環境
 - **スパコン**: 不老、富岳等のHPCシステム
@@ -363,6 +359,8 @@ npx ccusage@latest
    - Cost（コスト）やToken数が自動的に可視化される
    - エージェント別・時系列でのトークン消費を確認
 
+![GrafanaでのMetrics可視化](_images/GrafanaMetrics.png)
+
 2. **注意事項**
    - Claude CodeのOpenTelemetryメトリクスはOTLP経由で送信
    - デフォルトではローカルのCollector（4317ポート）に接続
@@ -370,8 +368,6 @@ npx ccusage@latest
 
 </details>
 
-> [!NOTE]
-> - 短時間のテストや既に他のOTLPバックエンドがある場合はスキップ可能
 
 #### 2.1. tmuxセッションセットアップ
 
