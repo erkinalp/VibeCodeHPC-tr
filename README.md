@@ -458,7 +458,7 @@ claude --dangerously-skip-permissions
 - CLAUDE.md（全エージェント共通ルール）
 - instructions/PM.md（あなたの役割詳細）
 - requirement_definition.md（プロジェクト要件）※存在する場合
-- Agent-shared/以下の全ての.mdと.txtファイル（.pyファイルは除く）
+- Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイル、_template、_exampleを除く）
 
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
@@ -466,7 +466,7 @@ claude --dangerously-skip-permissions
 - directory_map.txt（エージェント配置管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 
-全て読み込んだ後、既存の opencodeat セッションを活用してプロジェクトを初朞化してください。新規セッションは作成しないでください。
+全て読み込んだ後、既存の opencodeat セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
 ```
 
 ---
