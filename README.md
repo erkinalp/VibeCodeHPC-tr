@@ -261,6 +261,13 @@ gh auth login
   claude
   ```
 
+> [!TIP]
+> JSONLログ解析やサブエージェント機能を活用する場合は、jqのインストールを推奨:
+> ```bash
+> # Ubuntu/WSL: sudo apt install jq
+> # macOS: brew install jq
+> ```
+
 ---
 
 ### ☑️ **MCPサーバのセットアップ**
@@ -373,8 +380,12 @@ npx ccusage@latest
 
 > [!IMPORTANT]
 > OpenCodeATは2つのtmuxセッションを使用します：
-> - `pm_session`: PMエージェント専用（ユーザとの対話用）
-> - `opencodeat`: その他のエージェント（SE, CI, PG, CD）
+> - **PMセッション**: PMエージェント専用（ユーザとの対話用）
+>   - デフォルト: `Team1_PM`
+>   - プロジェクト指定時: `{ProjectName}_PM`
+> - **ワーカーセッション**: その他のエージェント（SE, CI, PG, CD, ID）
+>   - デフォルト: `Team1_Workers1`
+>   - プロジェクト指定時: `{ProjectName}_Workers1`
 > 
 > 最小エージェント数は3です（SE + CI + PG）。解像度に応じて調整してください。
 
@@ -384,9 +395,13 @@ cd OpenCodeAT-jp-main
 
 # コマンドラインオプション:
 #   [ワーカー数]     : PM以外のエージェント総数 (最小: 3)
+#   --project <名前> : プロジェクト名を指定（例: GEMM, MatMul）
 #   --clean-only     : 既存セッションのクリーンアップのみ実行
 #   --dry-run        : 実際のセットアップを行わずに計画を表示
 #   --help           : ヘルプメッセージを表示
+
+# プロジェクト名指定例:
+./communication/setup.sh 11 --project GEMM  # GEMM_PM, GEMM_Workers1 セッションを作成
 ```
 
 #### 参考構成例（実際の配置はPMが決定）
@@ -403,13 +418,24 @@ cd OpenCodeAT-jp-main
 
 タブ1（PMエージェント用）:
 ```bash
-tmux attach-session -t pm_session
+# デフォルトの場合
+tmux attach-session -t Team1_PM
+
+# プロジェクト名を指定した場合（例: GEMM）
+tmux attach-session -t GEMM_PM
 ```
 
 タブ2（その他のエージェント用）:
 ```bash
-tmux attach-session -t opencodeat
+# デフォルトの場合
+tmux attach-session -t Team1_Workers1
+
+# プロジェクト名を指定した場合（例: GEMM）
+tmux attach-session -t GEMM_Workers1
 ```
+
+> [!TIP]
+> setup.shの出力に表示される実際のセッション名を使用してください。
 
 ### 3. プロジェクト開始
 要件定義（skipした場合はPMと対話的に作成）
@@ -427,6 +453,27 @@ PMを手動起動
 # 方法2: telemetryなしで起動（メトリクス収集なし）
 claude --dangerously-skip-permissions
 ```
+
+### 🎣 Claude Code Hooks機能（NEW）
+
+エージェントの挙動を制御するhooks機能により、以下が実現されます：
+
+#### 主な機能
+- **ポーリング型エージェント（PM, SE, CI, CD）の待機防止**: 定期的なタスクを自動提示
+- **auto-compact対策**: コンテキストリセット後に必須ファイルの再読み込みを促進
+- **session_id追跡**: 各エージェントのClaude session_idを記録・管理
+
+#### 自動配置
+PMがエージェント起動時に自動的にhooksを配置：
+```bash
+# hooks有効（デフォルト）でエージェント起動
+./communication/start_agent.sh PG1.1.1 /path/to/workdir
+
+# hooks無効化（デバッグ時など）
+OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/workdir
+```
+
+詳細は `Agent-shared/hooks_deployment_guide.md` を参照してください。
 
 起動後、以下のプロンプトをコピーして貼り付け：
 ```
