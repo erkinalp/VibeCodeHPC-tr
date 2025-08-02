@@ -16,6 +16,7 @@ OpenCodeAT SessionStart Hook
 import json
 import os
 import sys
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
@@ -74,17 +75,46 @@ def update_agent_table(session_id, source):
                     
                 entry = json.loads(line)
                 
-                # tmux_paneで自分のエントリを特定
-                # TMUX_PANE形式: %0 (セッション番号:ペイン番号)
-                pane_number = tmux_pane.split(':')[-1] if ':' in tmux_pane else tmux_pane.lstrip('%')
+                # 複数の方法でマッチングを試みる
+                match_found = False
                 
-                with open(debug_file, 'a') as f:
-                    f.write(f"Checking: entry['tmux_pane']='{entry['tmux_pane']}' vs pane_number='{pane_number}'\n")
-                
-                # tmux_paneは整数、pane_numberは文字列なので、両方を文字列で比較
-                if str(entry['tmux_pane']) == str(pane_number):
+                # 方法1: 作業ディレクトリで判定（PMの場合）
+                if str(cwd) == str(project_root) and entry['agent_id'] == 'PM':
+                    match_found = True
                     with open(debug_file, 'a') as f:
-                        f.write(f"MATCH FOUND! entry['tmux_pane']={entry['tmux_pane']}, pane_number={pane_number}\n")
+                        f.write(f"MATCH by cwd (PM): entry='{entry['agent_id']}' cwd='{cwd}'\n")
+                
+                # 方法2: TMUX環境変数でのマッチング（セッション名とペイン番号を組み合わせ）
+                if not match_found and tmux_pane:
+                    # TMUX_PANEからグローバルペイン番号を取得
+                    global_pane = tmux_pane.lstrip('%')
+                    
+                    # tmuxコマンドで現在のセッション情報を取得（可能な場合）
+                    try:
+                        result = subprocess.run(
+                            ['tmux', 'list-panes', '-a', '-F', '#{session_name}:#{window_index}.#{pane_index} %#{pane_id}'],
+                            capture_output=True, text=True
+                        )
+                        if result.returncode == 0:
+                            for line in result.stdout.strip().split('\n'):
+                                parts = line.split()
+                                if len(parts) >= 2 and parts[1] == f'%{global_pane}':
+                                    session_info = parts[0]  # e.g., "GEMM_PM:0.0"
+                                    session_name = session_info.split(':')[0]
+                                    pane_index = int(session_info.split('.')[-1])
+                                    
+                                    if (entry['tmux_session'] == session_name and 
+                                        entry['tmux_pane'] == pane_index):
+                                        match_found = True
+                                        with open(debug_file, 'a') as f:
+                                            f.write(f"MATCH by tmux: session={session_name}, pane={pane_index}\n")
+                                        break
+                    except Exception as e:
+                        with open(debug_file, 'a') as f:
+                            f.write(f"tmux command failed: {e}\n")
+                
+                if match_found:
+                    with open(debug_file, 'a') as f:
                         f.write(f"Updating agent_id={entry['agent_id']} with session_id={session_id}\n")
                     
                     entry['claude_session_id'] = session_id
