@@ -315,11 +315,11 @@ send_message() {
     tmux send-keys -t "$session:$window.$pane" C-c 2>/dev/null
     sleep 0.2
     
-    # メッセージ送信
+    # メッセージ送信（改行含む全体を送信）
     tmux send-keys -t "$session:$window.$pane" "$message"
-    sleep 0.1
+    sleep 0.2
     
-    # エンター押下
+    # エンター押下（単独で送信）
     tmux send-keys -t "$session:$window.$pane" C-m
     sleep 0.3
     
