@@ -32,12 +32,48 @@ cp "$TEMPLATE_DIR/session_start.py" "$AGENT_DIR/.claude/hooks/"
 # エージェントタイプに応じたstop hookをコピー
 if [ "$AGENT_TYPE" = "polling" ]; then
     cp "$TEMPLATE_DIR/stop_polling.py" "$AGENT_DIR/.claude/hooks/stop.py"
-    cp "$TEMPLATE_DIR/settings_polling.json" "$AGENT_DIR/.claude/settings.local.json"
-    echo "✅ Polling agent hooks configured"
+    # settings.jsonを作成（絶対パスを使用）
+    cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "$AGENT_DIR/.claude/hooks/stop.py"
+      }]
+    }],
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "$AGENT_DIR/.claude/hooks/session_start.py"
+      }]
+    }]
+  }
+}
+EOF
+    echo "✅ Polling agent hooks configured with absolute paths"
 else
     cp "$TEMPLATE_DIR/stop_event.py" "$AGENT_DIR/.claude/hooks/stop.py"
-    cp "$TEMPLATE_DIR/settings_event.json" "$AGENT_DIR/.claude/settings.local.json"
-    echo "✅ Event-driven agent hooks configured"
+    # settings.jsonを作成（絶対パスを使用）
+    cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "$AGENT_DIR/.claude/hooks/stop.py"
+      }]
+    }],
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "$AGENT_DIR/.claude/hooks/session_start.py"
+      }]
+    }]
+  }
+}
+EOF
+    echo "✅ Event-driven agent hooks configured with absolute paths"
 fi
 
 # 実行権限を付与
