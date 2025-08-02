@@ -465,19 +465,13 @@ cp requirement_definition_template.md requirement_definition.md
 # requirement_definition.mdを編集
 ```
 
-PMを手動起動
+PMを起動
 ```bash
 # pm_sessionで以下を実行:
-
-# 方法1: hooksを手動で設定してから起動（推奨）
-./hooks/setup_agent_hooks.sh PM . polling
-./telemetry/start_agent_with_telemetry.sh PM
-
-# 方法2: シンプルに起動（hooksなし、待機状態になる可能性）
-claude --dangerously-skip-permissions
+./start_PM.sh
 
 # 注: MCPサーバは事前設定済みのため、exitやrestartは不要
-# 注: start_agent.shは空のtmuxペイン用のため、PM自身の起動には使えません
+# 注: hooks設定、プロジェクト開始時刻記録、telemetry起動を自動化
 ```
 
 <details>
