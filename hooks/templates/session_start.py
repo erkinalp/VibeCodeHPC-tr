@@ -45,7 +45,19 @@ def update_agent_table(session_id, source):
     # tmux環境変数から自分の情報を取得
     tmux_pane = os.getenv('TMUX_PANE', '')
     
+    # デバッグ: 環境変数の状態を記録
+    debug_file = project_root / "Agent-shared" / "session_start_debug.log"
+    with open(debug_file, 'a') as f:
+        f.write(f"\n[{datetime.utcnow()}] SessionStart hook called\n")
+        f.write(f"session_id: {session_id}\n")
+        f.write(f"source: {source}\n")
+        f.write(f"cwd: {cwd}\n")
+        f.write(f"TMUX_PANE: '{tmux_pane}'\n")
+        f.write(f"project_root: {project_root}\n")
+    
     if not tmux_pane:
+        with open(debug_file, 'a') as f:
+            f.write("ERROR: TMUX_PANE is empty, returning None\n")
         return None, None
     
     # ファイルを読み込んで更新
@@ -66,7 +78,14 @@ def update_agent_table(session_id, source):
                 # TMUX_PANE形式: %0 (セッション番号:ペイン番号)
                 pane_number = tmux_pane.split(':')[-1] if ':' in tmux_pane else tmux_pane.lstrip('%')
                 
+                with open(debug_file, 'a') as f:
+                    f.write(f"Checking: entry['tmux_pane']='{entry['tmux_pane']}' vs pane_number='{pane_number}'\n")
+                
                 if str(entry['tmux_pane']) == pane_number:
+                    with open(debug_file, 'a') as f:
+                        f.write(f"MATCH FOUND! entry['tmux_pane']={entry['tmux_pane']}, pane_number={pane_number}\n")
+                        f.write(f"Updating agent_id={entry['agent_id']} with session_id={session_id}\n")
+                    
                     entry['claude_session_id'] = session_id
                     entry['status'] = 'running'
                     entry['last_updated'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
