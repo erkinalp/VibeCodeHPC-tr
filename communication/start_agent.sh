@@ -54,8 +54,8 @@ if [ "${OPENCODEAT_ENABLE_HOOKS}" != "false" ]; then
     FULL_TARGET_DIR="$PROJECT_ROOT$TARGET_DIR"
     
     # setup_agent_hooks.shを実行
-    if [ -f "$PROJECT_ROOT/Agent-shared/setup_agent_hooks.sh" ]; then
-        "$PROJECT_ROOT/Agent-shared/setup_agent_hooks.sh" "$AGENT_ID" "$FULL_TARGET_DIR" "$AGENT_TYPE"
+    if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
+        "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" "$AGENT_ID" "$FULL_TARGET_DIR" "$AGENT_TYPE"
     else
         echo "⚠️  Warning: setup_agent_hooks.sh not found, skipping hooks setup"
     fi

@@ -409,24 +409,11 @@ create_main_session() {
 generate_agent_pane_table() {
     local total_panes=$1
     
-    local txt_table_file="./Agent-shared/agent_and_pane_id_table.txt"
     local jsonl_table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
     
     log_info "📝 エージェント配置表（初期状態）生成中..."
     
     mkdir -p ./Agent-shared
-    
-    # 旧形式のtxtファイル（後方互換性のため）
-    cat > "$txt_table_file" << EOF
-# OpenCodeAT Agent and Pane ID Table
-# Generated: $(date)
-# Format: AGENT_NAME: session=SESSION_NAME, window=WINDOW, pane=PANE_INDEX
-# 
-# 注意: 初期状態では具体的なエージェント名は未定
-# PMがdirectory_map.txtで配置を決定後、エージェント名が確定します
-
-PM: session=$PM_SESSION, window=0, pane=0
-EOF
     
     # JSONL形式のファイル
     cat > "$jsonl_table_file" << EOF
@@ -447,15 +434,13 @@ EOF
         local agent_id
         if [ $i -eq 0 ]; then
             agent_id="STATUS"
-            echo "STATUS: session=$WORKER_SESSION, window=0, pane=$pane_id" >> "$txt_table_file"
         else
             agent_id="待機中${i}"
-            echo "待機中${i}: session=$WORKER_SESSION, window=0, pane=$pane_id" >> "$txt_table_file"
         fi
         echo '{"agent_id": "'$agent_id'", "tmux_session": "'$WORKER_SESSION'", "tmux_window": 0, "tmux_pane": '$pane_id', "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
     done
     
-    log_success "✅ agent_and_pane_id_table.txt / .jsonl 生成完了"
+    log_success "✅ agent_and_pane_id_table.jsonl 生成完了"
 }
 
 # 実行計画表示（シンプル版）
@@ -588,7 +573,7 @@ main() {
     local total_panes=$((worker_count + 1))
     create_main_session $total_panes
     
-    # agent_and_pane_id_table.txt生成（初期状態）
+    # agent_and_pane_id_table.jsonl生成（初期状態）
     generate_agent_pane_table $total_panes
     
     # 完了メッセージ
@@ -609,7 +594,7 @@ main() {
     echo ""
     echo "  3. 📊 エージェント配置:"
     echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl  # ペイン番号確認（JSONL形式）"
-    echo "     cat ./Agent-shared/agent_and_pane_id_table.txt   # ペイン番号確認（旧形式）"
+    echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl # ペイン番号確認"
     echo "     cat ./Agent-shared/max_agent_number.txt          # ワーカー数: $worker_count"
     echo ""
     
