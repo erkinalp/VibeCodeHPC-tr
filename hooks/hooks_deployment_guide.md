@@ -32,8 +32,8 @@ OPENCODEAT_ENABLE_HOOKS=false OPENCODEAT_ENABLE_TELEMETRY=false ./communication/
 # PG, ID → event-driven
 
 # hooksを配置
-./Agent-shared/setup_agent_hooks.sh SE1 /path/to/SE1/workdir polling
-./Agent-shared/setup_agent_hooks.sh PG1.1.1 /path/to/PG1.1.1/workdir event-driven
+./hooks/setup_agent_hooks.sh SE1 /path/to/SE1/workdir polling
+./hooks/setup_agent_hooks.sh PG1.1.1 /path/to/PG1.1.1/workdir event-driven
 ```
 
 ### 2. 配置されるファイル
@@ -102,7 +102,7 @@ Claude起動後、SessionStart hookが自動的に：
 ## 高度な設定
 
 ### カスタムhooksの追加
-`Agent-shared/hooks_template/`にカスタムhookを追加して、setup_agent_hooks.shを修正することで、プロジェクト固有のhooksを配置できます。
+`hooks/templates/`にカスタムhookを追加して、setup_agent_hooks.shを修正することで、プロジェクト固有のhooksを配置できます。
 
 ### hooks無効化の使い分け
 - **開発/デバッグ時**: `OPENCODEAT_ENABLE_HOOKS=false`
@@ -111,5 +111,5 @@ Claude起動後、SessionStart hookが自動的に：
 
 ## 参考資料
 - Claude Code hooks公式ドキュメント
-- `Agent-shared/hooks_template/` 内の各スクリプト
+- `hooks/templates/` 内の各スクリプト
 - `telemetry/README.md`（telemetryとの連携）

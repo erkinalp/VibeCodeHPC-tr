@@ -19,7 +19,7 @@ AGENT_TYPE=$3
 # プロジェクトルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-TEMPLATE_DIR="$PROJECT_ROOT/Agent-shared/hooks_template"
+TEMPLATE_DIR="$PROJECT_ROOT/hooks/templates"
 
 echo "🔧 Setting up hooks for agent: $AGENT_ID (type: $AGENT_TYPE)"
 

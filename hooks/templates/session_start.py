@@ -74,6 +74,12 @@ def update_agent_table(session_id, source):
                         agent_type = 'polling'
                     else:
                         agent_type = 'event-driven'
+                    
+                    # PMが初回起動時にプロジェクト開始時刻を記録
+                    if agent_id == 'PM' and source == 'startup':
+                        start_time_file = project_root / "Agent-shared" / "project_start_time.txt"
+                        if not start_time_file.exists() or start_time_file.stat().st_size == 0:
+                            start_time_file.write_text(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ\n'))
                 
                 updated_lines.append(json.dumps(entry, ensure_ascii=False))
         
