@@ -129,16 +129,16 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    - `/Agent-shared/ChangeLog_format_PM_override_template.md`を参考に
    - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
    - 性能指標、ログパス規則、その他プロジェクト固有ルールを定義
-6. **重要**: 新規セッションは作成せず、既存の`opencodeat`セッションのペインにエージェントを配置する
+6. **重要**: setup.shで作成されたセッション（デフォルト：Team1_Workers1）を使用する
 7. STATUSペイン（pane 0）にIDエージェントを起動：
    ```bash
    # STATUSペインでIDエージェントを起動
-   tmux send-keys -t "opencodeat:0.0" "claude --dangerously-skip-permissions" C-m
+   tmux send-keys -t "Team1_Workers1:0.0" "claude --dangerously-skip-permissions" C-m
    
    # 他のエージェント起動準備などを進める（5秒程度）
    
    # Claude起動確認（初回は特に重要）
-   tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}" | grep "0: claude"
+   tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "0: claude"
    
    # IDエージェントの初期化メッセージ
    agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
@@ -197,9 +197,9 @@ OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/T
 # 例: 次のエージェントのstart_agent.sh実行、directory_map.txt更新など
 
 # ステップ3: 起動確認（特に初回は必須）
-# tmuxでClaude起動を確認
-tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
-# ※ペイン番号はagent_and_pane_id_table.jsonlで確認
+# tmuxでClaude起動を確認（セッション名とペイン番号はagent_and_pane_id_table.jsonlで確認）
+# 例: Team1_Workers1の場合
+tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
 
 # ステップ4: 初期化メッセージを送信（Claude起動確認後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
@@ -371,8 +371,9 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 
 #### 1. エージェントの生存確認（tmuxコマンドで確認）
 ```bash
-# opencodeatセッションの全ペインの実行中コマンドを確認
-tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}"
+# セッションの全ペインの実行中コマンドを確認
+# セッション名はsetup.sh実行時の設定による（デフォルト: Team1_Workers1）
+tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 
 # 出力例：
 # 0: claude  （IDエージェントが実行中）
