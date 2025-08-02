@@ -3,12 +3,19 @@
 # 🧬 OpenCodeAT Agent間メッセージ送信システム
 # HPC最適化用マルチエージェント通信
 
-# agent_and_pane_id_table.txt読み込み
+# agent_and_pane_id_table読み込み（JSONL優先、txt互換）
 load_agent_map() {
-    local table_file="./Agent-shared/agent_and_pane_id_table.txt"
+    local jsonl_file="./Agent-shared/agent_and_pane_id_table.jsonl"
+    local txt_file="./Agent-shared/agent_and_pane_id_table.txt"
+    local table_file=""
     
-    if [[ ! -f "$table_file" ]]; then
-        echo "❌ エラー: agent_and_pane_id_table.txt が見つかりません"
+    # JSONL形式を優先、なければtxt形式
+    if [[ -f "$jsonl_file" ]]; then
+        table_file="$jsonl_file"
+    elif [[ -f "$txt_file" ]]; then
+        table_file="$txt_file"
+    else
+        echo "❌ エラー: agent_and_pane_id_table.jsonl または .txt が見つかりません"
         echo "先に ./communication/setup.sh を実行してください"
         return 1
     fi
@@ -16,21 +23,51 @@ load_agent_map() {
     # associative array宣言
     declare -gA AGENT_MAP
     
-    # agent_and_pane_id_table.txt解析
-    while IFS= read -r line; do
-        # コメントと空行をスキップ
-        [[ "$line" =~ ^[[:space:]]*# ]] && continue
-        [[ -z "${line// }" ]] && continue
-        
-        # AGENT_NAME: session=SESSION_NAME, window=WINDOW, pane=PANE_INDEX
-        if [[ "$line" =~ ^([^:]+):[[:space:]]*session=([^,]+),[[:space:]]*window=([^,]+),[[:space:]]*pane=(.+)$ ]]; then
-            local agent_name="${BASH_REMATCH[1]// /}"
-            local session="${BASH_REMATCH[2]// /}"
-            local window="${BASH_REMATCH[3]// /}"
-            local pane="${BASH_REMATCH[4]// /}"
-            AGENT_MAP["$agent_name"]="$session:$window.$pane"
-        fi
-    done < "$table_file"
+    if [[ "$table_file" == "$jsonl_file" ]]; then
+        # JSONL形式の解析
+        while IFS= read -r line; do
+            # コメントと空行をスキップ
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${line// }" ]] && continue
+            
+            # JSON解析（jqが使えない環境でも動作するよう簡易解析）
+            if [[ "$line" =~ \"agent_id\":[[:space:]]*\"([^\"]+)\" ]]; then
+                local agent_name="${BASH_REMATCH[1]}"
+                
+                if [[ "$line" =~ \"tmux_session\":[[:space:]]*\"([^\"]+)\" ]]; then
+                    local session="${BASH_REMATCH[1]}"
+                fi
+                
+                if [[ "$line" =~ \"tmux_window\":[[:space:]]*([0-9]+) ]]; then
+                    local window="${BASH_REMATCH[1]}"
+                fi
+                
+                if [[ "$line" =~ \"tmux_pane\":[[:space:]]*([0-9]+) ]]; then
+                    local pane="${BASH_REMATCH[1]}"
+                fi
+                
+                if [[ -n "$agent_name" && -n "$session" && -n "$window" && -n "$pane" ]]; then
+                    AGENT_MAP["$agent_name"]="$session:$window.$pane"
+                fi
+            fi
+        done < "$table_file"
+    else
+        # 従来のtxt形式の解析（後方互換性）
+        while IFS= read -r line; do
+            # コメントと空行をスキップ
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${line// }" ]] && continue
+            
+            # AGENT_NAME: session=SESSION_NAME, window=WINDOW, pane=PANE_INDEX
+            if [[ "$line" =~ ^([^:]+):[[:space:]]*session=([^,]+),[[:space:]]*window=([^,]+),[[:space:]]*pane=(.+)$ ]]; then
+                local agent_name="${BASH_REMATCH[1]// /}"
+                local session="${BASH_REMATCH[2]// /}"
+                local window="${BASH_REMATCH[3]// /}"
+                local pane="${BASH_REMATCH[4]// /}"
+                AGENT_MAP["$agent_name"]="$session:$window.$pane"
+            fi
+        done < "$table_file"
+    fi
 }
 
 # エージェント→tmuxターゲット変換
@@ -235,13 +272,10 @@ show_status() {
     # tmuxセッション情報
     echo ""
     echo "📺 tmuxセッション情報:"
-    for session in "pm_session" "opencodeat"; do
-        if tmux has-session -t "$session" 2>/dev/null; then
-            local pane_count=$(tmux list-panes -t "$session" | wc -l)
-            echo "$session: $pane_count panes"
-        else
-            echo "$session: 未起動"
-        fi
+    # アクティブなセッションをすべて表示
+    tmux list-sessions 2>/dev/null | while IFS=: read -r session rest; do
+        local pane_count=$(tmux list-panes -t "$session" 2>/dev/null | wc -l)
+        echo "$session: $pane_count panes"
     done
 }
 
