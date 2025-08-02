@@ -81,7 +81,8 @@ def update_agent_table(session_id, source):
                 with open(debug_file, 'a') as f:
                     f.write(f"Checking: entry['tmux_pane']='{entry['tmux_pane']}' vs pane_number='{pane_number}'\n")
                 
-                if str(entry['tmux_pane']) == pane_number:
+                # tmux_paneは整数、pane_numberは文字列なので、両方を文字列で比較
+                if str(entry['tmux_pane']) == str(pane_number):
                     with open(debug_file, 'a') as f:
                         f.write(f"MATCH FOUND! entry['tmux_pane']={entry['tmux_pane']}, pane_number={pane_number}\n")
                         f.write(f"Updating agent_id={entry['agent_id']} with session_id={session_id}\n")
