@@ -9,6 +9,21 @@ set -e  # エラー時に停止
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# グローバル変数
+PROJECT_NAME=""  # ユーザが指定するプロジェクト名
+USE_DEFAULT_NAMES=true  # デフォルト名使用フラグ
+DRY_RUN=false  # dry-runフラグ
+
+# デフォルトセッション名
+DEFAULT_PM_SESSION="Team1_PM"
+DEFAULT_WORKER_SESSION="Team1_Workers1"
+DEFAULT_WORKER_SESSION_PREFIX="Team1_Workers"  # 13体以上の場合用
+
+# 実際に使用するセッション名（determine_session_namesで設定）
+PM_SESSION=""
+WORKER_SESSION=""
+WORKER_SESSION_PREFIX=""
+
 # 色付きログ関数
 log_info() {
     echo -e "\033[1;32m[INFO]\033[0m $1"
@@ -34,14 +49,20 @@ show_usage() {
   ワーカー数      : PM以外のエージェント総数 (最小: 3)
   
 オプション:
+  --project <名前>  : プロジェクト名を指定（例: GEMM, MatMul）
   --clean-only     : 既存セッションのクリーンアップのみ実行
   --dry-run        : 実際のセットアップを行わずに計画を表示
   --help           : このヘルプを表示
 
 例:
-  $0 11            # PM + 11ワーカー構成でセットアップ
-  $0 --clean-only  # クリーンアップのみ
-  $0 --dry-run 11  # 11ワーカー構成の計画表示
+  $0 11                    # デフォルト名 (Team1_PM, Team1_Workers1)
+  $0 11 --project GEMM     # プロジェクト名指定 (GEMM_PM, GEMM_Workers1)
+  $0 --clean-only          # クリーンアップのみ
+  $0 --dry-run 11          # 11ワーカー構成の計画表示
+
+セッション名の命名規則:
+  デフォルト: Team1_PM, Team1_Workers1, Team1_Workers2...
+  プロジェクト指定: <ProjectName>_PM, <ProjectName>_Workers1...
 
 参考構成例（実際の配置はPMが決定）:
   3人: SE(1) + CI(1) + PG(1) ※最小構成
@@ -143,34 +164,56 @@ generate_agent_names() {
     echo "${agents[@]}"
 }
 
+# セッション名の決定
+determine_session_names() {
+    if [ "$USE_DEFAULT_NAMES" = true ]; then
+        PM_SESSION="$DEFAULT_PM_SESSION"
+        WORKER_SESSION="$DEFAULT_WORKER_SESSION"
+        WORKER_SESSION_PREFIX="$DEFAULT_WORKER_SESSION_PREFIX"
+    else
+        PM_SESSION="${PROJECT_NAME}_PM"
+        WORKER_SESSION="${PROJECT_NAME}_Workers1"
+        WORKER_SESSION_PREFIX="${PROJECT_NAME}_Workers"
+    fi
+}
+
+# セッション名の衝突チェック
+check_session_conflicts() {
+    local conflicts=false
+    
+    log_info "🔍 セッション名の衝突チェック中..."
+    
+    # PMセッションのチェック
+    if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
+        log_error "❌ セッション '$PM_SESSION' は既に存在します"
+        conflicts=true
+    fi
+    
+    # ワーカーセッションのチェック
+    if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
+        log_error "❌ セッション '$WORKER_SESSION' は既に存在します"
+        conflicts=true
+    fi
+    
+    if [ "$conflicts" = true ]; then
+        echo ""
+        echo "既存のセッション一覧:"
+        tmux list-sessions 2>/dev/null || echo "セッションなし"
+        echo ""
+        echo "対処方法:"
+        echo "1. 別のプロジェクト名を指定: $0 $1 --project <別の名前>"
+        echo "2. 既存セッションを削除: tmux kill-session -t $PM_SESSION"
+        echo "3. --clean-only オプションで古いセッションをクリーンアップ"
+        return 1
+    fi
+    
+    log_success "✅ セッション名の衝突なし"
+    return 0
+}
+
 # セッション重複チェックとリネーム
 handle_existing_sessions() {
-    log_info "🔍 既存セッションの確認とリネーム処理..."
-    
-    # pm_sessionの処理
-    if tmux has-session -t pm_session 2>/dev/null; then
-        local timestamp=$(date +%Y%m%d_%H%M%S)
-        local new_name="pm_session_old_${timestamp}"
-        log_info "既存のpm_sessionを${new_name}にリネーム"
-        tmux rename-session -t pm_session "${new_name}" 2>/dev/null || {
-            log_error "pm_sessionのリネームに失敗。強制終了します"
-            tmux kill-session -t pm_session 2>/dev/null || true
-        }
-    fi
-    
-    # opencodeatの処理
-    if tmux has-session -t opencodeat 2>/dev/null; then
-        local timestamp=$(date +%Y%m%d_%H%M%S)
-        local new_name="opencodeat_old_${timestamp}"
-        log_info "既存のopencodeatを${new_name}にリネーム"
-        tmux rename-session -t opencodeat "${new_name}" 2>/dev/null || {
-            log_error "opencodeatのリネームに失敗。強制終了します"
-            tmux kill-session -t opencodeat 2>/dev/null || true
-        }
-    fi
-    
-    # 古いmultiagentセッションがあれば削除
-    tmux kill-session -t multiagent 2>/dev/null && log_info "古いmultiagentセッション削除"
+    log_info "🔍 既存セッションの確認と処理..."
     
     # ディレクトリ準備
     mkdir -p ./Agent-shared
@@ -184,33 +227,36 @@ handle_existing_sessions() {
 
 # PMセッション作成
 create_pm_session() {
-    log_info "📺 PMセッション作成中..."
+    log_info "📺 PMセッション作成中: $PM_SESSION"
     
-    # 新しいPMセッション作成（handle_existing_sessionsで既に処理済み）
-    tmux new-session -d -s pm_session -n "project-manager"
+    # 新しいPMセッション作成
+    tmux new-session -d -s "$PM_SESSION" -n "project-manager"
     
     # セッションが作成されたか確認
-    if ! tmux has-session -t pm_session 2>/dev/null; then
-        log_error "pm_sessionの作成に失敗しました"
+    if ! tmux has-session -t "$PM_SESSION" 2>/dev/null; then
+        log_error "${PM_SESSION}の作成に失敗しました"
         log_info "既存のセッション一覧:"
         tmux list-sessions || echo "セッションなし"
         return 1
     fi
     
-    tmux send-keys -t "pm_session:project-manager" "cd $PROJECT_ROOT" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "cd $PROJECT_ROOT" C-m
     # bash/zsh対応プロンプト設定
-    tmux send-keys -t "pm_session:project-manager" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
-    tmux send-keys -t "pm_session:project-manager" "  export PROMPT=$'%{\033[1;35m%}(PM)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
-    tmux send-keys -t "pm_session:project-manager" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
-    tmux send-keys -t "pm_session:project-manager" "  export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
-    tmux send-keys -t "pm_session:project-manager" "fi" C-m
-    tmux send-keys -t "pm_session:project-manager" "clear" C-m
-    tmux send-keys -t "pm_session:project-manager" "echo '=== PM (Project Manager) エージェント ==='" C-m
-    tmux send-keys -t "pm_session:project-manager" "echo 'OpenCodeAT HPC最適化システム'" C-m
-    tmux send-keys -t "pm_session:project-manager" "echo '役割: プロジェクト管理・要件定義'" C-m
-    tmux send-keys -t "pm_session:project-manager" "echo ''" C-m
-    tmux send-keys -t "pm_session:project-manager" "echo 'エージェント起動コマンド:'" C-m
-    tmux send-keys -t "pm_session:project-manager" "echo 'claude --dangerously-skip-permissions'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "  export PROMPT=$'%{\033[1;35m%}(PM)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "  export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "fi" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "clear" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo '=== PM (Project Manager) エージェント ==='" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'OpenCodeAT HPC最適化システム'" C-m
+    if [ -n "$PROJECT_NAME" ] && [ "$USE_DEFAULT_NAMES" = false ]; then
+        tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'プロジェクト: ${PROJECT_NAME}'" C-m
+    fi
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo '役割: プロジェクト管理・要件定義'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo ''" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'エージェント起動コマンド:'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'claude --dangerously-skip-permissions'" C-m
     
     log_success "✅ PMセッション作成完了"
 }
@@ -243,7 +289,7 @@ EOF
 create_main_session() {
     local total_panes=$1  # ユーザ入力数 + 1 (STATUS用)
     
-    log_info "📺 メインエージェントセッション作成開始 (${total_panes}ペイン)..."
+    log_info "📺 メインエージェントセッション作成開始: $WORKER_SESSION (${total_panes}ペイン)..."
     
     # 固定レイアウト計算
     local cols rows
@@ -261,12 +307,12 @@ create_main_session() {
     
     log_info "グリッド構成: ${cols}列 x ${rows}行"
     
-    # セッションを作成（handle_existing_sessionsで既に処理済み）
-    tmux new-session -d -s opencodeat -n "hpc-agents"
+    # セッションを作成
+    tmux new-session -d -s "$WORKER_SESSION" -n "hpc-agents"
     
     # セッションが作成されたか確認
-    if ! tmux has-session -t opencodeat 2>/dev/null; then
-        log_error "opencodeatセッションの作成に失敗しました"
+    if ! tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
+        log_error "${WORKER_SESSION}セッションの作成に失敗しました"
         return 1
     fi
     
@@ -277,31 +323,31 @@ create_main_session() {
     
     # 最初の列を作成
     for ((j=1; j < rows && pane_count < total_panes; j++)); do
-        tmux split-window -v -t "opencodeat:hpc-agents"
+        tmux split-window -v -t "${WORKER_SESSION}:hpc-agents"
         ((pane_count++))
     done
     
     # 残りの列を作成
     for ((i=1; i < cols && pane_count < total_panes; i++)); do
-        tmux select-pane -t "opencodeat:hpc-agents.0"
-        tmux split-window -h -t "opencodeat:hpc-agents"
+        tmux select-pane -t "${WORKER_SESSION}:hpc-agents.0"
+        tmux split-window -h -t "${WORKER_SESSION}:hpc-agents"
         ((pane_count++))
         
         for ((j=1; j < rows && pane_count < total_panes; j++)); do
-            tmux split-window -v -t "opencodeat:hpc-agents"
+            tmux split-window -v -t "${WORKER_SESSION}:hpc-agents"
             ((pane_count++))
         done
     done
     
     # レイアウト調整
-    tmux select-layout -t "opencodeat:hpc-agents" tiled
+    tmux select-layout -t "${WORKER_SESSION}:hpc-agents" tiled
     
     # 全ペインの初期化
-    local pane_indices=($(tmux list-panes -t "opencodeat:hpc-agents" -F "#{pane_index}"))
+    local pane_indices=($(tmux list-panes -t "${WORKER_SESSION}:hpc-agents" -F "#{pane_index}"))
     
     for i in "${!pane_indices[@]}"; do
         local pane_index="${pane_indices[$i]}"
-        local pane_target="opencodeat:hpc-agents.${pane_index}"
+        local pane_target="${WORKER_SESSION}:hpc-agents.${pane_index}"
         
         tmux send-keys -t "$pane_target" "cd $PROJECT_ROOT" C-m
         
@@ -359,16 +405,19 @@ create_main_session() {
     log_success "✅ メインエージェントセッション作成完了"
 }
 
-# agent_and_pane_id_table.txt生成（初期状態）
+# agent_and_pane_id_table生成（初期状態）
 generate_agent_pane_table() {
     local total_panes=$1
-    local table_file="./Agent-shared/agent_and_pane_id_table.txt"
+    
+    local txt_table_file="./Agent-shared/agent_and_pane_id_table.txt"
+    local jsonl_table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
     
     log_info "📝 エージェント配置表（初期状態）生成中..."
     
     mkdir -p ./Agent-shared
     
-    cat > "$table_file" << EOF
+    # 旧形式のtxtファイル（後方互換性のため）
+    cat > "$txt_table_file" << EOF
 # OpenCodeAT Agent and Pane ID Table
 # Generated: $(date)
 # Format: AGENT_NAME: session=SESSION_NAME, window=WINDOW, pane=PANE_INDEX
@@ -376,21 +425,37 @@ generate_agent_pane_table() {
 # 注意: 初期状態では具体的なエージェント名は未定
 # PMがdirectory_map.txtで配置を決定後、エージェント名が確定します
 
-PM: session=pm_session, window=0, pane=0
+PM: session=$PM_SESSION, window=0, pane=0
 EOF
     
-    # opencodeatセッションのペイン（初期状態）
-    local pane_indices=($(tmux list-panes -t "opencodeat:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
+    # JSONL形式のファイル
+    cat > "$jsonl_table_file" << EOF
+# OpenCodeAT Agent and Pane ID Table (JSON Lines format)
+# Generated: $(date)
+# Project: ${PROJECT_NAME:-Team1}
+# Format: {"agent_id": "...", "tmux_session": "...", "tmux_window": ..., "tmux_pane": ..., "claude_session_id": null, "status": "not_started", "last_updated": "..."}
+EOF
+    
+    # PMエントリ
+    echo '{"agent_id": "PM", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
+    
+    # ワーカーセッションのペイン（初期状態）
+    local pane_indices=($(tmux list-panes -t "${WORKER_SESSION}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
     
     for i in "${!pane_indices[@]}"; do
+        local pane_id="${pane_indices[$i]}"
+        local agent_id
         if [ $i -eq 0 ]; then
-            echo "STATUS: session=opencodeat, window=0, pane=${pane_indices[$i]}" >> "$table_file"
+            agent_id="STATUS"
+            echo "STATUS: session=$WORKER_SESSION, window=0, pane=$pane_id" >> "$txt_table_file"
         else
-            echo "待機中${i}: session=opencodeat, window=0, pane=${pane_indices[$i]}" >> "$table_file"
+            agent_id="待機中${i}"
+            echo "待機中${i}: session=$WORKER_SESSION, window=0, pane=$pane_id" >> "$txt_table_file"
         fi
+        echo '{"agent_id": "'$agent_id'", "tmux_session": "'$WORKER_SESSION'", "tmux_window": 0, "tmux_pane": '$pane_id', "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
     done
     
-    log_success "✅ agent_and_pane_id_table.txt 生成完了"
+    log_success "✅ agent_and_pane_id_table.txt / .jsonl 生成完了"
 }
 
 # 実行計画表示（シンプル版）
@@ -427,38 +492,54 @@ main() {
     fi
     
     # オプション処理
-    case "$1" in
-        --help|-h)
-            show_usage
-            exit 0
-            ;;
-        --clean-only)
-            log_info "クリーンアップモード"
-            # 古いセッションを完全に削除
-            tmux kill-session -t opencodeat 2>/dev/null && log_info "opencodeatセッション削除"
-            tmux kill-session -t pm_session 2>/dev/null && log_info "pm_sessionセッション削除"
-            tmux list-sessions 2>/dev/null | grep -E "opencodeat_old_|pm_session_old_" | cut -d: -f1 | while read session; do
-                tmux kill-session -t "$session" 2>/dev/null && log_info "${session}削除"
-            done
-            rm -rf ./tmp/agent*_done.txt 2>/dev/null
-            log_success "✅ クリーンアップ完了"
-            exit 0
-            ;;
-        --dry-run)
-            if [[ $# -lt 2 ]]; then
-                log_error "dry-runにはエージェント数が必要です"
-                exit 1
-            fi
-            local worker_count=$2
-            ;;
-        *)
-            if [[ ! "$1" =~ ^[0-9]+$ ]]; then
-                log_error "エージェント数は数値で指定してください"
-                exit 1
-            fi
-            local worker_count=$1
-            ;;
-    esac
+    local worker_count=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --help|-h)
+                show_usage
+                exit 0
+                ;;
+            --project)
+                if [[ $# -lt 2 ]]; then
+                    log_error "--project オプションにはプロジェクト名が必要です"
+                    exit 1
+                fi
+                PROJECT_NAME="$2"
+                USE_DEFAULT_NAMES=false
+                shift 2
+                ;;
+            --clean-only)
+                log_info "クリーンアップモード"
+                # _old_つきのセッションを削除
+                tmux list-sessions 2>/dev/null | grep -E "_old_" | cut -d: -f1 | while read session; do
+                    tmux kill-session -t "$session" 2>/dev/null && log_info "${session}削除"
+                done
+                rm -rf ./tmp/agent*_done.txt 2>/dev/null
+                log_success "✅ クリーンアップ完了"
+                exit 0
+                ;;
+            --dry-run)
+                DRY_RUN=true
+                shift
+                ;;
+            *)
+                if [[ ! "$1" =~ ^[0-9]+$ ]]; then
+                    log_error "不明なオプションまたはエージェント数: $1"
+                    show_usage
+                    exit 1
+                fi
+                worker_count=$1
+                shift
+                ;;
+        esac
+    done
+    
+    # ワーカー数が指定されていない場合
+    if [ -z "$worker_count" ]; then
+        log_error "ワーカー数を指定してください"
+        show_usage
+        exit 1
+    fi
     
     # エージェント数チェック（PMを除く、最小構成: SE + CI + PG = 3）
     if [[ $worker_count -lt 3 ]]; then
@@ -466,16 +547,34 @@ main() {
         exit 1
     fi
     
+    # セッション名を決定
+    determine_session_names
+    
     # 実行計画表示（シンプル版）
     show_execution_plan $worker_count
+    if [ "$USE_DEFAULT_NAMES" = false ]; then
+        echo "プロジェクト名: ${PROJECT_NAME}"
+        echo "PMセッション名: ${PROJECT_NAME}_PM"
+        echo "ワーカーセッション名: ${PROJECT_NAME}_Workers1"
+    else
+        echo "PMセッション名: $DEFAULT_PM_SESSION (デフォルト)"
+        echo "ワーカーセッション名: $DEFAULT_WORKER_SESSION (デフォルト)"
+    fi
+    echo ""
     
     # dry-runの場合はここで終了
-    if [[ "$1" == "--dry-run" ]]; then
+    if [ "$DRY_RUN" = true ]; then
         log_info "dry-runモード: 実際のセットアップは行いません"
         exit 0
     fi
     
-    # 既存セッションの確認とリネーム
+    # セッション名の衝突チェック
+    if ! check_session_conflicts; then
+        log_error "セットアップを中断します"
+        exit 1
+    fi
+    
+    # 既存セッションの処理
     handle_existing_sessions
     
     # エージェント数をファイルに記録（PMがリソース配分計画に使用）
@@ -499,32 +598,33 @@ main() {
     echo "📋 次のステップ:"
     echo "  1. 🔗 セッションアタッチ:"
     echo "     # ターミナルタブ1: PM用"
-    echo "     tmux attach-session -t pm_session"
+    echo "     tmux attach-session -t $PM_SESSION"
     echo ""
     echo "     # ターミナルタブ2: その他のエージェント用"
-    echo "     tmux attach-session -t opencodeat"
+    echo "     tmux attach-session -t $WORKER_SESSION"
     echo ""
     echo "  2. 🤖 PM起動:"
-    echo "     # pm_sessionで以下を実行:"
+    echo "     # $PM_SESSION で以下を実行:"
     echo "     claude --dangerously-skip-permissions"
     echo ""
     echo "  3. 📊 エージェント配置:"
-    echo "     cat ./Agent-shared/agent_and_pane_id_table.txt  # ペイン番号確認"
-    echo "     cat ./Agent-shared/max_agent_number.txt       # ワーカー数: $worker_count"
+    echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl  # ペイン番号確認（JSONL形式）"
+    echo "     cat ./Agent-shared/agent_and_pane_id_table.txt   # ペイン番号確認（旧形式）"
+    echo "     cat ./Agent-shared/max_agent_number.txt          # ワーカー数: $worker_count"
     echo ""
     
     # セッション作成確認
     echo "🔍 セッション作成確認:"
-    if tmux has-session -t pm_session 2>/dev/null; then
-        echo "  ✅ pm_session: 作成成功"
+    if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
+        echo "  ✅ $PM_SESSION: 作成成功"
     else
-        echo "  ❌ pm_session: 作成失敗"
+        echo "  ❌ $PM_SESSION: 作成失敗"
     fi
     
-    if tmux has-session -t opencodeat 2>/dev/null; then
-        echo "  ✅ opencodeat: 作成成功"
+    if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
+        echo "  ✅ $WORKER_SESSION: 作成成功"
     else
-        echo "  ❌ opencodeat: 作成失敗"
+        echo "  ❌ $WORKER_SESSION: 作成失敗"
     fi
     
     echo ""
