@@ -475,6 +475,24 @@ OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/wo
 
 詳細は `Agent-shared/hooks_deployment_guide.md` を参照してください。
 
+<details>
+<summary>🔧 hooks機能を使用する場合の追加セットアップ</summary>
+
+Claude Code hooks機能を使用する場合は、Python環境マネージャー`uv`のインストールが必要です：
+
+```bash
+# uvのインストール（推奨）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# または pipx経由
+pipx install uv
+```
+
+uvは高速なPythonパッケージマネージャーで、単一ファイルスクリプトの実行に最適です。
+詳細: https://github.com/astral-sh/uv
+
+</details>
+
 起動後、以下のプロンプトをコピーして貼り付け：
 ```
 あなたはPM（Project Manager）です。OpenCodeATプロジェクトを開始します。
