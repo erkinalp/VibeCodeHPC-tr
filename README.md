@@ -468,14 +468,31 @@ cp requirement_definition_template.md requirement_definition.md
 PMを手動起動
 ```bash
 # pm_sessionで以下を実行:
-# 方法1: telemetry付きで起動（推奨、メトリクス収集あり）
-./telemetry/start_agent_with_telemetry.sh PM
-
-# 方法2: telemetryなしで起動（メトリクス収集なし）
-claude --dangerously-skip-permissions
+# 推奨: hooks+telemetry有効（ポーリング型エージェントの待機防止）
+./communication/start_agent.sh PM .
 
 # 注: MCPサーバは事前設定済みのため、exitやrestartは不要
 ```
+
+<details>
+<summary>その他の起動オプション（クリックで展開）</summary>
+
+```bash
+# telemetryのみ（hooksなし、待機防止が無効）
+./telemetry/start_agent_with_telemetry.sh PM
+
+# 最小構成（hooks・telemetryなし）
+claude --dangerously-skip-permissions
+
+# hooksのみ無効化
+OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PM .
+
+# telemetryのみ無効化
+OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
+```
+
+**注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
+</details>
 
 ### 🎣 Claude Code Hooks機能（NEW）
 
