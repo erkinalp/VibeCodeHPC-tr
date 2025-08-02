@@ -189,6 +189,9 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 # またはテレメトリ無効
 OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
+# 再起動時は--continueオプションを追加（記憶を維持）
+./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
+
 # ステップ2: 別のタスクを実行（ToDoリストを活用）
 # Claude起動中に他のエージェントの起動や別タスクを進める
 # 例: 次のエージェントのstart_agent.sh実行、directory_map.txt更新など
@@ -397,6 +400,9 @@ claude --dangerously-skip-permissions -c
 ```bash
 # 作業ディレクトリを確認してから
 ./telemetry/start_agent_with_telemetry.sh [AGENT_ID] --continue
+
+# start_agent_with_telemetry.shは追加のclaude引数を受け付ける
+# 例: ./telemetry/start_agent_with_telemetry.sh SE1 --continue
 ```
 
 ### 注意事項

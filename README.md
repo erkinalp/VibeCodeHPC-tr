@@ -297,32 +297,30 @@ pip install uv
 
 開始直前に以下のMCPサーバを設定することを推奨します：
 
-プロジェクトルート📂で起動するPM🤖にMCPサーバを与えます
+プロジェクトルート📂で起動するPM🤖にMCPサーバを与えます。
+**重要**: Claude Code起動前にMCPを設定してください。
+
 ```bash
 cd OpenCodeAT-jp-main
-```
-Claude Codeを起動
-```bash
-claude
 ```
 
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
 PMがHPC環境へのSSH/SFTP接続を管理に活用（CI🤖も使用）
 ```bash
-!claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
+claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
 
 [mcp-screenshot](https://github.com/kazuph/mcp-screenshot)
 PMが障害対応等でtmux全体の状況を視覚的な確認に活用
 ```bash
-!claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
+claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 ```
 
-設定後、Claude Codeを再起動して有効化してください。
-```
-exit
-```
-再起動方法は以下に示す２通り（OpenTelemetry有無）
+> [!WARNING]
+> **mcp-screenshotはWSLでは機能しません**
+> WSL環境ではスクリーンショット機能が動作しないため、ネイティブLinuxまたはmacOSでの使用を推奨します。
+
+設定後、Claude Codeを起動します。起動方法は以下に示す２通り（OpenTelemetry有無）
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---
@@ -475,6 +473,8 @@ PMを手動起動
 
 # 方法2: telemetryなしで起動（メトリクス収集なし）
 claude --dangerously-skip-permissions
+
+# 注: MCPサーバは事前設定済みのため、exitやrestartは不要
 ```
 
 ### 🎣 Claude Code Hooks機能（NEW）

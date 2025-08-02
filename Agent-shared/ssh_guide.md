@@ -70,24 +70,23 @@ cat huge_job_output.log | claude -p "エラーメッセージを抽出して要�
 ### エージェント割り当て時の手順
 ```bash
 # 方法1: MCP不要な場合（PG等）
-agent_send.sh CI1.1 "!cd Flow/TypeII/single-node/gcc11.3.0/OpenMP && claude --dangerously-skip-permissions"
+agent_send.sh PG1.1.1 "!cd Flow/TypeII/single-node/gcc11.3.0/OpenMP && claude --dangerously-skip-permissions"
 
-# 方法2: MCP必要な場合（CI）
-# 1. MCPサーバ追加
+# 方法2: MCP必要な場合（CI）- 事前設定方式
+# 1. 該当tmuxペインでMCPサーバを事前追加（Claude起動前）
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
-# 2. 2分待機（timeout）
-sleep 120
-# 3. 終了
-exit
-# 4. 再起動
+# 2. その後Claude Codeを起動
 claude --dangerously-skip-permissions
+# 注: exitやrestartは不要（MCPは起動前に設定済みのため）
 ```
 
 ## 効率化のヒント
 
 ### CIエージェントの事前準備
 1. プロジェクト開始時にCIエージェントのMCP設定を一括実行
-2. restart_agent_after_mcp_setup.shを使用して再起動
+2. 必要に応じてrestart_agent_after_mcp_setup.shを使用
+   - MCP設定後の再起動が必要な場合
+   - エージェントが停止した際の復帰（`--continue`オプション付き）
 3. 必要に応じて接続情報を共有
 
 ### 緊急時の対応
