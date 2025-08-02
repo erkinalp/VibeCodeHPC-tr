@@ -72,9 +72,13 @@ docker-compose -f telemetry/docker-compose.yml up -d
 
 ## 📈 可視化ツール
 
-### コンテキスト使用率
+### コンテキスト使用率監視
 ```bash
-python telemetry/visualize_context.py
+# 詳細な可視化
+python telemetry/context_usage_monitor.py
+
+# クイックステータス確認
+python telemetry/context_usage_quick_status.py
 ```
 
 ### サブエージェント統計

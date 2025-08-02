@@ -69,12 +69,7 @@ TEAM_ID=$(echo $AGENT_ID | grep -oE '^[A-Z]+[0-9]+(\.[0-9]+)?' | sed 's/^[A-Z]*/
 # OTEL_RESOURCE_ATTRIBUTESの更新（agent_id、チーム、作業ディレクトリを追加）
 export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},agent.id=${AGENT_ID},agent.type=${AGENT_TYPE},team.id=${TEAM_ID},working.dir=${RELATIVE_DIR}"
 
-# auto-compactフックの設定確認
-SETTINGS_FILE="$HOME/.claude/settings.json"
-if [ ! -f "$SETTINGS_FILE" ] || ! grep -q "PreCompact" "$SETTINGS_FILE"; then
-    echo "⚠️  Auto-compact hook not configured. Setting up..."
-    python "$TELEMETRY_DIR/setup_auto_compact_hook.py" --agent-id "$AGENT_ID"
-fi
+# Hooksはstart_agent.shで設定されるため、ここでの設定は不要
 
 # OTEL_EXPORTER_OTLP_PROTOCOLが未設定の場合はデフォルト値を設定
 if [ -z "$OTEL_EXPORTER_OTLP_PROTOCOL" ]; then
