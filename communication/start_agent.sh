@@ -21,8 +21,21 @@ shift 2
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# エージェントタイプを判定
+determine_agent_type() {
+    local agent_id=$1
+    # PM, SE, CI, CDはポーリング型
+    if [[ "$agent_id" =~ ^(PM|SE|CI|CD) ]]; then
+        echo "polling"
+    else
+        echo "event-driven"
+    fi
+}
+
+AGENT_TYPE=$(determine_agent_type "$AGENT_ID")
+
 # エージェントにコマンドを送信
-echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
+echo "🚀 Starting agent $AGENT_ID (type: $AGENT_TYPE) at $TARGET_DIR"
 
 # 1. プロジェクトルートを環境変数として設定
 ./communication/agent_send.sh "$AGENT_ID" "export OPENCODEAT_ROOT='$PROJECT_ROOT'"
@@ -33,7 +46,22 @@ echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 # 3. 現在地を確認
 ./communication/agent_send.sh "$AGENT_ID" "pwd"
 
-# 4. テレメトリ設定に基づいてClaude起動
+# 4. Hooksを設定（OPENCODEAT_ENABLE_HOOKSがfalseでない限り有効）
+if [ "${OPENCODEAT_ENABLE_HOOKS}" != "false" ]; then
+    echo "🔧 Setting up hooks for $AGENT_ID"
+    
+    # フルパスのターゲットディレクトリを構築
+    FULL_TARGET_DIR="$PROJECT_ROOT$TARGET_DIR"
+    
+    # setup_agent_hooks.shを実行
+    if [ -f "$PROJECT_ROOT/Agent-shared/setup_agent_hooks.sh" ]; then
+        "$PROJECT_ROOT/Agent-shared/setup_agent_hooks.sh" "$AGENT_ID" "$FULL_TARGET_DIR" "$AGENT_TYPE"
+    else
+        echo "⚠️  Warning: setup_agent_hooks.sh not found, skipping hooks setup"
+    fi
+fi
+
+# 5. テレメトリ設定に基づいてClaude起動
 if [ "${OPENCODEAT_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting agent without telemetry"
     # bash/zsh対応プロンプト設定
