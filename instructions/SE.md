@@ -28,15 +28,7 @@
 #### workerの監視
 workerが適切なディレクトリ上で作業を行っているか確認する。コンテキストを維持するために、必要に応じてガイダンスを提供する。
 
-定期的に以下のコマンドを実行してエージェントの健全性を監視：
-```bash
-python telemetry/monitor_agents.py --se-id [自分のID] --once
-```
-
-または、バックグラウンドで継続的監視（2分間隔）：
-```bash
-python telemetry/monitor_agents.py --se-id [自分のID] --interval 120 &
-```
+エージェントの健全性監視はClaude Code hooksにより自動化されています。SEは進捗確認と介入に集中してください。
 
 #### 進捗監視と迅速な介入
 **重要**: OpenCodeATは短期集中型のため、停滞は即座に対処する
@@ -219,9 +211,8 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 - agent_send.sh（エージェント間通信）
 - Python matplotlib（グラフ作成）
 - 統計解析ツール
-- telemetry/collect_metrics.py（メトリクス収集）
-- telemetry/visualize_context.py（コンテキスト使用率可視化）
-- telemetry/monitor_agents.py（エージェント健全性監視）
+- telemetry/context_usage_monitor.py（コンテキスト使用率監視・可視化）
+- telemetry/context_usage_quick_status.py（クイックステータス確認）
 - telemetry/analyze_sub_agent.py（サブエージェント使用統計）
 
 ### 必須参照ファイル

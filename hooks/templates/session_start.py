@@ -144,11 +144,11 @@ def generate_context(source, agent_id, agent_type):
     """セッション開始時のコンテキストを生成"""
     context_parts = []
     
-    if source in ['resume', 'clear']:
-        context_parts.append("## ⚠️ セッション再開（auto-compact後の可能性）")
+    if source in ['startup', 'clear']:
+        context_parts.append("## ⚠️ セッション開始")
         context_parts.append("")
-        context_parts.append("コンテキストがリセットされている可能性があります。")
-        context_parts.append("以下の手順で必須ファイルを再読み込みしてください：")
+        context_parts.append("OpenCodeATエージェントとして起動しました。")
+        context_parts.append("以下の手順で必須ファイルを読み込んでください：")
         context_parts.append("")
         
         # 必須ファイルリスト
@@ -179,7 +179,7 @@ def main():
         # 入力を読み込み
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
-        source = input_data.get('source', 'startup')  # startup, resume, clear
+        source = input_data.get('source', 'startup')  # startup(新規起動), resume(--continue), clear(/clear)
         
         # テーブルを更新してエージェント情報を取得
         agent_id, agent_type = update_agent_table(session_id, source)

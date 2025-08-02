@@ -84,9 +84,8 @@ claude --dangerously-skip-permissions
 
 ### CIエージェントの事前準備
 1. プロジェクト開始時にCIエージェントのMCP設定を一括実行
-2. 必要に応じてrestart_agent_after_mcp_setup.shを使用
-   - MCP設定後の再起動が必要な場合
-   - エージェントが停止した際の復帰（`--continue`オプション付き）
+2. エージェント停止時は`start_agent.sh`で再起動
+   - `./communication/start_agent.sh [AGENT_ID] [DIR] --continue`で記憶を維持
 3. 必要に応じて接続情報を共有
 
 ### 緊急時の対応

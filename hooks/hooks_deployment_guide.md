@@ -51,7 +51,7 @@ OPENCODEAT_ENABLE_HOOKS=false OPENCODEAT_ENABLE_TELEMETRY=false ./communication/
 
 ### ポーリング型（PM, SE, CI, CD）
 - **Stop hook**: 待機を阻止し、定期タスクリストを提示
-- **SessionStart hook**: auto-compact検知と必須ファイルリスト提示
+- **SessionStart hook**: 新規起動時に必須ファイルリスト提示
 - **推奨巡回間隔**:
   - PM: 2-5分（全体監視）
   - SE: 3-10分（進捗監視、ジョブ時間に応じて調整）
@@ -60,7 +60,7 @@ OPENCODEAT_ENABLE_HOOKS=false OPENCODEAT_ENABLE_TELEMETRY=false ./communication/
 
 ### イベント駆動型（PG, ID）
 - **Stop hook**: 通常通り待機を許可
-- **SessionStart hook**: auto-compact検知と必須ファイルリスト提示
+- **SessionStart hook**: 新規起動時に必須ファイルリスト提示
 
 ## session_idの追跡
 

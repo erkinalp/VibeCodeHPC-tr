@@ -114,7 +114,7 @@ def generate_block_reason(agent_info, stop_hook_active):
     elif agent_id.startswith("SE"):
         reason += """【SEの並行タスク】
 1. 各PGのChangeLog.md更新状況の監視
-2. telemetry/monitor_agents.py --se-id {agent_id} --onceの実行
+2. telemetry/context_usage_monitor.pyでコンテキスト使用状況確認
 3. SOTA更新履歴のグラフ生成（Agent-shared/log_analyzer.py）
 4. CI待ち状態のPGの検出と対応
 5. visible_path_PG*.txtの更新

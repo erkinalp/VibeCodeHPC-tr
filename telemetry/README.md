@@ -49,10 +49,9 @@ export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-token"
 telemetry/
 ├── otel_config.env.example    # OpenTelemetry設定テンプレート  
 ├── docker-compose.yml         # ローカルテスト環境（Grafana + Prometheus）
-├── sub_agent_logs/            # サブエージェント使用ログ
-├── context_usage/             # コンテキスト使用率データ
-├── auto_compact/              # Auto-compact発生ログ
-└── visualization/             # 生成されたグラフ
+├── sub_agent/                 # サブエージェント使用ログ（claude_p_wrapper.shが生成）
+├── sub_agent_logs/            # サブエージェント統計ログ（start_agent_with_telemetry.shが生成）
+└── visualization/             # 生成されたグラフ（analyze_sub_agent.pyが使用）
 ```
 
 ## 🔧 バックエンド設定
@@ -83,9 +82,13 @@ python telemetry/visualize_context.py
 python telemetry/analyze_sub_agent.py
 ```
 
-### エージェント健全性監視（SE用）
+### コンテキスト使用状況監視
 ```bash
-python telemetry/monitor_agents.py --se-id SE1
+# 全エージェントの状況を可視化
+python telemetry/context_usage_monitor.py
+
+# クイックステータス確認
+python telemetry/context_usage_quick_status.py
 ```
 
 ## 📚 参考資料
