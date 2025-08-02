@@ -19,6 +19,18 @@ else
     echo "⚠️  Warning: hooks setup script not found"
 fi
 
+# 1.5. TMUX_PANE環境変数の確認と記録
+echo "🔍 Checking TMUX environment..."
+if [ -n "$TMUX_PANE" ]; then
+    echo "  TMUX_PANE: $TMUX_PANE"
+    # settings.local.jsonに環境変数を追加（Claude Codeに引き継がれない可能性への対策）
+    if [ -f "$PROJECT_ROOT/.claude/settings.local.json" ]; then
+        echo "  ⚠️  Note: Claude Code may not inherit TMUX_PANE environment variable"
+    fi
+else
+    echo "  ⚠️  Warning: Not running in tmux pane"
+fi
+
 # 2. プロジェクト開始時刻を記録（hooksが動作しない場合の保険）
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
