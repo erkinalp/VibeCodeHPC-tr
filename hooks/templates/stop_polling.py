@@ -1,4 +1,8 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# 
+# uvがある場合は以下で実行されます:
+# #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
 # dependencies = []
@@ -158,25 +162,43 @@ def main():
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
         
+        # デバッグ情報をファイルに出力（開発時のみ）
+        # debug_file = Path("/tmp/opencodeat_stop_hook_debug.log")
+        # with open(debug_file, 'a') as f:
+        #     f.write(f"\n[{datetime.now()}] Stop hook called\n")
+        #     f.write(f"session_id: {session_id}\n")
+        #     f.write(f"stop_hook_active: {stop_hook_active}\n")
+        
         # 自分のエージェント情報を取得
         agent_info = get_agent_info_from_session(session_id)
+        
+        # デバッグ情報追加
+        # if debug_file.exists():
+        #     with open(debug_file, 'a') as f:
+        #         f.write(f"agent_info: {agent_info}\n")
         
         if agent_info:
             # ポーリング型エージェントの場合は停止をブロック
             reason = generate_block_reason(agent_info, stop_hook_active)
             
             if reason:  # stop_hook_activeでない場合のみ
-                output = {
-                    "decision": "block",
-                    "reason": reason
-                }
-                print(json.dumps(output, ensure_ascii=False))
-                sys.exit(0)
+                # 方法1: 終了コード2でstderrに出力（推奨）
+                print(reason, file=sys.stderr)
+                sys.exit(2)
+                
+                # 方法2: JSON出力を使う場合（コメントアウト）
+                # output = {
+                #     "decision": "block",
+                #     "reason": reason
+                # }
+                # print(json.dumps(output, ensure_ascii=False))
+                # sys.exit(0)
         
         # 通常終了
         sys.exit(0)
         
     except Exception:
+        # エラーは静かに処理
         sys.exit(0)
 
 
