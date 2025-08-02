@@ -468,10 +468,16 @@ cp requirement_definition_template.md requirement_definition.md
 PMを手動起動
 ```bash
 # pm_sessionで以下を実行:
-# 推奨: hooks+telemetry有効（ポーリング型エージェントの待機防止）
-./communication/start_agent.sh PM .
+
+# 方法1: hooksを手動で設定してから起動（推奨）
+./hooks/setup_agent_hooks.sh PM . polling
+./telemetry/start_agent_with_telemetry.sh PM
+
+# 方法2: シンプルに起動（hooksなし、待機状態になる可能性）
+claude --dangerously-skip-permissions
 
 # 注: MCPサーバは事前設定済みのため、exitやrestartは不要
+# 注: start_agent.shは空のtmuxペイン用のため、PM自身の起動には使えません
 ```
 
 <details>
