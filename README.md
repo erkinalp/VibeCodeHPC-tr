@@ -268,6 +268,29 @@ gh auth login
 > # macOS: brew install jq
 > ```
 
+### ☑️ **推奨ツールのインストール**
+OpenCodeATの全機能を活用するため、以下のツールのインストールを推奨します：
+
+#### **jq** - JSONLファイル解析用
+```bash
+# Ubuntu/WSL
+sudo apt install jq
+
+# macOS
+brew install jq
+```
+> エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
+
+#### **uv** - Python高速実行環境（Claude Code hooks用）
+```bash
+# Linux/macOS/WSL
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# または pip経由
+pip install uv
+```
+> Claude Code hooksでPythonスクリプトを高速実行します。uvがない場合は通常のPythonで代替されます
+
 ---
 
 ### ☑️ **MCPサーバのセットアップ**
@@ -473,7 +496,7 @@ PMがエージェント起動時に自動的にhooksを配置：
 OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/workdir
 ```
 
-詳細は `Agent-shared/hooks_deployment_guide.md` を参照してください。
+詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 
 <details>
 <summary>🔧 hooks機能を使用する場合の追加セットアップ</summary>
@@ -505,7 +528,7 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
-- agent_and_pane_id_table.txt（既存セッション構成）
+- agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
 - directory_map.txt（エージェント配置管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 

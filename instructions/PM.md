@@ -119,7 +119,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 
 ### フェーズ4: プロジェクト初期化
 1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
-2. `/Agent-shared/agent_and_pane_id_table.txt`を確認し、既存のセッション構成を把握
+2. `/Agent-shared/agent_and_pane_id_table.jsonl`を確認し、既存のセッション構成を把握
 3. ディレクトリ階層を適切に構成
 4. **予算管理の初期化**：
    - `pjstat`等で開始時点の予算残額を確認
@@ -196,7 +196,7 @@ OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/T
 # ステップ3: 起動確認（特に初回は必須）
 # tmuxでClaude起動を確認
 tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
-# ※ペイン番号はagent_and_pane_id_table.txtで確認
+# ※ペイン番号はagent_and_pane_id_table.jsonlで確認
 
 # ステップ4: 初期化メッセージを送信（Claude起動確認後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
@@ -333,7 +333,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 #### 初期化時に必ず読むべきファイル
 - `_remote_info/`配下の全ファイル（特にcommand.md、user_id.txt）
 - `/Agent-shared/max_agent_number.txt`（利用可能ワーカー数）
-- `/Agent-shared/agent_and_pane_id_table.txt`（tmux構成）
+- `/Agent-shared/agent_and_pane_id_table.jsonl`（tmux構成）
 - `/Agent-shared/typical_hpc_code.md`（階層設計参考）
 - `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
 
@@ -378,7 +378,7 @@ tmux list-panes -t opencodeat:0 -F "#{pane_index}: #{pane_current_command}"
 # 3: bash    （エージェント未起動またはClaude終了）
 
 # 特定のエージェントIDとペインの対応は
-# Agent-shared/agent_and_pane_id_table.txt を参照
+# Agent-shared/agent_and_pane_id_table.jsonl を参照
 
 # pm_sessionも同様に確認
 tmux list-panes -t pm_session:0 -F "#{pane_index}: #{pane_current_command}"
