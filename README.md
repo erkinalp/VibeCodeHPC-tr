@@ -484,11 +484,12 @@ PMを起動
 # 最小構成（hooks・telemetryなし）
 claude --dangerously-skip-permissions
 
-# hooksのみ無効化
-OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PM .
-
 # telemetryのみ無効化
 OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
+
+# ⚠️ hooksの無効化は非推奨（ポーリング型エージェントが待機してしまう）
+# どうしても無効化したい場合は、プロジェクト開始前に以下を実行：
+# export OPENCODEAT_ENABLE_HOOKS=false
 ```
 
 **注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
@@ -509,8 +510,8 @@ PMがエージェント起動時に自動的にhooksを配置：
 # hooks有効（デフォルト）でエージェント起動
 ./communication/start_agent.sh PG1.1.1 /path/to/workdir
 
-# hooks無効化（デバッグ時など）
-OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/workdir
+# ⚠️ hooks無効化は非推奨 - 全エージェントが影響を受ける可能性があります
+# プロジェクト開始前に環境変数で設定する場合のみ使用してください
 ```
 
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。

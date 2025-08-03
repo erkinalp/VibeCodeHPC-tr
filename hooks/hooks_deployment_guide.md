@@ -104,10 +104,21 @@ Claude起動後、SessionStart hookが自動的に：
 ### カスタムhooksの追加
 `hooks/templates/`にカスタムhookを追加して、setup_agent_hooks.shを修正することで、プロジェクト固有のhooksを配置できます。
 
-### hooks無効化の使い分け
-- **開発/デバッグ時**: `OPENCODEAT_ENABLE_HOOKS=false`
-- **本番運用時**: hooks有効（デフォルト）
-- **リソース制約時**: telemetryとhooks両方無効化
+### ⚠️ hooks無効化について（非推奨）
+
+**重要**: hooksの無効化は強く非推奨です。ポーリング型エージェント（PM, SE, CI, CD）が待機状態に入り、プロジェクトが停止します。
+
+どうしても無効化が必要な場合：
+1. **プロジェクト開始前**に環境変数を設定
+2. 全エージェントに影響することを理解する
+3. MCPサーバ設定と`.claude/settings.local.json`の手動管理が必要
+
+```bash
+# プロジェクト開始前のみ（非推奨）
+export OPENCODEAT_ENABLE_HOOKS=false
+```
+
+**推奨**: hooks機能は常に有効のまま使用してください。
 
 ## 参考資料
 - Claude Code hooks公式ドキュメント
