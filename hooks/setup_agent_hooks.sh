@@ -39,13 +39,13 @@ if [ "$AGENT_TYPE" = "polling" ]; then
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "$AGENT_DIR/.claude/hooks/stop.py"
+        "command": ".claude/hooks/stop.py"
       }]
     }],
     "SessionStart": [{
       "hooks": [{
         "type": "command",
-        "command": "$AGENT_DIR/.claude/hooks/session_start.py"
+        "command": ".claude/hooks/session_start.py"
       }]
     }]
   }
@@ -61,13 +61,13 @@ else
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "$AGENT_DIR/.claude/hooks/stop.py"
+        "command": ".claude/hooks/stop.py"
       }]
     }],
     "SessionStart": [{
       "hooks": [{
         "type": "command",
-        "command": "$AGENT_DIR/.claude/hooks/session_start.py"
+        "command": ".claude/hooks/session_start.py"
       }]
     }]
   }
