@@ -9,7 +9,7 @@
 # ///
 
 """
-OpenCodeAT Stop Hook (ポーリング型エージェント用)
+VibeCodeHPC Stop Hook (ポーリング型エージェント用)
 PM, SE, CI, CDの待機状態を防ぐ
 """
 
@@ -21,7 +21,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（OpenCodeAT-jp）を探す"""
+    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:

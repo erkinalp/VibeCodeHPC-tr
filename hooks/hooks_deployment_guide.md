@@ -1,4 +1,4 @@
-# OpenCodeAT Claude Code Hooks 配置ガイド（PM向け）
+# VibeCodeHPC Claude Code Hooks 配置ガイド（PM向け）
 
 ## 概要
 Claude Code hooksは、エージェントの挙動を制御する仕組みです。特に：
@@ -71,7 +71,7 @@ Claude起動後、SessionStart hookが自動的に：
 3. 作業ディレクトリ（cwd）を記録
 
 ```jsonl
-{"agent_id": "PG1.1.1", "tmux_session": "Team1_Workers1", "tmux_window": 0, "tmux_pane": 3, "claude_session_id": "abc123...", "status": "running", "cwd": "/OpenCodeAT-jp/Flow/...", "last_updated": "2025-08-02T12:34:56Z"}
+{"agent_id": "PG1.1.1", "tmux_session": "Team1_Workers1", "tmux_window": 0, "tmux_pane": 3, "claude_session_id": "abc123...", "status": "running", "cwd": "/VibeCodeHPC-jp/Flow/...", "last_updated": "2025-08-02T12:34:56Z"}
 ```
 
 ## トラブルシューティング

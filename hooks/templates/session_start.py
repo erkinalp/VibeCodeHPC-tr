@@ -9,7 +9,7 @@
 # ///
 
 """
-OpenCodeAT SessionStart Hook
+VibeCodeHPC SessionStart Hook
 各エージェントの.claude/hooks/に配置してsession_idを記録
 """
 
@@ -22,7 +22,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（OpenCodeAT-jp）を探す"""
+    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -175,7 +175,7 @@ def generate_context(source, agent_id, agent_type):
     if source in ['startup', 'clear']:
         context_parts.append("## ⚠️ セッション開始")
         context_parts.append("")
-        context_parts.append("OpenCodeATエージェントとして起動しました。")
+        context_parts.append("VibeCodeHPCエージェントとして起動しました。")
         context_parts.append("以下の手順で必須ファイルを読み込んでください：")
         context_parts.append("")
         

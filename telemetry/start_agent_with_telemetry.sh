@@ -14,8 +14,8 @@ shift  # 残りの引数はclaude用
 
 # プロジェクトルートの取得
 # 環境変数が設定されていればそれを使用、なければスクリプトの場所から推定
-if [ -n "$OPENCODEAT_ROOT" ]; then
-    PROJECT_ROOT="$OPENCODEAT_ROOT"
+if [ -n "$VIBECODE_ROOT" ]; then
+    PROJECT_ROOT="$VIBECODE_ROOT"
 else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

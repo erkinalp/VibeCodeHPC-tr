@@ -7,8 +7,8 @@ CALLING_AGENT="${AGENT_ID:-unknown}"
 TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # プロジェクトルートの取得
-if [ -n "$OPENCODEAT_ROOT" ]; then
-    PROJECT_ROOT="$OPENCODEAT_ROOT"
+if [ -n "$VIBECODE_ROOT" ]; then
+    PROJECT_ROOT="$VIBECODE_ROOT"
 else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

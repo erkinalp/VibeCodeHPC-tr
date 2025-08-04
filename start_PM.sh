@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
-echo "🎯 OpenCodeAT PM起動スクリプト"
+echo "🎯 VibeCodeHPC PM起動スクリプト"
 echo "================================"
 
 # 1. PM用のhooks設定
@@ -71,7 +71,7 @@ echo ""
 echo "起動後、以下のプロンプトをコピーして貼り付けてください："
 echo "================================================================"
 cat << 'EOF'
-あなたはPM（Project Manager）です。OpenCodeATプロジェクトを開始します。
+あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
 
 まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
 - CLAUDE.md（全エージェント共通ルール）
