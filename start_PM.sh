@@ -39,6 +39,32 @@ if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     date -u +"%Y-%m-%dT%H:%M:%SZ" > "$START_TIME_FILE"
 fi
 
+# 2.5. PMのworking_dirを更新（プロジェクトルート = 空文字列）
+if command -v jq &> /dev/null; then
+    TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
+    if [ -f "$TABLE_FILE" ]; then
+        echo "📝 Updating working_dir for PM..."
+        TEMP_FILE="$TABLE_FILE.tmp"
+        while IFS= read -r line; do
+            if [[ -z "$line" || "$line" =~ ^# ]]; then
+                echo "$line"
+            else
+                # JSONとして解析して、PMの場合はworking_dirを更新
+                updated_line=$(echo "$line" | jq -c '
+                    if .agent_id == "PM" then
+                        . + {working_dir: "", last_updated: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))}
+                    else
+                        .
+                    end
+                ')
+                echo "$updated_line"
+            fi
+        done < "$TABLE_FILE" > "$TEMP_FILE"
+        mv "$TEMP_FILE" "$TABLE_FILE"
+        echo "✅ Updated PM working_dir"
+    fi
+fi
+
 # 3. telemetry付きでPM起動
 echo "🚀 Starting PM with telemetry..."
 echo ""

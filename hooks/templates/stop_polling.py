@@ -32,12 +32,21 @@ def find_project_root(start_path):
     return None
 
 
-def get_agent_info_from_session(session_id):
-    """session_idから自分のエージェント情報を取得"""
-    project_root = find_project_root(Path.cwd())
+def get_agent_info_from_cwd():
+    """現在のディレクトリから自分のエージェント情報を取得"""
+    cwd = Path.cwd()
+    project_root = find_project_root(cwd)
     
     if not project_root:
         return None
+    
+    # プロジェクトルートからの相対パス
+    try:
+        relative_dir = str(cwd.relative_to(project_root))
+        if relative_dir == ".":
+            relative_dir = ""
+    except ValueError:
+        relative_dir = str(cwd)
     
     table_file = project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
     
@@ -45,10 +54,11 @@ def get_agent_info_from_session(session_id):
         with open(table_file, 'r') as f:
             for line in f:
                 line = line.strip()
-                if not line:
+                if not line or line.startswith('#'):
                     continue
                 entry = json.loads(line)
-                if entry.get('claude_session_id') == session_id:
+                # working_dirでマッチング
+                if entry.get('working_dir') == relative_dir:
                     return entry
     
     return None
@@ -169,8 +179,8 @@ def main():
         #     f.write(f"session_id: {session_id}\n")
         #     f.write(f"stop_hook_active: {stop_hook_active}\n")
         
-        # 自分のエージェント情報を取得
-        agent_info = get_agent_info_from_session(session_id)
+        # 自分のエージェント情報を取得（session_idは使わずcwdで判定）
+        agent_info = get_agent_info_from_cwd()
         
         # デバッグ情報追加
         # if debug_file.exists():

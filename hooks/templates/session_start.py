@@ -43,8 +43,16 @@ def update_agent_table(session_id, source):
     
     table_file = project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
     
-    # tmux環境変数から自分の情報を取得
-    tmux_pane = os.getenv('TMUX_PANE', '')
+    # プロジェクトルートからの相対パス（先頭に/を付ける）
+    try:
+        relative_path = cwd.relative_to(project_root)
+        if str(relative_path) == ".":
+            relative_dir = ""
+        else:
+            # 先頭に/を付けて返す（例: Flow/... → /Flow/...）
+            relative_dir = "/" + str(relative_path).replace("\\", "/")
+    except ValueError:
+        relative_dir = str(cwd)
     
     # デバッグ: 環境変数の状態を記録
     debug_file = project_root / "Agent-shared" / "session_start_debug.log"
@@ -53,13 +61,8 @@ def update_agent_table(session_id, source):
         f.write(f"session_id: {session_id}\n")
         f.write(f"source: {source}\n")
         f.write(f"cwd: {cwd}\n")
-        f.write(f"TMUX_PANE: '{tmux_pane}'\n")
+        f.write(f"relative_dir: {relative_dir}\n")
         f.write(f"project_root: {project_root}\n")
-    
-    if not tmux_pane:
-        with open(debug_file, 'a') as f:
-            f.write("ERROR: TMUX_PANE is empty, returning None\n")
-        return None, None
     
     # ファイルを読み込んで更新
     updated_lines = []
@@ -75,43 +78,14 @@ def update_agent_table(session_id, source):
                     
                 entry = json.loads(line)
                 
-                # 複数の方法でマッチングを試みる
+                # working_dirでマッチング
                 match_found = False
                 
-                # 方法1: 作業ディレクトリで判定（PMの場合）
-                if str(cwd) == str(project_root) and entry['agent_id'] == 'PM':
+                # working_dirが存在する場合は比較
+                if 'working_dir' in entry and entry['working_dir'] == relative_dir:
                     match_found = True
                     with open(debug_file, 'a') as f:
-                        f.write(f"MATCH by cwd (PM): entry='{entry['agent_id']}' cwd='{cwd}'\n")
-                
-                # 方法2: TMUX環境変数でのマッチング（セッション名とペイン番号を組み合わせ）
-                if not match_found and tmux_pane:
-                    # TMUX_PANEからグローバルペイン番号を取得
-                    global_pane = tmux_pane.lstrip('%')
-                    
-                    # tmuxコマンドで現在のセッション情報を取得（可能な場合）
-                    try:
-                        result = subprocess.run(
-                            ['tmux', 'list-panes', '-a', '-F', '#{session_name}:#{window_index}.#{pane_index} %#{pane_id}'],
-                            capture_output=True, text=True
-                        )
-                        if result.returncode == 0:
-                            for line in result.stdout.strip().split('\n'):
-                                parts = line.split()
-                                if len(parts) >= 2 and parts[1] == f'%{global_pane}':
-                                    session_info = parts[0]  # e.g., "GEMM_PM:0.0"
-                                    session_name = session_info.split(':')[0]
-                                    pane_index = int(session_info.split('.')[-1])
-                                    
-                                    if (entry['tmux_session'] == session_name and 
-                                        entry['tmux_pane'] == pane_index):
-                                        match_found = True
-                                        with open(debug_file, 'a') as f:
-                                            f.write(f"MATCH by tmux: session={session_name}, pane={pane_index}\n")
-                                        break
-                    except Exception as e:
-                        with open(debug_file, 'a') as f:
-                            f.write(f"tmux command failed: {e}\n")
+                        f.write(f"MATCH by working_dir: entry='{entry['agent_id']}' dir='{relative_dir}'\n")
                 
                 if match_found:
                     with open(debug_file, 'a') as f:

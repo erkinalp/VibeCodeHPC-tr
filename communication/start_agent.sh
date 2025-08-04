@@ -61,6 +61,40 @@ if [ "${OPENCODEAT_ENABLE_HOOKS}" != "false" ]; then
     fi
 fi
 
+# 4.5. working_dirをJSONLテーブルに記録
+if command -v jq &> /dev/null; then
+    TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
+    if [ -f "$TABLE_FILE" ]; then
+        echo "📝 Updating working_dir for $AGENT_ID"
+        # TARGET_DIRをそのまま使用（先頭の/も保持）
+        WORKING_DIR="$TARGET_DIR"
+        
+        # 一時ファイルを使用して更新
+        TEMP_FILE="$TABLE_FILE.tmp"
+        while IFS= read -r line; do
+            if [[ -z "$line" || "$line" =~ ^# ]]; then
+                echo "$line"
+            else
+                # JSONとして解析して、該当エージェントIDの場合はworking_dirを更新
+                updated_line=$(echo "$line" | jq -c --arg id "$AGENT_ID" --arg dir "$WORKING_DIR" '
+                    if .agent_id == $id then
+                        . + {working_dir: $dir, last_updated: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))}
+                    else
+                        .
+                    end
+                ')
+                echo "$updated_line"
+            fi
+        done < "$TABLE_FILE" > "$TEMP_FILE"
+        
+        # 一時ファイルを本体に置き換え
+        mv "$TEMP_FILE" "$TABLE_FILE"
+        echo "✅ Updated working_dir to: $WORKING_DIR"
+    fi
+else
+    echo "⚠️  jq not found, skipping working_dir update"
+fi
+
 # 5. テレメトリ設定に基づいてClaude起動
 if [ "${OPENCODEAT_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting agent without telemetry"
