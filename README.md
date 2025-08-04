@@ -1,7 +1,7 @@
-# 🎯OpenCodeAT - CLI Multi-Agent System for Auto-Tuning HPC Code
+# VibeCodeHPC - Multi Agentic Vibe Coding for HPC
 
-OpenCodeATは、HPCコードの自動最適化を行うマルチエージェントシステムです。
-Claude Code等のCLI環境でtmux-based通信により、複数のAIエージェントが協調してコードの並列化・最適化を実現します。
+VibeCodeHPCは、HPC向けの全自動で環境構築・コード最適化を行うマルチエージェントシステムです。
+Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエージェントが協調します。
 
 ![マルチエージェント実行時のスクショ](_images/MultiAgentUI.png)
 
@@ -51,7 +51,7 @@ graph TD
 ## 📁 ディレクトリ構造
 
 ```
-OpenCodeAT/🤖PM
+VibeCodeHPC/🤖PM
 ├── 📄 CLAUDE.md                     # 全エージェント共通ルール
 ├── 📄 requirement_definition.md     # 要件定義書
 ├── 📄 sota_project.txt              # プロジェクト全体SOTA
@@ -142,33 +142,33 @@ sequenceDiagram
 ## 1. 事前セットアップ
 本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
 
-### ☑️ OpenCodeATリポジトリのコードをダウンロード
+### ☑️ VibeCodeHPCリポジトリのコードをダウンロード
 
 > [!NOTE]
-> 以下の理由から OpenCodeATは git clone を用いずzipでダウンロードし展開することを推奨
+> 以下の理由から VibeCodeHPC は git clone を用いずzipでダウンロードし展開することを推奨
 > 
 > GitHub/📁でプロジェクトの匿名版コピーを管理するCDエージェントのGit認証との混同を避ける
 
 #### GUIの場合
-[release](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/releases)から(mainからでもOK) ダウンロードした.zipを展開
+[release](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/releases)から(mainからでもOK) ダウンロードした.zipを展開
 
 #### CLIの場合
 <details>
 <summary>コマンドラインでダウンロードする場合（クリックで展開）</summary>
 
-OpenCodeATをダウンロード
+VibeCodeHPCをダウンロード
 ```bash
-wget https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/archive/refs/tags/v{バージョン}.zip
+wget https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/archive/refs/tags/v{バージョン}.zip
 ```
 
 zip解凍
 ```bash
-unzip OpenCodeAT-jp-{バージョン}.zip
+unzip VibeCodeHPC-jp-{バージョン}.zip
 ```
 
-展開後、OpenCodeATのルートへ移動
+展開後、VibeCodeHPCのルートへ移動
 ```bash
-cd OpenCodeAT-jp-{バージョン}
+cd VibeCodeHPC-jp-{バージョン}
 ```
 </details>
 
@@ -269,7 +269,7 @@ gh auth login
 > ```
 
 ### ☑️ **推奨ツールのインストール**
-OpenCodeATの全機能を活用するため、以下のツールのインストールを推奨します：
+VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
 
 #### **jq** - JSONLファイル解析用
 ```bash
@@ -301,7 +301,7 @@ pip install uv
 **重要**: Claude Code起動前にMCPを設定してください。
 
 ```bash
-cd OpenCodeAT-jp-main
+cd VibeCodeHPC-main
 ```
 
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
@@ -329,7 +329,7 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 
 ```bash
 # プロジェクトディレクトリに移動
-cd OpenCodeAT-jp-main
+cd VibeCodeHPC-jp-main
 ```
 
 ### 🔭 監視オプション
@@ -400,7 +400,7 @@ npx ccusage@latest
 #### 2.1. tmuxセッションセットアップ
 
 > [!IMPORTANT]
-> OpenCodeATは2つのtmuxセッションを使用します：
+> VibeCodeHPCは2つ以上ののtmuxセッションを使用します：
 > - **PMセッション**: PMエージェント専用（ユーザとの対話用）
 >   - デフォルト: `Team1_PM`
 >   - プロジェクト指定時: `{ProjectName}_PM`
@@ -411,7 +411,7 @@ npx ccusage@latest
 > 最小エージェント数は3です（SE + CI + PG）。解像度に応じて調整してください。
 
 ```bash
-cd OpenCodeAT-jp-main
+cd VibeCodeHPC-jp-main
 ./communication/setup.sh [ワーカー数(PM除く)]  # 例: ./communication/setup.sh 11
 
 # コマンドラインオプション:
@@ -550,7 +550,7 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 - directory_map.txt（エージェント配置管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 
-全て読み込んだ後、既存の opencodeat セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
+全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
 ```
 
 ---
