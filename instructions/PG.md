@@ -28,7 +28,7 @@
 - `/Agent-shared/typical_hpc_code.md`（階層構造の具体例）
 
 #### プロジェクト実行時
-- `hardware_info.txt`（理論性能目標 - ハードウェア階層に配置）
+- `hardware_info.md`（理論性能目標 - ハードウェア階層に配置）
 - `BaseCode/`配下の既存コード
 - `PG_visible_dir.md`（親世代参照 - SEが作成した場合）
 - `/Agent-shared/ChangeLog_format_PM_override.md`（PMが作成した場合）

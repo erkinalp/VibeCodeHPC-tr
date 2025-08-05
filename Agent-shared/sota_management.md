@@ -7,7 +7,7 @@
 OpenCodeAT/
 ├── sota_project.txt              # Project階層SOTA
 ├── Flow/TypeII/single-node/
-│   ├── hardware_info.txt
+│   ├── hardware_info.md
 │   ├── sota_hardware.txt         # Hardware階層SOTA
 │   └── intel2024/
 │       ├── OpenMP_MPI/
@@ -36,7 +36,7 @@ agent_id: "PG1.1.1"
 #### **2. Family SOTA (同一ミドルウェア内の親子世代)**
 PG_visible_dir.mdから進化的階層の親世代を参照して算出。例：OpenMP_MPIなら、同一コンパイラ下のMPIとOpenMPが親。
 
-#### **3. Hardware SOTA (hardware_info.txt階層)**
+#### **3. Hardware SOTA (hardware_info.md階層)**
 ```python
 # Flow/TypeII/single-node/sota_hardware.txt
 current_best: "342.1 GFLOPS"
@@ -95,7 +95,7 @@ if any(results.values()):
 - **階層別管理**: 各レベルで独立した更新
 
 ### **3. 可視性**
-- **Hardware可視**: hardware_info.txt階層で全エージェントから参照可能
+- **Hardware可視**: hardware_info.md階層で全エージェントから参照可能
 - **Project履歴**: PMや人間向けの履歴管理
 
 ### **4. 自動化**

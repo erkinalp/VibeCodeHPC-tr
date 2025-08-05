@@ -68,7 +68,7 @@ communication/
 ### ハードウェア階層直下
 ```
 Flow/TypeII/single-node/
-├── hardware_info.txt           # ハードウェア情報集約（writer:CI, reader:all）
+├── hardware_info.md            # ハードウェア情報集約（writer:CI, reader:all）
 │   ├── CPU: lscpu結果
 │   ├── Memory: lsmem結果  
 │   ├── Network: 通信バンド幅、レイテンシ

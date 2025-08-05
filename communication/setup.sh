@@ -420,10 +420,10 @@ generate_agent_pane_table() {
 # OpenCodeAT Agent and Pane ID Table (JSON Lines format)
 # Generated: $(date)
 # Project: ${PROJECT_NAME:-Team1}
-# Format: {"agent_id": "...", "tmux_session": "...", "tmux_window": ..., "tmux_pane": ..., "claude_session_id": null, "status": "not_started", "last_updated": "..."}
+# Format: {"agent_id": "...", "tmux_session": "...", "tmux_window": ..., "tmux_pane": ..., "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "..."}
 EOF
     
-    # PMエントリ
+    # PMエントリ（working_dirは空文字列で初期化）
     echo '{"agent_id": "PM", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
     
     # ワーカーセッションのペイン（初期状態）

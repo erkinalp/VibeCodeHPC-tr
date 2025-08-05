@@ -32,7 +32,7 @@
 - `/Agent-shared/ChangeLog_format_PM_override.md`（PMオーバーライド - 存在する場合）
 
 #### プロジェクト実行時
-- `hardware_info.txt`（理論性能情報 - 各ハードウェア階層に配置）
+- `hardware_info.md`（理論性能情報 - 各ハードウェア階層に配置）
 - 担当PGのChangeLog.md（ジョブ実行対象）
 - `BaseCode/`のmakefile（環境構築参考）
 

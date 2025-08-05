@@ -43,14 +43,12 @@ def update_agent_table(session_id, source):
     
     table_file = project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
     
-    # プロジェクトルートからの相対パス（先頭に/を付ける）
+    # プロジェクトルートからの相対パス（OS固有の形式を保持）
     try:
         relative_path = cwd.relative_to(project_root)
-        if str(relative_path) == ".":
+        relative_dir = str(relative_path)
+        if relative_dir == ".":
             relative_dir = ""
-        else:
-            # 先頭に/を付けて返す（例: Flow/... → /Flow/...）
-            relative_dir = "/" + str(relative_path).replace("\\", "/")
     except ValueError:
         relative_dir = str(cwd)
     
@@ -81,7 +79,7 @@ def update_agent_table(session_id, source):
                 # working_dirでマッチング
                 match_found = False
                 
-                # working_dirが存在する場合は比較
+                # working_dirが存在する場合は比較（OS固有のパス形式をそのまま比較）
                 if 'working_dir' in entry and entry['working_dir'] == relative_dir:
                     match_found = True
                     with open(debug_file, 'a') as f:

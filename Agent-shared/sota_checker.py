@@ -112,10 +112,10 @@ class SOTAChecker:
         return self.performance > current_best
     
     def find_hardware_info_dir(self):
-        """hardware_info.txtが存在するディレクトリを探す"""
+        """hardware_info.mdが存在するディレクトリを探す"""
         current = self.current_dir
         while current != current.parent:
-            if (current / "hardware_info.txt").exists():
+            if (current / "hardware_info.md").exists():
                 return current
             current = current.parent
         return None

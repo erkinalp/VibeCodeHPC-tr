@@ -8,7 +8,7 @@
 ### 1. 収集場所の階層
 ```
 Flow/TypeII/single-node/
-├── hardware_info.txt     # ここに集約
+├── hardware_info.md     # ここに集約
 ├── intel2024/
 └── gcc11.3.0/
 ```
@@ -51,7 +51,7 @@ ip link show
 # 理論バンド幅を記載
 ```
 
-### 3. hardware_info.txtフォーマット
+### 3. hardware_info.mdフォーマット
 
 ```
 # Flow TypeII Single-node Hardware Specifications
@@ -98,18 +98,18 @@ ip link show
 ## 情報共有の実装方法
 
 ### 1. CIエージェントの責務
-- プロジェクト開始時にhardware_info.txtを作成
+- プロジェクト開始時にhardware_info.mdを作成
 - Web検索で公式スペックを補完
 - 理論演算性能を必ず計算・記載
 
 ### 2. 全エージェントへの通知
 ```bash
 # CI → SE
-agent_send.sh SE1 "[CI] hardware_info.txt作成完了。理論演算性能: 2764.8 GFLOPS"
+agent_send.sh SE1 "[CI] hardware_info.md作成完了。理論演算性能: 2764.8 GFLOPS"
 
 # SE → 全PG
 for pg in PG1.1.1 PG1.1.2 PG1.2.1; do
-  agent_send.sh $pg "[SE] hardware_info.txtを参照してください。理論性能比での評価をお願いします"
+  agent_send.sh $pg "[SE] hardware_info.mdを参照してください。理論性能比での評価をお願いします"
 done
 
 # SE → PM

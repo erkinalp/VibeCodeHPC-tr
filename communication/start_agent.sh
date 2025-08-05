@@ -66,8 +66,8 @@ if command -v jq &> /dev/null; then
     TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
     if [ -f "$TABLE_FILE" ]; then
         echo "📝 Updating working_dir for $AGENT_ID"
-        # TARGET_DIRをそのまま使用（先頭の/も保持）
-        WORKING_DIR="$TARGET_DIR"
+        # TARGET_DIRから先頭の/を削除（relative_to()の出力と合わせるため）
+        WORKING_DIR="${TARGET_DIR#/}"
         
         # 一時ファイルを使用して更新
         TEMP_FILE="$TABLE_FILE.tmp"

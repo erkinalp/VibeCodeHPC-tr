@@ -43,7 +43,7 @@ graph TD
 |-------|------|------------|----------|
 | **PM** | プロジェクト統括 | assign_history.txt<br/>User-shared/final_report.md | 要件定義・リソース配分・予算管理 |
 | **SE** | システム設計 | User-shared/reports/<br/>User-shared/visualizations/ | エージェント監視・統計分析・レポート生成 |
-| **CI** | ビルド・実行 | hardware_info.txt<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
+| **CI** | ビルド・実行 | hardware_info.md<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
 | **PG** | コード生成 | ChangeLog.md<br/>sota_local.txt | 並列化実装・性能測定・SOTA判定 |
 | **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
 | **ID** | 情報表示 | エージェント配置図 | tmux全体の可視化 |
@@ -76,7 +76,7 @@ VibeCodeHPC/🤖PM
 ├── 📁 GitHub/🤖CD
 │
 └── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
-    ├── 📄 hardware_info.txt         # ハードウェア仕様（理論性能含む）
+    ├── 📄 hardware_info.md          # ハードウェア仕様（理論性能含む）
     ├── 📄 sota_hardware.txt         # 指定ハード内の Hardware SOTA
     ├── 📁 intel2024/🤖CI1.1         # コンパイラ環境                       
     │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
