@@ -1,6 +1,6 @@
 # ChangeLog基本フォーマット
 
-このドキュメントは、OpenCodeATプロジェクトにおけるChangeLog.mdの基本的な記述形式を定義します。
+このドキュメントは、VibeCodeHPCプロジェクトにおけるChangeLog.mdの基本的な記述形式を定義します。
 
 ## ファイル構造
 

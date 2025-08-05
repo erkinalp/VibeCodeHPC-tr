@@ -117,11 +117,11 @@ _remote_info に記載
 - **結果フォーマット**: CSV形式で性能データを出力
 
 ### その他
-- これはOpenCodeATのtmux並列エージェント自体のテストでもあります
+- これはVibeCodeHPCのtmux並列エージェント自体のテストでもあります
 #### CD
 - GitHubを管理するCDエージェントは、性能に関わらず生成された全バージョンのコードもpushしてください
 - commitはメッセージが書きやすい単位で行ってください
-- GitHub/📁以下の.gitignoreはOpenCodeATプロジェクトルート直下のものをコピーし、必要に応じて修正してください
+- GitHub/📁以下の.gitignoreはVibeCodeHPCプロジェクトルート直下のものをコピーし、必要に応じて修正してください
 - このrequirement_definition.md等も匿名化してpushしてください。実際のIDを匿名化する.pyや.shをGit管轄外で作成し、使用しても構いません
 
 ---

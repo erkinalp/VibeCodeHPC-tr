@@ -14,13 +14,13 @@ Claude Code hooksは、エージェントの挙動を制御する仕組みです
 ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
 # hooksのみ無効化
-OPENCODEAT_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
+VIBECODE_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
 
 # telemetryのみ無効化
-OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
+VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
 
 # 両方無効化（軽量モード）
-OPENCODEAT_ENABLE_HOOKS=false OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
+VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
 ```
 
 ## 手動配置（トラブルシューティング用）
@@ -85,7 +85,7 @@ Claude起動後、SessionStart hookが自動的に：
 ### エージェントが頻繁に停止する場合
 1. stop hookの`stop_hook_active`チェックが正常か確認
 2. エージェントタイプの判定が正しいか確認
-3. 必要に応じて`OPENCODEAT_ENABLE_HOOKS=false`で一時無効化
+3. 必要に応じて`VIBECODE_ENABLE_HOOKS=false`で一時無効化
 
 ### session_idが記録されない場合
 1. `TMUX_PANE`環境変数の存在確認
@@ -115,7 +115,7 @@ Claude起動後、SessionStart hookが自動的に：
 
 ```bash
 # プロジェクト開始前のみ（非推奨）
-export OPENCODEAT_ENABLE_HOOKS=false
+export VIBECODE_ENABLE_HOOKS=false
 ```
 
 **推奨**: hooks機能は常に有効のまま使用してください。

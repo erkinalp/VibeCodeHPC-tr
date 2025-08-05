@@ -8,7 +8,7 @@
 # ///
 
 """
-OpenCodeAT コンテキスト使用率監視システム
+VibeCodeHPC コンテキスト使用率監視システム
 Claude Code JSONLログからトークン使用状況を解析し、各種グラフで可視化
 
 機能:
@@ -407,7 +407,7 @@ class ContextUsageMonitor:
                   linestyle='--', linewidth=1, label='Warning (140K)')
         
         ax.set_ylabel('Cumulative Tokens')
-        ax.set_title(f'OpenCodeAT Token Usage (X-axis: {x_axis})')
+        ax.set_title(f'VibeCodeHPC Token Usage (X-axis: {x_axis})')
         ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
         ax.grid(True, alpha=0.3, axis='y')
         ax.set_ylim(0, self.CONTEXT_LIMIT * 1.05)
@@ -745,7 +745,7 @@ class ContextUsageMonitor:
         """コンソールに現在の状態を出力（クイックアクセス用）"""
         
         print("\n" + "="*60)
-        print(f"OpenCodeAT Context Usage Status - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"VibeCodeHPC Context Usage Status - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*60)
         
         # エージェントをフィルタリング

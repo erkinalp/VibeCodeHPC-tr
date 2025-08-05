@@ -115,17 +115,7 @@ if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "✅ Agent $AGENT_ID started without telemetry at $TARGET_DIR"
 else
     echo "📊 Telemetry enabled - starting agent with telemetry"
-    # bash/zsh対応プロンプト設定
-    ./communication/agent_send.sh "$AGENT_ID" "if [ -n \"\$ZSH_VERSION\" ]; then"
-    ./communication/agent_send.sh "$AGENT_ID" "  export PROMPT=$'%{\033[1;33m%}(${AGENT_ID})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '"
-    ./communication/agent_send.sh "$AGENT_ID" "elif [ -n \"\$BASH_VERSION\" ]; then"
-    ./communication/agent_send.sh "$AGENT_ID" "  export PS1='(\\[\\033[1;33m\\]${AGENT_ID}\\[\\033[0m\\]) \\[\\033[1;32m\\]\\w\\[\\033[0m\\]\\$ '"
-    ./communication/agent_send.sh "$AGENT_ID" "fi"
-    
-    # telemetry環境設定を読み込み
-    ./communication/agent_send.sh "$AGENT_ID" "[ -f \$VIBECODE_ROOT/.env ] && source \$VIBECODE_ROOT/.env || [ -f \$VIBECODE_ROOT/telemetry/otel_config.env ] && source \$VIBECODE_ROOT/telemetry/otel_config.env || true"
-    
-    # telemetry環境変数を設定してClaude起動
-    ./communication/agent_send.sh "$AGENT_ID" "CLAUDE_CODE_ENABLE_TELEMETRY=true OTEL_RESOURCE_ATTRIBUTES=\"\${OTEL_RESOURCE_ATTRIBUTES},agent.id=${AGENT_ID}\" claude --dangerously-skip-permissions $@"
+    # start_agent_with_telemetry.shを使用して起動
+    ./communication/agent_send.sh "$AGENT_ID" "\$VIBECODE_ROOT/telemetry/start_agent_with_telemetry.sh ${AGENT_ID} $@"
     echo "✅ Agent $AGENT_ID started with telemetry at $TARGET_DIR"
 fi

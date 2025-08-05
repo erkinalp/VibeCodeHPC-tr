@@ -49,12 +49,12 @@ GitHub公開用にプロジェクトをコピーすること。プロジェク�
 
 ### フェーズ4: 既存リポジトリの取り扱い（該当する場合）
 
-#### OpenCodeATベースのプロジェクト
-- 既存のOpenCodeAT型プロジェクトの場合：fork→作業継続→プルリクエスト
+#### VibeCodeHPCベースのプロジェクト
+- 既存のVibeCodeHPC型プロジェクトの場合：fork→作業継続→プルリクエスト
 - 中断された作業の再開に適している
 
 #### 通常のGitHubリポジトリ（BaseCode用）
-- OpenCodeAT型でない既存コードが指定された場合：
+- VibeCodeHPC型でない既存コードが指定された場合：
   ```bash
   # wgetでzipをダウンロード
   wget https://github.com/user/repo/archive/refs/heads/main.zip

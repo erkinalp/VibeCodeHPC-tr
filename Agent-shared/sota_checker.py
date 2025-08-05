@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SOTA Management System - OpenCodeAT
+SOTA Management System - VibeCodeHPC
 
 4階層SOTA管理システム (Local/Parent/Global/Project)
 """
@@ -99,7 +99,7 @@ class SOTAChecker:
     
     def check_project_sota(self):
         """Project SOTA判定"""
-        # OpenCodeATルートのsota_project.txtを確認
+        # VibeCodeHPCルートのsota_project.txtを確認
         project_root = self.find_project_root()
         sota_file = project_root / "sota_project.txt"
         
@@ -121,10 +121,10 @@ class SOTAChecker:
         return None
     
     def find_project_root(self):
-        """OpenCodeATルートを探す"""
+        """VibeCodeHPCルートを探す"""
         current = self.current_dir
         while current != current.parent:
-            if current.name == "OpenCodeAT":
+            if current.name == "VibeCodeHPC":
                 return current
             current = current.parent
         return None

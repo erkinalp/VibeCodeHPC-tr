@@ -37,7 +37,7 @@ assign_history.txt📄には時刻も記載しておくこと
 
 ### 初期化直後
 ```
-OpenCodeAT📂
+VibeCodeHPC📂
 ├── CLAUDE.md📄 (共通の指示)
 ├── assign_history.txt📄 (エージェントのアサイン記録)
 ├── 🤖🥇(PM)
@@ -65,7 +65,7 @@ OpenCodeAT📂
 
 ### 一定時間経過後
 ```
-OpenCodeAT📂
+VibeCodeHPC📂
 ├── CLAUDE.md📄 (共通の指示)
 ├── assign_history.txt📄 (エージェントのアサイン記録)
 ├── 🤖🥇(PM)
@@ -98,7 +98,7 @@ OpenCodeAT📂
 
 ### さらに一定時間経過後
 ```
-OpenCodeAT📂
+VibeCodeHPC📂
 ├── CLAUDE.md📄 (共通の指示)
 ├── assign_history.txt📄 (エージェントのアサイン記録)
 ├── 🤖🥇(PM)

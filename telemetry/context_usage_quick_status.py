@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OpenCodeAT コンテキスト使用率クイックステータス
+VibeCodeHPC コンテキスト使用率クイックステータス
 リアルタイムのトークン使用状況を高速で確認するツール
 
 将来的にはOpenTelemetryメトリクスとして送信予定
@@ -131,7 +131,7 @@ class ContextQuickStatus:
             return
         
         print("\n" + "="*70)
-        print(f"OpenCodeAT Context Usage - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"VibeCodeHPC Context Usage - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70)
         print(f"{'Agent':<10} {'Total':>10} {'%':>6} {'Status':<10} {'Last Update'}")
         print("-"*70)

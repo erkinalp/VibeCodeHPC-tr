@@ -22,7 +22,7 @@ log_error() {
 # 使用方法表示
 show_usage() {
     cat << EOF
-📊 OpenCodeAT Grafana環境セットアップ
+📊 VibeCodeHPC Grafana環境セットアップ
 
 使用方法:
   $0 [オプション]
@@ -129,7 +129,7 @@ start_grafana() {
 show_connection_info() {
     echo ""
     echo "=================================================="
-    echo "📊 OpenCodeAT Grafana環境が起動しました"
+    echo "📊 VibeCodeHPC Grafana環境が起動しました"
     echo "=================================================="
     echo ""
     echo "🌐 アクセスURL:"

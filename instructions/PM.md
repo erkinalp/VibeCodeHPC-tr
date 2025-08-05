@@ -68,7 +68,7 @@
   - 予算（ジョブ）
   - **テレメトリ設定**: OpenTelemetryによるメトリクス収集の有無
     - 有効（デフォルト）: Grafana/Prometheus/Lokiで可視化可能（要Docker）
-    - 無効: 軽量動作、外部依存なし（`OPENCODEAT_ENABLE_TELEMETRY=false`）
+    - 無効: 軽量動作、外部依存なし（`VIBECODE_ENABLE_TELEMETRY=false`）
 
 
 
@@ -187,7 +187,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
 # またはテレメトリ無効
-OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
 # 再起動時は--continueオプションを追加（記憶を維持）
 ./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
@@ -216,11 +216,11 @@ agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント�
 2. **手動での起動（非推奨・緊急時のみ）**:
 ```bash
 # 環境変数を設定
-agent_send.sh PG1.1.1 "export OPENCODEAT_ROOT='$(pwd)'"
+agent_send.sh PG1.1.1 "export VIBECODE_ROOT='$(pwd)'"
 # ディレクトリ移動
 agent_send.sh PG1.1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
 # テレメトリ付きで起動
-agent_send.sh PG1.1.1 "\$OPENCODEAT_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP"
+agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP"
 # 待機
 sleep 5
 # 初期化メッセージ送信（上記と同じ）

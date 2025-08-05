@@ -4,7 +4,7 @@
 
 ### **ファイル配置戦略**
 ```
-OpenCodeAT/
+VibeCodeHPC/
 ├── sota_project.txt              # Project階層SOTA
 ├── Flow/TypeII/single-node/
 │   ├── hardware_info.md
@@ -48,7 +48,7 @@ strategy: "CUDA_OpenMP"
 
 #### **4. Project SOTA (ルート直下)**
 ```python
-# OpenCodeAT/sota_project.txt
+# VibeCodeHPC/sota_project.txt
 current_best: "450.8 GFLOPS"
 achieved_by: "PG2.1.1"
 timestamp: "2025-07-16 16:00:00 UTC"

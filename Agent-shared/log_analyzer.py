@@ -124,7 +124,7 @@ def plot_sota_history(df, output_path):
 
 def main_visualizer():
     """Main function to find, parse, and plot all ChangeLog.md files."""
-    # This script should be run from the project root (e.g., /OpenCodeAT)
+    # This script should be run from the project root (e.g., /VibeCodeHPC)
     search_path = './**/ChangeLog.md'
     all_records = []
     for md_file in glob.glob(search_path, recursive=True):

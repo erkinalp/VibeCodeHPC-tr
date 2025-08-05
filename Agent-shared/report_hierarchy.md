@@ -1,7 +1,7 @@
 # レポート階層構造ガイド
 
 ## 概要
-OpenCodeATでは、技術的詳細から経営層向けまで、3段階のレポート体系を採用します。
+VibeCodeHPCでは、技術的詳細から経営層向けまで、3段階のレポート体系を採用します。
 
 ## レポート階層
 
@@ -36,7 +36,7 @@ OpenCodeATでは、技術的詳細から経営層向けまで、3段階のレポ
 ## ディレクトリ構造
 
 ```
-OpenCodeAT/
+VibeCodeHPC/
 ├── Agent-shared/                # エージェント用（技術的）
 │   ├── tools/
 │   │   ├── changelog_analyzer.py

@@ -9,7 +9,7 @@
 # ///
 
 """
-OpenCodeAT Stop Hook (イベントドリブン型エージェント用)
+VibeCodeHPC Stop Hook (イベントドリブン型エージェント用)
 PG, IDは通常通り終了可能
 """
 

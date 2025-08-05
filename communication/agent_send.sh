@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🧬 OpenCodeAT Agent間メッセージ送信システム
+# 🧬 VibeCodeHPC Agent間メッセージ送信システム
 # HPC最適化用マルチエージェント通信
 
 # agent_and_pane_id_table.jsonl読み込み
@@ -115,7 +115,7 @@ get_agent_color() {
 # 使用方法表示
 show_usage() {
     cat << EOF
-🧬 OpenCodeAT Agent間メッセージ送信システム
+🧬 VibeCodeHPC Agent間メッセージ送信システム
 
 使用方法:
   $0 [エージェント名] [メッセージ]
@@ -153,7 +153,7 @@ show_usage() {
   $0 CI1.1 "[報告] job_12345 実行完了、結果をChangeLog.mdに追記しました"
   
   # 再配置例（絶対パス）
-  $0 PG1.1.1 "!cd /absolute/path/to/OpenCodeAT/Flow/TypeII/single-node/gcc/OpenMP_MPI"
+  $0 PG1.1.1 "!cd /absolute/path/to/VibeCodeHPC/Flow/TypeII/single-node/gcc/OpenMP_MPI"
   
   # 再配置例（相対パス - エージェントの現在位置から）
   $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
@@ -165,7 +165,7 @@ EOF
 
 # エージェント一覧表示
 show_agents() {
-    echo "📋 OpenCodeAT エージェント一覧:"
+    echo "📋 VibeCodeHPC エージェント一覧:"
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
@@ -210,7 +210,7 @@ show_agents() {
 
 # エージェント状態確認
 show_status() {
-    echo "📊 OpenCodeAT エージェント状態:"
+    echo "📊 VibeCodeHPC エージェント状態:"
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🧬 OpenCodeAT Multi-Agent HPC Environment Setup
+# 🧬 VibeCodeHPC Multi-Agent HPC Environment Setup
 # Dynamic tmux session creation for user-specified agent count
 
 set -e  # エラー時に停止
@@ -40,7 +40,7 @@ log_error() {
 # 使用方法表示
 show_usage() {
     cat << EOF
-🧬 OpenCodeAT Multi-Agent HPC Environment Setup
+🧬 VibeCodeHPC Multi-Agent HPC Environment Setup
 
 使用方法:
   $0 [ワーカー数(PM除く)] [オプション]
@@ -249,7 +249,7 @@ create_pm_session() {
     tmux send-keys -t "${PM_SESSION}:project-manager" "fi" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "clear" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "echo '=== PM (Project Manager) エージェント ==='" C-m
-    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'OpenCodeAT HPC最適化システム'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'VibeCodeHPC HPC最適化システム'" C-m
     if [ -n "$PROJECT_NAME" ] && [ "$USE_DEFAULT_NAMES" = false ]; then
         tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'プロジェクト: ${PROJECT_NAME}'" C-m
     fi
@@ -272,7 +272,7 @@ generate_status_display_script() {
 
 while true; do
     clear
-    echo "[OpenCodeAT エージェント配置図]"
+    echo "[VibeCodeHPC エージェント配置図]"
     echo "================================"
     
     # エージェント配置を表示
@@ -370,7 +370,7 @@ create_main_session() {
             tmux send-keys -t "$pane_target" "  export PS1='(\[\033[1;37m\]STATUS\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
             tmux send-keys -t "$pane_target" "fi" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
-            tmux send-keys -t "$pane_target" "echo '[OpenCodeAT エージェント配置状態]'" C-m
+            tmux send-keys -t "$pane_target" "echo '[VibeCodeHPC エージェント配置状態]'" C-m
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
             tmux send-keys -t "$pane_target" "echo 'PMがエージェントを配置中...'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
@@ -417,7 +417,7 @@ generate_agent_pane_table() {
     
     # JSONL形式のファイル
     cat > "$jsonl_table_file" << EOF
-# OpenCodeAT Agent and Pane ID Table (JSON Lines format)
+# VibeCodeHPC Agent and Pane ID Table (JSON Lines format)
 # Generated: $(date)
 # Project: ${PROJECT_NAME:-Team1}
 # Format: {"agent_id": "...", "tmux_session": "...", "tmux_window": ..., "tmux_pane": ..., "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "..."}
@@ -466,7 +466,7 @@ show_execution_plan() {
 
 # メイン処理
 main() {
-    echo "🧬 OpenCodeAT Multi-Agent HPC Environment Setup"
+    echo "🧬 VibeCodeHPC Multi-Agent HPC Environment Setup"
     echo "==============================================="
     echo ""
     
@@ -578,7 +578,7 @@ main() {
     
     # 完了メッセージ
     echo ""
-    log_success "🎉 OpenCodeAT環境セットアップ完了！"
+    log_success "🎉 VibeCodeHPC環境セットアップ完了！"
     echo ""
     echo "📋 次のステップ:"
     echo "  1. 🔗 セッションアタッチ:"

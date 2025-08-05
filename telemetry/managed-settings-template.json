@@ -1,5 +1,5 @@
 {
-  "comment": "OpenCodeAT管理者向けOpenTelemetry設定テンプレート",
+  "comment": "VibeCodeHPC管理者向けOpenTelemetry設定テンプレート",
   "comment2": "このファイルを適切な場所にコピーして使用してください：",
   "comment3": "macOS: /Library/Application Support/ClaudeCode/managed-settings.json",
   "comment4": "Linux: /etc/claude-code/managed-settings.json",

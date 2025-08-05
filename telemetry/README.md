@@ -1,4 +1,4 @@
-# OpenCodeAT テレメトリシステム
+# VibeCodeHPC テレメトリシステム
 
 このディレクトリは、エージェントのメトリクス収集・可視化とOpenTelemetry設定を管理します。
 

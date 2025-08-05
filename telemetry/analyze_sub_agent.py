@@ -309,7 +309,7 @@ def main():
     if not records:
         print("No sub-agent usage data found.")
         print("\nTo track sub-agent usage, use the wrapper script:")
-        print("  alias claude-p='$OPENCODEAT_ROOT/telemetry/claude_p_wrapper.sh'")
+        print("  alias claude-p='$VIBECODE_ROOT/telemetry/claude_p_wrapper.sh'")
         return
     
     print(f"Found {len(records)} sub-agent calls")

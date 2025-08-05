@@ -357,12 +357,12 @@ http://localhost:3000
 
 環境変数で無効化:
 ```bash
-export OPENCODEAT_ENABLE_TELEMETRY=false
+export VIBECODE_ENABLE_TELEMETRY=false
 ```
 
 または起動時に指定:
 ```bash
-OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path
+VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path
 ```
 
 #### 代替案: ccusage（簡易確認）
@@ -485,11 +485,11 @@ PMを起動
 claude --dangerously-skip-permissions
 
 # telemetryのみ無効化
-OPENCODEAT_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
+VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
 
 # ⚠️ hooksの無効化は非推奨（ポーリング型エージェントが待機してしまう）
 # どうしても無効化したい場合は、プロジェクト開始前に以下を実行：
-# export OPENCODEAT_ENABLE_HOOKS=false
+# export VIBECODE_ENABLE_HOOKS=false
 ```
 
 **注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
@@ -536,7 +536,7 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 
 起動後、以下のプロンプトをコピーして貼り付け：
 ```
-あなたはPM（Project Manager）です。OpenCodeATプロジェクトを開始します。
+あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
 
 まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
 - CLAUDE.md（全エージェント共通ルール）
@@ -668,7 +668,7 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 ## 🔭 OpenTelemetry監視
 
 エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
-監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
+監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
 

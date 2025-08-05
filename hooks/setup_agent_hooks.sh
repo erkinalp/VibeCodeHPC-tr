@@ -1,5 +1,5 @@
 #!/bin/bash
-# OpenCodeAT エージェント用hooks設定スクリプト
+# VibeCodeHPC エージェント用hooks設定スクリプト
 # PMが各エージェント起動時に実行
 
 set -e

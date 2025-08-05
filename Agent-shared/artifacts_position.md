@@ -1,4 +1,4 @@
-#　📋 OpenCodeAT 設計成果物・ドキュメント一覧
+#　📋 VibeCodeHPC 設計成果物・ドキュメント一覧
 
 ## 核心原則
 - ChangeLog.md中心設計: 情報の集約化（分散させるのは本当に必要な場合のみ）
@@ -8,7 +8,7 @@
 
 ### プロジェクトルート直下
 ```
-OpenCodeAT/
+VibeCodeHPC/
 ├── CLAUDE.md                    # 共通ルール（writer:PM, reader:all）
 ├── assign_history.txt           # PM管理（writer:PM, reader:all）
 ├── resource_allocation.md       # リソース割り当て（writer:PM, reader:CI）
@@ -133,7 +133,7 @@ cat PG1.1.1/sota_local.txt
 cat Flow/TypeII/single-node/sota_hardware.txt
 
 # Project SOTA確認
-cat OpenCodeAT/sota_project.txt
+cat VibeCodeHPC/sota_project.txt
 ```
 
 ### 統合クエリ例
