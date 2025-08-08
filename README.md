@@ -495,7 +495,7 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
 **注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
 </details>
 
-### 🎣 Claude Code Hooks機能（NEW）
+### 🎣 Claude Code Hooks機能
 
 エージェントの挙動を制御するhooks機能により、以下が実現されます：
 
@@ -504,15 +504,27 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
 - **auto-compact対策**: コンテキストリセット後に必須ファイルの再読み込みを促進
 - **session_id追跡**: 各エージェントのClaude session_idを記録・管理
 
-#### 自動配置
-PMがエージェント起動時に自動的にhooksを配置：
-```bash
-# hooks有効（デフォルト）でエージェント起動
-./communication/start_agent.sh PG1.1.1 /path/to/workdir
+#### エージェント起動方法
+シンプル化された`start_agent.sh`により、エージェントの起動が簡単になりました：
 
-# ⚠️ hooks無効化は非推奨 - 全エージェントが影響を受ける可能性があります
-# プロジェクト開始前に環境変数で設定する場合のみ使用してください
+```bash
+# 基本的な使用方法
+./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+
+# テレメトリを無効化
+VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/workdir
+
+# エージェント再起動時（記憶を維持）
+./communication/start_agent.sh SE1 /path/to/workdir --continue
 ```
+
+#### 動作の仕組み
+1. **環境変数設定**: `VIBECODE_ROOT`をプロジェクトルートに設定
+2. **ディレクトリ移動**: エージェントを指定ディレクトリに移動
+3. **ローカルスクリプト生成**: `start_agent_local.sh`を作業ディレクトリに作成
+4. **Claude起動**: hooks設定とtelemetry設定に基づいてClaude Codeを起動
+
+⚠️ hooks無効化は非推奨 - 全エージェントが影響を受ける可能性があります
 
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 

@@ -120,6 +120,8 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 ### フェーズ4: プロジェクト初期化
 1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
 2. `/Agent-shared/agent_and_pane_id_table.jsonl`を確認し、既存のセッション構成を把握
+   - `working_dir`フィールドでエージェントの作業ディレクトリを管理
+   - `claude_session_id`フィールドでClaude Codeのセッション識別
 3. ディレクトリ階層を適切に構成
 4. **予算管理の初期化**：
    - `pjstat`等で開始時点の予算残額を確認
@@ -149,7 +151,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 
 その後、directory_map.txtを読み込んで初期表示を開始してください。"
    ```
-7. その他のペインに各エージェントを配置（SE、CI、PG、CD）
+8. その他のペインに各エージェントを配置（SE、CI、PG、CD）
 
 
 
@@ -180,28 +182,33 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 #### エージェント起動手順
 エージェントを配置する際は、以下の手順を厳守すること：
 
-1. **start_agent.shを使用（推奨）**:
+### start_agent.shの使用（推奨）
+シンプル化されたstart_agent.shの動作：
+1. エージェントのカレントディレクトリに`start_agent_local.sh`を生成
+2. hooks設定とtelemetry設定を自動的に適用
+3. working_dirをagent_and_pane_id_table.jsonlに記録
+
 ```bash
-# ステップ1: エージェントを起動（Claudeが立ち上がるまで待機）
-# テレメトリ有効（デフォルト）
+# ステップ1: エージェント起動
 ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
-# またはテレメトリ無効
-VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+# オプション：テレメトリ無効
+VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/workdir
 
-# 再起動時は--continueオプションを追加（記憶を維持）
-./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
+# オプション：再起動時（記憶を維持）
+./communication/start_agent.sh SE1 /path/to/workdir --continue
 
-# ステップ2: 別のタスクを実行（ToDoリストを活用）
-# Claude起動中に他のエージェントの起動や別タスクを進める
-# 例: 次のエージェントのstart_agent.sh実行、directory_map.txt更新など
+# ステップ2: 並行作業（ToDoリスト活用）
+# Claude起動中に他のタスクを進める：
+# - 次のエージェントのstart_agent.sh実行
+# - directory_map.txt更新
+# - 予算確認など
 
 # ステップ3: 起動確認（特に初回は必須）
-# tmuxでClaude起動を確認（セッション名とペイン番号はagent_and_pane_id_table.jsonlで確認）
-# 例: Team1_Workers1の場合
+# agent_and_pane_id_table.jsonlでセッション名とペイン番号を確認
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
 
-# ステップ4: 初期化メッセージを送信（Claude起動確認後）
+# ステップ4: 初期化メッセージ送信（Claude起動確認後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
 
 まず以下のファイルを読み込んでプロジェクトを理解してください：
@@ -213,17 +220,21 @@ agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント�
 読み込み完了後、現在のディレクトリ（pwd）を確認し、自分の役割に従って作業を開始してください。"
 ```
 
-2. **手動での起動（非推奨・緊急時のみ）**:
+### hooks機能の自動設定
+start_agent.shは自動的に以下を設定：
+- **SessionStart hook**: working_dirベースでエージェントを識別
+- **Stop hook**: ポーリング型エージェントの待機防止
+- `.claude/settings.local.json`: 相対パスでhooksを設定
+
+### 手動での起動（非推奨・緊急時のみ）
 ```bash
 # 環境変数を設定
 agent_send.sh PG1.1.1 "export VIBECODE_ROOT='$(pwd)'"
-# ディレクトリ移動
+# ディレクトリ移動（!cdコマンドはPMの特権）
 agent_send.sh PG1.1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
-# テレメトリ付きで起動
-agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP"
-# 待機
-sleep 5
-# 初期化メッセージ送信（上記と同じ）
+# hooksとtelemetryを手動設定
+agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/hooks/setup_agent_hooks.sh PG1.1.1 . event-driven"
+agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1"
 ```
 
 **重要な注意事項**:
@@ -278,14 +289,17 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 1. **全エージェント進捗確認**
    - SE、CI、PG、**CD**の状況を巡回確認
    - 停滞エージェントへの介入
+   - agent_and_pane_id_table.jsonlの`claude_session_id`で稼働状況を確認
    
 2. **リソース再配分**
    - 完了したPGの移動
    - 新規タスクの割り当て
+   - **重要**: 中盤以降は人員維持を最優先（auto-compact対策）
 
 3. **directory_map更新**
    - 実際の配置状況を反映
    - future_directory_map.txtとの差分確認
+   - working_dirとの整合性確認
 
 4. **ToDoリスト整理**
    - 完了タスクのマーク
@@ -296,6 +310,10 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - 定期的に`pjstat`等で残額確認
    - `/Agent-shared/budget_history.md`に記録
    - 閾値到達時はリソース配分を調整
+
+6. **hooks動作確認**
+   - ポーリング型エージェント（SE, CI, CD）の待機防止確認
+   - SessionStartによるworking_dir記録の確認
 
 ## 🤝 他エージェントとの連携
 
@@ -404,6 +422,15 @@ claude --dangerously-skip-permissions -c
 
 # start_agent_with_telemetry.shは追加のclaude引数を受け付ける
 # 例: ./telemetry/start_agent_with_telemetry.sh SE1 --continue
+```
+
+#### 4. start_agent.shでの再起動（推奨）
+```bash
+# 作業ディレクトリを指定して再起動
+./communication/start_agent.sh [AGENT_ID] [WORK_DIR] --continue
+
+# 例: SE1をFlow/TypeII/single-nodeで再起動
+./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
 ```
 
 ### 注意事項

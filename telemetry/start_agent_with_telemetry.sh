@@ -13,12 +13,11 @@ AGENT_ID=$1
 shift  # 残りの引数はclaude用
 
 # プロジェクトルートの取得
-# 環境変数が設定されていればそれを使用、なければスクリプトの場所から推定
+# 環境変数が設定されていればそれを使用、なければ現在のディレクトリ
 if [ -n "$VIBECODE_ROOT" ]; then
     PROJECT_ROOT="$VIBECODE_ROOT"
 else
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    PROJECT_ROOT="$(pwd)"
 fi
 TELEMETRY_DIR="$PROJECT_ROOT/telemetry"
 
@@ -100,8 +99,24 @@ fi
 alias claude-p="$TELEMETRY_DIR/claude_p_wrapper.sh"
 echo "📊 Sub-agent tracking enabled. Use 'claude-p' instead of 'claude -p'"
 
+# 現在のディレクトリを確認（デバッグ用）
+CURRENT_DIR="$(pwd 2>&1)"
+if [ $? -ne 0 ]; then
+    echo "❌ FATAL ERROR: Cannot determine current directory"
+    echo "Error: $CURRENT_DIR"
+    echo ""
+    echo "This may be caused by:"
+    echo "- Directory was deleted while script is running"
+    echo "- WSL file system synchronization issue"
+    echo "- Directory permissions problem"
+    echo ""
+    echo "Please check your working directory and try again."
+    exit 1
+fi
+
 # Claude Codeを起動
 echo "Starting claude with options: --dangerously-skip-permissions $@"
+echo "Current directory: $CURRENT_DIR"
 echo ""
 echo "⚠️  Note: OpenTelemetry metrics are sent to OTLP endpoint"
 echo "    Configure your collector at: $OTEL_EXPORTER_OTLP_ENDPOINT"
