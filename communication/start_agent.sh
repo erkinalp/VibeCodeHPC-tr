@@ -26,7 +26,16 @@ echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 ./communication/agent_send.sh "$AGENT_ID" "export VIBECODE_ROOT='$PROJECT_ROOT'"
 
 # 2. ターゲットディレクトリに移動
-./communication/agent_send.sh "$AGENT_ID" "cd $PROJECT_ROOT$TARGET_DIR"
+# TARGET_DIRが絶対パスか相対パスかを判定
+if [[ "$TARGET_DIR" = /* ]]; then
+    # 絶対パス
+    FULL_PATH="$TARGET_DIR"
+else
+    # 相対パス
+    FULL_PATH="$PROJECT_ROOT/$TARGET_DIR"
+fi
+
+./communication/agent_send.sh "$AGENT_ID" "cd $FULL_PATH"
 
 # 3. 現在地を確認
 ./communication/agent_send.sh "$AGENT_ID" "pwd"
@@ -34,7 +43,7 @@ echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 # 4. エージェント起動スクリプトを実行
 # 注：エージェントのカレントディレクトリにstart_agent_local.shを配置する必要がある
 echo "📝 Creating local startup script..."
-cat > "$PROJECT_ROOT$TARGET_DIR/start_agent_local.sh" << 'EOF'
+cat > "$FULL_PATH/start_agent_local.sh" << 'EOF'
 #!/bin/bash
 # エージェントローカル起動スクリプト
 
@@ -118,7 +127,7 @@ else
 fi
 EOF
 
-chmod +x "$PROJECT_ROOT$TARGET_DIR/start_agent_local.sh"
+chmod +x "$FULL_PATH/start_agent_local.sh"
 
 # 5. 起動スクリプトを実行
 ./communication/agent_send.sh "$AGENT_ID" "./start_agent_local.sh $AGENT_ID $ADDITIONAL_OPTIONS"
