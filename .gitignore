@@ -81,3 +81,6 @@ telemetry/sub_agent_logs/
 **/grafana-data/
 **/prometheus-data/
 **/loki-data/
+
+# 古いバックアップファイル
+communication/start_agent_old.sh
