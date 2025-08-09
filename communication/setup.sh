@@ -256,7 +256,7 @@ create_pm_session() {
     tmux send-keys -t "${PM_SESSION}:project-manager" "echo '役割: プロジェクト管理・要件定義'" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "echo ''" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'エージェント起動コマンド:'" C-m
-    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'claude --dangerously-skip-permissions'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo './start_PM.sh'" C-m
     
     log_success "✅ PMセッション作成完了"
 }
@@ -590,7 +590,7 @@ main() {
     echo ""
     echo "  2. 🤖 PM起動:"
     echo "     # $PM_SESSION で以下を実行:"
-    echo "     claude --dangerously-skip-permissions"
+    echo "     ./start_PM.sh"
     echo ""
     echo "  3. 📊 エージェント配置:"
     echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl  # ペイン番号確認（JSONL形式）"
