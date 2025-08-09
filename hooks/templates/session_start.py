@@ -36,7 +36,16 @@ def find_project_root(start_path):
 def update_agent_table(session_id, source):
     """agent_and_pane_id_table.jsonlを更新"""
     cwd = Path.cwd()
-    project_root = find_project_root(cwd)
+    
+    # hooksディレクトリから実際の作業ディレクトリを取得
+    # .claude/hooks/ から2階層上がエージェントの作業ディレクトリ
+    if cwd.name == "hooks" and cwd.parent.name == ".claude":
+        agent_working_dir = cwd.parent.parent
+    else:
+        # 通常はここに来ないはずだが、念のため
+        agent_working_dir = cwd
+    
+    project_root = find_project_root(agent_working_dir)
     
     if not project_root:
         return None, None
@@ -45,12 +54,12 @@ def update_agent_table(session_id, source):
     
     # プロジェクトルートからの相対パス（OS固有の形式を保持）
     try:
-        relative_path = cwd.relative_to(project_root)
+        relative_path = agent_working_dir.relative_to(project_root)
         relative_dir = str(relative_path)
         if relative_dir == ".":
             relative_dir = ""
     except ValueError:
-        relative_dir = str(cwd)
+        relative_dir = str(agent_working_dir)
     
     # デバッグ: 環境変数の状態を記録
     debug_file = project_root / "Agent-shared" / "session_start_debug.log"

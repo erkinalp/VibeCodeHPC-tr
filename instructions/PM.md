@@ -138,6 +138,8 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    # 「待機中0」などの場合は「STATUS」または「ID」に更新
    
    # STATUSペインでIDエージェントを起動
+   # ⚠️ 重要：tmux send-keysはClaude起動前のみ使用
+   # Claude起動後は必ずagent_send.shを使用すること
    tmux send-keys -t "Team1_Workers1:0.0" "claude --dangerously-skip-permissions" C-m
    
    # 他のエージェント起動準備などを進める（5秒程度）
@@ -148,7 +150,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    # 3秒以上待機（重要）
    sleep 3
    
-   # IDエージェントの初期化メッセージ
+   # IDエージェントの初期化メッセージ（Claudeが起動済みなのでagent_send.shを使用）
    agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
 
 まず以下のファイルを読み込んでください：
@@ -456,6 +458,9 @@ claude --dangerously-skip-permissions -c
 - **--continueオプションを忘れずに**: これがないと、エージェントの記憶（コンテキスト）が失われます
 - **EOFシグナル（Ctrl+D）は送信しない**: エージェントが終了してしまいます
 - **構文エラーに注意**: 特殊文字を含むコマンドは適切にエスケープしてください
+- **tmux send-keysとagent_send.shの使い分け**:
+  - `tmux send-keys`: Claude起動前のコマンド送信（例：claude起動コマンド自体）
+  - `agent_send.sh`: Claude起動後のメッセージ送信（初期化メッセージ等）
 
 ### 予防策
 - 定期的にエージェントの生存確認を行う
