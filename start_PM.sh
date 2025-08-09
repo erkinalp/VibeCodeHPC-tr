@@ -11,12 +11,16 @@ PROJECT_ROOT="$SCRIPT_DIR"
 echo "🎯 VibeCodeHPC PM起動スクリプト"
 echo "================================"
 
-# 1. PM用のhooks設定
-echo "🔧 Setting up hooks for PM..."
-if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
-    "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" PM "$PROJECT_ROOT" polling
+# 1. PM用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
+if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
+    echo "🔧 Setting up hooks for PM..."
+    if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
+        "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" PM "$PROJECT_ROOT" polling
+    else
+        echo "⚠️  Warning: hooks setup script not found"
+    fi
 else
-    echo "⚠️  Warning: hooks setup script not found"
+    echo "⚠️  Hooks disabled by VIBECODE_ENABLE_HOOKS=false"
 fi
 
 # 1.5. TMUX_PANE環境変数の確認と記録
@@ -65,8 +69,7 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# 3. telemetry付きでPM起動
-echo "🚀 Starting PM with telemetry..."
+# 3. Claude起動
 echo ""
 echo "起動後、以下のプロンプトをコピーして貼り付けてください："
 echo "================================================================"
@@ -90,5 +93,11 @@ EOF
 echo "================================================================"
 echo ""
 
-# telemetry起動
-exec "$PROJECT_ROOT/telemetry/start_agent_with_telemetry.sh" PM
+# テレメトリ設定に基づいてClaude起動
+if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
+    echo "📊 Telemetry disabled - starting PM without telemetry"
+    exec claude --dangerously-skip-permissions "$@"
+else
+    echo "📊 Telemetry enabled - starting PM with telemetry"
+    exec "$PROJECT_ROOT/telemetry/start_agent_with_telemetry.sh" PM "$@"
+fi
