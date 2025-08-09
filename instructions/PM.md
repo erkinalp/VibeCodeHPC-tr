@@ -134,6 +134,9 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 6. **重要**: setup.shで作成されたセッション（デフォルト：Team1_Workers1）を使用する
 7. STATUSペイン（pane 0）にIDエージェントを起動：
    ```bash
+   # 事前準備：agent_and_pane_id_table.jsonlのSTATUSエントリーを確認
+   # 「待機中0」などの場合は「STATUS」または「ID」に更新
+   
    # STATUSペインでIDエージェントを起動
    tmux send-keys -t "Team1_Workers1:0.0" "claude --dangerously-skip-permissions" C-m
    
@@ -141,6 +144,9 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    
    # Claude起動確認（初回は特に重要）
    tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "0: claude"
+   
+   # 3秒以上待機（重要）
+   sleep 3
    
    # IDエージェントの初期化メッセージ
    agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
@@ -183,6 +189,14 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 エージェントを配置する際は、以下の手順を厳守すること：
 
 ### start_agent.shの使用（推奨）
+
+#### 事前準備（重要）
+**必ず**agent_and_pane_id_table.jsonlのagent_idを更新してから実行すること：
+- 「待機中1」→「SE1」
+- 「待機中2」→「CI1.1」
+- 「待機中3」→「PG1.1.1」
+等、正しいエージェントIDに変更
+
 シンプル化されたstart_agent.shの動作：
 1. エージェントのカレントディレクトリに`start_agent_local.sh`を生成
 2. hooks設定とtelemetry設定を自動的に適用
@@ -208,7 +222,11 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/
 # agent_and_pane_id_table.jsonlでセッション名とペイン番号を確認
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
 
-# ステップ4: 初期化メッセージ送信（Claude起動確認後）
+# ステップ4: 待機（重要！）
+# Claude起動直後は入力を受け付けない可能性があるため
+sleep 3
+
+# ステップ5: 初期化メッセージ送信（待機後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
 
 まず以下のファイルを読み込んでプロジェクトを理解してください：
@@ -238,8 +256,9 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/start_agent_with_telemetry.sh P
 ```
 
 **重要な注意事項**:
+- agent_and_pane_id_table.jsonlの「待機中X」を正しいエージェントIDに更新してから実行
 - `start_agent.sh`はClaude起動コマンドを送信するだけで、初期化メッセージは送らない
-- Claude起動後、必ず初期化メッセージを送信すること
+- Claude起動後、**3秒以上待機**してから初期化メッセージを送信すること
 - 初期化メッセージなしでは、エージェントは自分の役割を理解できない
 
 いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_map.txtの更新を忘れてはならない。
