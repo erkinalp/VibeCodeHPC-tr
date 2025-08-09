@@ -220,13 +220,13 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/
 # - directory_map.txt更新
 # - 予算確認など
 
-# ステップ3: 起動確認（特に初回は必須）
+# ステップ3: 待機（重要！）
+# Claude起動直後は入力を受け付けない可能性があるため
+sleep 3  # 並行作業を行った場合は時間経過しているため省略可
+
+# ステップ4: 起動確認（特に初回は必須）
 # agent_and_pane_id_table.jsonlでセッション名とペイン番号を確認
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
-
-# ステップ4: 待機（重要！）
-# Claude起動直後は入力を受け付けない可能性があるため
-sleep 3
 
 # ステップ5: 初期化メッセージ送信（待機後）
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
@@ -426,6 +426,23 @@ tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 # pm_sessionも同様に確認
 tmux list-panes -t pm_session:0 -F "#{pane_index}: #{pane_current_command}"
 ```
+
+#### Claude Code生存確認（より確実な方法）
+```bash
+# 疑わしいエージェントに特殊なメッセージを送信
+# !で始まるコマンドはClaude Codeのみが実行可能
+agent_send.sh SE1 "!agent-send.sh PM 'SE1 alive at $(date)'"
+
+# 返信がない場合：
+# - Claude Codeが落ちて通常のtmuxペインになっている（!でエラー）
+# - または完全に応答不能
+
+# この方法の利点：
+# - Claude Codeの生存を確実に判定できる
+# - 通常のechoコマンドと違い、偽陽性がない
+```
+
+**注意**: この生存確認を行うとエージェントが動き出すため、初期化メッセージを送る前に行わないこと。ステップ4の起動確認より優先して行わないこと。
 
 #### 2. エージェントの再起動
 ```bash
