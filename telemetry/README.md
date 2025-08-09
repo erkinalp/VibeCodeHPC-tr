@@ -23,7 +23,7 @@
 ### エージェント起動
 ```bash
 # OpenTelemetry自動設定でエージェントを起動
-./telemetry/start_agent_with_telemetry.sh PG1.1.1
+./telemetry/launch_claude_with_env.sh PG1.1.1
 ```
 
 起動時に以下が自動設定されます：
@@ -50,7 +50,7 @@ telemetry/
 ├── otel_config.env.example    # OpenTelemetry設定テンプレート  
 ├── docker-compose.yml         # ローカルテスト環境（Grafana + Prometheus）
 ├── sub_agent/                 # サブエージェント使用ログ（claude_p_wrapper.shが生成）
-├── sub_agent_logs/            # サブエージェント統計ログ（start_agent_with_telemetry.shが生成）
+├── sub_agent_logs/            # サブエージェント統計ログ（launch_claude_with_env.shが生成）
 └── visualization/             # 生成されたグラフ（analyze_sub_agent.pyが使用）
 ```
 

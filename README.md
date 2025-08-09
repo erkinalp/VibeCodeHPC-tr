@@ -479,7 +479,7 @@ PMを起動
 
 ```bash
 # telemetryのみ（hooksなし、待機防止が無効）
-./telemetry/start_agent_with_telemetry.sh PM
+./telemetry/launch_claude_with_env.sh PM
 
 # 最小構成（hooks・telemetryなし）
 claude --dangerously-skip-permissions

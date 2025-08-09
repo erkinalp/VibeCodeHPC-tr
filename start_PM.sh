@@ -99,5 +99,5 @@ if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     exec claude --dangerously-skip-permissions "$@"
 else
     echo "📊 Telemetry enabled - starting PM with telemetry"
-    exec "$PROJECT_ROOT/telemetry/start_agent_with_telemetry.sh" PM "$@"
+    exec "$PROJECT_ROOT/telemetry/launch_claude_with_env.sh" PM "$@"
 fi

@@ -254,7 +254,7 @@ agent_send.sh PG1.1.1 "export VIBECODE_ROOT='$(pwd)'"
 agent_send.sh PG1.1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
 # hooksとtelemetryを手動設定
 agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/hooks/setup_agent_hooks.sh PG1.1.1 . event-driven"
-agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/start_agent_with_telemetry.sh PG1.1.1"
+agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1.1"
 ```
 
 **重要な注意事項**:
@@ -439,10 +439,10 @@ claude --dangerously-skip-permissions -c
 #### 3. telemetry付きでの再起動
 ```bash
 # 作業ディレクトリを確認してから
-./telemetry/start_agent_with_telemetry.sh [AGENT_ID] --continue
+./telemetry/launch_claude_with_env.sh [AGENT_ID] --continue
 
-# start_agent_with_telemetry.shは追加のclaude引数を受け付ける
-# 例: ./telemetry/start_agent_with_telemetry.sh SE1 --continue
+# launch_claude_with_env.shは追加のclaude引数を受け付ける
+# 例: ./telemetry/launch_claude_with_env.sh SE1 --continue
 ```
 
 #### 4. start_agent.shでの再起動（推奨）
