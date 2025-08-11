@@ -88,6 +88,8 @@ determine_agent_type() {
     local agent_id=$1
     if [[ "$agent_id" =~ ^(PM|SE|CI|CD) ]]; then
         echo "polling"
+    elif [[ "$agent_id" == "ID" ]] || [[ "$agent_id" =~ ^PG ]]; then
+        echo "event-driven"
     else
         echo "event-driven"
     fi

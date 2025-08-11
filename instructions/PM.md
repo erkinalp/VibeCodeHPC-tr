@@ -135,12 +135,13 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 7. STATUSペイン（pane 0）にIDエージェントを起動：
    ```bash
    # 事前準備：agent_and_pane_id_table.jsonlのSTATUSエントリーを確認
-   # 「待機中0」などの場合は「STATUS」または「ID」に更新
+   # 「待機中0」などの場合は「ID」に更新
    
-   # STATUSペインでIDエージェントを起動
-   # ⚠️ 重要：tmux send-keysはClaude起動前のみ使用
-   # Claude起動後は必ずagent_send.shを使用すること
-   tmux send-keys -t "Team1_Workers1:0.0" "claude --dangerously-skip-permissions" C-m
+   # IDディレクトリを作成（存在しない場合）
+   mkdir -p ID
+   
+   # IDエージェントを/IDディレクトリで起動
+   ./communication/start_agent.sh ID /ID
    
    # 他のエージェント起動準備などを進める（5秒程度）
    
@@ -150,8 +151,8 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    # 3秒以上待機（重要）
    sleep 3
    
-   # IDエージェントの初期化メッセージ（Claudeが起動済みなのでagent_send.shを使用）
-   agent_send.sh STATUS "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
+   # IDエージェントの初期化メッセージ
+   agent_send.sh ID "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
 
 まず以下のファイルを読み込んでください：
 - CLAUDE.md（共通ルール）
