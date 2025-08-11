@@ -29,6 +29,9 @@ mkdir -p "$AGENT_DIR/.claude/hooks"
 # session_start.pyをコピー（全エージェント共通）
 cp "$TEMPLATE_DIR/session_start.py" "$AGENT_DIR/.claude/hooks/"
 
+# agent_id.txtを作成
+echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
+
 # エージェントタイプに応じたstop hookをコピー
 if [ "$AGENT_TYPE" = "polling" ]; then
     cp "$TEMPLATE_DIR/stop_polling.py" "$AGENT_DIR/.claude/hooks/stop.py"

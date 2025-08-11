@@ -45,6 +45,12 @@ def update_agent_table(session_id, source):
         # 通常はここに来ないはずだが、念のため
         agent_working_dir = cwd
     
+    # agent_id.txtから読み取り
+    agent_id_file = cwd / "agent_id.txt"
+    target_agent_id = None
+    if agent_id_file.exists():
+        target_agent_id = agent_id_file.read_text().strip()
+    
     project_root = find_project_root(agent_working_dir)
     
     if not project_root:
@@ -70,6 +76,7 @@ def update_agent_table(session_id, source):
         f.write(f"cwd: {cwd}\n")
         f.write(f"relative_dir: {relative_dir}\n")
         f.write(f"project_root: {project_root}\n")
+        f.write(f"target_agent_id: {target_agent_id}\n")
     
     # ファイルを読み込んで更新
     updated_lines = []
@@ -82,6 +89,12 @@ def update_agent_table(session_id, source):
             f.write(f"WARNING: {table_file} does not exist\n")
         return None, None
     
+    if not target_agent_id:
+        # agent_id.txtが読み取れない場合のデバッグ情報
+        with open(debug_file, 'a') as f:
+            f.write(f"WARNING: agent_id.txt not found or empty at {cwd}\n")
+        return None, None
+    
     if table_file.exists():
         with open(table_file, 'r') as f:
             for line in f:
@@ -91,14 +104,14 @@ def update_agent_table(session_id, source):
                     
                 entry = json.loads(line)
                 
-                # working_dirでマッチング
+                # agent_idでマッチング
                 match_found = False
                 
-                # working_dirが存在する場合は比較（OS固有のパス形式をそのまま比較）
-                if 'working_dir' in entry and entry['working_dir'] == relative_dir:
+                # target_agent_idが取得できている場合はagent_idで比較
+                if target_agent_id and entry.get('agent_id') == target_agent_id:
                     match_found = True
                     with open(debug_file, 'a') as f:
-                        f.write(f"MATCH by working_dir: entry='{entry['agent_id']}' dir='{relative_dir}'\n")
+                        f.write(f"MATCH by agent_id: entry='{entry['agent_id']}' target='{target_agent_id}'\n")
                 
                 if match_found:
                     with open(debug_file, 'a') as f:
