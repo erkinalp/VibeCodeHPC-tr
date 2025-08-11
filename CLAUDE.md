@@ -47,6 +47,7 @@ PMまたは上位エージェントから初期化メッセージを受信した
 - `CLAUDE.md`（このファイル - 全エージェント共通ルール）
 - `instructions/[あなたの役割].md`（詳細な役割定義）
 - `Agent-shared/directory_map.txt`（エージェント配置と親子関係）
+- `requirement_definition.md`（ユーザの要件定義書）
 
 ### 3. 作業開始前の確認
 - 自身のエージェントIDを確認

@@ -76,6 +76,12 @@ def update_agent_table(session_id, source):
     agent_id = None
     agent_type = None
     
+    if not table_file.exists():
+        # ファイルが存在しない場合のデバッグ情報
+        with open(debug_file, 'a') as f:
+            f.write(f"WARNING: {table_file} does not exist\n")
+        return None, None
+    
     if table_file.exists():
         with open(table_file, 'r') as f:
             for line in f:
@@ -119,8 +125,17 @@ def update_agent_table(session_id, source):
                 updated_lines.append(json.dumps(entry, ensure_ascii=False))
         
         # ファイルを書き戻す
-        with open(table_file, 'w') as f:
-            f.write('\n'.join(updated_lines) + '\n')
+        try:
+            with open(table_file, 'w') as f:
+                f.write('\n'.join(updated_lines) + '\n')
+            
+            # デバッグ: 書き込み成功を記録
+            with open(debug_file, 'a') as f:
+                f.write(f"Successfully wrote {len(updated_lines)} lines to {table_file}\n")
+        except Exception as e:
+            # デバッグ: 書き込みエラーを記録
+            with open(debug_file, 'a') as f:
+                f.write(f"ERROR writing to {table_file}: {str(e)}\n")
     
     return agent_id, agent_type
 
@@ -234,8 +249,20 @@ def main():
         
         sys.exit(0)
         
-    except Exception:
-        # エラーは静かに処理
+    except Exception as e:
+        # エラーをデバッグログに記録
+        try:
+            from pathlib import Path
+            cwd = Path.cwd()
+            project_root = find_project_root(cwd)
+            if project_root:
+                debug_file = project_root / "Agent-shared" / "session_start_debug.log"
+                with open(debug_file, 'a') as f:
+                    f.write(f"\n[{datetime.utcnow()}] EXCEPTION in main(): {str(e)}\n")
+                    import traceback
+                    f.write(traceback.format_exc())
+        except:
+            pass
         sys.exit(0)
 
 
