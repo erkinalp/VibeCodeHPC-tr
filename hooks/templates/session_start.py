@@ -46,7 +46,7 @@ def update_agent_table(session_id, source):
         agent_working_dir = cwd
     
     # agent_id.txtから読み取り
-    agent_id_file = cwd / "agent_id.txt"
+    agent_id_file = cwd / ".claude" / "hooks" / "agent_id.txt"
     target_agent_id = None
     if agent_id_file.exists():
         target_agent_id = agent_id_file.read_text().strip()
@@ -92,7 +92,7 @@ def update_agent_table(session_id, source):
     if not target_agent_id:
         # agent_id.txtが読み取れない場合のデバッグ情報
         with open(debug_file, 'a') as f:
-            f.write(f"WARNING: agent_id.txt not found or empty at {cwd}\n")
+            f.write(f"WARNING: agent_id.txt not found or empty at {agent_id_file}\n")
         return None, None
     
     if table_file.exists():
