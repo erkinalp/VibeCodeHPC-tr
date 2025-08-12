@@ -9,8 +9,8 @@
 # ///
 
 """
-VibeCodeHPC Stop Hook (ポーリング型エージェント用)
-PM, SE, CI, CDの待機状態を防ぐ
+VibeCodeHPC Stop Hook v2 (ポーリング型エージェント用)
+PM, SE, CI, CDの待機状態を防ぐ - STOP回数制御版
 """
 
 import json
@@ -32,6 +32,31 @@ def find_project_root(start_path):
     return None
 
 
+def get_stop_count():
+    """現在のディレクトリのstop_count.txtから回数を取得"""
+    stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
+    
+    if stop_count_file.exists():
+        try:
+            return int(stop_count_file.read_text().strip())
+        except:
+            return 0
+    return 0
+
+
+def increment_stop_count():
+    """stop_count.txtをインクリメント"""
+    hooks_dir = Path.cwd() / ".claude" / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    
+    stop_count_file = hooks_dir / "stop_count.txt"
+    current_count = get_stop_count()
+    new_count = current_count + 1
+    
+    stop_count_file.write_text(str(new_count))
+    return new_count
+
+
 def get_agent_info_from_cwd():
     """現在のディレクトリから自分のエージェント情報を取得"""
     cwd = Path.cwd()
@@ -40,7 +65,13 @@ def get_agent_info_from_cwd():
     if not project_root:
         return None
     
-    # プロジェクトルートからの相対パス
+    # agent_id.txtから直接読み取り（session_start.pyと同じ方式）
+    agent_id_file = Path.cwd() / ".claude" / "hooks" / "agent_id.txt"
+    if agent_id_file.exists():
+        agent_id = agent_id_file.read_text().strip()
+        return {"agent_id": agent_id}
+    
+    # フォールバック：working_dirでマッチング
     try:
         relative_dir = str(cwd.relative_to(project_root))
         if relative_dir == ".":
@@ -57,22 +88,59 @@ def get_agent_info_from_cwd():
                 if not line or line.startswith('#'):
                     continue
                 entry = json.loads(line)
-                # working_dirでマッチング
                 if entry.get('working_dir') == relative_dir:
                     return entry
     
     return None
 
 
+def get_stop_threshold(agent_id):
+    """エージェント種別ごとのSTOP回数閾値を返す"""
+    if not agent_id:
+        return 30
+    
+    # プロジェクトルートを探す
+    project_root = find_project_root(Path.cwd())
+    if project_root:
+        threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
+        if threshold_file.exists():
+            try:
+                import json
+                with open(threshold_file, 'r') as f:
+                    config = json.load(f)
+                    thresholds = config.get('thresholds', {})
+                    
+                    # 完全一致をまず試す
+                    if agent_id in thresholds:
+                        return thresholds[agent_id]
+                    
+                    # プレフィックスマッチを試す
+                    for prefix in ['PM', 'CD', 'SE', 'CI']:
+                        if agent_id.startswith(prefix) and prefix in thresholds:
+                            return thresholds[prefix]
+            except:
+                pass
+    
+    # フォールバック値
+    if agent_id == "PM":
+        return 50
+    elif agent_id.startswith("CD"):
+        return 40
+    elif agent_id.startswith("SE"):
+        return 30
+    elif agent_id.startswith("CI"):
+        return 20
+    else:
+        return 30  # その他のエージェント用デフォルト
+
+
 def get_required_files(agent_id):
     """エージェントIDから必須ファイルリストを生成"""
-    # 共通の必須ファイル
     common_files = [
         "CLAUDE.md",
         "Agent-shared/directory_map.txt"
     ]
     
-    # 役割を抽出
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
@@ -89,31 +157,48 @@ def get_required_files(agent_id):
     return files
 
 
-def generate_block_reason(agent_info, stop_hook_active):
+def generate_block_reason(agent_info, stop_count):
     """ポーリング型エージェント用のブロック理由を生成"""
-    
-    # stop_hook_activeがtrueの場合は、繰り返しを防ぐ
-    if stop_hook_active:
-        return None
-    
     agent_id = agent_info.get('agent_id', 'unknown')
+    threshold = get_stop_threshold(agent_id)
+    
+    # 閾値に達した場合
+    if stop_count >= threshold:
+        reason = f"""
+⚠️ STOP回数が上限（{threshold}回）に達しました。
+
+エージェント {agent_id} として以下の終了前タスクを実行してください：
+
+1. PMへの終了通知:
+   agent_send.sh PM "[{agent_id}] STOP回数が上限に達しました。終了前の最終タスクを実行中です。"
+
+2. 最終タスク実行:
+   - 現在進行中のタスクを切りの良いところまで完了
+   - ChangeLog.mdの最終更新
+   - 作業ディレクトリの整理
+   - 成果物の確認
+
+3. 最終報告:
+   agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
+
+その後、exitコマンドで終了してください。
+"""
+        return reason
+    
+    # 通常のブロック理由
     required_files = get_required_files(agent_id)
     
     reason = f"""あなたはポーリング型のエージェント（{agent_id}）です。待機状態に入ることは許可されていません。
+[STOP試行: {stop_count}/{threshold}]
 
 以下のファイルを再度読み込んで、プロジェクトの最新状態を確認してください：
 {chr(10).join(f'- {file}' for file in required_files)}
-
-さらに、以下のディレクトリの内容を確認してください：
-- ls -R Agent-shared/
-- ls -R instructions/
-- ls -R communication/
 
 確認後、以下の並行タスクを進めてください：
 
 """
     
-    # 役割別の並行タスク
+    # 役割別の並行タスク（既存のコードから）
     if "PM" in agent_id:
         reason += """【PMの並行タスク】
 1. 全エージェントの進捗確認（SE、CI、PG、CDの巡回）
@@ -132,7 +217,6 @@ def generate_block_reason(agent_info, stop_hook_active):
 3. SOTA更新履歴のグラフ生成（Agent-shared/log_analyzer.py）
 4. CI待ち状態のPGの検出と対応
 5. visible_path_PG*.txtの更新
-
 """
     
     elif agent_id.startswith("CI"):
@@ -157,8 +241,9 @@ def generate_block_reason(agent_info, stop_hook_active):
 非同期でGitHub同期を進めてください。
 """
     
-    reason += """
+    reason += f"""
 それでも待機する必要がある場合は、sleep 10 等を使用してください。
+（残りSTOP試行可能回数: {threshold - stop_count}回）
 """
     
     return reason
@@ -171,37 +256,25 @@ def main():
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
         
-        # デバッグ情報をファイルに出力（開発時のみ）
-        # debug_file = Path("/tmp/opencodeat_stop_hook_debug.log")
-        # with open(debug_file, 'a') as f:
-        #     f.write(f"\n[{datetime.now()}] Stop hook called\n")
-        #     f.write(f"session_id: {session_id}\n")
-        #     f.write(f"stop_hook_active: {stop_hook_active}\n")
-        
-        # 自分のエージェント情報を取得（session_idは使わずcwdで判定）
+        # 自分のエージェント情報を取得
         agent_info = get_agent_info_from_cwd()
         
-        # デバッグ情報追加
-        # if debug_file.exists():
-        #     with open(debug_file, 'a') as f:
-        #         f.write(f"agent_info: {agent_info}\n")
-        
         if agent_info:
-            # ポーリング型エージェントの場合は停止をブロック
-            reason = generate_block_reason(agent_info, stop_hook_active)
+            # STOP回数をインクリメント
+            stop_count = increment_stop_count()
             
-            if reason:  # stop_hook_activeでない場合のみ
-                # 方法1: 終了コード2でstderrに出力（推奨）
+            # デバッグログ（必要に応じて有効化）
+            # debug_log = Path.cwd() / ".claude" / "hooks" / "stop_debug.log"
+            # with open(debug_log, 'a') as f:
+            #     f.write(f"[{datetime.now()}] Stop #{stop_count}, agent={agent_info.get('agent_id')}\n")
+            
+            # ポーリング型エージェントの場合は停止をブロック
+            reason = generate_block_reason(agent_info, stop_count)
+            
+            if reason:
+                # 終了コード2でstderrに出力
                 print(reason, file=sys.stderr)
                 sys.exit(2)
-                
-                # 方法2: JSON出力を使う場合（コメントアウト）
-                # output = {
-                #     "decision": "block",
-                #     "reason": reason
-                # }
-                # print(json.dumps(output, ensure_ascii=False))
-                # sys.exit(0)
         
         # 通常終了
         sys.exit(0)

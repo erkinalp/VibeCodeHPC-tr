@@ -34,7 +34,7 @@ echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
 
 # エージェントタイプに応じたstop hookをコピー
 if [ "$AGENT_TYPE" = "polling" ]; then
-    cp "$TEMPLATE_DIR/stop_polling.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    cp "$TEMPLATE_DIR/stop_polling_v2.py" "$AGENT_DIR/.claude/hooks/stop.py"
     # settings.jsonを作成（絶対パスを使用）
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {

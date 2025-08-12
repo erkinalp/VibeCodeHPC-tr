@@ -485,6 +485,58 @@ claude --dangerously-skip-permissions -c
 - 重要な作業前にChangeLog.mdへの記録を確実に行う
 - CDエージェントなど重要度の低いエージェントは後回しにして、コアエージェント（SE、CI、PG）を優先的に監視
 
+## 🏁 プロジェクト終了管理
+
+### STOP回数による自動終了
+ポーリング型エージェント（PM、SE、CI、CD）には終了を試みるSTOP回数の上限があります：
+- **PM**: 50回（最も高い閾値）
+- **CD**: 40回（非同期作業が多いため高め）
+- **SE**: 30回
+- **CI**: 20回
+
+#### 閾値管理
+- **設定ファイル**: `/Agent-shared/stop_thresholds.json`で一元管理
+- **個別調整**: requirement_definition.mdまたは設定ファイルで変更可能
+- **カウントリセット**: PMは各エージェントの`.claude/hooks/stop_count.txt`を直接編集可能
+  ```bash
+  # 例: SE1のカウントをリセット
+  echo "0" > Flow/TypeII/single-node/.claude/hooks/stop_count.txt
+  
+  # 例: CI1.1のカウントを10に設定
+  echo "10" > Flow/TypeII/single-node/intel2024/.claude/hooks/stop_count.txt
+  ```
+
+#### 閾値到達時の動作
+1. エージェントがPMに終了通知を送信
+2. エージェントは切りの良いところまで作業を完了
+3. 最終報告をPMに送信してから終了待機
+4. PMは状況に応じて：
+   - カウントをリセットして継続
+   - 該当エージェントのみ終了
+   - プロジェクト全体の終了手続きへ
+
+### プロジェクト終了手順
+1. **終了判断**
+   - 予算枯渇、目標達成、ユーザ指示のいずれかで終了決定
+   - 各エージェントのSTOP回数も参考にする
+
+2. **終了前処理**
+   - 全エージェントに終了通知（agent_send.sh使用）
+   - 実行中ジョブの完了待機または強制終了
+   - 重要データの保存
+
+3. **最終レポート生成**
+   - `/User-shared/final_report.md`の作成
+   - 成果物の集約とサマリー作成
+   - 未完了タスクのドキュメント化
+
+4. **クリーンアップ**
+   - SSH/SFTP接続の終了
+   - テレメトリの停止
+   - 一時ファイルの整理
+
+詳細は`/Agent-shared/project_termination_flow.md`を参照
+
 ## 🖼️ tmux全体監視（mcp-screenshot）
 
 ### 前提条件
