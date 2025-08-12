@@ -248,11 +248,10 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/
 # オプション：再起動時（記憶を維持）
 ./communication/start_agent.sh SE1 /path/to/workdir --continue
 
-# ステップ2: 並行作業（ToDoリスト活用）
-# Claude起動中に他のタスクを進める：
-# - 次のエージェントのstart_agent.sh実行
-# - directory_map.txt更新
-# - 予算確認など
+# ステップ2: 待機（重要！）
+# start_agent.shを同時に複数起動すると失敗するため、
+# 必ず1体ずつ順番に起動すること
+# Claude起動完了まで3秒以上待機してから次へ
 
 # ステップ3: 待機（重要！）
 # Claude起動直後は入力を受け付けない可能性があるため
