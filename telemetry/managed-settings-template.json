@@ -16,6 +16,6 @@
     "OTEL_METRICS_INCLUDE_VERSION": "false",
     "OTEL_METRICS_INCLUDE_ACCOUNT_UUID": "true",
     "OTEL_LOG_USER_PROMPTS": "0",
-    "OTEL_RESOURCE_ATTRIBUTES": "department=engineering,project=opencodeat"
+    "OTEL_RESOURCE_ATTRIBUTES": "department=engineering,project=vibecodehpc"
   }
 }

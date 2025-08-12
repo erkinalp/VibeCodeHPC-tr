@@ -17,15 +17,15 @@ processors:
         value: claude-code
         action: upsert
       - key: deployment.environment
-        value: opencodeat
+        value: vibecodehpc
         action: insert
 
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: opencodeat
+    namespace: vibecodehpc
     const_labels:
-      project: "opencodeat"
+      project: "vibecodehpc"
   
   otlphttp:
     endpoint: http://loki:3100/otlp

@@ -172,7 +172,7 @@ def main():
         stop_hook_active = input_data.get('stop_hook_active', False)
         
         # デバッグ情報をファイルに出力（開発時のみ）
-        # debug_file = Path("/tmp/opencodeat_stop_hook_debug.log")
+        # debug_file = Path("/tmp/vibecodehpc_stop_hook_debug.log")
         # with open(debug_file, 'a') as f:
         #     f.write(f"\n[{datetime.now()}] Stop hook called\n")
         #     f.write(f"session_id: {session_id}\n")

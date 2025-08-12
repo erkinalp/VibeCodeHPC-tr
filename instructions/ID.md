@@ -21,7 +21,7 @@
 - agent_and_pane_id_table.jsonl（ペイン情報の参照）
 
 ### 表示場所
-- STATUSペイン（opencodeatセッションの最初のペイン）
+- STATUSペイン（ワーカーセッションの最初のペイン）
 - 3-5行程度の狭い画面を想定
 
 ## 🔄 基本ワークフロー

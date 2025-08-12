@@ -161,7 +161,7 @@ flowchart TB
       style SessionHook fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
 ```
 
-詳細は [Issue #23: エージェント起動とhooksのセットアップの流れ](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/issues/23) を参照。
+詳細は [Issue #23: エージェント起動とhooksのセットアップの流れ](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/23) を参照。
 
 ### 2. コード最適化サイクル
 
