@@ -145,15 +145,13 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    # IDエージェントを/IDディレクトリで起動
    ./communication/start_agent.sh ID /ID
    
-   # 他のエージェント起動準備などを進める（5秒程度）
-   
-   # Claude起動確認（初回は特に重要）
-   tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "0: claude"
-   
    # 3秒以上待機（重要）
+   # Claude起動直後は入力を受け付けない可能性があるため
    sleep 3
    
    # IDエージェントの初期化メッセージ
+   # 重要: 初回起動時はメッセージ送信前には必ず"bash"と表示される
+   # メッセージ送信後、処理中のみ"claude"と表示される
    agent_send.sh ID "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
 
 まず以下のファイルを読み込んでください：
@@ -257,11 +255,10 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/
 # Claude起動直後は入力を受け付けない可能性があるため
 sleep 3  # 並行作業を行った場合は時間経過しているため省略可
 
-# ステップ4: 起動確認（特に初回は必須）
-# agent_and_pane_id_table.jsonlでセッション名とペイン番号を確認
-tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
-
-# ステップ5: 初期化メッセージ送信（待機後）
+# ステップ4: 初期化メッセージ送信
+# 重要: claudeが入力待機中の場合、tmux list-panesでは"bash"と表示される
+# 稼働中（処理中）の時のみ"claude"と表示されるため、
+# 初回起動時の確認は無意味。まずメッセージを送信する
 agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
 
 まず以下のファイルを読み込んでプロジェクトを理解してください：
@@ -271,6 +268,12 @@ agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント�
 - Agent-shared/directory_map.txt（エージェント配置）
 
 読み込み完了後、現在のディレクトリ（pwd）を確認し、自分の役割に従って作業を開始してください。"
+
+# ステップ5: 起動確認（オプション）
+# メッセージ送信後、エージェントが処理中であることを確認
+# claudeが処理中の場合のみ"claude"と表示される
+tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
+# 注: 処理が終わって待機状態に戻ると再び"bash"と表示される
 ```
 
 ### hooks機能の自動設定
@@ -494,10 +497,15 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 
 # 出力例：
-# 0: claude  （IDエージェントが実行中）
-# 1: bash    （エージェント未起動またはClaude終了）
-# 2: claude  （CI1.1が実行中）
-# 3: bash    （エージェント未起動またはClaude終了）
+# 0: bash    （IDが待機中または停止）
+# 1: bash    （SE1が待機中または停止）
+# 2: claude  （CI1.1が処理中）
+# 3: bash    （PG1.1.1が待機中または停止）
+
+# 重要: "bash"表示は以下の2つの状態を示す
+# 1. Claudeが正常に起動して入力待機中
+# 2. Claudeが停止してbashに戻っている
+# "claude"表示はエージェントが処理中の時のみ
 
 # 特定のエージェントIDとペインの対応は
 # Agent-shared/agent_and_pane_id_table.jsonl を参照
