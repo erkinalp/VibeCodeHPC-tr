@@ -558,13 +558,37 @@ claude --dangerously-skip-permissions -c
 ./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
 ```
 
+### エージェントの緊急一時停止（PMの特権機能）
+処理が暴走したエージェントを一時停止する必要がある場合：
+
+```bash
+# 1. まず処理中のエージェントを確認
+tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
+# "claude"と表示されているペインのみが対象
+
+# 2. ESCキーを送信して強制停止（例：ペイン3のPG1.1.1を停止）
+tmux send-keys -t Team1_Workers1:0.3 Escape
+
+# 3. エージェントは"Interrupted by user"と表示され待機状態になる
+# Claude Code自体は終了せず、メモリも保持される
+
+# 4. 再開するには通常のメッセージを送信
+agent_send.sh PG1.1.1 "[PM] 処理を再開してください。先ほどの続きから始めてください。"
+```
+
+**重要な制限事項**:
+- ESCキー送信は**処理中（"claude"表示）のエージェントにのみ**使用可能
+- 待機中（"bash"表示）のペインに送信するとtmuxペインが崩れる可能性
+- agent_send.shではESCキー相当の制御文字は送信できない
+- 再起動は不要で、メッセージ送信だけで再開可能
+
 ### 注意事項
 - **--continueオプションを忘れずに**: これがないと、エージェントの記憶（コンテキスト）が失われます
 - **EOFシグナル（Ctrl+D）は送信しない**: エージェントが終了してしまいます
 - **構文エラーに注意**: 特殊文字を含むコマンドは適切にエスケープしてください
 - **tmux send-keysとagent_send.shの使い分け**:
-  - `tmux send-keys`: Claude起動前のコマンド送信（例：claude起動コマンド自体）
-  - `agent_send.sh`: Claude起動後のメッセージ送信（初期化メッセージ等）
+  - `tmux send-keys`: Claude起動前のコマンド送信、ESCキーなどの制御文字送信
+  - `agent_send.sh`: Claude起動後の通常メッセージ送信
 
 ### 予防策
 - 定期的にエージェントの生存確認を行う
