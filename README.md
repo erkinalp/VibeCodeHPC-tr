@@ -105,21 +105,63 @@ VibeCodeHPC/🤖PM
 - **特徴**: 一連のタスクを順次実行し、各ステップで判断
 - **例**: 要件定義→環境調査→階層設計→エージェント配置
 
-### 1. プロジェクト初期化
+### 1. エージェント起動時のhooksセットアップ
 
 ```mermaid
-sequenceDiagram
-    participant User
-    participant PM as PM
-    participant SE as SE
-    
-    User->>PM: requirement_definition.md
-    PM->>PM: 要件分析・リソース計画
-    PM->>PM: エージェント配置決定
-    PM->>PM: directory_map.txt作成・更新
-    PM->>SE: 配置完了通知
-    SE->>SE: エージェント監視開始
+flowchart TB
+      %% 起動スクリプトの包含関係
+      subgraph StartScripts["🚀 起動スクリプト"]
+      User[👤 ユーザー] 
+      PM[🤖 PM]
+      User -->StartPM[start_PM.sh<br/>PMプロセス専用]
+      PM -->StartAgent[start_agent.sh<br/>他エージェント用]
+
+          StartPM -->|直接実行| LaunchClaude
+          StartAgent -->|生成| LocalScript[start_agent_local.sh]
+          LocalScript -->|実行| LaunchClaude
+      end
+
+      %% 共通処理の流れ
+      subgraph CommonFlow["🔄 共通処理フロー"]
+          LaunchClaude[launch_claude_with_env.sh]
+          LaunchClaude -->|1.hooks設定判定| SetupHooks[setup_agent_hooks.sh]
+          LaunchClaude -->|2.telemetry設定判定| EnvSetup[環境変数設定<br/>.env読み込み]
+          LaunchClaude -->|3.claude --dangerously-skip-permissions| Claude[claude --dangerously-skip-permissions]
+      end
+
+      %% データフロー
+      subgraph DataFlow["💾 データ管理"]
+          SetupHooks -->|配置| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>agent_id.txt ]
+
+          LocalScript -->|working_dir記録| JSONL
+          Claude -->|SessionStartイベント| SessionHook[session_start.py]
+          SessionHook -->|agent_id.txt参照<br/>claude_session_id記録| JSONL
+
+          JSONL[(agent_and_pane_id_table.jsonl)]
+      end
+
+      %% Stop hookの動作フロー
+      Claude[claude起動] -->|Stopイベント| StopHook[stop.py実行]
+      StopHook -->|polling型| PreventWait[待機防止タスク提示]
+
+      %% スタイリング
+      style StartScripts fill:#fff8fc,stroke:#c2185b,stroke-width:2px
+
+      style CommonFlow fill:#e3f2fd,stroke:#0288d1,stroke-width:3px
+
+      style User fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+      style PM fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+      style LaunchClaude fill:#e1f5fe,stroke:#0288d1,stroke-width:3px
+
+      style JSONL fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+      style JSONL fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+
+      style HooksDir fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
+      style StopHook fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
+      style SessionHook fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
 ```
+
+詳細は [Issue #23: エージェント起動とhooksのセットアップの流れ](https://github.com/Katagiri-Hoshino-Lab/OpenCodeAT-jp/issues/23) を参照。
 
 ### 2. コード最適化サイクル
 
@@ -138,6 +180,10 @@ sequenceDiagram
     PG->>PG: SOTA判定・分析
     SE->>SE: 統計分析・可視化（非同期）
 ```
+
+### 3. プロジェクト終了管理
+
+プロジェクトの終了条件とフローチャートは [Issue #33: プロジェクト終了条件と手順](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/33) を参照してください。
 
 # 🚀 クイックスタート
 
@@ -176,6 +222,68 @@ cd VibeCodeHPC-jp-{バージョン}
 
 ---
 
+### ☑️ **SSHエージェントの設定 (ssh-agent)**
+- スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
+- ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
+  
+  ssh-agentを起動：
+  ```bash
+  eval "$(ssh-agent -s)"
+  ```
+  
+  秘密鍵を追加：
+  ```bash
+  ssh-add ~/.ssh/your_private_key
+  ```
+- 確認コマンド
+  ```bash
+  ssh-add -l
+  ```
+> [!NOTE]
+> このターミナルを閉じるまでは有効で、tmuxのターミナル分割でも引き継がれます。
+
+
+---
+
+### ☑️ **Claude Codeのインストールと認証**
+- Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
+- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
+- 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
+  ```bash
+  npm install -g @anthropic-ai/claude-code
+  claude
+  ```
+
+
+### ☑️ **推奨ツールのインストール**
+<details>
+<summary>jq と uv のインストール方法（クリックで展開）</summary>
+
+VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
+
+#### **jq** - JSONLファイル解析用
+```bash
+# Ubuntu/WSL
+sudo apt install jq
+
+# macOS
+brew install jq
+```
+> エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
+
+#### **uv** - Python高速実行環境（Claude Code hooks用）
+```bash
+# Linux/macOS/WSL
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# または pip経由
+pip install uv
+```
+> Claude Code hooksでPythonスクリプトを高速実行します。uvがない場合は通常のPythonで代替されます
+</details>
+
+---
+
 ### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
 GitHubのGUIでリポジトリ作成（Privateも可）
 
@@ -187,14 +295,20 @@ Gitの設定済み情報が表示するコマンド
 ```bash
 git config -l
 ```
+
+もしuser.emailとuser.nameが設定されていない場合：
+```bash
+git config --global user.email xxx@yyy.zzz
+git config --global user.name YOUR_GITHUB_NAME
+```
+
 GitHubディレクトリの初期設定
 ```bash
 git init
 ```
-GitHubアカウント情報を登録
+
+リモートリポジトリの設定
 ```bash
-git config --global user.email xxx@yyy.zzz
-git config --global user.name YOUR_GITHUB_NAME
 git remote add origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 # 既に origin がある場合は:
 git remote set-url origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
@@ -228,70 +342,6 @@ gh auth login
 ```
 ブラウザ経由でログイン
 </details>
-
----
-
-### ☑️ **SSHエージェントの設定 (ssh-agent)**
-- スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
-- ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
-  
-  ssh-agentを起動：
-  ```bash
-  eval "$(ssh-agent -s)"
-  ```
-  
-  秘密鍵を追加：
-  ```bash
-  ssh-add ~/.ssh/your_private_key
-  ```
-- 確認コマンド
-  ```bash
-  ssh-add -l
-  ```
-> [!NOTE]
-> このターミナルを閉じるまでは有効で、tmuxのターミナル分割でも引き継がれます。
-
-
----
-
-### ☑️ **Claude Codeのインストールと認証**
-- Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
-- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
-- 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
-  ```bash
-  npm install -g @anthropic-ai/claude-code
-  claude
-  ```
-
-> [!TIP]
-> JSONLログ解析やサブエージェント機能を活用する場合は、jqのインストールを推奨:
-> ```bash
-> # Ubuntu/WSL: sudo apt install jq
-> # macOS: brew install jq
-> ```
-
-### ☑️ **推奨ツールのインストール**
-VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
-
-#### **jq** - JSONLファイル解析用
-```bash
-# Ubuntu/WSL
-sudo apt install jq
-
-# macOS
-brew install jq
-```
-> エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
-
-#### **uv** - Python高速実行環境（Claude Code hooks用）
-```bash
-# Linux/macOS/WSL
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# または pip経由
-pip install uv
-```
-> Claude Code hooksでPythonスクリプトを高速実行します。uvがない場合は通常のPythonで代替されます
 
 ---
 
@@ -360,11 +410,6 @@ http://localhost:3000
 環境変数で無効化:
 ```bash
 export VIBECODE_ENABLE_TELEMETRY=false
-```
-
-または起動時に指定:
-```bash
-VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path
 ```
 
 #### 代替案: ccusage（簡易確認）
@@ -469,11 +514,7 @@ cp requirement_definition_template.md requirement_definition.md
 
 PMを起動
 ```bash
-# pm_sessionで以下を実行:
 ./start_PM.sh
-
-# 注: MCPサーバは事前設定済みのため、exitやrestartは不要
-# 注: hooks設定、プロジェクト開始時刻記録、telemetry起動を自動化
 ```
 
 <details>
@@ -486,8 +527,8 @@ PMを起動
 # 最小構成（hooks・telemetryなし）
 claude --dangerously-skip-permissions
 
-# telemetryのみ無効化
-VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
+# telemetryのみ無効化（PM起動時）
+VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 # ⚠️ hooksの無効化は非推奨（ポーリング型エージェントが待機してしまう）
 # どうしても無効化したい場合は、プロジェクト開始前に以下を実行：
@@ -506,27 +547,7 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PM .
 - **auto-compact対策**: コンテキストリセット後に必須ファイルの再読み込みを促進
 - **session_id追跡**: 各エージェントのClaude session_idを記録・管理
 
-#### エージェント起動方法
-シンプル化された`start_agent.sh`により、エージェントの起動が簡単になりました：
-
-```bash
-# 基本的な使用方法
-./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
-
-# テレメトリを無効化
-VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/workdir
-
-# エージェント再起動時（記憶を維持）
-./communication/start_agent.sh SE1 /path/to/workdir --continue
-```
-
-#### 動作の仕組み
-1. **環境変数設定**: `VIBECODE_ROOT`をプロジェクトルートに設定
-2. **ディレクトリ移動**: エージェントを指定ディレクトリに移動
-3. **ローカルスクリプト生成**: `start_agent_local.sh`を作業ディレクトリに作成
-4. **Claude起動**: hooks設定とtelemetry設定に基づいてClaude Codeを起動
-
-⚠️ hooks無効化は非推奨 - 全エージェントが影響を受ける可能性があります
+⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機してしまう可能性があります
 
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 
@@ -556,7 +577,7 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 - CLAUDE.md（全エージェント共通ルール）
 - instructions/PM.md（あなたの役割詳細）
 - requirement_definition.md（プロジェクト要件）※存在する場合
-- Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイル、_template、_exampleを除く）
+- Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイルを除く）
 
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
