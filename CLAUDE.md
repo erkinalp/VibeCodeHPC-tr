@@ -36,7 +36,6 @@
 - **CI (Continuous Integration)**: @instructions/CI.md - SSH接続・環境構築・リモート実行
 - **PG (Program Generator)**: @instructions/PG.md - コード生成・最適化実装
 - **CD (Code Deployment)**: @instructions/CD.md - GitHub管理・セキュリティ対応
-- **ID (Information Display)**: @instructions/ID.md - エージェント配置の可視化・STATUSペイン表示
 
 ## 基本フロー
 PM → SE → CI ↔ PG → PM
@@ -70,7 +69,7 @@ PM、SE、CI、CDは以下のタイミングで関連ファイルを再確認：
 ## エージェント動作パターン
 各エージェントは以下の3つの動作パターンのいずれかで動作する：
 
-### 1. **イベントドリブン型** (PG, ID)
+### 1. **イベントドリブン型** (PG)
 - **特徴**: メッセージ受信時にのみ反応し、完了後は待機
 - **例**: PGがコード生成→CIに実行依頼→結果待ち→次の最適化
 
@@ -88,6 +87,10 @@ Agent-shared\directory_map.txtを最初に読み込み
 pwdなどのコマンドで自分のカレントディレクトリと
 与えられた役割にずれが無いことを確認すること。
 組織図は更新されるので、適宜参照すること
+
+## エージェント配置の可視化
+- `/directory_pane_map.md`: tmuxペイン配置を色分けで可視化（PMが作成・更新）
+- テンプレート: `/Agent-shared/directory_pane_map_example.md`を参照
 
 ## 💰予算管理 (PMが集約管理)
 - **予算追跡**: PMは`pjstat`等でスパコンの使用ポイントを定期的に確認

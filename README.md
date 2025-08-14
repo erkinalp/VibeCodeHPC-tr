@@ -46,7 +46,6 @@ graph TD
 | **CI** | ビルド・実行 | hardware_info.md<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
 | **PG** | コード生成 | ChangeLog.md<br/>sota_local.txt | 並列化実装・性能測定・SOTA判定 |
 | **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
-| **ID** | 情報表示 | エージェント配置図 | tmux全体の可視化 |
 
 ## 📁 ディレクトリ構造
 
@@ -73,8 +72,6 @@ VibeCodeHPC/🤖PM
 │   ├── 🔧 agent_send.sh
 │   └── 🔧 setup.sh
 │
-├── 📁 ID/🤖ID                       # 情報表示エージェント
-│
 ├── 📁 GitHub/🤖CD
 │
 └── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
@@ -93,7 +90,7 @@ VibeCodeHPC/🤖PM
 
 ### エージェント動作パターン
 
-#### **📨 イベントドリブン型** (PG, ID)
+#### **📨 イベントドリブン型** (PG)
 - **特徴**: メッセージ受信時にのみ反応し、完了後は待機
 - **例**: PGがコード生成→CIに実行依頼→結果待ち→次の最適化
 
@@ -402,9 +399,6 @@ http://localhost:3000
 - ユーザー名: `admin`
 - パスワード: `admin`
 
-<details>
-<summary>その他の監視オプション（クリックで展開）</summary>
-
 #### テレメトリの無効化（軽量動作）
 
 環境変数で無効化:
@@ -420,8 +414,6 @@ npx ccusage@latest
 ```
 
 [ccusage](https://github.com/ryoppippi/ccusage)は、JSONLログからトークン使用量を分析するCLIツールです。
-
-</details>
 
 ![Grafana起動成功時の画面表示例](_images/Grafana.png)
 
@@ -451,7 +443,7 @@ npx ccusage@latest
 > - **PMセッション**: PMエージェント専用（ユーザとの対話用）
 >   - デフォルト: `Team1_PM`
 >   - プロジェクト指定時: `{ProjectName}_PM`
-> - **ワーカーセッション**: その他のエージェント（SE, CI, PG, CD, ID）
+> - **ワーカーセッション**: その他のエージェント（SE, CI, PG, CD）
 >   - デフォルト: `Team1_Workers1`
 >   - プロジェクト指定時: `{ProjectName}_Workers1`
 > 
@@ -459,7 +451,7 @@ npx ccusage@latest
 
 ```bash
 cd VibeCodeHPC-jp-main
-./communication/setup.sh [ワーカー数(PM除く)]  # 例: ./communication/setup.sh 11
+./communication/setup.sh [ワーカー数]  # 例: ./communication/setup.sh 12
 
 # コマンドラインオプション:
 #   [ワーカー数]     : PM以外のエージェント総数 (最小: 3)
@@ -469,7 +461,7 @@ cd VibeCodeHPC-jp-main
 #   --help           : ヘルプメッセージを表示
 
 # プロジェクト名指定例:
-./communication/setup.sh 11 --project GEMM  # GEMM_PM, GEMM_Workers1 セッションを作成
+./communication/setup.sh 12 --project GEMM  # GEMM_PM, GEMM_Workers1 セッションを作成
 ```
 
 #### 参考構成例（実際の配置はPMが決定）

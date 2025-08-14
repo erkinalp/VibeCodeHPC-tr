@@ -3,7 +3,7 @@
 ## 概要
 Claude Code hooksは、エージェントの挙動を制御する仕組みです。特に：
 - **ポーリング型エージェント（PM, SE, CI, CD）**: 待機状態を防ぎ、常にアクティブに保つ
-- **イベント駆動型エージェント（PG, ID）**: 通常通り待機を許可
+- **イベント駆動型エージェント（PG）**: 通常通り待機を許可
 - **全エージェント**: auto-compact後の必須ファイル再読み込みを促す
 
 ## 自動配置（推奨）
@@ -29,7 +29,7 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
 ```bash
 # エージェントタイプを確認
 # PM, SE, CI, CD → polling
-# PG, ID → event-driven
+# PG → event-driven
 
 # hooksを配置
 ./hooks/setup_agent_hooks.sh SE1 /path/to/SE1/workdir polling
@@ -58,7 +58,7 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
   - CI: 常時（非同期対応）
   - CD: 非同期（GitHub同期）
 
-### イベント駆動型（PG, ID）
+### イベント駆動型（PG）
 - **Stop hook**: 通常通り待機を許可
 - **SessionStart hook**: 新規起動時に必須ファイルリスト提示
 

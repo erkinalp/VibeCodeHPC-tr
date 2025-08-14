@@ -70,7 +70,6 @@ get_agent_role() {
         "CI") echo "SSH・ビルド・実行" ;;
         "PG") echo "コード生成・最適化" ;;
         "CD") echo "GitHub・デプロイ管理" ;;
-        "ST") echo "状態表示・監視" ;;
         *) echo "専門エージェント" ;;
     esac
 }
@@ -78,11 +77,6 @@ get_agent_role() {
 # エージェント色コード取得（グループ対応）
 get_agent_color() {
     local agent_name="$1"
-    
-    if [ "$agent_name" = "STATUS" ]; then
-        echo "1;37"  # 白
-        return
-    fi
     
     case "${agent_name:0:2}" in
         "PM") echo "1;35" ;;  # マゼンタ
@@ -175,7 +169,7 @@ show_agents() {
     fi
     
     # エージェント種別ごとに表示
-    local agent_types=("PM" "SE" "CI" "PG" "CD" "STATUS")
+    local agent_types=("PM" "SE" "CI" "PG" "CD")
     
     for type in "${agent_types[@]}"; do
         echo ""
@@ -183,7 +177,7 @@ show_agents() {
         local found=false
         
         for agent in "${!AGENT_MAP[@]}"; do
-            if [[ "$agent" =~ ^${type} ]] || [[ "$agent" == "STATUS" && "$type" == "STATUS" ]]; then
+            if [[ "$agent" =~ ^${type} ]]; then
                 local target="${AGENT_MAP[$agent]}"
                 local role=$(get_agent_role "$agent")
                 local color=$(get_agent_color "$agent")
@@ -264,11 +258,6 @@ broadcast_message() {
     echo "================================"
     
     for agent in "${!AGENT_MAP[@]}"; do
-        # STATUS paneはスキップ
-        if [[ "$agent" == "STATUS" ]]; then
-            continue
-        fi
-        
         local target="${AGENT_MAP[$agent]}"
         
         if send_message "$target" "$message" "$agent"; then

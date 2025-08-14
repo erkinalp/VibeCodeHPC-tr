@@ -41,7 +41,6 @@ VibeCodeHPC📂
 ├── CLAUDE.md📄 (共通の指示)
 ├── assign_history.txt📄 (エージェントのアサイン記録)
 ├── 🤖🥇(PM)
-├── ID📁🤖(ID)
 ├── GitHub📁🤖(CD)
 └── Flow/TypeII📂
     └── single-node📂
@@ -70,7 +69,6 @@ VibeCodeHPC📂
 ├── CLAUDE.md📄 (共通の指示)
 ├── assign_history.txt📄 (エージェントのアサイン記録)
 ├── 🤖🥇(PM)
-├── ID📁🤖(ID)
 ├── GitHub📁🤖(CD)
 └── Flow/TypeII📂
     └── single-node📂
@@ -104,7 +102,6 @@ VibeCodeHPC📂
 ├── CLAUDE.md📄 (共通の指示)
 ├── assign_history.txt📄 (エージェントのアサイン記録)
 ├── 🤖🥇(PM)
-├── ID📁🤖(ID)
 ├── GitHub📁🤖(CD)
 └── Flow/TypeII📂
     ├── single-node📂

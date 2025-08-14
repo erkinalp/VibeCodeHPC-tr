@@ -134,33 +134,14 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
    - 性能指標、ログパス規則、その他プロジェクト固有ルールを定義
 6. **重要**: setup.shで作成されたセッション（デフォルト：Team1_Workers1）を使用する
-7. STATUSペイン（pane 0）にIDエージェントを起動：
-   ```bash
-   # 事前準備：agent_and_pane_id_table.jsonlのSTATUSエントリーを確認
-   # 「待機中0」などの場合は「ID」に更新
-   
-   # IDディレクトリを作成（存在しない場合）
-   mkdir -p ID
-   
-   # IDエージェントを/IDディレクトリで起動
-   ./communication/start_agent.sh ID /ID
-   
-   # 3秒以上待機（重要）
-   # Claude起動直後は入力を受け付けない可能性があるため
-   sleep 3
-   
-   # IDエージェントの初期化メッセージ
-   # 重要: 初回起動時はメッセージ送信前には必ず"bash"と表示される
-   # メッセージ送信後、処理中のみ"claude"と表示される
-   agent_send.sh ID "あなたはID（Information Display）エージェントです。STATUSペインでエージェント配置情報を表示してください。
-
-まず以下のファイルを読み込んでください：
-- CLAUDE.md（共通ルール）
-- instructions/ID.md（あなたの役割）
-
-その後、directory_map.txtを読み込んで初期表示を開始してください。"
-   ```
-8. その他のペインに各エージェントを配置（SE、CI、PG、CD）
+   - setup.sh実行時はワーカー数を直接指定（例: `./setup.sh 12` で12ワーカー）
+   - IDエージェントは廃止され、全ペインがワーカー用となる
+7. **エージェント配置可視化**：
+   - `/directory_pane_map.md`を作成（`/Agent-shared/directory_pane_map_example.md`を参考）
+   - tmuxペイン配置を色分けされた絵文字で視覚的に管理
+   - エージェント配置変更時は必ずこのファイルを更新
+   - ワーカー数に応じた配置図（4x3、3x3等）を記載
+8. 各ペインにエージェントを配置（SE、CI、PG、CD）
 
 
 
@@ -334,9 +315,9 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
    - エージェント起動完了後
    - エージェント移動完了後
    - プロジェクトフェーズ移行時
-6. **IDエージェントへの通知**:
-   - directory_map.txt更新後は必ずIDに通知
-   - 例: `agent_send.sh ID "[更新] directory_map更新完了"`
+6. **配置可視化の更新**:
+   - directory_map.txt更新後は/directory_pane_map.mdも更新
+   - tmuxペイン配置と色分けを最新状態に維持
 #### セマフォ風エージェント管理
 タスクを完了したコード生成Worker：PGm.n.k（m,n,kは自然数）がSSHエージェント：CIm.nの最後の一人で、このPGが別のディレクトリに移動するなら、このCIも異動する必要がある。
 
@@ -405,7 +386,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 
 #### SE配置の推奨
-- **8名以上のプロジェクト（PM、IDを含めて10体以上）**: SE2名配置を強く推奨
+- **8名以上のプロジェクト（PMを含めて9体以上）**: SE2名配置を強く推奨
   - SE1のみ: 巡回監視に追われ、深い分析が困難
   - SE2名: 監視と分析の分業により、大幅な価値向上（SE:1 << SE:2）
   - それ以上: 収穫逓減（SE:2 < SE:3 < SE:4）
@@ -512,10 +493,10 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 
 # 出力例：
-# 0: bash    （IDが待機中または停止）
-# 1: bash    （SE1が待機中または停止）
-# 2: claude  （CI1.1が処理中）
-# 3: bash    （PG1.1.1が待機中または停止）
+# 0: bash    （SE1が待機中または停止）
+# 1: claude  （CI1.1が処理中）
+# 2: bash    （PG1.1.1が待機中または停止）
+# 3: bash    （PG1.1.2が待機中または停止）
 
 # 重要: "bash"表示は以下の2つの状態を示す
 # 1. Claudeが正常に起動して入力待機中

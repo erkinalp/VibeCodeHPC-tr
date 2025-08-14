@@ -112,8 +112,8 @@ generate_agent_names() {
     
     local agents=()
     
-    # 左上に状態表示paneを追加
-    agents+=("STATUS")
+    # 旧コード（削除予定）
+    # agents+=("STATUS")
     
     # SE
     for ((i=1; i<=se_count; i++)); do
@@ -285,21 +285,24 @@ EOF
     chmod +x "$script_file"
 }
 
-# メインエージェントセッション作成
-create_main_session() {
-    local total_panes=$1  # ユーザ入力数 + 1 (STATUS用)
+# 単一ワーカーセッション作成（12ペインまで）
+create_single_worker_session() {
+    local session_name=$1
+    local start_pane=$2
+    local end_pane=$3
+    local panes_in_session=$((end_pane - start_pane + 1))
     
-    log_info "📺 メインエージェントセッション作成開始: $WORKER_SESSION (${total_panes}ペイン)..."
+    log_info "📺 ワーカーセッション作成: $session_name (${panes_in_session}ペイン)..."
     
     # 固定レイアウト計算
     local cols rows
-    if [ $total_panes -le 4 ]; then
+    if [ $panes_in_session -le 4 ]; then
         cols=2; rows=2
-    elif [ $total_panes -le 9 ]; then
+    elif [ $panes_in_session -le 9 ]; then
         cols=3; rows=3
-    elif [ $total_panes -le 12 ]; then
-        cols=3; rows=4
-    elif [ $total_panes -le 16 ]; then
+    elif [ $panes_in_session -le 12 ]; then
+        cols=4; rows=3  # 4列x3行（標準設定）
+    elif [ $panes_in_session -le 16 ]; then
         cols=4; rows=4
     else
         cols=5; rows=4
@@ -308,46 +311,74 @@ create_main_session() {
     log_info "グリッド構成: ${cols}列 x ${rows}行"
     
     # セッションを作成
-    tmux new-session -d -s "$WORKER_SESSION" -n "hpc-agents"
+    tmux new-session -d -s "$session_name" -n "hpc-agents"
     
     # セッションが作成されたか確認
-    if ! tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
-        log_error "${WORKER_SESSION}セッションの作成に失敗しました"
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        log_error "${session_name}セッションの作成に失敗しました"
         return 1
     fi
     
     sleep 1
     
-    # グリッド作成
+    # グリッド作成（エラーハンドリング付き）
     local pane_count=1
+    local creation_failed=false
     
     # 最初の列を作成
-    for ((j=1; j < rows && pane_count < total_panes; j++)); do
-        tmux split-window -v -t "${WORKER_SESSION}:hpc-agents"
-        ((pane_count++))
+    for ((j=1; j < rows && pane_count < panes_in_session; j++)); do
+        if ! tmux split-window -v -t "${session_name}:hpc-agents" 2>&1 | grep -q "no space for new pane"; then
+            ((pane_count++))
+        else
+            log_error "⚠️ ペイン作成失敗: no space for new pane (ペイン $pane_count/$panes_in_session)"
+            creation_failed=true
+            break
+        fi
     done
     
-    # 残りの列を作成
-    for ((i=1; i < cols && pane_count < total_panes; i++)); do
-        tmux select-pane -t "${WORKER_SESSION}:hpc-agents.0"
-        tmux split-window -h -t "${WORKER_SESSION}:hpc-agents"
-        ((pane_count++))
-        
-        for ((j=1; j < rows && pane_count < total_panes; j++)); do
-            tmux split-window -v -t "${WORKER_SESSION}:hpc-agents"
-            ((pane_count++))
+    # 残りの列を作成（最初の列で失敗していない場合のみ）
+    if [ "$creation_failed" = false ]; then
+        for ((i=1; i < cols && pane_count < panes_in_session; i++)); do
+            tmux select-pane -t "${session_name}:hpc-agents.0"
+            if ! tmux split-window -h -t "${session_name}:hpc-agents" 2>&1 | grep -q "no space for new pane"; then
+                ((pane_count++))
+            else
+                log_error "⚠️ ペイン作成失敗: no space for new pane (ペイン $pane_count/$panes_in_session)"
+                creation_failed=true
+                break
+            fi
+            
+            if [ "$creation_failed" = false ]; then
+                for ((j=1; j < rows && pane_count < panes_in_session; j++)); do
+                    if ! tmux split-window -v -t "${session_name}:hpc-agents" 2>&1 | grep -q "no space for new pane"; then
+                        ((pane_count++))
+                    else
+                        log_error "⚠️ ペイン作成失敗: no space for new pane (ペイン $pane_count/$panes_in_session)"
+                        creation_failed=true
+                        break
+                    fi
+                done
+            fi
         done
-    done
+    fi
+    
+    # ペイン作成が失敗した場合、作成できたペイン数を返す
+    if [ "$creation_failed" = true ]; then
+        log_error "❌ 要求された ${panes_in_session} ペインのうち、${pane_count} ペインのみ作成可能"
+        # セッションを削除して失敗を返す
+        tmux kill-session -t "$session_name" 2>/dev/null
+        return 1
+    fi
     
     # レイアウト調整
-    tmux select-layout -t "${WORKER_SESSION}:hpc-agents" tiled
+    tmux select-layout -t "${session_name}:hpc-agents" tiled
     
     # 全ペインの初期化
-    local pane_indices=($(tmux list-panes -t "${WORKER_SESSION}:hpc-agents" -F "#{pane_index}"))
+    local pane_indices=($(tmux list-panes -t "${session_name}:hpc-agents" -F "#{pane_index}"))
     
     for i in "${!pane_indices[@]}"; do
         local pane_index="${pane_indices[$i]}"
-        local pane_target="${WORKER_SESSION}:hpc-agents.${pane_index}"
+        local pane_target="${session_name}:hpc-agents.${pane_index}"
         
         tmux send-keys -t "$pane_target" "cd $PROJECT_ROOT" C-m
         
@@ -360,8 +391,10 @@ create_main_session() {
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc" C-m
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" C-m
         
-        if [ $i -eq 0 ]; then
-            # 最初のペインはSTATUS用
+        # 全ペインをワーカー用に設定
+        local global_pane_num=$((start_pane + i))
+        if false; then  # 旧コード（保守用）
+            # 旧コード
             tmux select-pane -t "$pane_target" -T "STATUS"
             # bash/zsh対応プロンプト設定
             tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
@@ -374,11 +407,12 @@ create_main_session() {
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
             tmux send-keys -t "$pane_target" "echo 'PMがエージェントを配置中...'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
-            tmux send-keys -t "$pane_target" "echo 'ワーカー数: $((total_panes - 1))'" C-m
-            tmux send-keys -t "$pane_target" "echo 'Agent-shared/directory_map.txt を参照してください'" C-m
+            # グローバル変数を参照（create_worker_sessionsで設定）
+            tmux send-keys -t "$pane_target" "echo 'ワーカー数: $GLOBAL_TOTAL_WORKERS'" C-m
+            tmux send-keys -t "$pane_target" "echo 'directory_pane_map.md を参照してください'" C-m
         else
             # その他のペインはエージェント配置待ち
-            local pane_number=$i
+            local pane_number=$global_pane_num
             tmux select-pane -t "$pane_target" -T "Pane${pane_number}"
             
             # エージェント用のOTEL_RESOURCE_ATTRIBUTES準備（後でagent_idが決まったら更新）
@@ -402,10 +436,133 @@ create_main_session() {
         fi
     done
     
-    log_success "✅ メインエージェントセッション作成完了"
+    log_success "✅ ワーカーセッション作成完了: $session_name"
+    return 0
 }
 
-# agent_and_pane_id_table生成（初期状態）
+# 複数ワーカーセッション作成（メイン関数）
+create_worker_sessions() {
+    local total_panes=$1  # ユーザ入力数 + 1 (STATUS用)
+    
+    # グローバル変数として総ワーカー数を記録
+    GLOBAL_TOTAL_WORKERS=$((total_panes - 1))
+    
+    # まず単一セッションで試行
+    log_info "🔧 単一セッションでの作成を試行中..."
+    if create_single_worker_session "$WORKER_SESSION" 0 $((total_panes - 1)); then
+        log_success "✅ 単一セッションで作成成功"
+        return 0
+    fi
+    
+    # 単一セッションで失敗した場合、自動的に複数セッションに分割
+    log_info "📦 'no space for new pane'エラーを検出。複数セッションに自動分割します"
+    
+    # より小さいペイン数で再試行
+    local max_panes_per_session=12
+    local test_panes=12
+    
+    # 実際に作成可能な最大ペイン数を探る（12から順に減らして試行）
+    while [ $test_panes -ge 4 ]; do
+        log_info "🔍 ${test_panes}ペインでのテスト..."
+        local test_session="${WORKER_SESSION_PREFIX}_test"
+        
+        # テストセッション作成
+        tmux new-session -d -s "$test_session" -n "test" 2>/dev/null
+        
+        local test_success=true
+        local pane_count=1
+        
+        # レイアウトテスト（4x3を基準に）
+        local cols=4
+        local rows=3
+        if [ $test_panes -le 9 ]; then
+            cols=3; rows=3
+        elif [ $test_panes -le 6 ]; then
+            cols=3; rows=2
+        elif [ $test_panes -le 4 ]; then
+            cols=2; rows=2
+        fi
+        
+        # ペイン作成テスト
+        for ((j=1; j < rows && pane_count < test_panes; j++)); do
+            if tmux split-window -v -t "${test_session}:test" 2>&1 | grep -q "no space for new pane"; then
+                test_success=false
+                break
+            fi
+            ((pane_count++))
+        done
+        
+        if [ "$test_success" = true ]; then
+            for ((i=1; i < cols && pane_count < test_panes && test_success; i++)); do
+                tmux select-pane -t "${test_session}:test.0" 2>/dev/null
+                if tmux split-window -h -t "${test_session}:test" 2>&1 | grep -q "no space for new pane"; then
+                    test_success=false
+                    break
+                fi
+                ((pane_count++))
+                
+                for ((j=1; j < rows && pane_count < test_panes; j++)); do
+                    if tmux split-window -v -t "${test_session}:test" 2>&1 | grep -q "no space for new pane"; then
+                        test_success=false
+                        break
+                    fi
+                    ((pane_count++))
+                done
+            done
+        fi
+        
+        # テストセッション削除
+        tmux kill-session -t "$test_session" 2>/dev/null
+        
+        if [ "$test_success" = true ]; then
+            max_panes_per_session=$test_panes
+            log_success "✅ 最大 ${max_panes_per_session} ペイン/セッションが作成可能"
+            break
+        fi
+        
+        # 次の試行は3ペイン減らす
+        test_panes=$((test_panes - 3))
+    done
+    
+    # 複数セッションに分割して作成
+    log_info "📦 ${max_panes_per_session}ペインごとに分割して作成します"
+    
+    local session_num=1
+    local start_pane=0
+    local remaining_panes=$total_panes
+    local creation_success=true
+    
+    while [ $remaining_panes -gt 0 ]; do
+        local panes_in_session
+        if [ $remaining_panes -gt $max_panes_per_session ]; then
+            panes_in_session=$max_panes_per_session
+        else
+            panes_in_session=$remaining_panes
+        fi
+        
+        local session_name="${WORKER_SESSION_PREFIX}${session_num}"
+        local end_pane=$((start_pane + panes_in_session - 1))
+        
+        if ! create_single_worker_session "$session_name" $start_pane $end_pane; then
+            log_error "❌ セッション ${session_name} の作成に失敗"
+            creation_success=false
+            break
+        fi
+        
+        start_pane=$((start_pane + panes_in_session))
+        remaining_panes=$((remaining_panes - panes_in_session))
+        session_num=$((session_num + 1))
+    done
+    
+    if [ "$creation_success" = true ]; then
+        log_success "✅ 全ワーカーセッション作成完了（合計: $((session_num - 1))セッション）"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# agent_and_pane_id_table生成（初期状態、複数セッション対応）
 generate_agent_pane_table() {
     local total_panes=$1
     
@@ -421,19 +578,51 @@ generate_agent_pane_table() {
     # PMエントリ（working_dirは空文字列で初期化）
     echo '{"agent_id": "PM", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
     
-    # ワーカーセッションのペイン（初期状態）
-    local pane_indices=($(tmux list-panes -t "${WORKER_SESSION}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
+    # 複数のワーカーセッションのペイン（初期状態）
+    local global_agent_count=0
     
-    for i in "${!pane_indices[@]}"; do
-        local pane_id="${pane_indices[$i]}"
-        local agent_id
-        if [ $i -eq 0 ]; then
-            agent_id="STATUS"
-        else
-            agent_id="待機中${i}"
-        fi
-        echo '{"agent_id": "'$agent_id'", "tmux_session": "'$WORKER_SESSION'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
-    done
+    if [ $total_panes -le 12 ]; then
+        # 単一セッションの場合
+        local pane_indices=($(tmux list-panes -t "${WORKER_SESSION}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
+        
+        for i in "${!pane_indices[@]}"; do
+            local pane_id="${pane_indices[$i]}"
+            # 全ペインを待機中として登録
+            local agent_id="待機中$((i + 1))"
+            echo '{"agent_id": "'$agent_id'", "tmux_session": "'$WORKER_SESSION'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
+        done
+    else
+        # 複数セッションの場合
+        local session_num=1
+        local remaining_panes=$total_panes
+        
+        while [ $remaining_panes -gt 0 ]; do
+            local panes_in_session
+            if [ $remaining_panes -gt 12 ]; then
+                panes_in_session=12
+            else
+                panes_in_session=$remaining_panes
+            fi
+            
+            local session_name="${WORKER_SESSION_PREFIX}${session_num}"
+            
+            # セッションが存在する場合のみ処理
+            if tmux has-session -t "$session_name" 2>/dev/null; then
+                local pane_indices=($(tmux list-panes -t "${session_name}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
+                
+                for i in "${!pane_indices[@]}"; do
+                    local pane_id="${pane_indices[$i]}"
+                    # 全ペインを待機中として登録
+                    global_agent_count=$((global_agent_count + 1))
+                    local agent_id="待機中${global_agent_count}"
+                    echo '{"agent_id": "'$agent_id'", "tmux_session": "'$session_name'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
+                done
+            fi
+            
+            remaining_panes=$((remaining_panes - panes_in_session))
+            session_num=$((session_num + 1))
+        done
+    fi
     
     log_success "✅ agent_and_pane_id_table.jsonl 生成完了"
 }
@@ -446,7 +635,7 @@ show_execution_plan() {
     echo "📋 セットアップ情報:"
     echo "===================="
     echo "ワーカー数: $worker_count (PM除く)"
-    echo "ペイン数: $((worker_count + 1)) (STATUS含む)"
+    echo "ペイン数: $worker_count"
     echo ""
     echo "参考構成例（実際の配置はPMが決定）:"
     echo "  3人: SE(1) + CI(1) + PG(1) ※最小構成"
@@ -564,9 +753,9 @@ main() {
     # PMセッション作成
     create_pm_session
     
-    # メインセッション作成（ワーカー数 + STATUS用）
-    local total_panes=$((worker_count + 1))
-    create_main_session $total_panes
+    # ワーカーセッション作成
+    local total_panes=$worker_count
+    create_worker_sessions $total_panes
     
     # agent_and_pane_id_table.jsonl生成（初期状態）
     generate_agent_pane_table $total_panes
@@ -581,7 +770,20 @@ main() {
     echo "     tmux attach-session -t $PM_SESSION"
     echo ""
     echo "     # ターミナルタブ2: その他のエージェント用"
-    echo "     tmux attach-session -t $WORKER_SESSION"
+    if [ $total_panes -le 12 ]; then
+        echo "     tmux attach-session -t $WORKER_SESSION"
+    else
+        echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}1"  # 最初のワーカーセッション
+        echo ""
+        echo "     # 13体以上の場合、追加セッション:"
+        local session_num=2
+        local remaining=$((total_panes - 12))
+        while [ $remaining -gt 0 ]; do
+            echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}${session_num}"
+            remaining=$((remaining - 12))
+            session_num=$((session_num + 1))
+        done
+    fi
     echo ""
     echo "  2. 🤖 PM起動:"
     echo "     # $PM_SESSION で以下を実行:"
@@ -601,10 +803,26 @@ main() {
         echo "  ❌ $PM_SESSION: 作成失敗"
     fi
     
-    if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
-        echo "  ✅ $WORKER_SESSION: 作成成功"
+    # 複数ワーカーセッションの確認
+    if [ $total_panes -le 12 ]; then
+        if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
+            echo "  ✅ $WORKER_SESSION: 作成成功"
+        else
+            echo "  ❌ $WORKER_SESSION: 作成失敗"
+        fi
     else
-        echo "  ❌ $WORKER_SESSION: 作成失敗"
+        local session_num=1
+        local remaining=$total_panes
+        while [ $remaining -gt 0 ]; do
+            local session_name="${WORKER_SESSION_PREFIX}${session_num}"
+            if tmux has-session -t "$session_name" 2>/dev/null; then
+                echo "  ✅ $session_name: 作成成功"
+            else
+                echo "  ❌ $session_name: 作成失敗"
+            fi
+            remaining=$((remaining - 12))
+            session_num=$((session_num + 1))
+        done
     fi
     
     echo ""
