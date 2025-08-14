@@ -53,13 +53,12 @@ graph TD
 VibeCodeHPC/🤖PM
 ├── 📄 CLAUDE.md                     # 全エージェント共通ルール
 ├── 📄 requirement_definition.md     # 要件定義書
+├── 📄 directory_pane_map.md         # ディレクトリ構造とtmuxペイン配置
 ├── 📄 sota_project.txt              # プロジェクト全体SOTA
 │
 ├── 📁 Agent-shared/                 # 全エージェント共有
 │   ├── 📄 ChangeLog_format.md       # 基本フォーマット
-│   ├── 📄 ChangeLog_format_PM_override.md # PMオーバーライド
-│   ├── 📄 directory_map.txt         # エージェント配置
-│   └── 📄 changelog_report_template.py # レポート生成テンプレート
+│   └── 📄 budget_history.md         # 予算使用履歴
 │
 ├── 📁 User-shared/                  # ユーザ向け成果物
 │   ├── 📄 final_report.md           # 最終報告書
@@ -470,9 +469,9 @@ cd VibeCodeHPC-jp-main
 |---------|----|----|----|----|------|
 | 3 | 1 | 1 | 1 | 0 | 最小構成 |
 | 6 | 1 | 1 | 3 | 1 | ジョブバインド型 |
-| 8 | 2 | 2 | 3 | 1 | SE≧2で安定 |
-| 11 | 2 | 3 | 5 | 1 | 推奨構成 |
-| 15 | 2 | 4 | 8 | 1 | 大規模 |
+| 9 | 2 | 2 | 4 | 1 | SE≧2で安定 |
+| 12 | 2 | 3 | 6 | 1 | 推奨構成 |
+| 16 | 2 | 5 | 8 | 1 | 大規模 |
 
 #### 2つのターミナルタブでそれぞれアタッチ
 
