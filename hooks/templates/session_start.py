@@ -126,7 +126,7 @@ def update_agent_table(session_id, source):
                     # エージェントタイプを判定
                     if agent_id in ['PM', 'SE', 'CD'] or agent_id.startswith(('SE', 'CI', 'CD')):
                         agent_type = 'polling'
-                    elif agent_id in ['ID'] or agent_id.startswith('PG'):
+                    elif agent_id.startswith('PG'):
                         agent_type = 'event-driven'
                     else:
                         agent_type = 'event-driven'
@@ -163,11 +163,8 @@ def get_required_files(agent_id):
         "Agent-shared/directory_map.txt"
     ]
     
-    # 役割を抽出（例: PG1.1.1 -> PG、ID -> ID）
-    if agent_id == 'ID':
-        role = 'ID'
-    else:
-        role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
+    # 役割を抽出（例: PG1.1.1 -> PG）
+    role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
         "PM": [
@@ -195,11 +192,6 @@ def get_required_files(agent_id):
         ],
         "CD": [
             "instructions/CD.md"
-        ],
-        "ID": [
-            "instructions/ID.md",
-            "Agent-shared/directory_map.txt",
-            "Agent-shared/agent_and_pane_id_table.jsonl"
         ]
     }
     
