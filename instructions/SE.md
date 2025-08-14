@@ -175,6 +175,12 @@ SEは定期的に以下のタスクを実行すること：
 
 複数のPGエージェントのChangeLog.mdを統合し、プロジェクト全体の進捗を把握できるレポートを生成する。
 
+**重要**: ChangeLog.mdのフォーマット監視
+- PMが定めた3行サマリー形式（変更点・結果・コメント）を厳守するようPGに指導
+- `<details>`タグで詳細を折り畳む形式の維持を確認
+- PMは`<details>`内のフィールド名（unit, GFLOPS等）は変更できるが、基本構造は変更できない
+- フォーマット違反を発見したら即座にPGに修正を指示
+
 #### レポート内容
 - 各PGの試行回数と成功率の集計
 - SOTA更新の履歴と現在の最高性能
@@ -206,6 +212,10 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 
 ### 使用ツール
 - agent_send.sh（エージェント間通信）
+  - **重要**: エージェント間のメッセージ送信は必ず`agent_send.sh`を使用
+  - **禁止**: `tmux send-keys`でのメッセージ送信（Enterキーが送信されず失敗する）
+  - 正: `agent_send.sh PG1.1.1 "[問い合わせ] 現在の進捗は？"`
+  - 誤: `tmux send-keys -t pane.3 "[問い合わせ] 現在の進捗は？" C-m`（C-mも改行として解釈され、メッセージが届かない）
 - Python matplotlib（グラフ作成）
 - 統計解析ツール
 - telemetry/context_usage_monitor.py（コンテキスト使用率監視・可視化）

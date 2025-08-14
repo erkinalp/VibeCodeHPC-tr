@@ -15,31 +15,73 @@ Flow/TypeII/single-node/
 
 ### 2. 収集すべき情報
 
-#### CPU情報
+#### CPU情報【重要：複数コマンドでダブルチェック】
 ```bash
-# 基本情報
-lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|Socket|MHz|cache"
+# 基本情報 (複数のコマンドで確認)
+lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|Socket|MHz|cache|Flags"
 
-# 理論演算性能の計算
-# FLOPS = コア数 × 周波数(GHz) × 命令/サイクル × SIMD幅
-# 例: 64コア × 2.5GHz × 2(FMA) × 8(AVX-512) = 2560 GFLOPS
+# /proc/cpuinfoからも確認
+cat /proc/cpuinfo | grep -E "model name|cpu cores|siblings|cpu MHz|flags" | head -20
+
+# SIMD命令セットの確認
+grep -o 'avx[^ ]*\|sse[^ ]*\|fma' /proc/cpuinfo | sort -u
+
+# numa情報
+numactl --hardware 2>/dev/null || echo "NUMA not available"
+
+# 理論演算性能の計算式（各精度ごとに記載）
+# FP64 (double): FLOPS = コア数 × 周波数(GHz) × 2(FMA) × SIMD幅
+# FP32 (float):  FLOPS = コア数 × 周波数(GHz) × 2(FMA) × SIMD幅×2
+# FP16 (half):   FLOPS = コア数 × 周波数(GHz) × 2(FMA) × SIMD幅×4
+
+# SIMD幅の目安:
+# SSE: 2 (FP64), 4 (FP32)
+# AVX/AVX2: 4 (FP64), 8 (FP32)
+# AVX-512: 8 (FP64), 16 (FP32), 32 (FP16)
+
+# 例: Intel Xeon 64コア × 2.5GHz × 2(FMA) × 8(AVX-512) = 2560 GFLOPS (FP64)
+#                                × 16(AVX-512) = 5120 GFLOPS (FP32)
 ```
 
 #### メモリ情報
 ```bash
 # 容量とバンド幅
 lsmem
-dmidecode -t memory | grep -E "Size|Speed|Type"
+free -h
+cat /proc/meminfo | grep -E "MemTotal|MemAvailable"
+
+# 詳細情報（root権限が必要な場合あり）
+sudo dmidecode -t memory 2>/dev/null | grep -E "Size|Speed|Type" || echo "dmidecode requires root"
+
+# 理論メモリバンド幅の計算
+# バンド幅 = メモリチャネル数 × バス幅(bit)/8 × 周波数(MT/s)
+# 例: DDR4-3200, 8チャネル
+#     8 channels × 64 bit / 8 × 3200 MT/s = 204.8 GB/s
 
 # STREAM benchmark結果があれば記載
+# ない場合は簡易テストを実施推奨
 ```
 
 #### GPU情報（該当する場合）
 ```bash
-nvidia-smi -q | grep -E "Product Name|Memory|Compute"
+# NVIDIA GPU
+nvidia-smi -q | grep -E "Product Name|Memory|Compute|CUDA Cores|Clock"
+nvidia-smi --query-gpu=name,memory.total,clocks.sm,clocks.mem --format=csv
 
-# 理論演算性能
-# 例: V100: 7.8 TFLOPS (FP64)
+# AMD GPU
+rocm-smi --showproductname 2>/dev/null || echo "AMD GPU not detected"
+
+# 理論演算性能の計算式
+# NVIDIA:
+#   FP64 = SM数 × FP64コア/SM × 周波数 × 2(FMA)
+#   FP32 = SM数 × FP32コア/SM × 周波数 × 2(FMA)
+#   FP16 = FP32 × 2 (Tensor Coreなし) または 別途計算 (Tensor Coreあり)
+
+# 例:
+# V100: 80 SM × 32 FP64/SM × 1.53GHz × 2 = 7.8 TFLOPS (FP64)
+#       80 SM × 64 FP32/SM × 1.53GHz × 2 = 15.7 TFLOPS (FP32)
+# A100: 108 SM × 32 FP64/SM × 1.41GHz × 2 = 9.7 TFLOPS (FP64)
+#       108 SM × 64 FP32/SM × 1.41GHz × 2 = 19.5 TFLOPS (FP32)
 ```
 
 #### ネットワーク情報
@@ -90,17 +132,31 @@ ip link show
 - **理論スループット**: 200 GB/s
 
 ## 性能指標サマリ
-- CPU理論演算性能: 2764.8 GFLOPS
-- メモリバンド幅: 380 GB/s (実測)
-- B/F比: 0.137 (メモリ律速の可能性)
+- CPU理論演算性能: 
+  - FP64: 2764.8 GFLOPS (計算式: 72 cores × 2.4 GHz × 2 FMA × 8 AVX-512)
+  - FP32: 5529.6 GFLOPS (計算式: 72 cores × 2.4 GHz × 2 FMA × 16 AVX-512)
+- メモリバンド幅: 
+  - 理論値: 409.6 GB/s
+  - 実測値: 380 GB/s (STREAM Triad)
+- B/F比: 0.137 Byte/FLOP (メモリ律速の可能性)
+
+## 外部ソースとの照合
+- Intel ARK: https://ark.intel.com/
+- NVIDIA Specifications: https://www.nvidia.com/en-us/data-center/
+- TOP500 System Details: https://www.top500.org/
+- スパコン公式マニュアルでダブルチェックを推奨
 ```
 
 ## 情報共有の実装方法
 
 ### 1. CIエージェントの責務
 - プロジェクト開始時にhardware_info.mdを作成
-- Web検索で公式スペックを補完
-- 理論演算性能を必ず計算・記載
+- **必須**: Web検索で公式スペックをダブルチェック
+  - プロセッサ名でIntel ARKやAMD公式サイトを検索
+  - GPU名でNVIDIA/AMD公式スペックを確認
+  - スパコン名でTOP500や公式マニュアルを参照
+- **必須**: 各精度(FP64/FP32/FP16)の理論演算性能を計算式付きで記載
+- コマンド出力とWeb情報に不一致がある場合は両方記載して注釈
 
 ### 2. 全エージェントへの通知
 ```bash

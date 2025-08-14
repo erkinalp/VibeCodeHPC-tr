@@ -179,6 +179,21 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 - **起動失敗時の対処**: bashのままの場合は手動でclaudeコマンドを再送信
 - **初期化メッセージは必須**: Claude起動確認後に必ず送信
 
+#### エージェント起動確認方法（推奨）
+`agent_and_pane_id_table.jsonl`の`claude_session_id`フィールドで確認：
+- **null または 空**: エージェントが一度も起動していない（起動失敗の可能性）
+- **UUID形式の値**: 少なくとも一度は起動に成功している
+
+```bash
+# jqを使った確認例（エージェントPG1.1.1の場合）
+cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1.1.1") | .claude_session_id'
+
+# 値がnullまたは空の場合、起動を再試行
+# UUIDが表示された場合、起動成功
+```
+
+この方法により、tmux list-panesの「bash/claude」表示の曖昧さを回避し、確実にエージェントの起動状態を確認できます。
+
 #### エージェント再割り当て（転属）
 エージェントの転属は以下のタイミングで実施可能：
 
