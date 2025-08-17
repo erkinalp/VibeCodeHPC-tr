@@ -137,9 +137,9 @@ class ChangeLogAnalysisTemplate:
             "path_components": list(parts),
         }
         
-        # エージェント名の抽出（PG, CI, SE等）
+        # エージェント名の抽出（PG, SE等）
         for part in parts:
-            if re.match(r'(PG|CI|SE|CD|PM)\d*(\.\d+)*', part):
+            if re.match(r'(PG|SE|CD|PM)\d*(\.\d+)*', part):
                 metadata["agent"] = part
                 break
         

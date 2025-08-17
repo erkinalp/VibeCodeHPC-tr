@@ -62,7 +62,7 @@ WORKING_DIR=$(pwd)
 RELATIVE_DIR=${WORKING_DIR#$PROJECT_ROOT}
 RELATIVE_DIR=${RELATIVE_DIR#/}  # 先頭のスラッシュを除去
 
-# チームIDの推定（CI1.1 → team.1, PG1.2.3 → team.1.2）
+# チームIDの推定（PG1.1 → team.1, PG2.3 → team.2）
 TEAM_ID=$(echo $AGENT_ID | grep -oE '^[A-Z]+[0-9]+(\.[0-9]+)?' | sed 's/^[A-Z]*/team./')
 
 # OTEL_RESOURCE_ATTRIBUTESの更新（agent_id、チーム、作業ディレクトリを追加）

@@ -4,7 +4,7 @@
     "PM": 50,
     "CD": 40,
     "SE": 30,
-    "CI": 20
+    "PG": 20
   },
   "_override_instructions": "requirement_definition.mdまたは本ファイルで個別に閾値を変更可能"
 }

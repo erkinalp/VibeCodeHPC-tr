@@ -14,24 +14,18 @@ PMは実際のプロジェクトに応じてこの例を参考に作成してく
   - シミュレーション: `iterations/sec` または `seconds`
 - **表記精度**: 小数点第1位まで（例: `285.7`）
 
-### 2. request_id形式
-```
-[PGエージェントID]-[CIエージェントID]-[連番3桁]
-例: PG1.2.1-CI1.2-004
-```
-
-### 3. プロジェクト固有の必須params
+### 2. プロジェクト固有の必須params
 基本フォーマットの`params`セクションに以下を追加：
 - `compile_flags`: 使用したコンパイルオプション（必須）
 - `mpi_processes`: MPIプロセス数（MPI使用時は必須）
 - `omp_threads`: OpenMPスレッド数（OpenMP使用時は必須）
 
-### 4. コンパイル警告の扱い
+### 3. コンパイル警告の扱い
 `compile`の`status: warning`時：
 - 並列化に関する警告は`message`に1-2行で要約
 - 詳細が必要な場合は`compile_warnings`フィールドを追加（任意）
 
-### 5. SOTA更新時の追加情報
+### 4. SOTA更新時の追加情報
 `sota`セクションに以下を任意追加：
 - `previous`: 前回の記録値
 - `improvement`: 改善率（%表記）
@@ -48,7 +42,6 @@ PMは実際のプロジェクトに応じてこの例を参考に作成してく
 
 - [x] **compile**
     - status: `warning`
-    - request_id: `PG1.1.1-CI1.1-042`
     - message: "OpenMP: 一部のループで並列化が無効化される警告"
     - compile_warnings: "loop at line 45: not vectorized due to data dependency"
     - log: `/results/compile_v1.2.3.log`

@@ -65,11 +65,11 @@ show_usage() {
   プロジェクト指定: <ProjectName>_PM, <ProjectName>_Workers1...
 
 参考構成例（実際の配置はPMが決定）:
-  3人: SE(1) + CI(1) + PG(1) ※最小構成
-  6人: SE(1) + CI(1) + PG(3) + CD(1)
-  8人: SE(2) + CI(2) + PG(3) + CD(1)
-  11人: SE(2) + CI(2) + PG(6) + CD(1)
-  15人: SE(2) + CI(3) + PG(9) + CD(1)
+  2人: SE(1) + PG(1) ※最小構成
+  6人: SE(2) + PG(3) + CD(1)
+  8人: SE(2) + PG(5) + CD(1)
+  11人: SE(2) + PG(8) + CD(1)
+  15人: SE(3) + PG(11) + CD(1)
 EOF
 }
 
@@ -77,86 +77,67 @@ EOF
 calculate_agent_distribution() {
     local total=$1  # PMを除いた数
     
-    # 基本構成: CD(1) 固定
-    local cd_count=1
-    
-    # 残りを SE, CI, PG に分配
-    local remaining=$((total - cd_count))
-    
-    if [ $remaining -lt 5 ]; then
-        log_error "エージェント数が少なすぎます。最小6エージェント(PM除く)必要です。"
+    # 最小構成チェック
+    if [ $total -lt 2 ]; then
+        log_error "エージェント数が少なすぎます。最小2エージェント(PM除く)必要です。"
         return 1
     fi
     
-    # SE: 1-2, CI/PG: 残りを分配
-    local se_count
-    if [ $total -le 8 ]; then
-        se_count=1
-    else
-        se_count=2
+    # CD（2人構成以外は基本含める、PMが要件定義で調整）
+    local cd_count=0
+    if [ $total -ne 2 ]; then
+        cd_count=1
     fi
     
-    local worker_count=$((remaining - se_count))
-    local ci_count=$((worker_count / 2))
-    local pg_count=$((worker_count - ci_count))
+    # 残りを SE, PG に分配（デフォルト値、PMが実際に調整）
+    local remaining=$((total - cd_count))
     
-    echo "$se_count $ci_count $pg_count $cd_count"
+    local se_count
+    if [ $total -eq 2 ]; then
+        se_count=1
+    elif [ $total -le 12 ]; then
+        se_count=2
+    else
+        se_count=3
+    fi
+    
+    local pg_count=$((remaining - se_count))
+    
+    echo "$se_count $pg_count $cd_count"
 }
 
 # エージェント名生成（グループ化対応）
 generate_agent_names() {
     local se_count=$1
-    local ci_count=$2
-    local pg_count=$3
-    local cd_count=$4
+    local pg_count=$2
+    local cd_count=$3
     
     local agents=()
-    
-    # 旧コード（削除予定）
-    # agents+=("STATUS")
     
     # SE
     for ((i=1; i<=se_count; i++)); do
         agents+=("SE${i}")
     done
     
-    # CI/PGをグループ化して配置
-    local group_count
-    if [ $ci_count -le 2 ]; then
-        group_count=$ci_count
-    else
-        group_count=$(( (ci_count + 1) / 2 ))
-    fi
-    
-    local ci_idx=1
-    local pg_per_ci=$(( (pg_count + ci_count - 1) / ci_count ))
-    
-    for ((g=1; g<=group_count; g++)); do
-        # CI
-        for ((c=1; c<=2 && ci_idx<=ci_count; c++)); do
-            if [ $ci_count -eq 1 ]; then
-                agents+=("CI1")
-                ci_idx=$((ci_idx + 1))
-            else
-                agents+=("CI1.$((ci_idx))")
-                ci_idx=$((ci_idx + 1))
-            fi
-        done
-    done
-    
-    # PG
+    # PG（階層的な番号付け）
+    # SEが1人の場合: PG1.1, PG1.2, ...
+    # SEが2人の場合: SE1配下→PG1.1, PG1.2, ..., SE2配下→PG2.1, PG2.2, ...
     local pg_idx=1
-    for ((g=1; g<=group_count && pg_idx<=pg_count; g++)); do
-        for ((p=1; p<=pg_per_ci && pg_idx<=pg_count; p++)); do
-            local ci_group=$((g))
-            if [ $ci_count -eq 1 ]; then
-                agents+=("PG1.1.$((pg_idx))")
-            else
-                agents+=("PG1.$((ci_group)).$((pg_idx))")
-            fi
-            pg_idx=$((pg_idx + 1))
+    if [ $se_count -eq 1 ]; then
+        # 全てのPGをSE1配下に
+        for ((p=1; p<=pg_count; p++)); do
+            agents+=("PG1.$((p))")
         done
-    done
+    else
+        # PGを各SEに均等配分
+        local pg_per_se=$(( (pg_count + se_count - 1) / se_count ))
+        for ((s=1; s<=se_count; s++)); do
+            for ((p=1; p<=pg_per_se && pg_idx<=pg_count; p++)); do
+                agents+=("PG${s}.$((p))")
+                pg_idx=$((pg_idx + 1))
+            done
+        done
+    fi
     
     # CD
     agents+=("CD")
@@ -428,7 +409,7 @@ create_single_worker_session() {
             tmux send-keys -t "$pane_target" "clear" C-m
             tmux send-keys -t "$pane_target" "echo '=== エージェント配置待ち (Pane ${pane_number}) ==='" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
-            tmux send-keys -t "$pane_target" "echo 'PMがdirectory_map.txtで配置を決定します'" C-m
+            tmux send-keys -t "$pane_target" "echo 'PMがdirectory_pane_map.mdで配置を決定します'" C-m
             tmux send-keys -t "$pane_target" "echo 'その後、エージェントが起動されます'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
             tmux send-keys -t "$pane_target" "echo '📊 OpenTelemetryが有効化されています'" C-m
@@ -638,13 +619,13 @@ show_execution_plan() {
     echo "ペイン数: $worker_count"
     echo ""
     echo "参考構成例（実際の配置はPMが決定）:"
-    echo "  3人: SE(1) + CI(1) + PG(1) ※最小構成"
-    echo "  6人: SE(1) + CI(1) + PG(3) + CD(1)"
-    echo "  8人: SE(2) + CI(2) + PG(3) + CD(1)"
-    echo "  11人: SE(2) + CI(2) + PG(6) + CD(1)"
-    echo "  15人: SE(2) + CI(3) + PG(9) + CD(1)"
+    echo "  2人: SE(1) + PG(1) ※最小構成"
+    echo "  6人: SE(2) + PG(4)"
+    echo "  8人: SE(2) + PG(5) + CD(1)"
+    echo "  11人: SE(2) + PG(8) + CD(1)"
+    echo "  15人: SE(3) + PG(11) + CD(1)"
     echo ""
-    echo "推奨: SEは2人が理想的、CIとPGはプロジェクトの特性に応じて調整"
+    echo "推奨: SEは2人が理想的、PGはプロジェクトの特性に応じて調整"
     echo ""
 }
 
@@ -710,9 +691,9 @@ main() {
         exit 1
     fi
     
-    # エージェント数チェック（PMを除く、最小構成: SE + CI + PG = 3）
-    if [[ $worker_count -lt 3 ]]; then
-        log_error "エージェント数は3以上を指定してください（PM除く、最小構成: SE + CI + PG）"
+    # エージェント数チェック（PMを除く、最小構成: SE + PG = 2）
+    if [[ $worker_count -lt 2 ]]; then
+        log_error "エージェント数は2以上を指定してください（PM除く、最小構成: SE + PG）"
         exit 1
     fi
     

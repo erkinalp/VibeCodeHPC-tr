@@ -98,7 +98,8 @@ ip link show
 ```
 # Flow TypeII Single-node Hardware Specifications
 最終更新: 2025-07-30 12:00:00 UTC
-収集者: CI1.1
+収集者: SE1
+検証者: PG1.1（署名済み）
 
 ## CPU
 - Model: Intel Xeon Platinum 8360Y
@@ -149,7 +150,7 @@ ip link show
 
 ## 情報共有の実装方法
 
-### 1. CIエージェントの責務
+### 1. SEエージェントの責務
 - プロジェクト開始時にhardware_info.mdを作成
 - **必須**: Web検索で公式スペックをダブルチェック
   - プロセッサ名でIntel ARKやAMD公式サイトを検索
@@ -158,18 +159,26 @@ ip link show
 - **必須**: 各精度(FP64/FP32/FP16)の理論演算性能を計算式付きで記載
 - コマンド出力とWeb情報に不一致がある場合は両方記載して注釈
 
-### 2. 全エージェントへの通知
+### 2. PGによるダブルチェック（最低1名）
 ```bash
-# CI → SE
-agent_send.sh SE1 "[CI] hardware_info.md作成完了。理論演算性能: 2764.8 GFLOPS"
+# SE → PG（代表者1名以上）
+agent_send.sh PG1.1 "[SE] hardware_info.mdを作成しました。Web検索でダブルチェックをお願いします"
 
+# PGがチェック後、署名を追加
+echo "## 検証履歴" >> hardware_info.md
+echo "- 2025-07-30 12:30:00 UTC: PG1.1が検証完了。Intel ARKと照合済み" >> hardware_info.md
+echo "- 2025-07-30 13:00:00 UTC: PG1.3が追加検証。STREAM実測値を確認" >> hardware_info.md
+```
+
+### 3. 全エージェントへの通知
+```bash
 # SE → 全PG
-for pg in PG1.1.1 PG1.1.2 PG1.2.1; do
-  agent_send.sh $pg "[SE] hardware_info.mdを参照してください。理論性能比での評価をお願いします"
+for pg in PG1.1 PG1.2 PG1.3; do
+  agent_send.sh $pg "[SE] hardware_info.md検証完了。理論性能比での評価をお願いします"
 done
 
 # SE → PM
-agent_send.sh PM "[SE] ハードウェア情報収集完了。全エージェントに通知済み"
+agent_send.sh PM "[SE] ハードウェア情報収集・検証完了。PG1.1が署名済み"
 ```
 
 ### 3. レポート作成時の活用

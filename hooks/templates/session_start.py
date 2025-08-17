@@ -124,12 +124,9 @@ def update_agent_table(session_id, source):
                     agent_id = entry['agent_id']
                     
                     # エージェントタイプを判定
-                    if agent_id in ['PM', 'SE', 'CD'] or agent_id.startswith(('SE', 'CI', 'CD')):
-                        agent_type = 'polling'
-                    elif agent_id.startswith('PG'):
-                        agent_type = 'event-driven'
-                    else:
-                        agent_type = 'event-driven'
+                    # v0.5: 全エージェントがポーリング型
+                    # v0.6以降: テスト検証エージェントの追加を検討
+                    agent_type = 'polling'
                     
                     # PMが初回起動時にプロジェクト開始時刻を記録
                     if agent_id == 'PM' and source == 'startup':
@@ -177,12 +174,6 @@ def get_required_files(agent_id):
         "SE": [
             "instructions/SE.md",
             "Agent-shared/changelog_analysis_template.py"
-        ],
-        "CI": [
-            "instructions/CI.md",
-            "_remote_info/*/command.md",
-            "Agent-shared/ssh_guide.md",
-            "Agent-shared/compile_warning_workflow.md"
         ],
         "PG": [
             "instructions/PG.md",

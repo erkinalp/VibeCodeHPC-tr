@@ -139,7 +139,6 @@ class SubAgentAnalyzer:
         # 色分け（エージェントタイプ別）
         colors = {
             'SE': '#4ECDC4',
-            'CI': '#45B7D1',
             'PG': '#96CEB4',
             'CD': '#FECA57',
             'PM': '#FF6B6B',

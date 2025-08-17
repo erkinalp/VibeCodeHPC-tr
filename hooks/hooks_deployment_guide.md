@@ -2,8 +2,7 @@
 
 ## 概要
 Claude Code hooksは、エージェントの挙動を制御する仕組みです。特に：
-- **ポーリング型エージェント（PM, SE, CI, CD）**: 待機状態を防ぎ、常にアクティブに保つ
-- **イベント駆動型エージェント（PG）**: 通常通り待機を許可
+- **ポーリング型エージェント（PM, SE, PG, CD）**: 待機状態を防ぎ、常にアクティブに保つ
 - **全エージェント**: auto-compact後の必須ファイル再読み込みを促す
 
 ## 自動配置（推奨）
@@ -28,12 +27,11 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
 ### 1. 個別エージェントへの配置
 ```bash
 # エージェントタイプを確認
-# PM, SE, CI, CD → polling
-# PG → event-driven
+# PM, SE, PG, CD → polling
 
 # hooksを配置
 ./hooks/setup_agent_hooks.sh SE1 /path/to/SE1/workdir polling
-./hooks/setup_agent_hooks.sh PG1.1.1 /path/to/PG1.1.1/workdir event-driven
+./hooks/setup_agent_hooks.sh PG1.1.1 /path/to/PG1.1.1/workdir polling
 ```
 
 ### 2. 配置されるファイル
@@ -49,18 +47,14 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
 
 ## エージェントタイプ別の挙動
 
-### ポーリング型（PM, SE, CI, CD）
+### ポーリング型（PM, SE, PG, CD）
 - **Stop hook**: 待機を阻止し、定期タスクリストを提示
 - **SessionStart hook**: 新規起動時に必須ファイルリスト提示
 - **推奨巡回間隔**:
   - PM: 2-5分（全体監視）
   - SE: 3-10分（進捗監視、ジョブ時間に応じて調整）
-  - CI: 常時（非同期対応）
+  - PG: 1-3分（ジョブ実行結果確認）
   - CD: 非同期（GitHub同期）
-
-### イベント駆動型（PG）
-- **Stop hook**: 通常通り待機を許可
-- **SessionStart hook**: 新規起動時に必須ファイルリスト提示
 
 ## session_idの追跡
 
@@ -106,7 +100,7 @@ Claude起動後、SessionStart hookが自動的に：
 
 ### ⚠️ hooks無効化について（非推奨）
 
-**重要**: hooksの無効化は強く非推奨です。ポーリング型エージェント（PM, SE, CI, CD）が待機状態に入り、プロジェクトが停止します。
+**重要**: hooksの無効化は強く非推奨です。ポーリング型エージェント（PM, SE, PG, CD）が待機状態に入り、プロジェクトが停止します。
 
 どうしても無効化が必要な場合：
 1. **プロジェクト開始前**に環境変数を設定

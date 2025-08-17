@@ -116,7 +116,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 - ✅ 推奨: `/OpenMP/`, `/MPI/`, `/CUDA/` など単一技術
 - 理由: 各技術の基礎性能を把握してから融合することで、効果的な最適化が可能
 
-`Agent-Shared/directory_map.txt`に📁階層を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
+`Agent-Shared/directory_pane_map.md`に📁階層とtmuxペイン配置を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
 
 
 ### フェーズ4: プロジェクト初期化
@@ -141,7 +141,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    - tmuxペイン配置を色分けされた絵文字で視覚的に管理
    - エージェント配置変更時は必ずこのファイルを更新
    - ワーカー数に応じた配置図（4x3、3x3等）を記載
-8. 各ペインにエージェントを配置（SE、CI、PG、CD）
+8. 各ペインにエージェントを配置（SE、PG、CD）
 
 
 
@@ -190,12 +190,12 @@ cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1
 3. **転属パターンの例**
    - PG (OpenMP) → PG (OpenMP_MPI) - 単一技術から複合技術へ
    - PG (single-node) → SE (multi-node) - 役割変更を伴う昇格
-   - CI (gcc) → CI (intel) - 別環境での環境構築担当
+   - PG (gcc) → PG (intel) - 別環境での最適化担当
    - SE1配下のPG → SE2配下のPG - 別チームへの移籍
 
 4. **転属時の手順**
    ```bash
-   # 1. 転属先でのMCP設定確認（CIエージェントの場合）
+   # 1. 転属先でのMCP設定確認（必要に応じて）
    # 2. telemetry環境の準備確認
    # 3. 必要なディレクトリ作成
    mkdir -p /path/to/new/location
@@ -209,7 +209,7 @@ cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1
    # 6. 新しい役割の通知
    agent_send.sh PG1.1.1 "[PM] OpenMP_MPI担当として新たなスタートです。必要なファイルを再読み込みしてください。"
    
-   # 7. directory_map.txtの更新
+   # 7. directory_pane_map.mdの更新
    # 8. agent_and_pane_id_table.jsonlのworking_dir更新
    ```
 
@@ -223,8 +223,8 @@ cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1
 #### 事前準備（重要）
 **必ず**agent_and_pane_id_table.jsonlのagent_idを更新してから実行すること：
 - 「待機中1」→「SE1」
-- 「待機中2」→「CI1.1」
-- 「待機中3」→「PG1.1.1」
+- 「待機中2」→「PG1.1.1」
+- 「待機中3」→「PG1.1.2」
 等、正しいエージェントIDに変更
 
 シンプル化されたstart_agent.shの動作：
@@ -249,19 +249,29 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/
 
 # ステップ3: 待機（重要！）
 # Claude起動直後は入力を受け付けない可能性があるため
-sleep 3  # 並行作業を行った場合は時間経過しているため省略可
+sleep 1  # 並行作業を行った場合は時間経過しているため省略可
 
 # ステップ4: 初期化メッセージ送信
 # 重要: claudeが入力待機中の場合、tmux list-panesでは"bash"と表示される
 # 稼働中（処理中）の時のみ"claude"と表示されるため、
 # 初回起動時の確認は無意味。まずメッセージを送信する
-agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成エージェント）です。
+agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成・SSH/SFTP実行エージェント）です。
 
-まず以下のファイルを読み込んでプロジェクトを理解してください：
+【重要】プロジェクトルートを見つけてください：
+現在のディレクトリから親ディレクトリを辿り、以下のディレクトリが存在する場所がプロジェクトルートです：
+- Agent-shared/, User-shared/, GitHub/, communication/
+- VibeCodeHPC*というディレクトリ名が一般的です
+
+プロジェクトルート発見後、以下のファイルを読み込んでください：
 - CLAUDE.md（全エージェント共通ルール）
-- instructions/PG.md（あなたの役割詳細）
+- instructions/PG.md（あなたの役割詳細）  
+- Agent-shared/directory_pane_map.md（エージェント配置とtmuxペイン統合管理）
 - 現在のディレクトリのChangeLog.md（存在する場合）
-- Agent-shared/directory_map.txt（エージェント配置）
+
+【通信方法】
+エージェント間通信は必ず以下を使用：
+- \${プロジェクトルート}/communication/agent_send.sh [宛先] '[メッセージ]'
+- 例: ../../../communication/agent_send.sh SE1 '[PG1.1.1] 作業開始しました'
 
 読み込み完了後、現在のディレクトリ（pwd）を確認し、自分の役割に従って作業を開始してください。"
 
@@ -292,16 +302,16 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
 **重要な注意事項**:
 - agent_and_pane_id_table.jsonlの「待機中X」を正しいエージェントIDに更新してから実行
 - `start_agent.sh`はClaude起動コマンドを送信するだけで、初期化メッセージは送らない
-- Claude起動後、**3秒以上待機**してから初期化メッセージを送信すること
+- Claude起動後、**1秒以上待機**してから初期化メッセージを送信すること
 - 初期化メッセージなしでは、エージェントは自分の役割を理解できない
 
-いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_map.txtの更新を忘れてはならない。
+いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_pane_map.mdの更新を忘れてはならない。
 
 #### directory_mapの更新ルール
 1. **即時更新**: エージェントを割り当てた直後に必ず更新する
 2. **絵文字による区別**: 
    - 📁または📂: ディレクトリ
-   - 🤖: **実際にclaudeコマンドで起動済みのエージェントのみ**（例: 🤖SE1, 🤖CI1.1）
+   - 🤖: **実際にclaudeコマンドで起動済みのエージェントのみ**（例: 🤖SE1, 🤖PG1.1.1）
    - 👤: 将来配置予定のエージェント（future_directory_map.txtで使用）
 3. **安全な更新方法**:
    - directory_map_temp.txtを作成
@@ -309,19 +319,19 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
    - diffで確認後、本体を更新
    - 履歴保存: directory_map_v1.txt等
 4. **ビジョンと実装の分離**:
-   - future_directory_map.txt: 将来の構想（👤で表記）
-   - directory_map.txt: 現在の実際の配置（🤖は起動済みのみ）
+   - future_directory_pane_map.md: 将来の構想（👤で表記）
+   - directory_pane_map.md: 現在の実際の配置とtmuxペイン（🤖は起動済みのみ）
 5. **更新タイミング**:
    - エージェント起動完了後
    - エージェント移動完了後
    - プロジェクトフェーズ移行時
 6. **配置可視化の更新**:
-   - directory_map.txt更新後は/directory_pane_map.mdも更新
+   - directory_pane_map.md更新時はディレクトリ構造とtmuxペイン配置を両方記載
    - tmuxペイン配置と色分けを最新状態に維持
 #### セマフォ風エージェント管理
-タスクを完了したコード生成Worker：PGm.n.k（m,n,kは自然数）がSSHエージェント：CIm.nの最後の一人で、このPGが別のディレクトリに移動するなら、このCIも異動する必要がある。
+タスクを完了したコード生成Worker：PGm.n.k（m,n,kは自然数）が特定ディレクトリの最後の一人で、このPGが別のディレクトリに移動する場合、リソース配分を再検討する。
 
-SEmも同様に、直属のCIm.nおよびPGm.n.kが全員いなくなると同時に異動となる。
+SEmも同様に、直属のPGm.n.kが全員いなくなると同時に異動となる。
 #### 増員時のID規則
 PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加したエージェントをPG1.1.5とする。
 
@@ -340,7 +350,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 
 ### 定期巡回タスク（2-5分間隔）
 1. **全エージェント進捗確認**
-   - SE、CI、PG、**CD**の状況を巡回確認
+   - SE、PG、**CD**の状況を巡回確認
    - 停滞エージェントへの介入
    - agent_and_pane_id_table.jsonlの`claude_session_id`で稼働状況を確認
    
@@ -348,7 +358,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - `charge`コマンド等でused値を確認（コマンド名は_remote_info参照）
    - コマンドが不明な場合は早めにユーザに確認
    - `/Agent-shared/budget_history.md`に記録
-   - ポイント未消費時は該当CIに警告
+   - ポイント未消費時は該当PGに警告（ログインノード実行の疑い）
    
 2. **リソース再配分**
    - 完了したPGの移動
@@ -357,7 +367,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 
 3. **directory_map更新**
    - 実際の配置状況を反映
-   - future_directory_map.txtとの差分確認
+   - future_directory_pane_map.mdとの差分確認
    - working_dirとの整合性確認
 
 4. **ToDoリスト整理**
@@ -371,19 +381,18 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - 閾値到達時はリソース配分を調整
 
 6. **hooks動作確認**
-   - ポーリング型エージェント（SE, CI, CD）の待機防止確認
+   - ポーリング型エージェント（SE, PG, CD）の待機防止確認
    - SessionStartによるworking_dir記録の確認
 
 ## 🤝 他エージェントとの連携
 
 ### 下位エージェント
 - **SE**: 再発明を防ぐための監視・テストコードを含む有用な情報をPGに共有
-- **CI**: SSH接続を保持→環境構築→ファイル転送↔コマンド実行
-- **PG**: コード生成→結果確認
+- **PG**: コード生成→SSH/SFTP実行→結果確認
 - **CD**: GitHub管理係。必ずしも同期しないので後からCD係を追加することも可能。/GitHubにプロジェクトのコピーを作成し、ユーザIDなど固有の情報⇆匿名化されたIDなどの変換を行う
 
 ### 想定される構成
-PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
+PM ≦ SE ≦ PG構成の場合（人数構成）
 
 #### SE配置の推奨
 - **8名以上のプロジェクト（PMを含めて9体以上）**: SE2名配置を強く推奨
@@ -391,14 +400,11 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
   - SE2名: 監視と分析の分業により、大幅な価値向上（SE:1 << SE:2）
   - それ以上: 収穫逓減（SE:2 < SE:3 < SE:4）
 
-#### CI-PG配置比率の指針
-ジョブ実行時間によって最適な比率が変動：
-- **短時間ジョブ（〜1分）**: CI:PG = 1:1 を検討
-  - ジョブがすぐ完了するため、CIの処理がボトルネックになりやすい
-- **中時間ジョブ（1-10分）**: CI:PG = 1:2-3 が標準
-  - CIがジョブ待ち時間を有効活用できる
-- **長時間ジョブ（10分〜）**: CI:PG = 1:3-4 も可能
-  - ジョブ実行中に複数のPGに対応可能
+#### PG配置の指針
+ジョブ実行時間とPGの自律性を考慮：
+- **短時間ジョブ（〜1分）**: 各PGが頻繁にジョブ投入・確認
+- **中時間ジョブ（1-10分）**: ポーリング間隔を調整して効率化
+- **長時間ジョブ（10分〜）**: ジョブ実行中に次の最適化準備
 
 ## ⚒️ ツールと環境
 
@@ -418,7 +424,7 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 - `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
 
 #### プロジェクト管理用
-- `/Agent-shared/directory_map.txt`（エージェント配置管理）
+- `/Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
 - `/Agent-shared/budget_history.md`（予算使用履歴）
 - `/Agent-shared/ChangeLog_format_PM_override_template.md`（フォーマット定義用）
 - `/User-shared/final_report.md`（最終報告書 - プロジェクト終了時に作成）
@@ -442,9 +448,9 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
 - **重要**: チーム全体の予算残額は個人情報のため記載しない。usedと差分のみ記録
 - **ポイント未消費時の警告**：
   - ジョブ実行後もポイントが増えない場合、ログインノード実行の疑いあり
-  - 該当CIエージェントに即座に警告：
+  - 該当PGエージェントに即座に警告：
     ```bash
-    agent_send.sh CI1.1 "[PM警告] ポイント消費が確認できません。バッチジョブを使用していますか？ログインノードでの実行は禁止です。"
+    agent_send.sh PG1.1.1 "[PM警告] ポイント消費が確認できません。バッチジョブを使用していますか？ログインノードでの実行は禁止です。"
     ```
 - **予算閾値の設定（推奨）**:
   - 最低消費量：基本的な実行可能性確認に必要な予算
@@ -470,11 +476,11 @@ PM ≦ SSH-agent ≦ worker構成の場合（人数構成）
    - SOTA達成状況の総括
    - 各エージェントの貢献度
 4. [ ] エージェント停止順序の決定
-   - PG → CI → SE → CD → PM の順を推奨
-   - 実行中ジョブがある場合はCI待機
+   - PG → SE → CD → PM の順を推奨
+   - 実行中ジョブがある場合はPG待機
 5. [ ] クリーンアップ指示
    - 不要な一時ファイルの削除指示
-   - SSH接続のクローズ確認
+   - SSH/SFTP接続のクローズ確認
 
 ### 成果物の確認
 - **可視化レポート**: SEが生成した`/User-shared/visualizations/*.png`を確認
@@ -494,7 +500,7 @@ tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 
 # 出力例：
 # 0: bash    （SE1が待機中または停止）
-# 1: claude  （CI1.1が処理中）
+# 1: claude  （PG1.1.1が処理中）
 # 2: bash    （PG1.1.1が待機中または停止）
 # 3: bash    （PG1.1.2が待機中または停止）
 
@@ -589,16 +595,16 @@ agent_send.sh PG1.1.1 "[PM] 処理を再開してください。先ほどの続�
 ### 予防策
 - 定期的にエージェントの生存確認を行う
 - 重要な作業前にChangeLog.mdへの記録を確実に行う
-- CDエージェントなど重要度の低いエージェントは後回しにして、コアエージェント（SE、CI、PG）を優先的に監視
+- CDエージェントなど重要度の低いエージェントは後回しにして、コアエージェント（SE、PG）を優先的に監視
 
 ## 🏁 プロジェクト終了管理
 
 ### STOP回数による自動終了
-ポーリング型エージェント（PM、SE、CI、CD）には終了を試みるSTOP回数の上限があります：
+ポーリング型エージェント（PM、SE、PG、CD）には終了を試みるSTOP回数の上限があります：
 - **PM**: 50回（最も高い閾値）
 - **CD**: 40回（非同期作業が多いため高め）
 - **SE**: 30回
-- **CI**: 20回
+- **PG**: 20回（ジョブ実行待ちを考慮）
 
 #### 閾値管理
 - **設定ファイル**: `/Agent-shared/stop_thresholds.json`で一元管理
@@ -608,8 +614,8 @@ agent_send.sh PG1.1.1 "[PM] 処理を再開してください。先ほどの続�
   # 例: SE1のカウントをリセット
   echo "0" > Flow/TypeII/single-node/.claude/hooks/stop_count.txt
   
-  # 例: CI1.1のカウントを10に設定
-  echo "10" > Flow/TypeII/single-node/intel2024/.claude/hooks/stop_count.txt
+  # 例: PG1.1.1のカウントを10に設定
+  echo "10" > Flow/TypeII/single-node/OpenMP/.claude/hooks/stop_count.txt
   ```
 
 #### 閾値到達時の動作

@@ -11,7 +11,7 @@
 - `compile_warnings`: 警告メッセージの要約
 - `compile_output_path`: コンパイルログの保存パス
 
-### 2. CIエージェントの処理フロー
+### 2. PGエージェントの処理フロー
 1. **make実行時の出力保存**
    ```bash
    make 2>&1 | tee /results/compile_v1.2.3.log
@@ -31,12 +31,10 @@
        - log: `/results/compile_v1.2.3.log`
    ```
 
-4. **PGへの通知**
-   ```bash
-   agent_send.sh PG1.1.1 "[警告] コンパイル警告あり - ChangeLog.md確認してください"
-   ```
+4. **警告の記録**
+   ChangeLog.mdのmessage欄に警告内容を記載
 
-### 3. PGエージェントの判断基準
+### 3. 警告に対する判断基準
 
 #### ジョブ実行を中止すべき警告
 - ループ依存性による並列化無効

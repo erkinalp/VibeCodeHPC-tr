@@ -33,7 +33,8 @@ cp "$TEMPLATE_DIR/session_start.py" "$AGENT_DIR/.claude/hooks/"
 echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
 
 # エージェントタイプに応じたstop hookをコピー
-if [ "$AGENT_TYPE" = "polling" ]; then
+# v0.4以降：PGもポーリング型に変更（全エージェントがポーリング型）
+if [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]]; then
     cp "$TEMPLATE_DIR/stop_polling_v2.py" "$AGENT_DIR/.claude/hooks/stop.py"
     # settings.jsonを作成（絶対パスを使用）
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF

@@ -11,7 +11,7 @@
 VibeCodeHPC/
 ├── CLAUDE.md                    # 共通ルール（writer:PM, reader:all）
 ├── assign_history.txt           # PM管理（writer:PM, reader:all）
-├── resource_allocation.md       # リソース割り当て（writer:PM, reader:CI）
+├── resource_allocation.md       # リソース割り当て（writer:PM, reader:all）
 ├── sota_project.txt             # Project階層SOTA（writer:PG, reader:all）
 ├── history/
 │   └── sota_project_history.txt # Project SOTA履歴（writer:PG, reader:PM）
@@ -30,7 +30,7 @@ VibeCodeHPC/
 ```
 Agent-shared/
 ├── directory_map.txt            # エージェント配置（writer:PM, reader:all）
-├── budget_history.md            # 予算履歴（writer:PM, reader:CI）
+├── budget_history.md            # 予算履歴（writer:PM, reader:all）
 ├── ChangeLog_format.md          # ChangeLog.md基本フォーマット（writer:PM, reader:all）
 ├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:運営, reader:PM）
 ├── ChangeLog_format_PM_override.md # PMオーバーライド仕様（writer:PM, reader:all）※PMがテンプレートから生成
@@ -68,22 +68,17 @@ communication/
 ### ハードウェア階層直下
 ```
 Flow/TypeII/single-node/
-├── hardware_info.md            # ハードウェア情報集約（writer:CI, reader:all）
+├── hardware_info.md            # ハードウェア情報集約（writer:SE/PG, reader:all）
 │   ├── CPU: lscpu結果
 │   ├── Memory: lsmem結果  
 │   ├── Network: 通信バンド幅、レイテンシ
 │   ├── Storage: ディスクI/O性能
 │   └── Accelerator: GPU/FPGA情報
 ├── sota_hardware.txt           # Hardware階層SOTA（writer:PG, reader:all）
-├── intel2024/
-└── gcc11.3.0/
-```
-
-### CI階層
-```
-CI1.1/
-├── setup.md                    # 環境構築手順
-└── job_list_CI1.1.txt          # ジョブ管理
+├── intel2024/                  # コンパイラ環境階層
+│   └── setup.md                # 環境構築手順（writer:最初のPG, reader:all PGs）
+└── gcc11.3.0/                  # コンパイラ環境階層
+    └── setup.md                # 環境構築手順（writer:最初のPG, reader:all PGs）
 ```
 
 ### PG階層
@@ -107,7 +102,7 @@ PG1.1.1/
 
 ### 分離する理由があるもの
 - 実行結果ファイル: サイズが大きい（results/）
-- 環境構築手順: CI固有情報（setup.md）
+- 環境構築手順: コンパイラ環境階層で共有（intel2024/setup.md等）
 - 予算管理: PM集約必要（budget_history.md）
 
 ## 取得・解析方法

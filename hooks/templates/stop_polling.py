@@ -10,7 +10,7 @@
 
 """
 VibeCodeHPC Stop Hook (ポーリング型エージェント用)
-PM, SE, CI, CDの待機状態を防ぐ
+PM, SE, PG, CDの待機状態を防ぐ
 """
 
 import json
@@ -78,7 +78,6 @@ def get_required_files(agent_id):
     role_files = {
         "PM": ["instructions/PM.md", "_remote_info/", "Agent-shared/typical_hpc_code.md", "Agent-shared/evolutional_flat_dir.md"],
         "SE": ["instructions/SE.md", "Agent-shared/changelog_analysis_template.py"],
-        "CI": ["instructions/CI.md", "_remote_info/*/command.md", "Agent-shared/ssh_guide.md"],
         "CD": ["instructions/CD.md"]
     }
     
@@ -116,7 +115,7 @@ def generate_block_reason(agent_info, stop_hook_active):
     # 役割別の並行タスク
     if "PM" in agent_id:
         reason += """【PMの並行タスク】
-1. 全エージェントの進捗確認（SE、CI、PG、CDの巡回）
+1. 全エージェントの進捗確認（SE、PG、CDの巡回）
 2. directory_map.txtの更新確認
 3. 予算管理（pjstatでポイント確認）
 4. 停滞エージェントへの介入
@@ -130,20 +129,21 @@ def generate_block_reason(agent_info, stop_hook_active):
 1. 各PGのChangeLog.md更新状況の監視
 2. telemetry/context_usage_monitor.pyでコンテキスト使用状況確認
 3. SOTA更新履歴のグラフ生成（Agent-shared/log_analyzer.py）
-4. CI待ち状態のPGの検出と対応
+4. ジョブ実行結果待ち状態の確認
 5. visible_path_PG*.txtの更新
 
 """
     
-    elif agent_id.startswith("CI"):
-        reason += """【CIの並行タスク】
-1. 各PGのChangeLog.mdを確認し、未実行のコードをチェック
+    elif agent_id.startswith("PG"):
+        reason += """【PGの定期タスク】
+1. ChangeLog.mdの更新とSOTA管理
 2. SSH/SFTPセッションの状態確認（Desktop Commander利用）
 3. ジョブキューの状態確認（squeue等）
-4. コンパイル警告の解析とPGへのフィードバック
+4. コンパイル警告の解析と修正
 5. /resultsディレクトリの整理
+6. 新しい最適化手法の実装
 
-非同期でPGの要求に対応してください。
+性能向上の余地がある限り、継続的に最適化を進めてください。
 """
     
     elif agent_id.startswith("CD"):

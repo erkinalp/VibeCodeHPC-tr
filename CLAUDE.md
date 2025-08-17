@@ -33,12 +33,11 @@
 ## 🤖あなたの役割
 - **PM (Project Manager)**: @instructions/PM.md - プロジェクト全体の管理・要件定義・リソース配分
 - **SE (System Engineer)**: @instructions/SE.md - システム設計・worker監視・統計分析
-- **CI (Continuous Integration)**: @instructions/CI.md - SSH接続・環境構築・リモート実行
-- **PG (Program Generator)**: @instructions/PG.md - コード生成・最適化実装
+- **PG (Program Generator)**: @instructions/PG.md - コード生成・最適化実装・SSH/SFTP実行
 - **CD (Code Deployment)**: @instructions/CD.md - GitHub管理・セキュリティ対応
 
 ## 基本フロー
-PM → SE → CI ↔ PG → PM
+PM → SE → PG → PM
 CD は必要に応じて非同期で動作
 
 ## 🚀 エージェント起動時の基本手順
@@ -51,45 +50,42 @@ PMまたは上位エージェントから初期化メッセージを受信した
 以下のファイルは全エージェントが必ず読み込むこと：
 - `CLAUDE.md`（このファイル - 全エージェント共通ルール）
 - `instructions/[あなたの役割].md`（詳細な役割定義）
-- `Agent-shared/directory_map.txt`（エージェント配置と親子関係）
+- `Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
 - `requirement_definition.md`（ユーザの要件定義書）
 
 ### 3. 作業開始前の確認
 - 自身のエージェントIDを確認
 - `pwd`で現在のディレクトリを確認
-- directory_map.txtで自分の位置と親エージェントを確認
+- directory_pane_map.mdで自分の位置と親エージェントを確認
 - instructions/[あなたの役割].mdに記載された役割別必須ファイルを確認
 
 ### 4. 定期的な再読み込み（ポーリング型エージェント）
-PM、SE、CI、CDは以下のタイミングで関連ファイルを再確認：
+PM、SE、PG、CDは以下のタイミングで関連ファイルを再確認：
 - 定期巡回時（2-5分間隔）
 - auto-compact発生後（全ファイル名を`ls -R`で再確認）
 - 重要ファイル更新通知を受けた時
 
 ## エージェント動作パターン
-各エージェントは以下の3つの動作パターンのいずれかで動作する：
+各エージェントは以下の2つの動作パターンのいずれかで動作する：
 
-### 1. **イベントドリブン型** (PG)
-- **特徴**: メッセージ受信時にのみ反応し、完了後は待機
-- **例**: PGがコード生成→CIに実行依頼→結果待ち→次の最適化
-
-### 2. **ポーリング型** (PM, SE, CI, CD)
+### 1. **ポーリング型** (PM, SE, PG, CD)
 - **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
+- **例**: PGがジョブ実行後、定期的に結果を確認→次の最適化
 - **例**: SEがChangeLog.mdを定期監視→統計グラフ更新
 - **例**: PMが全エージェントを巡回監視→リソース再配分
 
-### 3. **➡️ フロー駆動型** (PM初期のみ)
+### 2. **➡️ フロー駆動型** (PM初期のみ)
 - **特徴**: 一連のタスクを順次実行し、各ステップで判断
 - **例**: 要件定義→環境調査→階層設計→エージェント配置
 
 ## プロジェクトのディレクトリ階層（組織図）
-Agent-shared\directory_map.txtを最初に読み込み
+Agent-shared\directory_pane_map.mdを最初に読み込み
 pwdなどのコマンドで自分のカレントディレクトリと
 与えられた役割にずれが無いことを確認すること。
 組織図は更新されるので、適宜参照すること
 
-## エージェント配置の可視化
-- `/directory_pane_map.md`: tmuxペイン配置を色分けで可視化（PMが作成・更新）
+## エージェント配置の統合管理
+- `/Agent-shared/directory_pane_map.md`: エージェント配置とtmuxペイン配置を統合管理（PMが作成・更新）
 - テンプレート: `/Agent-shared/directory_pane_map_example.md`を参照
 
 ## 💰予算管理 (PMが集約管理)
@@ -129,7 +125,7 @@ pwdなどのコマンドで自分のカレントディレクトリと
   - 参考程度の情報として活用
 
 ## 🏁 終了管理
-- **STOP回数制御**: ポーリング型エージェント（PM、SE、CI、CD）は一定回数のSTOP試行で終了待機
+- **STOP回数制御**: ポーリング型エージェント（PM、SE、PG、CD）は一定回数のSTOP試行で終了待機
   - 閾値は `/Agent-shared/stop_thresholds.json` で管理
   - PMは各エージェントの `.claude/hooks/stop_count.txt` を編集してカウントリセット可能
   - 閾値到達時、PMは「継続」「転属」「個別終了」から選択

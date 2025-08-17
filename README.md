@@ -8,7 +8,7 @@ Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエー
 ## システム概要
 
 ### 特徴
-- **階層型マルチエージェント**: PM → SE → CI ↔ PG の企業的分業体制
+- **階層型マルチエージェント**: PM → SE ↔ PG の企業的分業体制
 - **プロジェクト地図**: 組織をリアルタイムに視覚化する`directory_map`
 - **進化的探索**: ボトムアップ型の`Flat`📁構造による効率的探索
 - **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
@@ -27,12 +27,9 @@ graph TD
     PM --> SE1[🤖 SE1<br/>System Engineer]
     PM --> CD[🤖 CD<br/>Continuous Delivery]
     
-    SE1 --> CI1[🤖 CI1.1<br/>SSH & Build]
-    SE1 --> CI2[🤖 CI1.2<br/>SSH & Build]
-    
-    CI1 <--> PG1[🤖 PG1.1.1<br/>OpenMP]
-    CI1 <--> PG2[🤖 PG1.1.2<br/>MPI]
-    CI2 <--> PG3[🤖 PG1.2.1<br/>CUDA]
+    SE1 <--> PG1[🤖 PG1.1<br/>OpenMP]
+    SE1 <--> PG2[🤖 PG1.2<br/>MPI]
+    SE1 <--> PG3[🤖 PG1.3<br/>CUDA]
     
     CD --> GitHub[📦 GitHub Repository]
 ```
@@ -43,8 +40,7 @@ graph TD
 |-------|------|------------|----------|
 | **PM** | プロジェクト統括 | assign_history.txt<br/>User-shared/final_report.md | 要件定義・リソース配分・予算管理 |
 | **SE** | システム設計 | User-shared/reports/<br/>User-shared/visualizations/ | エージェント監視・統計分析・レポート生成 |
-| **CI** | ビルド・実行 | hardware_info.md<br/>job_list_CI*.txt | SSH接続・コンパイル・ジョブ実行 |
-| **PG** | コード生成 | ChangeLog.md<br/>sota_local.txt | 並列化実装・性能測定・SOTA判定 |
+| **PG** | コード生成・実行 | ChangeLog.md<br/>sota_local.txt<br/>job_list_PG*.txt | 並列化実装・SSH/SFTP接続・ジョブ実行・性能測定・SOTA判定 |
 | **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
 
 ## 📁 ディレクトリ構造
@@ -76,12 +72,12 @@ VibeCodeHPC/🤖PM
 └── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
     ├── 📄 hardware_info.md          # ハードウェア仕様（理論性能含む）
     ├── 📄 sota_hardware.txt         # 指定ハード内の Hardware SOTA
-    ├── 📁 intel2024/🤖CI1.1         # コンパイラ環境                       
+    ├── 📁 intel2024/                 # コンパイラ環境                       
     │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
     │        ├── 📄 ChangeLog.md      # 進捗記録
     │        ├── 📄 sota_local.txt
     │        └── 📄 matrix_v1.2.3.c
-    └── 📁 gcc11.3.0/🤖CI1.2        # 別コンパイラ
+    └── 📁 gcc11.3.0/                 # 別コンパイラ
         └── 📁 CUDA/🤖PG1.2.1
 ```
 
@@ -89,13 +85,10 @@ VibeCodeHPC/🤖PM
 
 ### エージェント動作パターン
 
-#### **📨 イベントドリブン型** (PG)
-- **特徴**: メッセージ受信時にのみ反応し、完了後は待機
-- **例**: PGがコード生成→CIに実行依頼→結果待ち→次の最適化
-
-#### **⏳ ポーリング型** (PM, SE, CI, CD)
+#### **⏳ ポーリング型** (PM, SE, PG, CD)
 - **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
 - **例**: PMが全エージェントを巡回監視→リソース再配分
+- **例**: PGがコード生成→自律的に実行→結果確認→次の最適化
 
 #### **➡️ フロー駆動型** (PM初期のみ)
 - **特徴**: 一連のタスクを順次実行し、各ステップで判断
@@ -165,15 +158,13 @@ flowchart TB
 sequenceDiagram
     participant PM as PM
     participant SE as SE
-    participant CI as CI
     participant PG as PG
     
     PM->>PG: 最適化タスク割り当て
     PG->>PG: コード生成・ChangeLog.md作成
-    PG->>CI: コンパイル・実行要求
-    CI->>CI: SSH・make・ジョブ実行
-    CI->>PG: 実行結果・性能データ
-    PG->>PG: SOTA判定・分析
+    PG->>PG: SSH接続・コンパイル・ジョブ実行
+    PG->>PG: 実行結果・性能データ取得
+    PG->>SE: SOTA達成報告
     SE->>SE: 統計分析・可視化（非同期）
 ```
 
@@ -353,7 +344,7 @@ cd VibeCodeHPC-main
 ```
 
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
-PMがHPC環境へのSSH/SFTP接続を管理に活用（CI🤖も使用）
+PM、SE、PGがHPC環境へのSSH/SFTP接続を管理に活用
 ```bash
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
@@ -442,18 +433,18 @@ npx ccusage@latest
 > - **PMセッション**: PMエージェント専用（ユーザとの対話用）
 >   - デフォルト: `Team1_PM`
 >   - プロジェクト指定時: `{ProjectName}_PM`
-> - **ワーカーセッション**: その他のエージェント（SE, CI, PG, CD）
+> - **ワーカーセッション**: その他のエージェント（SE, PG, CD）
 >   - デフォルト: `Team1_Workers1`
 >   - プロジェクト指定時: `{ProjectName}_Workers1`
 > 
-> 最小エージェント数は3です（SE + CI + PG）。解像度に応じて調整してください。
+> 最小エージェント数は2です（SE + PG）。解像度に応じて調整してください。
 
 ```bash
 cd VibeCodeHPC-jp-main
 ./communication/setup.sh [ワーカー数]  # 例: ./communication/setup.sh 12
 
 # コマンドラインオプション:
-#   [ワーカー数]     : PM以外のエージェント総数 (最小: 3)
+#   [ワーカー数]     : PM以外のエージェント総数 (最小: 2)
 #   --project <名前> : プロジェクト名を指定（例: GEMM, MatMul）
 #   --clean-only     : 既存セッションのクリーンアップのみ実行
 #   --dry-run        : 実際のセットアップを行わずに計画を表示
@@ -465,13 +456,13 @@ cd VibeCodeHPC-jp-main
 
 #### 参考構成例（実際の配置はPMが決定）
 
-| Workers | SE | CI | PG | CD | 備考 |
-|---------|----|----|----|----|------|
-| 3 | 1 | 1 | 1 | 0 | 最小構成 |
-| 6 | 1 | 1 | 3 | 1 | ジョブバインド型 |
-| 9 | 2 | 2 | 4 | 1 | SE≧2で安定 |
-| 12 | 2 | 3 | 6 | 1 | 推奨構成 |
-| 16 | 2 | 5 | 8 | 1 | 大規模 |
+| Workers | SE | PG | CD | 備考 |
+|---------|----|----|-----|------|
+| 2 | 1 | 1 | 0 | 最小構成 |
+| 4 | 1 | 3 | 0 | 小規模 |
+| 8 | 2 | 5 | 1 | SE≧2で安定 |
+| 12 | 2 | 9 | 1 | 推奨構成 |
+| 16 | 3 | 12 | 1 | 大規模 |
 
 #### 2つのターミナルタブでそれぞれアタッチ
 
@@ -534,7 +525,7 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 エージェントの挙動を制御するhooks機能により、以下が実現されます：
 
 #### 主な機能
-- **ポーリング型エージェント（PM, SE, CI, CD）の待機防止**: 定期的なタスクを自動提示
+- **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
 - **auto-compact対策**: コンテキストリセット後に必須ファイルの再読み込みを促進
 - **session_id追跡**: 各エージェントのClaude session_idを記録・管理
 
@@ -611,7 +602,6 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 
 - [x] **compile**
     - status: `success`
-    - request_id: `PG1.1.1-CI1.1-001`
     - log: `/results/compile_v1.1.0.log`
 - [x] **job**
     - id: `123456`
@@ -640,7 +630,6 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 
 - [x] **compile**
     - status: `success`
-    - request_id: `PG1.1.1-CI1.1-002`
 - [x] **job**
     - id: `123454`
     - status: `success`

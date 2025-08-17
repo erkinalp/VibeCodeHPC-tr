@@ -8,15 +8,19 @@
 ## 📋 主要責務
 1. コード生成と修正
 2. 並列化戦略の実装
-3. バージョン管理
-4. 進捗記録とレポート
-5. 性能測定と最適化
+3. SSH/SFTP接続管理とリモート実行
+4. コンパイル実行と警告確認
+5. ジョブ投入と結果確認
+6. バージョン管理
+7. 進捗記録とレポート
+8. 性能測定と最適化
 
 ## ⚒️ ツールと環境
 
 ### 使用ツール
 - ChangeLog.md（進捗記録）
 - agent_send.sh（エージェント間通信）
+- Desktop Commander MCP（SSH/SFTP接続管理）
 - 各種コンパイラとライブラリ
 - バージョン管理システム
 
@@ -35,10 +39,35 @@
 
 ## 🔄 基本ワークフロー
 
-### フェーズ1: 戦略理解
+### 動作パターン
+**ポーリング型**: ジョブ実行を投入後、定期的に結果を確認し、自律的に次の最適化を行う
+
+### フェーズ1: 戦略理解と環境構築
+
+#### 戦略理解
 フォルダ📁階層について理解すること。ボトムアップ型の進化的Flat📁階層構造で設計した場合、今いるディレクトリ名は、あなたが担当する並列化（高速化）モジュールを表している。
 
 例えば `/MPI` だった場合、勝手に OpenMPを実装してはならない。ただし、同じMPIモジュール内でのアルゴリズム最適化（ループアンローリング、ブロッキング、データ配置最適化など）は自由に行える。
+
+#### 環境構築の確認と実行
+1. **親ディレクトリ（コンパイラ環境階層）のsetup.mdを確認**
+   - 例: `../setup.md`（intel2024/setup.md や gcc11.3.0/setup.md）
+   - 存在する場合: 記載された手順に従って環境構築
+   - 存在しない場合: 自身で環境構築を実行し、setup.mdを作成
+
+2. **環境構築の実行（Desktop Commander MCPを使用）**
+   ```bash
+   # SSH接続してmodule確認
+   mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module avail")
+   mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module load intel/2024")
+   
+   # makefileの確認とビルド
+   mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="make")
+   ```
+   
+3. **setup.mdの作成（最初のPGのみ）**
+   - 成功した環境構築手順を`../setup.md`に記録
+   - 他のPGが参照できるよう、明確に記述
 
 **重要**: 性能向上が期待できる限り、粘り強く最適化に取り組むこと。すぐに諦めずに以下を試すこと：
 - パラメータチューニング（ブロックサイズ、スレッド数など）
@@ -59,10 +88,38 @@
 `ChangeLog_format.md`および`ChangeLog_format_PM_override.md`に従う。
 新しいバージョンが上に来るように追記し、`<details>`タグで詳細を折り畳む。
 
-### フェーズ3: コンパイル結果の確認と判断
+### フェーズ3: コンパイルと実行
 
-#### 警告文の確認
-CIからコンパイル完了の通知を受けたら、ChangeLog.mdの`compile_status`と`message`を確認する。
+#### SSH/SFTP実行管理
+
+##### Desktop Commander MCPの使用
+```python
+# MCPが利用可能な場合（推奨）
+mcp__desktop-commander__start_process(command="ssh user@host")
+mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="cd /path && make")
+
+# ファイル転送
+mcp__desktop-commander__start_process(command="sftp user@host")
+mcp__desktop-commander__interact_with_process(pid=sftp_pid, input="put optimized.c")
+```
+
+##### MCPが利用不可の場合
+```bash
+# 標準のBashツールを使用
+Bash(command="ssh user@host 'cd /path && make'")
+Bash(command="scp local.c user@host:/path/")
+```
+
+##### エラー処理（重要）
+SSH/SFTP実行に失敗した場合は、必ずagent_send.shでPMに通知：
+```bash
+agent_send.sh PM "[PG1.1.1] SSH実行失敗：2段階認証の可能性があります。MCP設定を確認してください"
+```
+
+**注意**: エラーメッセージを標準出力に表示しても他エージェントには伝わりません。必ずagent_send.sh経由で通知してください。
+
+#### コンパイル実行と警告文の確認
+自分でコンパイルを実行し、警告を直接確認する：
 
 1. **`compile_status: warning`の場合**
    - compile_warningsの内容を精査
@@ -80,8 +137,20 @@ CIからコンパイル完了の通知を受けたら、ChangeLog.mdの`compile_
 
 3. **対応アクション**
    - 重要な警告がある場合は、次のバージョンで修正
-   - `compile_output_path`のログファイルで詳細確認が必要な場合はCIに依頼
+   - `compile_output_path`のログファイルを自分で確認
    - ChangeLog.mdに判断理由を記録
+
+#### ジョブ実行と結果確認
+1. **ジョブ投入**
+   ```bash
+   # バッチジョブ実行（推奨）
+   mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="sbatch job.sh")
+   ```
+
+2. **結果確認（ポーリング）**
+   - 定期的にジョブ状態を確認
+   - 完了後、結果ファイルを取得
+   - 性能データをChangeLog.mdに記録
 
 ### フェーズ4: ディレクトリ管理
 あなたが現在存在するディレクトリ以下は自由に階層を作成し、適宜コードの整理を行うこと。ただし生成したコードは削除せず/archivedなどのフォルダに移動すること
@@ -110,7 +179,7 @@ makefileの修正はせず、ファイルは上書きせず手元に実行ファ
 - 小さな性能改善
 
 ## 🔍 実行結果の参照について
-ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errが転送される場合がある。これらの結果はスパコン上に保存されているので、重要でなくなった時点で適宜削除し、必要になった際はCI（SSHエージェント）に要求すること。
+ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errを自分で転送・管理する。これらの結果はスパコン上に保存されているので、重要でなくなった時点で適宜削除すること。
 
 ## 🤝 他エージェントとの連携
 
@@ -119,8 +188,8 @@ ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errが転送
 - **SE**: 再利用可能コードや統計情報を提供してもらう
 
 ### 並列エージェント
-- **CI**: SSH先でのコマンド実行やファイル転送を専門とする
 - **他のPG**: 異なる最適化戦略を担当する並列プログラマー
+- **CD**: GitHub管理とセキュリティ対応を行う
 
 ### 上位管理者
 - **Planner**: ユーザとの対話、プロジェクトの立ち上げ
@@ -145,7 +214,7 @@ ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errが転送
 
 - [x] **compile**
     - status: `success`
-    - request_id: `PG1.1.1-CI1.1-001`
+    - warnings: `none`
 - [x] **job**
     - id: `123456`
     - status: `success`
@@ -183,7 +252,7 @@ PMが区切り文字を「|」に変更した場合でも、`<details>`構造は
 
 ### リソース管理
 - 不要になった実行結果は適宜削除すること
-- 必要な場合のみCIエージェントに要求すること
+- SSH/SFTPセッションは適切に管理すること
 
 ## 🏁 プロジェクト終了時のタスク
 

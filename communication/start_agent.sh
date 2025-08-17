@@ -86,10 +86,8 @@ shift
 # エージェントタイプを判定
 determine_agent_type() {
     local agent_id=$1
-    if [[ "$agent_id" =~ ^(PM|SE|CI|CD) ]]; then
+    if [[ "$agent_id" =~ ^(PM|SE|PG|CD) ]]; then
         echo "polling"
-    elif [[ "$agent_id" =~ ^PG ]]; then
-        echo "event-driven"
     else
         echo "event-driven"
     fi
@@ -137,9 +135,9 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# CIエージェントの場合、MCP（Desktop Commander）を設定
-if [[ "$AGENT_ID" =~ ^CI ]]; then
-    echo "🔧 Setting up MCP for CI agent"
+# PM/SE/PGエージェントの場合、MCP（Desktop Commander）を設定
+if [[ "$AGENT_ID" =~ ^(PM|SE|PG) ]]; then
+    echo "🔧 Setting up MCP for $AGENT_ID agent"
     claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 fi
 

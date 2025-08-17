@@ -67,7 +67,6 @@ get_agent_role() {
     case "${agent_name:0:2}" in
         "PM") echo "プロジェクト管理・要件定義" ;;
         "SE") echo "システム設計・監視" ;;
-        "CI") echo "SSH・ビルド・実行" ;;
         "PG") echo "コード生成・最適化" ;;
         "CD") echo "GitHub・デプロイ管理" ;;
         *) echo "専門エージェント" ;;
@@ -81,22 +80,14 @@ get_agent_color() {
     case "${agent_name:0:2}" in
         "PM") echo "1;35" ;;  # マゼンタ
         "SE") echo "1;36" ;;  # シアン
-        "CI") 
-            # グループごとに色を変える
-            if [[ "$agent_name" =~ CI1\.1 ]]; then
-                echo "1;33"  # 黄
-            elif [[ "$agent_name" =~ CI1\.2 ]]; then
-                echo "1;93"  # 明るい黄
-            else
-                echo "1;33"  # デフォルト黄
-            fi
-            ;;
         "PG") 
-            # CIグループと同じ色
-            if [[ "$agent_name" =~ PG1\.1\. ]]; then
+            # グループごとに色を変える
+            if [[ "$agent_name" =~ PG1\.1 ]]; then
                 echo "1;32"  # 緑
-            elif [[ "$agent_name" =~ PG1\.2\. ]]; then
+            elif [[ "$agent_name" =~ PG1\.2 ]]; then
                 echo "1;92"  # 明るい緑
+            elif [[ "$agent_name" =~ PG2\. ]]; then
+                echo "1;33"  # 黄
             else
                 echo "1;32"  # デフォルト緑
             fi
@@ -120,7 +111,6 @@ show_usage() {
 基本コマンド:
   PM "requirement_definition.mdを確認してください"
   SE1 "監視状況を報告してください"
-  CI1.1 "SSH接続を確認してください"
   PG1.1.1 "コード最適化を開始してください"
   CD "GitHub同期を実行してください"
 
@@ -144,7 +134,7 @@ show_usage() {
 例:
   $0 SE1 "[依頼] PG1.1.1にOpenMP最適化タスクを配布してください"
   $0 PG1.1.1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
-  $0 CI1.1 "[報告] job_12345 実行完了、結果をChangeLog.mdに追記しました"
+  $0 PG1.1 "[報告] job_12345 実行完了、性能データ 285.7 GFLOPS達成"
   
   # 再配置例（絶対パス）
   $0 PG1.1.1 "!cd /absolute/path/to/VibeCodeHPC/Flow/TypeII/single-node/gcc/OpenMP_MPI"
@@ -169,7 +159,7 @@ show_agents() {
     fi
     
     # エージェント種別ごとに表示
-    local agent_types=("PM" "SE" "CI" "PG" "CD")
+    local agent_types=("PM" "SE" "PG" "CD")
     
     for type in "${agent_types[@]}"; do
         echo ""

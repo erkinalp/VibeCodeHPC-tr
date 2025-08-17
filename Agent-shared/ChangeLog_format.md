@@ -16,7 +16,7 @@
 ```markdown
 ## Change Log
 
-- 基本の型：`ChangeLog_format.md`に記載（およびCI,PGによる追記の作法）
+- 基本の型：`ChangeLog_format.md`に記載（およびPGによる追記の作法）
 - PMオーバーライド：`ChangeLog_format_PM_override.md`に記載（PMがテンプレートから生成）
 ```
 
@@ -32,7 +32,6 @@
 
 - [x/✗] **compile**
     - status: `[success/warning/error]`
-    - request_id: `[PG-CI間の識別子]`
     - message: "[エラーや警告の内容]" ※エラー/警告時のみ
     - log: `[ログファイルパス]`
 - [x/✗] **job**
@@ -73,7 +72,7 @@
 #### 必須項目
 - version
 - 変更点
-- compile情報（status, request_id）
+- compile情報（status）
 
 #### 任意項目
 - message（エラー/警告時は必須）
@@ -81,19 +80,17 @@
 - sota（記録更新時のみ）
 - その他のparams（実装により異なる）
 
-## CI/PGによる追記の作法
+## PGによる追記の作法
 
 ### PG（プログラマー）の責務
 1. 新バージョンエントリの作成
 2. 変更点とコメントの記述
-3. compileセクションのrequest_id設定
+3. compile実行とstatus記録
 4. 基本的なparams設定
-
-### CI（継続的インテグレーション）の責務
-1. compile結果の更新（status, log, message）
-2. job情報の追記（id, status）
-3. test結果の更新
-4. パフォーマンス値の記録
+5. compile結果の更新（status, log, message）
+6. job情報の追記（id, status）
+7. test結果の更新
+8. パフォーマンス値の記録
 
 ## バージョニング規則
 **重要**: 基本的に `v1.0.0` から開始。`v0.x.x` は既存コードが動作しない場合のみ使用。
