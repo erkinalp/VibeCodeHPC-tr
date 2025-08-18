@@ -167,12 +167,16 @@ def generate_block_reason(agent_info, stop_count):
         reason = f"""
 ⚠️ STOP回数が上限（{threshold}回）に達しました。
 
+📝 **重要**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
+   全ての要件を満たしているか項目ごとに ☑ 確認すること。
+
 エージェント {agent_id} として以下の終了前タスクを実行してください：
 
 1. PMへの終了通知:
    agent_send.sh PM "[{agent_id}] STOP回数が上限に達しました。終了前の最終タスクを実行中です。"
 
-2. 最終タスク実行:
+2. 要件確認と最終タスク実行:
+   - requirement_definition.mdの全項目を確認
    - 現在進行中のタスクを切りの良いところまで完了
    - ChangeLog.mdの最終更新
    - 作業ディレクトリの整理
