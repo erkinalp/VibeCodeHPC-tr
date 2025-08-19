@@ -84,10 +84,10 @@ while true; do
             fi
         done
         
-        # SOTA比較グラフの生成（存在する場合）
-        if [ -f "$PROJECT_ROOT/telemetry/sota_comparison.py" ]; then
-            echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Generating SOTA comparison..." >> "$LOG_FILE"
-            $PYTHON_CMD "$PROJECT_ROOT/telemetry/sota_comparison.py" 2>&1 | tail -5 >> "$LOG_FILE"
+        # SOTA可視化グラフの生成（存在する場合）
+        if [ -f "$PROJECT_ROOT/Agent-shared/sota_visualizer.py" ]; then
+            echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Generating SOTA visualizations..." >> "$LOG_FILE"
+            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota_visualizer.py" --level project 2>&1 | tail -5 >> "$LOG_FILE"
         fi
     fi
     
