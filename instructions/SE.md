@@ -158,8 +158,7 @@ SEは定期的に以下のタスクを実行すること：
    - 全エージェントのコンテキスト使用率グラフを生成
    - `python telemetry/context_usage_quick_status.py` でクイック確認
 
-2. **95%接近時の特別監視**
-   - コンテキスト使用率が95%に近いエージェントのログを重点的に監視
+2. **auto-compact発生時の対応**
    - auto-compact直後のエージェントに以下のメッセージを送信：
      ```
      agent_send.sh [AGENT_ID] "[SE] auto-compactを検知しました。プロジェクトの継続性のため、以下のファイルを再読み込みしてください：
@@ -243,6 +242,7 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 - `/Agent-shared/sota_management.md`（SOTA管理システム）
 - `/Agent-shared/report_hierarchy.md`（レポート階層構成）
 - `/Agent-shared/artifacts_position.md`（成果物配置ルール）
+- `/Agent-shared/budget_termination_criteria.md`（予算ベース終了条件）
 
 #### 分析・監視用ツール
 - `/Agent-shared/changelog_analysis_template.py`（分析テンプレート）
@@ -292,10 +292,32 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
    - 複雑な相関図: PNG画像必須
 
 ### 終了管理
-- SEはポーリング型エージェントのため、STOP回数が閾値に達すると終了通知をPMに送信
+
+#### 予算ベースの終了条件（最優先）
+- **主観的判断の排除**: PMの主観ではなく、予算消費率で客観的に判断
+- **フェーズ監視**: `/Agent-shared/budget_termination_criteria.md`の5段階フェーズを理解
+- **効率分析**: 予算効率（性能向上/ポイント消費）を定期的に計算・可視化
+
+```python
+# 予算効率の計算例
+def calculate_efficiency(performance_gain, points_used):
+    """
+    効率スコア = 性能向上率 / ポイント消費
+    高効率: > 0.1, 標準: 0.01-0.1, 低効率: < 0.01
+    """
+    return performance_gain / points_used if points_used > 0 else 0
+```
+
+#### フェーズ別のSEの対応
+- **フェーズ1-2（0-70%）**: 積極的な統計分析と最適化提案
+- **フェーズ3（70-85%）**: 効率の悪いPGの特定と停止提案
+- **フェーズ4（85-95%）**: 最終レポート準備、可視化完成
+- **フェーズ5（95-100%）**: 即座に作業停止、成果物保存
+
+#### STOP回数による終了（補助的）
+- ポーリング型エージェントのため、STOP回数が閾値に達すると終了通知をPMに送信
 - 閾値は`/Agent-shared/stop_thresholds.json`で管理される
-- 閾値到達後は、切りの良いところまで作業を完了してから終了待機
-- PMがカウントをリセットする場合もあるため、即座に終了せず指示を待つこと
+- ただし、**予算ベースの終了条件が優先**される
 
 ## 🏁 プロジェクト終了時のタスク
 

@@ -46,7 +46,9 @@ class SOTAComparison:
         # バージョンごとのエントリをパース（例: ### v1.0.0）
         version_pattern = r'### v(\d+\.\d+\.\d+)'
         result_pattern = r'\*\*結果\*\*: .*?`([\d.]+)\s*(GFLOPS|TFLOPS|ms|sec)`'
-        time_pattern = r'\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)\]'
+        # 生成時刻のパターン（新形式と旧形式の両方に対応）
+        time_pattern = r'\*\*生成時刻\*\*:\s*`(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)`'
+        old_time_pattern = r'\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)\]'
         
         versions = re.finditer(version_pattern, content)
         
@@ -64,8 +66,10 @@ class SOTAComparison:
                 value = float(result_match.group(1))
                 unit = result_match.group(2)
                 
-                # 時刻を抽出（あれば）
+                # 時刻を抽出（新形式優先、なければ旧形式）
                 time_match = re.search(time_pattern, section)
+                if not time_match:
+                    time_match = re.search(old_time_pattern, section)
                 timestamp = time_match.group(1) if time_match else None
                 
                 entries.append({
