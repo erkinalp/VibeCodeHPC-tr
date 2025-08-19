@@ -34,7 +34,7 @@ cat huge_job_output.log | claude -p "エラーメッセージを抽出して要�
 ### 重要な原則
 - **リモート環境でもローカルと同じディレクトリ階層を維持**
 - これによりmakefileや.bashrcの混同を防ぐ
-- directory_map.txtの階層を再現することを推奨
+- directory_pane_map.txtの階層を再現することを推奨
 
 ### 階層再現の範囲
 - エージェント配置ディレクトリまでは厳密に再現

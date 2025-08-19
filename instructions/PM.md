@@ -307,17 +307,17 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
 
 いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_pane_map.mdの更新を忘れてはならない。
 
-#### directory_mapの更新ルール
+#### directory_pane_mapの更新ルール
 1. **即時更新**: エージェントを割り当てた直後に必ず更新する
 2. **絵文字による区別**: 
    - 📁または📂: ディレクトリ
    - 🤖: **実際にclaudeコマンドで起動済みのエージェントのみ**（例: 🤖SE1, 🤖PG1.1.1）
-   - 👤: 将来配置予定のエージェント（future_directory_map.txtで使用）
+   - 👤: 将来配置予定のエージェント（future_directory_pane_map.txtで使用）
 3. **安全な更新方法**:
-   - directory_map_temp.txtを作成
+   - directory_pane_map_temp.txtを作成
    - 変更を適用
    - diffで確認後、本体を更新
-   - 履歴保存: directory_map_v1.txt等
+   - 履歴保存: directory_pane_map_v1.txt等
 4. **ビジョンと実装の分離**:
    - future_directory_pane_map.md: 将来の構想（👤で表記）
    - directory_pane_map.md: 現在の実際の配置とtmuxペイン（🤖は起動済みのみ）
@@ -365,7 +365,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - 新規タスクの割り当て
    - **重要**: 中盤以降は人員維持を最優先（auto-compact対策）
 
-3. **directory_map更新**
+3. **directory_pane_map更新**
    - 実際の配置状況を反映
    - future_directory_pane_map.mdとの差分確認
    - working_dirとの整合性確認

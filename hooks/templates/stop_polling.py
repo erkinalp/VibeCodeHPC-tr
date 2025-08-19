@@ -69,7 +69,7 @@ def get_required_files(agent_id):
     # 共通の必須ファイル
     common_files = [
         "CLAUDE.md",
-        "Agent-shared/directory_map.txt"
+        "Agent-shared/directory_pane_map.txt"
     ]
     
     # 役割を抽出
@@ -116,7 +116,7 @@ def generate_block_reason(agent_info, stop_hook_active):
     if "PM" in agent_id:
         reason += """【PMの並行タスク】
 1. 全エージェントの進捗確認（SE、PG、CDの巡回）
-2. directory_map.txtの更新確認
+2. directory_pane_map.txtの更新確認
 3. 予算管理（pjstatでポイント確認）
 4. 停滞エージェントへの介入
 5. リソース再配分の検討

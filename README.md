@@ -9,7 +9,7 @@ Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエー
 
 ### 特徴
 - **階層型マルチエージェント**: PM → SE ↔ PG の企業的分業体制
-- **プロジェクト地図**: 組織をリアルタイムに視覚化する`directory_map`
+- **プロジェクト地図**: 組織をリアルタイムに視覚化する`directory_pane_map`
 - **進化的探索**: ボトムアップ型の`Flat`📁構造による効率的探索
 - **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
 - **予算管理**: 計算資源💰の効率的配分と追跡
@@ -49,7 +49,7 @@ graph TD
 VibeCodeHPC/🤖PM
 ├── 📄 CLAUDE.md                     # 全エージェント共通ルール
 ├── 📄 requirement_definition.md     # 要件定義書
-├── 📄 directory_pane_map.md         # ディレクトリ構造とtmuxペイン配置
+├── 📄 directory_pane_map.md         # エージェント配置とtmuxペイン統合管理
 ├── 📄 sota_project.txt              # プロジェクト全体SOTA
 │
 ├── 📁 Agent-shared/                 # 全エージェント共有
@@ -564,7 +564,7 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
 - agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
-- directory_map.txt（エージェント配置管理）
+- directory_pane_map.txt（エージェント配置とペイン管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 
 全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。

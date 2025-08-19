@@ -157,7 +157,7 @@ def get_required_files(agent_id):
     # 共通ファイル
     common_files = [
         "CLAUDE.md",
-        "Agent-shared/directory_map.txt"
+        "Agent-shared/directory_pane_map.txt"
     ]
     
     # 役割を抽出（例: PG1.1.1 -> PG）

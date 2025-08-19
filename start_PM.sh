@@ -85,7 +85,7 @@ cat << 'EOF'
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
 - agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
-- directory_map.txt（エージェント配置管理）
+- directory_pane_map.txt（エージェント配置とペイン管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 
 全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。

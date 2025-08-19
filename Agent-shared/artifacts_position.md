@@ -29,7 +29,7 @@ VibeCodeHPC/
 ### Agent-shared/ (全エージェント参照)
 ```
 Agent-shared/
-├── directory_map.txt            # エージェント配置（writer:PM, reader:all）
+├── directory_pane_map.txt       # エージェント配置とペイン管理（writer:PM, reader:all）
 ├── budget_history.md            # 予算履歴（writer:PM, reader:all）
 ├── ChangeLog_format.md          # ChangeLog.md基本フォーマット（writer:PM, reader:all）
 ├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:運営, reader:PM）

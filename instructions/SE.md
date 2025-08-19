@@ -160,7 +160,7 @@ SEは定期的に以下のタスクを実行すること：
      - CLAUDE.md（共通ルール）
      - instructions/[役割].md（あなたの役割）
      - 現在のディレクトリのChangeLog.md（進捗状況）
-     - Agent-shared/directory_map.txt（エージェント配置）"
+     - Agent-shared/directory_pane_map.txt（エージェント配置とペイン管理）"
      ```
 
 3. **エージェント健全性監視**
@@ -244,7 +244,7 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 - `/Agent-shared/sota_checker.py`（SOTA確認スクリプト）
 
 #### 運用管理用
-- `/Agent-shared/directory_map.txt`（エージェント配置管理）
+- `/Agent-shared/directory_pane_map.txt`（エージェント配置とペイン管理）
 - 各PGのChangeLog.md（監視対象）
 - visible_path_PG*.txt（アクセス許可ファイル）
 

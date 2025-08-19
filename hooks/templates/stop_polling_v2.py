@@ -138,7 +138,7 @@ def get_required_files(agent_id):
     """エージェントIDから必須ファイルリストを生成"""
     common_files = [
         "CLAUDE.md",
-        "Agent-shared/directory_map.txt"
+        "Agent-shared/directory_pane_map.txt"
     ]
     
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
@@ -206,7 +206,7 @@ def generate_block_reason(agent_info, stop_count):
     if "PM" in agent_id:
         reason += """【PMの並行タスク】
 1. 全エージェントの進捗確認（SE、PG、CDの巡回）
-2. directory_map.txtの更新確認
+2. directory_pane_map.txtの更新確認
 3. 予算管理（pjstatでポイント確認）
 4. 停滞エージェントへの介入
 5. リソース再配分の検討
