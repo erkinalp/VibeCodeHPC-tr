@@ -128,11 +128,29 @@ def update_agent_table(session_id, source):
                     # v0.6以降: テスト検証エージェントの追加を検討
                     agent_type = 'polling'
                     
-                    # PMが初回起動時にプロジェクト開始時刻を記録
+                    # PMが初回起動時にプロジェクト開始時刻を記録と定期実行開始
                     if agent_id == 'PM' and source == 'startup':
                         start_time_file = project_root / "Agent-shared" / "project_start_time.txt"
                         if not start_time_file.exists() or start_time_file.stat().st_size == 0:
                             start_time_file.write_text(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ\n'))
+                        
+                        # 定期実行をバックグラウンドで開始
+                        periodic_script = project_root / "telemetry" / "periodic_monitor.sh"
+                        if periodic_script.exists():
+                            import subprocess
+                            try:
+                                # nohupでバックグラウンド実行、tmux解除でも継続しない
+                                subprocess.Popen(
+                                    ['bash', str(periodic_script)],
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL,
+                                    start_new_session=False  # tmuxセッションに紐づける
+                                )
+                                with open(debug_file, 'a') as f:
+                                    f.write(f"Started periodic monitor from {periodic_script}\n")
+                            except Exception as e:
+                                with open(debug_file, 'a') as f:
+                                    f.write(f"Failed to start periodic monitor: {e}\n")
                 
                 updated_lines.append(json.dumps(entry, ensure_ascii=False))
         

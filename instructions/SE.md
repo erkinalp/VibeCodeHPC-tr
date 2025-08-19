@@ -82,6 +82,12 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 #### 特に優先して作成する可視化ツール
 **重要**: レポート.mdの手動作成より、Pythonでの自動グラフ生成を優先すること
 
+**Python実行の優先順位（必ず以下の順序で試すこと）**：
+1. `uv run script.py` - uvがインストールされている場合
+2. `uvx script.py` - uvxがインストールされている場合
+3. `python3 script.py` - python3がインストールされている場合
+4. `python script.py` - 最後の手段
+
 Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し、指定したディレクトリ（配列で指定できると良い）内にある全てのChangeLog.mdを読み取って、以下のようなグラフを作成すること：
 
 ##### グラフ仕様

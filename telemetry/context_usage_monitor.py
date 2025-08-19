@@ -12,19 +12,26 @@ VibeCodeHPC コンテキスト使用率監視システム
 Claude Code JSONLログからトークン使用状況を解析し、各種グラフで可視化
 
 機能:
-1. ~/.claude/projects/ 以下のJSONLログを監視
-2. usage情報を抽出して累積トークン数を計算
-3. 多様なグラフ形式で可視化（積み上げ棒、折れ線、概要）
-4. auto-compact（160K前後）の予測
-5. 軽量キャッシュシステム（オプション）
-6. クイックステータス確認機能
+1. agent_and_pane_id_table.jsonlからセッションIDを動的取得
+2. ~/.claude/projects/ 以下のJSONLログを監視
+3. usage情報を抽出して累積トークン数を計算
+4. 多様なグラフ形式で可視化（積み上げ棒、折れ線、概要）
+5. auto-compact（160K前後）の予測
+6. 軽量キャッシュシステム（オプション）
+7. クイックステータス確認機能
+8. 時間制限オプション（--max-minutes）でグラフの表示範囲を制御
 """
 
 import json
 import os
+import sys
+import subprocess
+import platform
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import argparse
+import matplotlib
+matplotlib.use('Agg')  # GUIなし環境でも動作
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from collections import defaultdict, OrderedDict
@@ -34,7 +41,10 @@ import pickle
 import gzip
 
 # グラフスタイル設定
-plt.style.use('seaborn-v0_8-darkgrid')
+try:
+    plt.style.use('seaborn-v0_8-darkgrid')
+except:
+    plt.style.use('seaborn-darkgrid')
 plt.rcParams['figure.figsize'] = (14, 10)
 plt.rcParams['font.size'] = 10
 
@@ -46,17 +56,22 @@ class ContextUsageMonitor:
     AUTO_COMPACT_THRESHOLD = 160000  # 実際のauto-compact発生点（推定）
     WARNING_THRESHOLD = 140000  # 警告閾値
     
-    def __init__(self, project_root: Path, use_cache: bool = True):
+    def __init__(self, project_root: Path, use_cache: bool = True, max_minutes: Optional[int] = None):
         self.project_root = project_root
-        self.claude_projects_dir = Path.home() / ".claude" / "projects"
+        self.claude_projects_dir = self._get_claude_projects_dir()
         self.output_dir = project_root / "User-shared" / "visualizations"
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.max_minutes = max_minutes  # 時間制限（分）
         
         # キャッシュ設定
         self.use_cache = use_cache
         self.cache_dir = project_root / ".cache" / "context_monitor"
         if self.use_cache:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
+    
+    def _get_claude_projects_dir(self) -> Path:
+        """プラットフォームに応じたClaude projectsディレクトリを取得"""
+        return Path.home() / ".claude" / "projects"
     
     def get_cache_path(self, agent_id: str, jsonl_file: Path) -> Path:
         """キャッシュファイルパスを生成"""
@@ -93,66 +108,105 @@ class ContextUsageMonitor:
             pass  # キャッシュ失敗は無視
     
     def find_project_jsonl_files(self) -> Dict[str, List[Path]]:
-        """プロジェクトディレクトリからJSONLファイルを検索"""
-        jsonl_files = {}
-        
-        # プロジェクトディレクトリ名を生成（パスの / を - に変換）
-        # Claude projectsディレクトリの命名規則: /mnt/... → -mnt-...
-        project_dir_name = str(self.project_root).replace('/', '-')
-            
-        project_claude_dir = self.claude_projects_dir / project_dir_name
-        
-        if not project_claude_dir.exists():
-            print(f"⚠️  Warning: Project directory not found: {project_claude_dir}")
-            return jsonl_files
-            
-        # session_idとエージェントの対応を取得
-        agent_sessions = self.get_agent_sessions()
-        
-        # JSONLファイルを検索
-        for jsonl_file in project_claude_dir.glob("*.jsonl"):
-            session_id = jsonl_file.stem
-            
-            # session_idからエージェントを特定
-            agent_id = agent_sessions.get(session_id, f"Unknown_{session_id[:8]}")
-            
-            if agent_id not in jsonl_files:
-                jsonl_files[agent_id] = []
-            jsonl_files[agent_id].append(jsonl_file)
-            
-        return jsonl_files
-    
-    def get_agent_sessions(self) -> Dict[str, str]:
-        """agent_and_pane_id_table.jsonlからsession_idとagent_idの対応を取得"""
-        sessions = {}
-        
+        """agent_and_pane_id_table.jsonlからセッションIDを読み取り、対応するJSONLファイルを検索"""
         agent_table_path = self.project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
-        if agent_table_path.exists():
-            with open(agent_table_path, 'r') as f:
-                for line in f:
-                    if line.strip() and not line.startswith('#'):
-                        try:
-                            data = json.loads(line)
-                            session_id = data.get('claude_session_id')
-                            agent_id = data.get('agent_id')
-                            if session_id and agent_id:
-                                sessions[session_id] = agent_id
-                        except json.JSONDecodeError:
-                            continue
-                            
-        return sessions
+        
+        if not agent_table_path.exists():
+            print(f"⚠️  Agent table not found: {agent_table_path}")
+            return {}
+        
+        # エージェント情報を読み込み
+        agent_info = {}
+        with open(agent_table_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip() and not line.startswith('#'):
+                    try:
+                        data = json.loads(line)
+                        if 'agent_id' in data and 'claude_session_id' in data:
+                            agent_info[data['agent_id']] = {
+                                'session_id': data['claude_session_id'],
+                                'working_dir': data.get('working_dir', ''),
+                                'cwd': data.get('cwd', '')  # 互換性のためcwdも確認
+                            }
+                    except json.JSONDecodeError:
+                        continue
+        
+        if not agent_info:
+            print("⚠️  No agent sessions found in agent_and_pane_id_table.jsonl")
+            return {}
+        
+        print(f"📊 Found {len(agent_info)} agents with session IDs")
+        
+        # プラットフォーム判定とパス変換
+        system = platform.system()
+        is_wsl = system == "Linux" and "microsoft" in platform.uname().release.lower()
+        
+        # 各エージェントのJSONLファイルを検索
+        agent_files = {}
+        for agent_id, info in agent_info.items():
+            if not info['session_id']:
+                continue
+            
+            # working_dirまたはcwdに基づいてプロジェクトディレクトリを特定
+            working_dir = info['working_dir'] or info['cwd']
+            
+            if working_dir:
+                # working_dirが指定されている場合
+                full_path = self.project_root / working_dir
+            else:
+                # PM等working_dirが空の場合
+                full_path = self.project_root
+            
+            # パスをClaude projectsディレクトリ名に変換
+            if is_wsl:
+                # WSL: /mnt/c/Users/... -> -mnt-c-Users-...
+                dir_name = str(full_path).replace('/', '-')
+            elif system == "Windows":
+                # Windows: C:\Users\... -> C--Users-...
+                dir_name = str(full_path).replace('\\', '-').replace(':', '-')
+            else:
+                # Mac/Linux: /Users/... -> -Users-...
+                dir_name = str(full_path).replace('/', '-')
+            
+            # 先頭の-を削除
+            if dir_name.startswith('-'):
+                dir_name = dir_name[1:]
+            
+            # ディレクトリを検索
+            project_dir = self.claude_projects_dir / dir_name
+            if project_dir.exists():
+                jsonl_file = project_dir / f"{info['session_id']}.jsonl"
+                if jsonl_file.exists():
+                    if agent_id not in agent_files:
+                        agent_files[agent_id] = []
+                    agent_files[agent_id].append(jsonl_file)
+                    print(f"  ✅ {agent_id}: Found log ({jsonl_file.stat().st_size / 1024:.1f} KB)")
+                else:
+                    print(f"  ⚠️  {agent_id}: Session file not found: {jsonl_file.name}")
+            else:
+                # プロジェクトディレクトリが見つからない場合、近い名前を探す
+                similar_dirs = [d for d in self.claude_projects_dir.iterdir() 
+                               if d.is_dir() and dir_name.lower() in d.name.lower()]
+                if similar_dirs:
+                    print(f"  ⚠️  {agent_id}: Directory not found. Similar: {[d.name for d in similar_dirs[:3]]}")
+                else:
+                    print(f"  ⚠️  {agent_id}: Project dir not found: {dir_name}")
+        
+        return agent_files
     
-    def parse_usage_data(self, jsonl_file: Path, agent_id: str, last_n: Optional[int] = None) -> List[Dict]:
-        """JSONLファイルからusage情報を抽出（キャッシュ対応）"""
+    def parse_usage_data(self, jsonl_file: Path, agent_id: str, last_n: Optional[int] = None,
+                        max_minutes: Optional[int] = None) -> List[Dict]:
+        """JSONLファイルからusage情報を抽出（キャッシュ対応、時間制限対応）"""
         
         # キャッシュチェック
         cache_path = self.get_cache_path(agent_id, jsonl_file)
         cached_data = self.load_from_cache(cache_path, jsonl_file)
         if cached_data is not None:
-            # last_n適用
-            if last_n and len(cached_data) > last_n:
-                return cached_data[-last_n:]
-            return cached_data
+            # 時間制限とlast_nを適用
+            filtered_data = self._apply_time_filter(cached_data, max_minutes)
+            if last_n and len(filtered_data) > last_n:
+                return filtered_data[-last_n:]
+            return filtered_data
         
         # 通常の解析処理
         all_entries = []
@@ -175,10 +229,42 @@ class ContextUsageMonitor:
         # キャッシュに保存
         self.save_to_cache(cache_path, all_entries)
         
-        # last_n適用
-        if last_n and len(all_entries) > last_n:
-            return all_entries[-last_n:]
-        return all_entries
+        # 時間制限とlast_nを適用
+        filtered_entries = self._apply_time_filter(all_entries, max_minutes)
+        if last_n and len(filtered_entries) > last_n:
+            return filtered_entries[-last_n:]
+        return filtered_entries
+    
+    def _apply_time_filter(self, entries: List[Dict], max_minutes: Optional[int]) -> List[Dict]:
+        """時間制限を適用してエントリをフィルタリング"""
+        if not max_minutes or not entries:
+            return entries
+        
+        # 最初のタイムスタンプを取得
+        first_timestamp = None
+        for entry in entries:
+            try:
+                ts = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
+                if first_timestamp is None or ts < first_timestamp:
+                    first_timestamp = ts
+            except:
+                continue
+        
+        if not first_timestamp:
+            return entries
+        
+        # 時間制限でフィルタリング
+        filtered = []
+        for entry in entries:
+            try:
+                ts = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
+                elapsed_minutes = (ts - first_timestamp).total_seconds() / 60
+                if elapsed_minutes <= max_minutes:
+                    filtered.append(entry)
+            except:
+                continue
+        
+        return filtered
     
     def calculate_cumulative_tokens(self, usage_entries: List[Dict], cumulative: bool = False) -> List[Tuple[datetime, Dict[str, int]]]:
         """トークン数を計算（累積またはスナップショット）"""
@@ -254,33 +340,60 @@ class ContextUsageMonitor:
         Args:
             time_unit: 'seconds', 'minutes', 'hours' のいずれか（デフォルト: 'minutes'）
         """
+        # 切りの良い時間で複数のグラフを生成
+        milestone_minutes = [30, 60, 90, 120, 180]
+        
+        # 指定された時間制限またはマイルストーンで生成
+        if self.max_minutes and self.max_minutes in milestone_minutes:
+            # マイルストーン時間の場合、その時間までのグラフを生成
+            self._generate_single_overview_graph(all_agent_data, time_unit, self.max_minutes)
+        elif self.max_minutes:
+            # マイルストーン以外の時間指定
+            self._generate_single_overview_graph(all_agent_data, time_unit, self.max_minutes)
+        else:
+            # 時間指定なしの場合、全体とマイルストーンを生成
+            # 全体グラフ
+            self._generate_single_overview_graph(all_agent_data, time_unit, None)
+            
+            # プロジェクト開始からの経過時間を確認
+            project_start = self._get_project_start_time(all_agent_data)
+            if project_start:
+                # 現在までの経過時間を計算
+                latest_time = max([t for data in all_agent_data.values() for t, _ in data]) if all_agent_data else None
+                if latest_time:
+                    elapsed_minutes = (latest_time - project_start).total_seconds() / 60
+                    
+                    # 経過時間を超えたマイルストーンのみ生成
+                    for milestone in milestone_minutes:
+                        if elapsed_minutes >= milestone:
+                            self._generate_single_overview_graph(all_agent_data, time_unit, milestone)
+    
+    def _generate_single_overview_graph(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]], 
+                                       time_unit: str, max_minutes: Optional[int]):
+        """単一の概要グラフを生成"""
         plt.figure(figsize=(12, 8))
         
+        # タイトルに時間制限を表示
+        title_suffix = f" (First {max_minutes} minutes)" if max_minutes else ""
+        
         # プロジェクト開始時刻を取得
-        start_time_file = self.project_root / "Agent-shared" / "project_start_time.txt"
-        project_start = None
-        
-        if start_time_file.exists():
-            try:
-                with open(start_time_file, 'r') as f:
-                    time_str = f.read().strip()
-                    project_start = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
-            except:
-                pass
-        
-        # ファイルがない場合は全データの最も古いタイムスタンプを使用
-        if project_start is None:
-            print("⚠️  Warning: project_start_time.txt not found. Using earliest log timestamp.")
-            for agent_data in all_agent_data.values():
-                if agent_data and (project_start is None or agent_data[0][0] < project_start):
-                    project_start = agent_data[0][0]
+        project_start = self._get_project_start_time(all_agent_data)
         
         # プロジェクト開始時刻以降のデータのみをフィルタリング
         filtered_agent_data = {}
-        for agent_id, cumulative_data in all_agent_data.items():
-            filtered_data = [(t, tokens) for t, tokens in cumulative_data if t >= project_start]
-            if filtered_data:
-                filtered_agent_data[agent_id] = filtered_data
+        if project_start:
+            for agent_id, cumulative_data in all_agent_data.items():
+                # max_minutesが指定されている場合、その範囲内のデータのみを使用
+                if max_minutes:
+                    filtered_data = [(t, tokens) for t, tokens in cumulative_data 
+                                   if t >= project_start and 
+                                   (t - project_start).total_seconds() / 60 <= max_minutes]
+                else:
+                    filtered_data = [(t, tokens) for t, tokens in cumulative_data if t >= project_start]
+                if filtered_data:
+                    filtered_agent_data[agent_id] = filtered_data
+        else:
+            filtered_agent_data = all_agent_data
         
         # 各エージェントの総トークン数の推移
         for agent_id, cumulative_data in filtered_agent_data.items():
@@ -309,20 +422,55 @@ class ContextUsageMonitor:
         # Y軸ラベル（累積モードで変更）
         if hasattr(self, 'is_cumulative') and self.is_cumulative:
             plt.ylabel('Cumulative Token Usage')
-            plt.title('Cumulative Token Usage Over Time')
+            plt.title(f'Cumulative Token Usage Over Time{title_suffix}')
         else:
             plt.ylabel('Current Context Usage [tokens]')
-            plt.title('Context Usage Monitor')
+            plt.title(f'Context Usage Monitor{title_suffix}')
         plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
         plt.grid(True, alpha=0.3)
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}K'))
         
+        # X軸の範囲を時間制限に合わせて設定
+        if max_minutes:
+            plt.xlim(0, max_minutes)
+        
         plt.tight_layout()
-        output_path = self.output_dir / "context_usage_overview.png"
+        
+        # ファイル名に時間制限を含める
+        if max_minutes:
+            # マイルストーン時間の場合、特別なファイル名
+            if max_minutes in [30, 60, 90, 120, 180]:
+                output_path = self.output_dir / f"context_usage_{max_minutes}min.png"
+            else:
+                output_path = self.output_dir / f"context_usage_overview_{max_minutes}min.png"
+        else:
+            output_path = self.output_dir / "context_usage_overview.png"
+        
         plt.savefig(output_path, dpi=120, bbox_inches='tight')
         plt.close()
         
         print(f"✅ 概要グラフ生成: {output_path}")
+    
+    def _get_project_start_time(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]) -> Optional[datetime]:
+        """プロジェクト開始時刻を取得"""
+        start_time_file = self.project_root / "Agent-shared" / "project_start_time.txt"
+        project_start = None
+        
+        if start_time_file.exists():
+            try:
+                with open(start_time_file, 'r') as f:
+                    time_str = f.read().strip()
+                    project_start = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+            except:
+                pass
+        
+        # ファイルがない場合は全データの最も古いタイムスタンプを使用
+        if project_start is None:
+            for agent_data in all_agent_data.values():
+                if agent_data and (project_start is None or agent_data[0][0] < project_start):
+                    project_start = agent_data[0][0]
+        
+        return project_start
     
     def generate_stacked_bar_chart(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]],
                                   x_axis: str = 'count'):
@@ -816,6 +964,24 @@ class ContextUsageMonitor:
         
         print("\n" + "="*60)
 
+def get_python_command():
+    """利用可能なPythonコマンドを優先順位付きで取得"""
+    commands = ['uv', 'uvx', 'python3', 'python']
+    
+    for cmd in commands:
+        try:
+            result = subprocess.run([cmd, '--version'], capture_output=True, text=True)
+            if result.returncode == 0:
+                if cmd in ['uv', 'uvx']:
+                    return f"{cmd} run"
+                else:
+                    return cmd
+        except FileNotFoundError:
+            continue
+    
+    # デフォルト
+    return 'python'
+
 def main():
     """メイン処理"""
     parser = argparse.ArgumentParser(description='Monitor Claude Code context usage')
@@ -827,6 +993,8 @@ def main():
                        default='minutes', help='Time unit for X-axis (default: minutes)')
     parser.add_argument('--cumulative', action='store_true',
                        help='Show cumulative token usage instead of per-request context size')
+    parser.add_argument('--max-minutes', type=int, default=None,
+                       help='Limit graph to first N minutes from project start (e.g., 60, 120, 180)')
     parser.add_argument('--no-cache', action='store_true',
                        help='Disable caching')
     parser.add_argument('--clear-cache', action='store_true',
@@ -844,7 +1012,7 @@ def main():
     
     # プロジェクトルートを取得
     project_root = Path(__file__).parent.parent
-    monitor = ContextUsageMonitor(project_root, use_cache=not args.no_cache)
+    monitor = ContextUsageMonitor(project_root, use_cache=not args.no_cache, max_minutes=args.max_minutes)
     
     # キャッシュクリア
     if args.clear_cache and monitor.cache_dir.exists():
@@ -855,12 +1023,12 @@ def main():
     
     def update_once():
         """一度だけ更新"""
-        print("🔍 Scanning JSONL files...")
+        print("🔍 Scanning agent_and_pane_id_table.jsonl for session IDs...")
         jsonl_files = monitor.find_project_jsonl_files()
         
         if not jsonl_files:
-            print("❌ No JSONL files found in project directory")
-            print(f"   Expected location: {monitor.claude_projects_dir}")
+            print("❌ No JSONL files found for agents")
+            print(f"   Check: {monitor.project_root / 'Agent-shared' / 'agent_and_pane_id_table.jsonl'}")
             return
         
         print(f"📊 Found {len(jsonl_files)} agents with logs")
@@ -874,7 +1042,7 @@ def main():
             # 複数ファイルがある場合は結合
             all_usage_entries = []
             for jsonl_file in sorted(files):
-                entries = monitor.parse_usage_data(jsonl_file, agent_id, args.last_n)
+                entries = monitor.parse_usage_data(jsonl_file, agent_id, args.last_n, args.max_minutes)
                 all_usage_entries.extend(entries)
             
             if all_usage_entries:
@@ -907,11 +1075,22 @@ def main():
         update_once()
 
 if __name__ == "__main__":
-    # pandas import（予測機能で使用）
-    try:
-        import pandas as pd
-    except ImportError:
-        # datetimeで代替
-        pd = None
-    
-    main()
+    # シェバン行がuvを使用している場合、既にuv環境で実行されている
+    if 'uv' in sys.executable or os.environ.get('UV_SCRIPT_PYTHON'):
+        main()
+    else:
+        # 通常のPython環境の場合、必要なパッケージがインストールされているか確認
+        try:
+            import matplotlib
+            import numpy
+            main()
+        except ImportError:
+            # パッケージがない場合、uvで再実行を試みる
+            python_cmd = get_python_command()
+            if python_cmd and 'uv' in python_cmd:
+                print("📦 Reinstalling with uv for dependencies...")
+                os.execvp('uv', ['uv', 'run', '--script', __file__] + sys.argv[1:])
+            else:
+                print("❌ Error: Required packages not installed")
+                print("Please install: pip install matplotlib numpy")
+                sys.exit(1)

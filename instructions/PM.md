@@ -380,7 +380,12 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - `/Agent-shared/budget_history.md`に記録
    - 閾値到達時はリソース配分を調整
 
-6. **hooks動作確認**
+6. **コンテキスト使用率監視**（30分おき）
+   - `uv run telemetry/context_usage_monitor.py --graph-type overview`を実行
+   - `/User-shared/visualizations/`にグラフ生成
+   - 切りの良い時間（30, 60, 90, 120, 180分）で自動的に別名保存
+
+7. **hooks動作確認**
    - ポーリング型エージェント（SE, PG, CD）の待機防止確認
    - SessionStartによるworking_dir記録の確認
 
