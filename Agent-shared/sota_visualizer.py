@@ -520,7 +520,7 @@ class SOTAVisualizer:
             filename = f"sota_{sota_level}_{x_axis}"
         
         if log_scale:
-            filename += "_log"
+            filename += "_log_scale"  # 'log'ではなく'log_scale'を使用
         
         # 適切な出力ディレクトリを選択
         if sota_level in self.output_dirs:
@@ -641,52 +641,43 @@ class SOTAVisualizer:
             f.write(f"# SOTA Visualization Report\n\n")
             f.write(f"Generated: {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')}\n\n")
             
-            # プロジェクトレベル
-            project_dir = self.output_dirs['project']
-            if project_dir.exists():
-                f.write(f"## Project Level\n\n")
-                for file_name in ['generation_project_count', 'sota_project_time', 'sota_project_time_log']:
-                    png_file = project_dir / f"{file_name}.png"
-                    if png_file.exists():
-                        rel_path = Path("../visualizations/sota/project") / png_file.name
-                        f.write(f"### {png_file.stem}\n")
-                        f.write(f"![{png_file.stem}]({rel_path})\n\n")
-            
-            # ハードウェアレベル
-            hardware_dir = self.output_dirs['hardware']
-            if hardware_dir.exists():
-                f.write(f"## Hardware Level\n\n")
-                for file_name in ['generation_hardware_count', 'sota_hardware_time', 'sota_hardware_time_log']:
-                    png_file = hardware_dir / f"{file_name}.png"
-                    if png_file.exists():
-                        rel_path = Path("../visualizations/sota/hardware") / png_file.name
-                        f.write(f"### {png_file.stem}\n")
-                        f.write(f"![{png_file.stem}]({rel_path})\n\n")
-            
-            # ファミリーレベル
-            family_dir = self.output_dirs['family']
-            if family_dir.exists():
-                f.write(f"## Family Level\n\n")
-                for file_name in ['generation_family_count', 'sota_family_time', 'sota_family_time_log']:
-                    png_file = family_dir / f"{file_name}.png"
-                    if png_file.exists():
-                        rel_path = Path("../visualizations/sota/family") / png_file.name
-                        f.write(f"### {png_file.stem}\n")
-                        f.write(f"![{png_file.stem}]({rel_path})\n\n")
-            
-            # ローカルレベル
-            local_dir = self.output_dirs['local']
-            if local_dir.exists():
-                f.write(f"## Local Level\n\n")
-                for file_name in ['generation_local_count', 'sota_local_time', 'sota_local_time_log']:
-                    png_file = local_dir / f"{file_name}.png"
-                    if png_file.exists():
-                        rel_path = Path("../visualizations/sota/local") / png_file.name
-                        f.write(f"### {png_file.stem}\n")
-                        f.write(f"![{png_file.stem}]({rel_path})\n\n")
+            # 各階層のグラフリンクを動的に生成
+            for level_name, level_dir in self.output_dirs.items():
+                if level_name == 'comparison':  # comparisonはレポートから除外
+                    continue
+                    
+                if level_dir.exists():
+                    f.write(f"## {level_name.capitalize()} Level\n\n")
+                    
+                    # サブディレクトリがあるか確認
+                    subdirs = [d for d in level_dir.iterdir() if d.is_dir()]
+                    
+                    if subdirs:
+                        # サブディレクトリごとに処理
+                        for subdir in sorted(subdirs):
+                            png_files = sorted(subdir.glob("*.png"))
+                            if png_files:
+                                f.write(f"### {subdir.name}\n\n")
+                                for png_file in png_files:
+                                    # sota_countは除外
+                                    if 'sota' in png_file.stem and 'count' in png_file.stem and 'generation' not in png_file.stem:
+                                        continue
+                                    rel_path = Path(f"../visualizations/sota/{level_name}") / subdir.name / png_file.name
+                                    f.write(f"#### {png_file.stem}\n")
+                                    f.write(f"![{png_file.stem}]({rel_path})\n\n")
+                    else:
+                        # サブディレクトリがない場合のみ直下を確認
+                        png_files = sorted([f for f in level_dir.glob("*.png") if f.is_file()])
+                        for png_file in png_files:
+                            # sota_countは除外
+                            if 'sota' in png_file.stem and 'count' in png_file.stem and 'generation' not in png_file.stem:
+                                continue
+                            rel_path = Path(f"../visualizations/sota/{level_name}") / png_file.name
+                            f.write(f"### {png_file.stem}\n")
+                            f.write(f"![{png_file.stem}]({rel_path})\n\n")
             
             f.write(f"\n## Summary\n")
-            f.write(f"- Total graphs: 12\n")  # 各レベル3つずつ×4レベル
+            f.write(f"- Total graphs: {total_count}\n")
             f.write(f"- Levels: local, family, hardware, project\n")
             f.write(f"- Variants: time/count axis, linear/log scale\n")
         
