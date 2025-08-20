@@ -1,8 +1,12 @@
 # SOTA Visualizer グループ化設定テンプレート
 # SEが必要に応じてこのファイルをコピーして使用
 # ファイル名: sota_grouping_config.yaml
+#
+# 注: 現在の"Hardware Level"は実際にはMiddleware Level（gcc, intel等）
+# 真のHardware Level（single-node/multi-node）の比較が必要な場合は
+# SEがプロジェクト要件に応じてカスタマイズしてください
 
-# ハードウェアレベルのグループ化設定
+# ハードウェアレベルのグループ化設定（実際はミドルウェアレベル）
 hardware:
   # 自動検出方法を選択
   detection: "hardware_info"  # hardware_info.mdの位置で自動判定（デフォルト）
