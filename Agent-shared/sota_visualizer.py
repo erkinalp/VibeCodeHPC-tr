@@ -150,16 +150,12 @@ class SOTAVisualizer:
             # 技術名を抽出（最後のディレクトリ名）
             tech_name = changelog_path.parent.name
             
-            # -（ハイフン）は深化なので、基本技術名として扱う
-            # 例: CUDA-sharedMem → CUDA（深化）として第1世代扱い
-            base_tech_name = tech_name.split('-')[0] if '-' in tech_name else tech_name
-            
-            # 世代を判定（_の数で判定、-は深化なので無視）
-            if '_' not in base_tech_name:
+            # 世代を判定（_の数で判定）
+            if '_' not in tech_name:
                 # 第1世代（単一技術、深化含む）
                 generation = 1
                 generation_techs[1].append((tech_name, entries))
-            elif base_tech_name.count('_') == 1:
+            elif tech_name.count('_') == 1:
                 # 第2世代（2つの技術の融合）
                 generation = 2
                 generation_techs[2].append((tech_name, entries))
@@ -168,10 +164,11 @@ class SOTAVisualizer:
                 generation = 3
                 generation_techs[3].append((tech_name, entries))
             
-            # Hardware SOTA
+            # Hardware SOTA（hardware_info.mdの位置で階層を判定）
             hardware_path = None
-            for i, part in enumerate(parts):
-                if 'hardware_info.md' in [p.name for p in (self.project_root / Path(*parts[:i+1])).glob('*')]:
+            for i in range(len(parts)):
+                check_path = self.project_root / Path(*parts[:i+1])
+                if (check_path / 'hardware_info.md').exists():
                     hardware_path = '/'.join(parts[:i+1])
                     break
             
@@ -196,16 +193,15 @@ class SOTAVisualizer:
             # 親技術のデータを収集
             for parent_tech in parent_techs:
                 for gen1_tech, gen1_entries in generation_techs[1]:
-                    # 深化版（CUDA-sharedMem）も親として認識
-                    gen1_base = gen1_tech.split('-')[0]
-                    if gen1_base == parent_tech:
+                    # 完全一致で親技術を探す
+                    if gen1_tech == parent_tech:
                         sota_data['family'][family_name]['parents'][parent_tech] = gen1_entries
                         break
         
         return sota_data
     
     def extract_sota_progression(self, entries: List[Dict]) -> Tuple[List, List, List]:
-        """エントリからSOTA更新の推移を抽出"""
+        """エントリからSOTA更新の推移を抽出（全生成での位置を保持）"""
         if not entries:
             return [], [], []
         
@@ -219,7 +215,7 @@ class SOTAVisualizer:
         versions = []
         
         max_value = 0
-        for entry in sorted_entries:
+        for i, entry in enumerate(sorted_entries):
             if entry['value'] > max_value:  # SOTA更新時のみ記録
                 max_value = entry['value']
                 values.append(entry['value'])
@@ -232,8 +228,8 @@ class SOTAVisualizer:
                     elapsed_seconds = (current_time - start_time).total_seconds()
                     times.append(elapsed_seconds)
                 else:
-                    # カウントベース
-                    times.append(len(times))
+                    # カウントベース（全生成での実際の位置を使用）
+                    times.append(i)
         
         return times, values, versions
     
@@ -298,7 +294,8 @@ class SOTAVisualizer:
                             x_axis: str = 'time',
                             log_scale: bool = False,
                             show_theoretical: bool = True,
-                            theoretical_ratio: float = 0.1):
+                            theoretical_ratio: float = 0.1,
+                            specific_key: Optional[str] = None):
         """SOTA推移グラフを生成
         
         Args:
@@ -307,6 +304,7 @@ class SOTAVisualizer:
             log_scale: Y軸を対数スケールにするか
             show_theoretical: 理論性能を表示するか
             theoretical_ratio: 理論性能が不明な場合の上限設定（最高性能の何倍か）
+            specific_key: 特定のキーのみをプロット（family/hardwareで使用）
         """
         self.x_axis_type = x_axis
         self.use_log_scale = log_scale
@@ -321,16 +319,23 @@ class SOTAVisualizer:
         if sota_level == 'project':
             # プロジェクト全体（1つのグラフ）
             if x_axis == 'count':
-                # カウントベースは全生成を折れ線で表示
-                times, values, versions = self.extract_all_progression(sota_data['project'])
-                if times and values:
-                    ax.plot(times, values, marker='o', 
+                # カウントベースは全生成＋SOTA水準線
+                all_times, all_values, all_versions = self.extract_all_progression(sota_data['project'])
+                sota_times, sota_values, sota_versions = self.extract_sota_progression(sota_data['project'])
+                
+                if all_times and all_values:
+                    # 全生成の折れ線
+                    ax.plot(all_times, all_values, marker='o', 
                            label='All Generations', color='C0', linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
-                    # SOTAも重ねて表示（階段状）
-                    sota_times, sota_values, sota_versions = self.extract_sota_progression(sota_data['project'])
-                    if sota_times and sota_values:
-                        ax.step(sota_times, sota_values, where='post', marker='s',
-                               label='SOTA Progression', color='C3', linewidth=3.0, markersize=8, alpha=0.9, markeredgewidth=1.5)
+                    
+                    # 各SOTA更新点から最後まで水平線を引く（階段状になる）
+                    if sota_times and sota_values and len(all_times) > 0:
+                        max_time = max(all_times)
+                        for i, (t, v) in enumerate(zip(sota_times, sota_values)):
+                            # 各SOTA点から最後まで水平線（色指定なしでデフォルト色）
+                            ax.hlines(v, t, max_time, linestyles='--', 
+                                     linewidth=2.0, alpha=0.6,
+                                     label='SOTA Level' if i == 0 else "")
             else:
                 # 時間ベースはSOTAのみ
                 times, values, versions = self.extract_sota_progression(sota_data['project'])
@@ -349,6 +354,10 @@ class SOTAVisualizer:
             # Family階層（親子関係）
             data_dict = sota_data['family']
             
+            # 特定のファミリーのみをプロット
+            if specific_key:
+                data_dict = {specific_key: data_dict[specific_key]} if specific_key in data_dict else {}
+            
             # 色の設定（論文向けの標準的な原色を使用）
             # matplotlibのデフォルトカラーサイクル（C0, C1, C2...）を使用
             parent_colors = {'OpenMP': 'C0', 'MPI': 'C1', 'CUDA': 'C2', 'AVX2': 'C3'}
@@ -357,24 +366,43 @@ class SOTAVisualizer:
             for family_name, family_data in data_dict.items():
                 if isinstance(family_data, dict) and 'child' in family_data:
                     if x_axis == 'count':
-                        # カウントベースは全生成を折れ線で表示
+                        # カウントベースは全生成＋SOTA水準線
                         # 子（第2世代）
                         child_name = family_name.replace('Family:', '')
-                        times, values, versions = self.extract_all_progression(family_data['child'])
-                        if times and values:
+                        all_times, all_values, all_versions = self.extract_all_progression(family_data['child'])
+                        sota_times, sota_values, sota_versions = self.extract_sota_progression(family_data['child'])
+                        
+                        if all_times and all_values:
                             color = child_colors.get(child_name, 'navy')
-                            ax.plot(times, values, marker='o',
-                                   label=f'{child_name} (Gen2, Max: {max(values):.1f})',
-                                   color=color, linewidth=2.5, markersize=7, alpha=1.0, markeredgewidth=1.5)
+                            # 全生成の折れ線
+                            ax.plot(all_times, all_values, marker='o',
+                                   label=f'{child_name} (Gen2)',
+                                   color=color, linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
+                            
+                            # 各SOTA更新点から最後まで水平線
+                            if sota_times and sota_values and len(all_times) > 0:
+                                max_time = max(all_times)
+                                for j, (t, v) in enumerate(zip(sota_times, sota_values)):
+                                    ax.hlines(v, t, max_time, colors=color, linestyles='--',
+                                             linewidth=2.0, alpha=0.7)
                         
                         # 親（第1世代）
                         for parent_name, parent_entries in family_data.get('parents', {}).items():
-                            times, values, versions = self.extract_all_progression(parent_entries)
-                            if times and values:
+                            all_times, all_values, all_versions = self.extract_all_progression(parent_entries)
+                            sota_times, sota_values, sota_versions = self.extract_sota_progression(parent_entries)
+                            
+                            if all_times and all_values:
                                 color = parent_colors.get(parent_name, 'darkgray')
-                                ax.plot(times, values, marker='s',
-                                       label=f'{parent_name} (Gen1, Max: {max(values):.1f})',
-                                       color=color, linewidth=2.0, markersize=5, alpha=0.8, linestyle='--')
+                                ax.plot(all_times, all_values, marker='^',
+                                       label=f'{parent_name} (Gen1)',
+                                       color=color, linewidth=2.0, markersize=5, alpha=0.8, linestyle=':')
+                                
+                                # 各SOTA更新点から最後まで水平線
+                                if sota_times and sota_values and len(all_times) > 0:
+                                    max_time = max(all_times)
+                                    for j, (t, v) in enumerate(zip(sota_times, sota_values)):
+                                        ax.hlines(v, t, max_time, colors=color, linestyles=':',
+                                                 linewidth=1.8, alpha=0.6)
                     else:
                         # 時間ベースはSOTAのみ階段状
                         # 子（第2世代）
@@ -398,20 +426,43 @@ class SOTAVisualizer:
         elif sota_level in ['local', 'hardware']:
             # 複数のグラフ
             data_dict = sota_data[sota_level]
+            
+            # hardwareレベルでspecific_keyが指定された場合の処理
+            if sota_level == 'hardware' and specific_key:
+                filtered_dict = {}
+                for key, entries in data_dict.items():
+                    # hw_keyの最後の部分でフィルタリング
+                    path_parts = key.split('/')
+                    if path_parts and path_parts[-1] == specific_key:
+                        filtered_dict[key] = entries
+                data_dict = filtered_dict
+            # 特定のキーのみをプロット（その他の場合）
+            elif specific_key:
+                data_dict = {specific_key: data_dict[specific_key]} if specific_key in data_dict else {}
+            
             # matplotlibのデフォルトカラーサイクルを使用（論文向けの濃い原色）
             # C0=青, C1=オレンジ, C2=緑, C3=赤, C4=紫, C5=茶, C6=ピンク, C7=灰, C8=黄緑, C9=水色
             colors = [f'C{i}' for i in range(min(10, len(data_dict)))]
             
             for i, (key, entries) in enumerate(data_dict.items()):
                 if x_axis == 'count':
-                    # カウントベースは全生成を折れ線で表示
-                    times, values, versions = self.extract_all_progression(entries)
-                    if times and values:
+                    # カウントベースは全生成＋SOTA水準線
+                    all_times, all_values, all_versions = self.extract_all_progression(entries)
+                    sota_times, sota_values, sota_versions = self.extract_sota_progression(entries)
+                    
+                    if all_times and all_values:
                         color = colors[i % len(colors)]
-                        # 折れ線グラフで全生成をプロット
-                        ax.plot(times, values, marker='o',
-                               label=f'{key} (Max: {max(values):.1f})',
+                        # 全生成の折れ線
+                        ax.plot(all_times, all_values, marker='o',
+                               label=f'{key}',
                                color=color, linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
+                        
+                        # 各SOTA更新点から最後まで水平線
+                        if sota_times and sota_values and len(all_times) > 0:
+                            max_time = max(all_times)
+                            for j, (t, v) in enumerate(zip(sota_times, sota_values)):
+                                ax.hlines(v, t, max_time, colors=color, linestyles='--',
+                                         linewidth=2.0, alpha=0.7)
                 else:
                     # 時間ベースはSOTAのみ階段状
                     times, values, versions = self.extract_sota_progression(entries)
@@ -447,6 +498,12 @@ class SOTAVisualizer:
         if log_scale:
             ax.set_yscale('log')
         
+        # 右y軸にも目盛りを表示
+        ax2 = ax.twinx()
+        ax2.set_ylim(ax.get_ylim())
+        ax2.set_ylabel('')  # 右側にはラベルなし
+        ax2.tick_params(axis='y', which='both', length=5)
+        
         # グラフ装飾
         ax.set_title(f'SOTA Performance Progression - {sota_level.capitalize()} Level')
         ax.legend(loc='best', fontsize=9)
@@ -469,6 +526,14 @@ class SOTAVisualizer:
         else:
             output_dir = self.base_output_dir
         
+        # specific_keyがある場合はサブディレクトリに保存
+        if specific_key:
+            # ファイル名として使える形式に変換
+            safe_key = specific_key.replace('Family:', '').replace('/', '_').replace(':', '_')
+            # サブディレクトリを作成
+            output_dir = output_dir / safe_key
+            output_dir.mkdir(parents=True, exist_ok=True)
+        
         output_path = output_dir / f"{filename}.png"
         
         plt.savefig(output_path, dpi=120, bbox_inches='tight')
@@ -479,24 +544,90 @@ class SOTAVisualizer:
     
     def generate_all_graphs(self):
         """全パターンのグラフを生成"""
-        levels = ['local', 'family', 'hardware', 'project']
-        generated_count = 0
+        generated_files = []  # 生成されたファイルパスを記録
         
-        for level in levels:
-            # 時間軸・リニアスケール
-            self.plot_sota_comparison(level, 'time', False, True)
-            generated_count += 1
-            # カウント軸・リニアスケール
-            self.plot_sota_comparison(level, 'count', False, True)
-            generated_count += 1
-            # 時間軸・対数スケール
-            self.plot_sota_comparison(level, 'time', True, True)
-            generated_count += 1
+        # プロジェクトレベル（1つのグラフ）
+        for x_axis in ['time', 'count']:
+            for log_scale in [False, True]:
+                if x_axis == 'count' and log_scale:
+                    continue  # カウント軸の対数は不要
+                path = self.plot_sota_comparison('project', x_axis, log_scale, True)
+                generated_files.append(path)
+        
+        # ローカルレベル（1つのグラフに全PG）
+        for x_axis in ['time', 'count']:
+            for log_scale in [False, True]:
+                if x_axis == 'count' and log_scale:
+                    continue
+                path = self.plot_sota_comparison('local', x_axis, log_scale, True)
+                generated_files.append(path)
+        
+        # ファミリーレベル（各ファミリーごとに個別グラフ）
+        sota_data = self.collect_sota_data()
+        for family_key in sota_data['family'].keys():
+            for x_axis in ['time', 'count']:
+                for log_scale in [False, True]:
+                    if x_axis == 'count' and log_scale:
+                        continue
+                    path = self.plot_sota_comparison('family', x_axis, log_scale, True, specific_key=family_key)
+                    generated_files.append(path)
+        
+        # ハードウェアレベル（hardware_info.mdの親ディレクトリ名でグループ化）
+        hardware_groups = {}
+        for hw_key in sota_data['hardware'].keys():
+            # hw_keyの最後の部分をグループ名とする
+            # 例: Flow/TypeII/single-node → single-node
+            # 例: Flow/TypeII/multi-gpu → multi-gpu
+            path_parts = hw_key.split('/')
+            if path_parts:
+                hw_group = path_parts[-1]  # 最後の要素をグループ名に
+                if hw_group not in hardware_groups:
+                    hardware_groups[hw_group] = []
+                hardware_groups[hw_group].append(hw_key)
+        
+        # 各ハードウェアグループごとにグラフ生成
+        for hw_group in hardware_groups.keys():
+            for x_axis in ['time', 'count']:
+                for log_scale in [False, True]:
+                    if x_axis == 'count' and log_scale:
+                        continue
+                    path = self.plot_sota_comparison('hardware', x_axis, log_scale, True, 
+                                                    specific_key=hw_group)
+                    generated_files.append(path)
         
         # レポート生成
-        self.generate_visualization_report(generated_count)
+        self.generate_visualization_report(len(generated_files))
         
-        print(f"✅ All SOTA graphs generated: {generated_count} files")
+        print(f"✅ All SOTA graphs generated: {len(generated_files)} files")
+        return generated_files
+    
+    def generate_all_graphs_with_milestone(self, elapsed_minutes: int = 0):
+        """マイルストーン付きで全グラフ生成
+        
+        Args:
+            elapsed_minutes: プロジェクト開始からの経過時間（分）
+        """
+        # マイルストーン判定
+        milestones = [30, 60, 90, 120, 180]
+        is_milestone = elapsed_minutes in milestones
+        
+        # 通常のグラフ生成
+        generated_files = self.generate_all_graphs()
+        
+        # マイルストーン時はコピーを保存
+        if is_milestone:
+            milestone_dir = self.base_output_dir / 'milestones' / f'{elapsed_minutes}min'
+            milestone_dir.mkdir(parents=True, exist_ok=True)
+            
+            for file_path in generated_files:
+                if Path(file_path).exists():
+                    import shutil
+                    dest = milestone_dir / Path(file_path).name
+                    shutil.copy2(file_path, dest)
+            
+            print(f"✅ Milestone graphs saved: {milestone_dir}")
+        
+        return generated_files
     
     def generate_visualization_report(self, total_count: int):
         """可視化レポートを自動生成"""
