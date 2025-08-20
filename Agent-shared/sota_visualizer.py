@@ -374,17 +374,17 @@ class SOTAVisualizer:
                         
                         if all_times and all_values:
                             color = child_colors.get(child_name, 'navy')
-                            # 全生成の折れ線
+                            # 全生成の折れ線（太く濃く表示）
                             ax.plot(all_times, all_values, marker='o',
                                    label=f'{child_name} (Gen2)',
-                                   color=color, linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
+                                   color=color, linewidth=3.0, markersize=8, alpha=1.0, markeredgewidth=1.5)
                             
                             # 各SOTA更新点から最後まで水平線
                             if sota_times and sota_values and len(all_times) > 0:
                                 max_time = max(all_times)
                                 for j, (t, v) in enumerate(zip(sota_times, sota_values)):
                                     ax.hlines(v, t, max_time, colors=color, linestyles='--',
-                                             linewidth=2.0, alpha=0.7)
+                                             linewidth=2.5, alpha=0.8)
                         
                         # 親（第1世代）
                         for parent_name, parent_entries in family_data.get('parents', {}).items():
@@ -395,14 +395,14 @@ class SOTAVisualizer:
                                 color = parent_colors.get(parent_name, 'darkgray')
                                 ax.plot(all_times, all_values, marker='^',
                                        label=f'{parent_name} (Gen1)',
-                                       color=color, linewidth=2.0, markersize=5, alpha=0.8, linestyle=':')
+                                       color=color, linewidth=2.5, markersize=6, alpha=1.0, linestyle=':')
                                 
                                 # 各SOTA更新点から最後まで水平線
                                 if sota_times and sota_values and len(all_times) > 0:
                                     max_time = max(all_times)
                                     for j, (t, v) in enumerate(zip(sota_times, sota_values)):
                                         ax.hlines(v, t, max_time, colors=color, linestyles=':',
-                                                 linewidth=1.8, alpha=0.6)
+                                                 linewidth=2.0, alpha=0.7)
                     else:
                         # 時間ベースはSOTAのみ階段状
                         # 子（第2世代）
