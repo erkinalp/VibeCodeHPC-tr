@@ -327,6 +327,27 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
    - プロジェクトフェーズ移行時
 6. **配置可視化の更新**:
    - directory_pane_map.md更新時はディレクトリ構造とtmuxペイン配置を両方記載
+   
+#### directory_pane_map.mdのフォーマット厳守
+**重要**: `/directory_pane_map.md`は必ずMarkdown記法を厳守すること
+
+1. **Markdownテーブル記法の使用**
+   ```markdown
+   | Pane 0    | Pane 1    | Pane 2    | Pane 3    |
+   |-----------|-----------|-----------|-----------|  
+   | 🟨SE1     | 🔵PG1.1   | 🔵PG1.2   | 🔵PG1.3   |
+   ```
+   - `|`を使用した正しいテーブル記法
+   - `----`や`||`のような独自記法は禁止
+
+2. **色の統一性**
+   - 同じ種類のPGエージェントは同じ色を使用
+   - 例: gcc系PGは全て🔵、intel系PGは全て🔴
+   - `/Agent-shared/directory_pane_map_example.md`を参照
+
+3. **自動解析への対応**
+   - 将来的にSOTA visualizer等がパースする可能性を考慮
+   - 一貫したフォーマットを維持し、機械的な解析を可能にする
    - tmuxペイン配置と色分けを最新状態に維持
 #### セマフォ風エージェント管理
 タスクを完了したコード生成Worker：PGm.n.k（m,n,kは自然数）が特定ディレクトリの最後の一人で、このPGが別のディレクトリに移動する場合、リソース配分を再検討する。

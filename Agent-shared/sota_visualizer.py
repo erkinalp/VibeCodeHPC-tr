@@ -104,10 +104,17 @@ class SOTAVisualizer:
     def collect_sota_data(self) -> Dict[str, Dict]:
         """全階層のSOTAデータを収集"""
         sota_data = {
-            'local': {},     # PGごと
-            'family': {},    # ミドルウェア階層ごと
+            'local': {},     # PGごと（相対パスベース）
+            'family': {},    # 親子関係（第1世代→第2世代）
             'hardware': {},  # ハードウェア構成ごと
             'project': []    # プロジェクト全体
+        }
+        
+        # 世代別の技術を格納
+        generation_techs = {
+            1: [],  # 第1世代（単一技術）
+            2: [],  # 第2世代（融合）
+            3: []   # 第3世代（さらなる融合）
         }
         
         # ChangeLog.mdを全探索
@@ -126,36 +133,40 @@ class SOTAVisualizer:
             rel_path = changelog_path.relative_to(self.project_root)
             parts = rel_path.parts
             
-            # PGエージェントIDを推定
-            agent_id = None
+            # 相対作業ディレクトリを識別子とする（Flow/TypeII/を除く）
+            work_dir_parts = []
+            skip_parts = ['Flow', 'TypeII', 'ChangeLog.md']
             for part in parts:
-                if re.match(r'PG\d+\.\d+\.\d+', part):
-                    agent_id = part
-                    break
+                if part not in skip_parts:
+                    work_dir_parts.append(part)
             
-            if not agent_id:
-                # ディレクトリ名からエージェントIDを推定
-                parent = changelog_path.parent.name
-                if 'OpenMP' in parent or 'MPI' in parent or 'CUDA' in parent:
-                    agent_id = f"PG_{parent}"
+            # Local SOTA（相対パスベース）
+            if work_dir_parts:
+                local_id = '-'.join(work_dir_parts[:-1] + [work_dir_parts[-1].replace('_', '-')])
+                if local_id not in sota_data['local']:
+                    sota_data['local'][local_id] = []
+                sota_data['local'][local_id].extend(entries)
             
-            # Local SOTA
-            if agent_id:
-                if agent_id not in sota_data['local']:
-                    sota_data['local'][agent_id] = []
-                sota_data['local'][agent_id].extend(entries)
+            # 技術名を抽出（最後のディレクトリ名）
+            tech_name = changelog_path.parent.name
             
-            # Family SOTA（ミドルウェア階層）
-            middleware = None
-            for part in parts:
-                if any(tech in part for tech in ['OpenMP', 'MPI', 'CUDA', 'OpenACC']):
-                    middleware = part
-                    break
+            # -（ハイフン）は深化なので、基本技術名として扱う
+            # 例: CUDA-sharedMem → CUDA（深化）として第1世代扱い
+            base_tech_name = tech_name.split('-')[0] if '-' in tech_name else tech_name
             
-            if middleware:
-                if middleware not in sota_data['family']:
-                    sota_data['family'][middleware] = []
-                sota_data['family'][middleware].extend(entries)
+            # 世代を判定（_の数で判定、-は深化なので無視）
+            if '_' not in base_tech_name:
+                # 第1世代（単一技術、深化含む）
+                generation = 1
+                generation_techs[1].append((tech_name, entries))
+            elif base_tech_name.count('_') == 1:
+                # 第2世代（2つの技術の融合）
+                generation = 2
+                generation_techs[2].append((tech_name, entries))
+            else:
+                # 第3世代以降
+                generation = 3
+                generation_techs[3].append((tech_name, entries))
             
             # Hardware SOTA
             hardware_path = None
@@ -171,6 +182,25 @@ class SOTAVisualizer:
             
             # Project SOTA（全エントリ）
             sota_data['project'].extend(entries)
+        
+        # Family SOTAを構築（親子関係）
+        # 第2世代の各技術について、その親となる第1世代を見つける
+        for gen2_tech, gen2_entries in generation_techs[2]:
+            parent_techs = gen2_tech.split('_')
+            family_name = f"Family:{gen2_tech}"
+            sota_data['family'][family_name] = {
+                'child': gen2_entries,
+                'parents': {}
+            }
+            
+            # 親技術のデータを収集
+            for parent_tech in parent_techs:
+                for gen1_tech, gen1_entries in generation_techs[1]:
+                    # 深化版（CUDA-sharedMem）も親として認識
+                    gen1_base = gen1_tech.split('-')[0]
+                    if gen1_base == parent_tech:
+                        sota_data['family'][family_name]['parents'][parent_tech] = gen1_entries
+                        break
         
         return sota_data
     
@@ -199,11 +229,41 @@ class SOTAVisualizer:
                     if not start_time:
                         start_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
                     current_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
-                    elapsed_minutes = (current_time - start_time).total_seconds() / 60
-                    times.append(elapsed_minutes)
+                    elapsed_seconds = (current_time - start_time).total_seconds()
+                    times.append(elapsed_seconds)
                 else:
                     # カウントベース
                     times.append(len(times))
+        
+        return times, values, versions
+    
+    def extract_all_progression(self, entries: List[Dict]) -> Tuple[List, List, List]:
+        """全エントリの推移を抽出（SOTAでないものも含む）"""
+        if not entries:
+            return [], [], []
+        
+        # タイムスタンプでソート
+        sorted_entries = sorted(entries, key=lambda x: x['timestamp'] or '0')
+        
+        # 最初のタイムスタンプからの経過時間を計算
+        start_time = None
+        times = []
+        values = []
+        versions = []
+        
+        for i, entry in enumerate(sorted_entries):
+            values.append(entry['value'])
+            versions.append(entry['version'])
+            
+            if self.x_axis_type == 'time' and entry['timestamp']:
+                if not start_time:
+                    start_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
+                current_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
+                elapsed_seconds = (current_time - start_time).total_seconds()
+                times.append(elapsed_seconds)
+            else:
+                # カウントベース（生成順）
+                times.append(i)
         
         return times, values, versions
     
@@ -260,10 +320,23 @@ class SOTAVisualizer:
         
         if sota_level == 'project':
             # プロジェクト全体（1つのグラフ）
-            times, values, versions = self.extract_sota_progression(sota_data['project'])
-            if times and values:
-                ax.step(times, values, where='post', marker='o', 
-                       label='Project SOTA', color='blue', linewidth=2)
+            if x_axis == 'count':
+                # カウントベースは全生成を折れ線で表示
+                times, values, versions = self.extract_all_progression(sota_data['project'])
+                if times and values:
+                    ax.plot(times, values, marker='o', 
+                           label='All Generations', color='C0', linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
+                    # SOTAも重ねて表示（階段状）
+                    sota_times, sota_values, sota_versions = self.extract_sota_progression(sota_data['project'])
+                    if sota_times and sota_values:
+                        ax.step(sota_times, sota_values, where='post', marker='s',
+                               label='SOTA Progression', color='C3', linewidth=3.0, markersize=8, alpha=0.9, markeredgewidth=1.5)
+            else:
+                # 時間ベースはSOTAのみ
+                times, values, versions = self.extract_sota_progression(sota_data['project'])
+                if times and values:
+                    ax.step(times, values, where='post', marker='o', 
+                           label='SOTA Performance', color='C0', linewidth=3.0, markersize=7, markeredgewidth=1.5)
                 
                 # 理論性能の表示
                 if show_theoretical and values:
@@ -272,24 +345,102 @@ class SOTAVisualizer:
                     ax.axhline(y=theoretical, color='red', linestyle='--', 
                              label=f'Theoretical Peak ({theoretical:.1f} GFLOPS)')
         
-        elif sota_level in ['local', 'family', 'hardware']:
+        elif sota_level == 'family':
+            # Family階層（親子関係）
+            data_dict = sota_data['family']
+            
+            # 色の設定（論文向けの標準的な原色を使用）
+            # matplotlibのデフォルトカラーサイクル（C0, C1, C2...）を使用
+            parent_colors = {'OpenMP': 'C0', 'MPI': 'C1', 'CUDA': 'C2', 'AVX2': 'C3'}
+            child_colors = {'OpenMP_MPI': 'C4', 'OpenMP_CUDA': 'C5', 'MPI_CUDA': 'C6', 'OpenMP_AVX2': 'C7'}
+            
+            for family_name, family_data in data_dict.items():
+                if isinstance(family_data, dict) and 'child' in family_data:
+                    if x_axis == 'count':
+                        # カウントベースは全生成を折れ線で表示
+                        # 子（第2世代）
+                        child_name = family_name.replace('Family:', '')
+                        times, values, versions = self.extract_all_progression(family_data['child'])
+                        if times and values:
+                            color = child_colors.get(child_name, 'navy')
+                            ax.plot(times, values, marker='o',
+                                   label=f'{child_name} (Gen2, Max: {max(values):.1f})',
+                                   color=color, linewidth=2.5, markersize=7, alpha=1.0, markeredgewidth=1.5)
+                        
+                        # 親（第1世代）
+                        for parent_name, parent_entries in family_data.get('parents', {}).items():
+                            times, values, versions = self.extract_all_progression(parent_entries)
+                            if times and values:
+                                color = parent_colors.get(parent_name, 'darkgray')
+                                ax.plot(times, values, marker='s',
+                                       label=f'{parent_name} (Gen1, Max: {max(values):.1f})',
+                                       color=color, linewidth=2.0, markersize=5, alpha=0.8, linestyle='--')
+                    else:
+                        # 時間ベースはSOTAのみ階段状
+                        # 子（第2世代）
+                        child_name = family_name.replace('Family:', '')
+                        times, values, versions = self.extract_sota_progression(family_data['child'])
+                        if times and values:
+                            color = child_colors.get(child_name, 'navy')
+                            ax.step(times, values, where='post', marker='o',
+                                   label=f'{child_name} (Gen2, Max: {max(values):.1f})',
+                                   color=color, linewidth=2.5, markersize=7, markeredgewidth=1.5)
+                        
+                        # 親（第1世代）
+                        for parent_name, parent_entries in family_data.get('parents', {}).items():
+                            times, values, versions = self.extract_sota_progression(parent_entries)
+                            if times and values:
+                                color = parent_colors.get(parent_name, 'darkgray')
+                                ax.step(times, values, where='post', marker='s',
+                                       label=f'{parent_name} (Gen1, Max: {max(values):.1f})',
+                                       color=color, linewidth=2.0, markersize=5, alpha=0.9, linestyle='--')
+        
+        elif sota_level in ['local', 'hardware']:
             # 複数のグラフ
             data_dict = sota_data[sota_level]
-            colors = plt.cm.tab10(np.linspace(0, 1, min(10, len(data_dict))))
+            # matplotlibのデフォルトカラーサイクルを使用（論文向けの濃い原色）
+            # C0=青, C1=オレンジ, C2=緑, C3=赤, C4=紫, C5=茶, C6=ピンク, C7=灰, C8=黄緑, C9=水色
+            colors = [f'C{i}' for i in range(min(10, len(data_dict)))]
             
             for i, (key, entries) in enumerate(data_dict.items()):
-                times, values, versions = self.extract_sota_progression(entries)
-                if times and values:
-                    color = colors[i % len(colors)]
-                    ax.step(times, values, where='post', marker='o',
-                           label=f'{key} (Max: {max(values):.1f})',
-                           color=color, linewidth=1.5, markersize=4)
+                if x_axis == 'count':
+                    # カウントベースは全生成を折れ線で表示
+                    times, values, versions = self.extract_all_progression(entries)
+                    if times and values:
+                        color = colors[i % len(colors)]
+                        # 折れ線グラフで全生成をプロット
+                        ax.plot(times, values, marker='o',
+                               label=f'{key} (Max: {max(values):.1f})',
+                               color=color, linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
+                else:
+                    # 時間ベースはSOTAのみ階段状
+                    times, values, versions = self.extract_sota_progression(entries)
+                    if times and values:
+                        color = colors[i % len(colors)]
+                        ax.step(times, values, where='post', marker='o',
+                               label=f'{key} (Max: {max(values):.1f})',
+                               color=color, linewidth=2.5, markersize=6, markeredgewidth=1.2)
         
         # 軸設定
         if x_axis == 'time':
-            ax.set_xlabel('Time (minutes from start)')
+            ax.set_xlabel('Time (seconds from start)')
+            # 秒を分に変換して表示（読みやすさのため）
+            import matplotlib.ticker as ticker
+            def format_seconds(x, pos):
+                minutes = int(x // 60)
+                seconds = int(x % 60)
+                if x < 60:
+                    return f'{int(x)}s'
+                elif seconds == 0:
+                    return f'{minutes}m'
+                else:
+                    return f'{minutes}m{seconds}s'
+            ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_seconds))
         else:
-            ax.set_xlabel('SOTA Update Count')
+            ax.set_xlabel('Code Generation Count')
+            # X軸を整数表示にする
+            import matplotlib.ticker as ticker
+            ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         
         ax.set_ylabel('Performance (GFLOPS equivalent)')
         
@@ -304,7 +455,11 @@ class SOTAVisualizer:
         plt.tight_layout()
         
         # ファイル保存（階層別ディレクトリに）
-        filename = f"sota_{sota_level}_{x_axis}"
+        if x_axis == 'count':
+            filename = f"generation_{sota_level}_{x_axis}"
+        else:
+            filename = f"sota_{sota_level}_{x_axis}"
+        
         if log_scale:
             filename += "_log"
         
