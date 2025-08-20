@@ -32,7 +32,8 @@ class SOTAVisualizer:
         # 階層別の出力ディレクトリ
         self.output_dirs = {
             'project': self.base_output_dir / 'project',
-            'hardware': self.base_output_dir / 'hardware', 
+            'hardware': self.base_output_dir / 'hardware',  # ミドルウェアレベル
+            'true_hardware': self.base_output_dir / 'true_hardware',  # 真のハードウェアレベル
             'family': self.base_output_dir / 'family',
             'local': self.base_output_dir / 'local',
             'comparison': self.base_output_dir / 'comparison'
@@ -106,7 +107,8 @@ class SOTAVisualizer:
         sota_data = {
             'local': {},     # PGごと（相対パスベース）
             'family': {},    # 親子関係（第1世代→第2世代）
-            'hardware': {},  # ハードウェア構成ごと
+            'hardware': {},  # ミドルウェア構成ごと（gcc, intel等）
+            'true_hardware': {},  # 真のハードウェアレベル（single-node, multi-node等）
             'project': []    # プロジェクト全体
         }
         
@@ -164,7 +166,7 @@ class SOTAVisualizer:
                 generation = 3
                 generation_techs[3].append((tech_name, entries))
             
-            # Hardware SOTA（hardware_info.mdの位置で階層を判定）
+            # Middleware SOTA（hardware_info.mdの位置で階層を判定）
             hardware_path = None
             for i in range(len(parts)):
                 check_path = self.project_root / Path(*parts[:i+1])
@@ -173,9 +175,22 @@ class SOTAVisualizer:
                     break
             
             if hardware_path:
+                # ミドルウェアレベル（gcc, intel等）
                 if hardware_path not in sota_data['hardware']:
                     sota_data['hardware'][hardware_path] = []
                 sota_data['hardware'][hardware_path].extend(entries)
+                
+                # 真のハードウェアレベル（single-node, multi-node等）を判定
+                # hardware_info.mdがある親ディレクトリを取得
+                if len(parts) >= 3:  # Flow/TypeII/single-node のような構造を想定
+                    # hardware_info.mdの親ディレクトリ名を真のハードウェアレベルとする
+                    hardware_parts = hardware_path.split('/')
+                    if len(hardware_parts) >= 3:
+                        true_hw_level = hardware_parts[2]  # single-node, multi-node等
+                        
+                        if true_hw_level not in sota_data['true_hardware']:
+                            sota_data['true_hardware'][true_hw_level] = []
+                        sota_data['true_hardware'][true_hw_level].extend(entries)
             
             # Project SOTA（全エントリ）
             sota_data['project'].extend(entries)
@@ -423,7 +438,7 @@ class SOTAVisualizer:
                                        label=f'{parent_name} (Gen1, Max: {max(values):.1f})',
                                        color=color, linewidth=2.0, markersize=5, alpha=0.9, linestyle='--')
         
-        elif sota_level in ['local', 'hardware']:
+        elif sota_level in ['local', 'hardware', 'true_hardware']:
             # 複数のグラフ
             data_dict = sota_data[sota_level]
             
@@ -507,7 +522,14 @@ class SOTAVisualizer:
         ax2.tick_params(axis='y', which='both', length=5)
         
         # グラフ装飾
-        ax.set_title(f'SOTA Performance Progression - {sota_level.capitalize()} Level')
+        # タイトルを適切に設定
+        if sota_level == 'hardware':
+            title_level = 'Middleware (Compiler/Library)'
+        elif sota_level == 'true_hardware':
+            title_level = 'Hardware (Node Configuration)'
+        else:
+            title_level = f'{sota_level.capitalize()} Level'
+        ax.set_title(f'SOTA Performance Progression - {title_level}')
         ax.legend(loc='best', fontsize=9)
         ax.grid(True, alpha=0.3)
         
@@ -574,12 +596,11 @@ class SOTAVisualizer:
                     path = self.plot_sota_comparison('family', x_axis, log_scale, True, specific_key=family_key)
                     generated_files.append(path)
         
-        # ハードウェアレベル（hardware_info.mdの親ディレクトリ名でグループ化）
+        # ミドルウェアレベル（hardware_info.mdの親ディレクトリ名でグループ化）
         hardware_groups = {}
         for hw_key in sota_data['hardware'].keys():
             # hw_keyの最後の部分をグループ名とする
-            # 例: Flow/TypeII/single-node → single-node
-            # 例: Flow/TypeII/multi-gpu → multi-gpu
+            # 例: Flow/TypeII/single-node/gcc11.3.0 → gcc11.3.0
             path_parts = hw_key.split('/')
             if path_parts:
                 hw_group = path_parts[-1]  # 最後の要素をグループ名に
@@ -587,7 +608,7 @@ class SOTAVisualizer:
                     hardware_groups[hw_group] = []
                 hardware_groups[hw_group].append(hw_key)
         
-        # 各ハードウェアグループごとにグラフ生成
+        # 各ミドルウェアグループごとにグラフ生成
         for hw_group in hardware_groups.keys():
             for x_axis in ['time', 'count']:
                 for log_scale in [False, True]:
@@ -595,6 +616,16 @@ class SOTAVisualizer:
                         continue
                     path = self.plot_sota_comparison('hardware', x_axis, log_scale, True, 
                                                     specific_key=hw_group)
+                    generated_files.append(path)
+        
+        # 真のハードウェアレベル（single-node, multi-node等）
+        for true_hw_key in sota_data['true_hardware'].keys():
+            for x_axis in ['time', 'count']:
+                for log_scale in [False, True]:
+                    if x_axis == 'count' and log_scale:
+                        continue
+                    path = self.plot_sota_comparison('true_hardware', x_axis, log_scale, True,
+                                                    specific_key=true_hw_key)
                     generated_files.append(path)
         
         # レポート生成
@@ -678,7 +709,7 @@ class SOTAVisualizer:
             
             f.write(f"\n## Summary\n")
             f.write(f"- Total graphs: {total_count}\n")
-            f.write(f"- Levels: local, family, hardware, project\n")
+            f.write(f"- Levels: local, family, middleware (hardware), true hardware, project\n")
             f.write(f"- Variants: time/count axis, linear/log scale\n")
         
         print(f"✅ Report saved: {report_path}")
@@ -690,7 +721,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='VibeCodeHPC SOTA Visualizer')
     parser.add_argument('--level', default='project',
-                       choices=['local', 'family', 'hardware', 'project', 'all'],
+                       choices=['local', 'family', 'hardware', 'true_hardware', 'project', 'all'],
                        help='SOTA level to visualize')
     parser.add_argument('--x-axis', default='time', choices=['time', 'count'],
                        help='X-axis type')

@@ -579,11 +579,17 @@ uvは高速なPythonパッケージマネージャーで、単一ファイルス
 | 名称 | 最高性能のスコープ |
 |---------|------------------------|
 | **Local** | PG自身のディレクトリ内 |
-| **Family** | 同一ミドルウェア内の親子世代全体 |
-| **Hardware** | ハードウェア全体 |
+| **Family** | 技術系統（親子世代の関係） |
+| **Hardware** | 同一ハードウェア構成内（single-node/multi-node等） |
 | **Project** | プロジェクト全体 |
 
 各階層でのSOTA判定により、効率的なベンチマーク比較と最適化方針決定を自動化。
+
+### SOTA性能推移の可視化
+
+![Hardware Level SOTA Performance](_images/generation_hardware_count.png)
+
+上図は真のハードウェアレベル（single-node構成）での性能推移を示しています。異なるミドルウェア（gcc, intel等）のデータを統合し、ハードウェア構成全体でのSOTA（State-of-the-Art）を追跡。各階段は新たなSOTA達成を表し、全ミドルウェアを通じた最高性能の変遷を可視化しています。
 
 ### ChangeLog.md統一フォーマット
 
