@@ -30,6 +30,7 @@
 - `/Agent-shared/sota_management.md`（SOTA判定基準と階層）
 - `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
 - `/Agent-shared/typical_hpc_code.md`（階層構造の具体例）
+- `/Agent-shared/ssh_guide.md`（SSH接続とファイル転送のガイド）
 
 #### プロジェクト実行時
 - `hardware_info.md`（理論性能目標 - ハードウェア階層に配置）
