@@ -128,8 +128,8 @@ def update_agent_table(session_id, source):
                     # v0.6以降: テスト検証エージェントの追加を検討
                     agent_type = 'polling'
                     
-                    # PMが初回起動時にプロジェクト開始時刻を記録と定期実行開始
-                    if agent_id == 'PM' and source == 'startup':
+                    # PMまたはSOLOが初回起動時にプロジェクト開始時刻を記録と定期実行開始
+                    if (agent_id == 'PM' or agent_id == 'SOLO') and source == 'startup':
                         start_time_file = project_root / "Agent-shared" / "project_start_time.txt"
                         if not start_time_file.exists() or start_time_file.stat().st_size == 0:
                             start_time_file.write_text(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ\n'))
