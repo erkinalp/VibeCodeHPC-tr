@@ -219,12 +219,18 @@ sequenceDiagram
     participant PM as PM
     participant SE as SE
     participant PG as PG
+    participant HPC as スパコン
     
     PM->>PG: 最適化タスク割り当て
-    PG->>PG: コード生成・ChangeLog.md作成
-    PG->>PG: SSH接続・コンパイル・ジョブ実行
-    PG->>PG: 実行結果・性能データ取得
-    PG->>SE: SOTA達成報告
+    PG->>HPC: SSH/SFTP接続確立
+    
+    loop 最適化ループ
+        PG->>PG: コード生成・修正・ChangeLog.md記録
+        PG->>HPC: コード転送・コンパイル・ジョブ投入
+        HPC-->>PG: 実行結果・性能データ
+        PG->>SE: SOTA達成報告
+    end
+    
     SE->>SE: 統計分析・可視化（非同期）
 ```
 
