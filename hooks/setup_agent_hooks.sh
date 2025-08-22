@@ -44,13 +44,13 @@ if [ "$AGENT_ID" = "SOLO" ]; then
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": ".claude/hooks/stop.py"
+        "command": "python3 .claude/hooks/stop.py"
       }]
     }],
     "SessionStart": [{
       "hooks": [{
         "type": "command",
-        "command": ".claude/hooks/session_start.py"
+        "command": "python3 .claude/hooks/session_start.py"
       }]
     }]
   }
@@ -66,13 +66,13 @@ elif [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]]; then
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": ".claude/hooks/stop.py"
+        "command": "python3 .claude/hooks/stop.py"
       }]
     }],
     "SessionStart": [{
       "hooks": [{
         "type": "command",
-        "command": ".claude/hooks/session_start.py"
+        "command": "python3 .claude/hooks/session_start.py"
       }]
     }]
   }
@@ -88,13 +88,13 @@ else
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": ".claude/hooks/stop.py"
+        "command": "python3 .claude/hooks/stop.py"
       }]
     }],
     "SessionStart": [{
       "hooks": [{
         "type": "command",
-        "command": ".claude/hooks/session_start.py"
+        "command": "python3 .claude/hooks/session_start.py"
       }]
     }]
   }
