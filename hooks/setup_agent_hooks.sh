@@ -37,6 +37,26 @@ echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
 # v0.5: SOLOエージェント対応
 if [ "$AGENT_ID" = "SOLO" ]; then
     cp "$TEMPLATE_DIR/stop_solo.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    # settings.jsonを作成（SOLOも同じ構造）
+    cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": ".claude/hooks/stop.py"
+      }]
+    }],
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": ".claude/hooks/session_start.py"
+      }]
+    }]
+  }
+}
+EOF
+    echo "✅ SOLO agent hooks configured"
 elif [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]]; then
     cp "$TEMPLATE_DIR/stop_polling_v2.py" "$AGENT_DIR/.claude/hooks/stop.py"
     # settings.jsonを作成（絶対パスを使用）
@@ -85,5 +105,8 @@ fi
 
 # 実行権限を付与
 chmod +x "$AGENT_DIR/.claude/hooks/"*.py
+
+# stop_count.txtを初期化（0から開始）
+echo "0" > "$AGENT_DIR/.claude/hooks/stop_count.txt"
 
 echo "✅ Hooks setup completed for $AGENT_ID at $AGENT_DIR"
