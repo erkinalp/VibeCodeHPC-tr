@@ -71,6 +71,11 @@ nvidia-smi --query-gpu=name,memory.total,clocks.sm,clocks.mem --format=csv
 # 重要: ノード内のGPU数と接続トポロジーを確認
 nvidia-smi topo -m  # GPU間の接続形態（NVLink, PCIe等）を表示
 
+# 重要: CPU-GPU間のNUMAトポロジーを確認
+lstopo-no-graphics --of txt  # hwlocでCPU-GPUのNUMA配置を可視化
+numactl --hardware  # NUMA nodeの確認
+nvidia-smi topo -m | grep CPU  # 各GPUがどのCPUソケットに近いか確認
+
 # NVLinkの詳細情報
 nvidia-smi nvlink -s  # NVLinkの状態とスループット
 nvidia-smi nvlink -i 0 -c  # GPU 0のNVLinkカウンター
@@ -82,6 +87,14 @@ nvidia-smi -i 0 -q  # GPU 0の詳細（MIG有効化も確認可能）
 # GPU間バンド幅の実測（p2pBandwidthLatencyTest等）
 # CUDA_VISIBLE_DEVICES環境変数の確認
 echo $CUDA_VISIBLE_DEVICES
+
+# CPU-GPU間のアフィニティ確認（重要）
+# 例: GPU0,1がCPU0に、GPU2,3がCPU1に近い場合
+# OpenMP+CUDAではCPUスレッドを適切なNUMAノードに配置する必要がある
+export OMP_PROC_BIND=true
+export OMP_PLACES=cores
+numactl --cpunodebind=0 --membind=0  # GPU0,1を使う場合
+numactl --cpunodebind=1 --membind=1  # GPU2,3を使う場合
 
 # AMD GPU
 rocm-smi --showproductname 2>/dev/null || echo "AMD GPU not detected"
