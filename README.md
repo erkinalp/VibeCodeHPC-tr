@@ -19,6 +19,27 @@ Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエー
 - **スパコン**: 不老、富岳等のHPCシステム
 - **コンパイラ**: Intel OneAPI、GCC、NVIDIA HPC SDK...
 
+## 🆕 シングルエージェントモード (v0.5+)
+
+実験評価用のシングルエージェントモードを追加しました。1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を担当します。
+
+### 使用方法
+```bash
+# セットアップ（0ワーカー = シングルモード）
+./communication/setup.sh 0 --project GEMM
+
+# エージェント起動
+./start_solo.sh
+```
+
+### 特徴
+- **統合実行**: 1つのインスタンスで全役割を実行
+- **ToDoリスト管理**: 役割切り替えを明示的に管理
+- **時間管理**: project_start_time.txtで経過時間を追跡
+- **マルチモードと同じ仕組み**: ChangeLog.md、SOTA管理等は共通
+
+詳細は `instructions/SOLO.md` を参照してください。
+
 ## 🏗️ エージェント構成
 
 ```mermaid
@@ -244,29 +265,80 @@ cd VibeCodeHPC-jp-{バージョン}
 
 ### ☑️ **推奨ツールのインストール**
 <details>
-<summary>jq と uv のインストール方法（クリックで展開）</summary>
+<summary>tmux, jq, uv, Python環境のインストール方法（クリックで展開）</summary>
 
 VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
 
-#### **jq** - JSONLファイル解析用
-```bash
-# Ubuntu/WSL
-sudo apt install jq
+#### **tmux** - ターミナルマルチプレクサ（マルチエージェント通信基盤）
 
-# macOS
+Ubuntu/WSL:
+```bash
+sudo apt-get update && sudo apt-get install tmux
+```
+
+CentOS/RHEL/Fedora:
+```bash
+sudo yum install tmux  # または sudo dnf install tmux
+```
+
+macOS:
+```bash
+brew install tmux
+```
+
+ユーザ権限でのインストール（sudo不可の環境）:
+```bash
+wget https://github.com/tmux/tmux/releases/download/3.4/tmux-3.4.tar.gz
+tar xzf tmux-3.4.tar.gz
+cd tmux-3.4
+./configure --prefix=$HOME/.local
+make && make install
+export PATH=$HOME/.local/bin:$PATH  # .bashrcに追加推奨
+```
+> シングルエージェントモード（`./start_solo.sh`）はtmuxなしでも動作しますが、セッション管理の観点からtmuxの使用を推奨
+
+#### **jq** - JSONLファイル解析用
+
+Ubuntu/WSL:
+```bash
+sudo apt install jq
+```
+
+macOS:
+```bash
 brew install jq
 ```
 > エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
 
 #### **uv** - Python高速実行環境（Claude Code hooks用）
-```bash
-# Linux/macOS/WSL
-curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# または pip経由
+Linux/macOS/WSL:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+または pip経由:
+```bash
 pip install uv
 ```
 > Claude Code hooksでPythonスクリプトを高速実行します。uvがない場合は通常のPythonで代替されます
+
+#### **Python環境** - グラフ生成・統計分析用
+
+uvを使用（推奨）:
+```bash
+uv pip install --system matplotlib pandas numpy
+```
+
+uvが使用できない場合:
+```bash
+pip3 install --user matplotlib pandas numpy
+```
+> SEエージェントがSOTA可視化やレポート生成で使用します。スクリプトは以下の優先順位で実行：
+> 1. `uv run script.py`
+> 2. `uvx script.py`
+> 3. `python3 script.py`
+> 4. `python script.py`
 </details>
 
 ---
@@ -533,23 +605,6 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 
-<details>
-<summary>🔧 hooks機能を使用する場合の追加セットアップ</summary>
-
-Claude Code hooks機能を使用する場合は、Python環境マネージャー`uv`のインストールが必要です：
-
-```bash
-# uvのインストール（推奨）
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# または pipx経由
-pipx install uv
-```
-
-uvは高速なPythonパッケージマネージャーで、単一ファイルスクリプトの実行に最適です。
-詳細: https://github.com/astral-sh/uv
-
-</details>
 
 起動後、以下のプロンプトをコピーして貼り付け：
 ```

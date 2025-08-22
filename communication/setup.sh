@@ -691,9 +691,14 @@ main() {
         exit 1
     fi
     
-    # エージェント数チェック（PMを除く、最小構成: SE + PG = 2）
-    if [[ $worker_count -lt 2 ]]; then
-        log_error "エージェント数は2以上を指定してください（PM除く、最小構成: SE + PG）"
+    # エージェント数チェック（PMを除く、0はシングルエージェントモード）
+    if [[ $worker_count -eq 0 ]]; then
+        log_info "シングルエージェントモード: PMペインのみ作成"
+    elif [[ $worker_count -eq 1 ]]; then
+        log_error "エージェント数1は無効です（0:シングルモード、2以上:マルチモード）"
+        exit 1
+    elif [[ $worker_count -lt 2 ]]; then
+        log_error "マルチエージェントモードは2以上を指定してください（PM除く、最小構成: SE + PG）"
         exit 1
     fi
     
@@ -734,12 +739,24 @@ main() {
     # PMセッション作成
     create_pm_session
     
-    # ワーカーセッション作成
-    local total_panes=$worker_count
-    create_worker_sessions $total_panes
-    
-    # agent_and_pane_id_table.jsonl生成（初期状態）
-    generate_agent_pane_table $total_panes
+    # シングルモードの場合はワーカーセッション作成をスキップ
+    if [[ $worker_count -eq 0 ]]; then
+        log_info "シングルエージェントモード: ワーカーセッション作成をスキップ"
+        
+        # シングルモード用のagent_and_pane_id_table.jsonl生成
+        mkdir -p ./Agent-shared
+        local jsonl_table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
+        > "$jsonl_table_file"
+        echo '{"agent_id": "SOLO", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
+        log_success "✅ シングルモード用agent_and_pane_id_table.jsonl生成完了"
+    else
+        # ワーカーセッション作成
+        local total_panes=$worker_count
+        create_worker_sessions $total_panes
+        
+        # agent_and_pane_id_table.jsonl生成（初期状態）
+        generate_agent_pane_table $total_panes
+    fi
     
     # 完了メッセージ
     echo ""
@@ -747,28 +764,37 @@ main() {
     echo ""
     echo "📋 次のステップ:"
     echo "  1. 🔗 セッションアタッチ:"
-    echo "     # ターミナルタブ1: PM用"
-    echo "     tmux attach-session -t $PM_SESSION"
-    echo ""
-    echo "     # ターミナルタブ2: その他のエージェント用"
-    if [ $total_panes -le 12 ]; then
-        echo "     tmux attach-session -t $WORKER_SESSION"
+    if [[ $worker_count -eq 0 ]]; then
+        echo "     # シングルエージェントモード"
+        echo "     tmux attach-session -t $PM_SESSION"
     else
-        echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}1"  # 最初のワーカーセッション
+        echo "     # ターミナルタブ1: PM用"
+        echo "     tmux attach-session -t $PM_SESSION"
         echo ""
-        echo "     # 13体以上の場合、追加セッション:"
-        local session_num=2
-        local remaining=$((total_panes - 12))
-        while [ $remaining -gt 0 ]; do
-            echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}${session_num}"
-            remaining=$((remaining - 12))
-            session_num=$((session_num + 1))
-        done
+        echo "     # ターミナルタブ2: その他のエージェント用"
+        if [ $total_panes -le 12 ]; then
+            echo "     tmux attach-session -t $WORKER_SESSION"
+        else
+            echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}1"  # 最初のワーカーセッション
+            echo ""
+            echo "     # 13体以上の場合、追加セッション:"
+            local session_num=2
+            local remaining=$((total_panes - 12))
+            while [ $remaining -gt 0 ]; do
+                echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}${session_num}"
+                remaining=$((remaining - 12))
+                session_num=$((session_num + 1))
+            done
+        fi
     fi
     echo ""
-    echo "  2. 🤖 PM起動:"
+    echo "  2. 🤖 エージェント起動:"
     echo "     # $PM_SESSION で以下を実行:"
-    echo "     ./start_PM.sh"
+    if [[ $worker_count -eq 0 ]]; then
+        echo "     ./start_solo.sh"
+    else
+        echo "     ./start_PM.sh"
+    fi
     echo ""
     echo "  3. 📊 エージェント配置:"
     echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl  # ペイン番号確認（JSONL形式）"

@@ -7,7 +7,7 @@
 # ===========================================
 
 # Remote connection and authentication
-_images/
+# _images/  # README用の参考画像は含める
 _remote_info/
 *.pem
 *.key
