@@ -64,12 +64,28 @@ sudo dmidecode -t memory 2>/dev/null | grep -E "Size|Speed|Type" || echo "dmidec
 
 #### GPU情報（該当する場合）
 ```bash
-# NVIDIA GPU
+# NVIDIA GPU基本情報
 nvidia-smi -q | grep -E "Product Name|Memory|Compute|CUDA Cores|Clock"
 nvidia-smi --query-gpu=name,memory.total,clocks.sm,clocks.mem --format=csv
 
+# 重要: ノード内のGPU数と接続トポロジーを確認
+nvidia-smi topo -m  # GPU間の接続形態（NVLink, PCIe等）を表示
+
+# NVLinkの詳細情報
+nvidia-smi nvlink -s  # NVLinkの状態とスループット
+nvidia-smi nvlink -i 0 -c  # GPU 0のNVLinkカウンター
+
+# GPUごとの詳細情報とMIG設定確認
+nvidia-smi -i 0 -q  # GPU 0の詳細（MIG有効化も確認可能）
+
+# バッチジョブ内で実行すべきコマンド（10分以内）
+# GPU間バンド幅の実測（p2pBandwidthLatencyTest等）
+# CUDA_VISIBLE_DEVICES環境変数の確認
+echo $CUDA_VISIBLE_DEVICES
+
 # AMD GPU
 rocm-smi --showproductname 2>/dev/null || echo "AMD GPU not detected"
+rocm-smi --showtopology 2>/dev/null  # AMD GPUのトポロジー
 
 # 理論演算性能の計算式
 # NVIDIA:
@@ -82,6 +98,9 @@ rocm-smi --showproductname 2>/dev/null || echo "AMD GPU not detected"
 #       80 SM × 64 FP32/SM × 1.53GHz × 2 = 15.7 TFLOPS (FP32)
 # A100: 108 SM × 32 FP64/SM × 1.41GHz × 2 = 9.7 TFLOPS (FP64)
 #       108 SM × 64 FP32/SM × 1.41GHz × 2 = 19.5 TFLOPS (FP32)
+
+# 重要: 複数GPU構成の場合の合計性能も記載
+# 例: 4 GPU × 9.7 TFLOPS = 38.8 TFLOPS (ノード全体のFP64)
 ```
 
 #### ネットワーク情報
@@ -118,9 +137,15 @@ ip link show
 
 ## GPU (TypeII-Gの場合)
 - Model: NVIDIA A100 40GB
-- Memory: 40 GB HBM2
-- **理論演算性能**: 9.7 TFLOPS (FP64)
-- メモリバンド幅: 1.6 TB/s
+- **GPU数**: 4基/ノード
+- Memory: 40 GB HBM2 (各GPU)
+- **GPU間接続**: NVLink 3.0 (600 GB/s bidirectional)
+- **トポロジー**: Full mesh (全GPU間がNVLinkで直接接続)
+- **理論演算性能**: 
+  - 単体: 9.7 TFLOPS (FP64), 19.5 TFLOPS (FP32)
+  - ノード全体: 38.8 TFLOPS (FP64), 78.0 TFLOPS (FP32)
+- メモリバンド幅: 1.6 TB/s (各GPU)
+- **PCIe接続**: PCIe Gen4 x16 (各GPU-CPU間)
 
 ## Network
 - Type: InfiniBand HDR
@@ -164,10 +189,33 @@ ip link show
 # SE → PG（代表者1名以上）
 agent_send.sh PG1.1 "[SE] hardware_info.mdを作成しました。Web検索でダブルチェックをお願いします"
 
+# PGがバッチジョブでGPU構成を確認（重要）
+cat > check_gpu.sh << 'EOF'
+#!/bin/bash
+#PJM -L rscgrp=cx-g-small
+#PJM -L node=1
+#PJM -L elapse=0:10:00
+#PJM -j
+
+echo "=== GPU Configuration Check ==="
+nvidia-smi
+echo ""
+echo "=== GPU Topology ==="
+nvidia-smi topo -m
+echo ""
+echo "=== NVLink Status ==="
+nvidia-smi nvlink -s
+echo ""
+echo "=== Available GPUs ==="
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+EOF
+
+pjsub check_gpu.sh
+
 # PGがチェック後、署名を追加
 echo "## 検証履歴" >> hardware_info.md
 echo "- 2025-07-30 12:30:00 UTC: PG1.1が検証完了。Intel ARKと照合済み" >> hardware_info.md
-echo "- 2025-07-30 13:00:00 UTC: PG1.3が追加検証。STREAM実測値を確認" >> hardware_info.md
+echo "- 2025-07-30 13:00:00 UTC: PG1.3がGPU構成確認。4GPU全てNVLink接続を確認" >> hardware_info.md
 ```
 
 ### 3. 全エージェントへの通知
