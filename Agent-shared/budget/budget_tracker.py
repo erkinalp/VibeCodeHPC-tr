@@ -122,8 +122,13 @@ class BudgetTracker:
         match = re.search(pattern, text)
         return match.group(1) if match else None
     
-    def calculate_timeline(self, jobs: List[Dict]) -> List[Tuple[datetime, float]]:
-        """イベントベースで予算消費を計算"""
+    def calculate_timeline(self, jobs: List[Dict], as_of: datetime = None) -> List[Tuple[datetime, float]]:
+        """イベントベースで予算消費を計算
+        
+        Args:
+            jobs: ジョブリスト
+            as_of: この時刻までのデータを計算（None の場合は現在時刻）
+        """
         events = []
         
         # プロジェクト開始時刻
@@ -146,10 +151,11 @@ class BudgetTracker:
             # 終了時刻の決定
             end_time_str = job.get('end_time') or job.get('cancelled_time')
             if not end_time_str:
-                # 実行中の場合は現在時刻を使用
-                if job.get('status') in ['running', 'pending']:
+                # runningの場合は現在時刻を使用（pendingは除外）
+                if job.get('status') == 'running':
                     end_time_str = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 else:
+                    # pendingまたはその他の場合はスキップ
                     continue
             
             try:
@@ -201,20 +207,15 @@ class BudgetTracker:
                 
             last_time = event['time']
         
-        # 現在実行中のジョブがある場合
-        if current_rate > 0:
-            now = datetime.now(timezone.utc)
-            duration = (now - last_time).total_seconds()
-            if duration > 0:
-                total_points += current_rate * duration
-            timeline.append((now, total_points))
+        # 実行中のジョブがある場合でも、現在時刻の点は追加しない
+        # タイムラインは純粋にイベント（start/end）のみ
             
         return timeline
     
-    def generate_report(self) -> Dict:
+    def generate_report(self, as_of: datetime = None) -> Dict:
         """レポート生成"""
         jobs = self.extract_jobs()
-        timeline = self.calculate_timeline(jobs)
+        timeline = self.calculate_timeline(jobs, as_of)
         
         # 現在の総消費量
         current_total = timeline[-1][1] if timeline else 0
@@ -223,7 +224,8 @@ class BudgetTracker:
         snapshot_dir = self.project_root / 'Agent-shared/budget/snapshots'
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
-        timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H-%M-%SZ')
+        cutoff_time = as_of if as_of else datetime.now(timezone.utc)
+        timestamp = cutoff_time.strftime('%Y-%m-%dT%H-%M-%SZ')
         
         # レポート作成
         report = {
@@ -249,7 +251,7 @@ class BudgetTracker:
         
         return report
     
-    def visualize_budget(self, output_path=None):
+    def visualize_budget(self, output_path: Path = None, as_of: datetime = None):
         """予算消費の推移をグラフ化"""
         try:
             import matplotlib.pyplot as plt
@@ -265,7 +267,7 @@ class BudgetTracker:
                 pass
             
             jobs = self.extract_jobs()
-            timeline = self.calculate_timeline(jobs)
+            timeline = self.calculate_timeline(jobs, as_of)
             
             if not timeline:
                 print("グラフ化するデータがありません")
@@ -282,6 +284,9 @@ class BudgetTracker:
             ax.plot(times, points, linewidth=2, color='blue', label='Budget Usage', marker='o', markersize=4)
             ax.fill_between(times, points, alpha=0.3, color='blue')
             
+            # 実行中のジョブがあるかチェック
+            running_jobs = [j for j in jobs if j.get('status') == 'running']
+            
             # 線形回帰による予測（直近のデータを使用）
             if len(times) >= 2:
                 # 時刻を数値に変換（最初の時刻からの秒数）
@@ -296,44 +301,83 @@ class BudgetTracker:
                     # 線形回帰
                     slope, intercept, r_value, p_value, std_err = stats.linregress(recent_times, recent_points)
                     
-                    # 予測線の作成（現在から1時間先まで）
-                    last_time = times[-1]
-                    future_time = last_time + timedelta(hours=1)
+                    # 現在時刻の設定
+                    current_time = as_of or datetime.now(timezone.utc)
                     
-                    # 予測用の時間点
-                    pred_times = [last_time, future_time]
-                    pred_times_numeric = [
-                        (last_time - times[0]).total_seconds(),
-                        (future_time - times[0]).total_seconds()
-                    ]
-                    pred_points = [slope * t + intercept for t in pred_times_numeric]
+                    # 実行中のジョブがある場合は現在のレートを考慮
+                    if running_jobs:
+                        # 最後のイベントから現在まで実行中
+                        last_time = times[-1]
+                        
+                        # 現在実行中のレートを計算
+                        current_rate = 0
+                        for job in running_jobs:
+                            resource_group = job.get('resource_group', 'cx-small')
+                            rate_info = self.rates.get(resource_group, {'gpu': 4, 'rate': 0.007})
+                            current_rate += rate_info['rate'] * rate_info['gpu']
+                        
+                        # 実行中のジョブによる現在までの推定値
+                        duration = (current_time - last_time).total_seconds()
+                        estimated_current = points[-1] + current_rate * duration
+                        
+                        # 予測線の作成（線形回帰を使用、最後の点から）
+                        future_time = last_time + timedelta(hours=1)
+                        
+                        # 予測用の時間点を数値に変換
+                        pred_times = [last_time, future_time]
+                        pred_times_numeric = [
+                            (last_time - times[0]).total_seconds(),
+                            (future_time - times[0]).total_seconds()
+                        ]
+                        # 線形回帰に基づく予測値
+                        pred_points = [slope * t + intercept for t in pred_times_numeric]
+                    else:
+                        # 実行中のジョブがない場合も線形回帰を使用
+                        last_time = times[-1]
+                        future_time = last_time + timedelta(hours=1)
+                        
+                        # 予測用の時間点を数値に変換
+                        pred_times = [last_time, future_time]
+                        pred_times_numeric = [
+                            (last_time - times[0]).total_seconds(),
+                            (future_time - times[0]).total_seconds()
+                        ]
+                        # 線形回帰に基づく予測値
+                        pred_points = [slope * t + intercept for t in pred_times_numeric]
+                        
+                        # 実行中のジョブがないので推定値は最後の点
+                        estimated_current = points[-1]
                     
-                    # 予測線を描画
+                    # 予測線を描画（線形回帰の結果を使用）
                     ax.plot(pred_times, pred_points, '--', linewidth=2, color='purple', 
                            label=f'Prediction (rate: {slope*3600:.1f} pt/hr)', alpha=0.7)
                     
                     # 閾値到達時刻の計算
                     budget_limits = {
                         'Minimum (1000pt)': 1000,
-                        'Expected (2500pt)': 2500,
-                        'Deadline (5000pt)': 5000
+                        'Expected (2000pt)': 2000,
+                        'Deadline (3000pt)': 3000
                     }
                     
-                    # 現在のポイント
-                    current_points = points[-1]
+                    # 現在のポイント（実行中のジョブがある場合は推定値）
+                    if running_jobs:
+                        current_points = estimated_current
+                    else:
+                        current_points = points[-1]
                     
                     # 各閾値への到達予測
                     predictions_text = []
                     for label, limit in budget_limits.items():
                         if current_points < limit and slope > 0:
+                            # 線形回帰に基づく予測
                             # 到達までの秒数
                             seconds_to_limit = (limit - intercept) / slope
                             # 到達時刻
                             eta = times[0] + timedelta(seconds=seconds_to_limit)
-                            # 現在からの時間
-                            hours_from_now = (eta - last_time).total_seconds() / 3600
-                            if hours_from_now > 0:
-                                predictions_text.append(f"{label}: {eta.strftime('%m-%d %H:%M')} ({hours_from_now:.1f}h)")
+                            # 最後のデータ点からの時間
+                            hours_from_last = (eta - times[-1]).total_seconds() / 3600
+                            if hours_from_last > 0:
+                                predictions_text.append(f"{label}: {eta.strftime('%m-%d %H:%M')} (+{hours_from_last:.1f}h from last data)")
                     
                     # 予測情報をグラフに追加（右上に配置）
                     if predictions_text:
@@ -345,8 +389,8 @@ class BudgetTracker:
             # 予算閾値の水平線
             budget_limits = {
                 'Minimum (1000pt)': 1000,
-                'Expected (2500pt)': 2500,
-                'Deadline (5000pt)': 5000
+                'Expected (2000pt)': 2000,
+                'Deadline (3000pt)': 3000
             }
             
             colors = ['green', 'orange', 'red']
@@ -403,10 +447,10 @@ class BudgetTracker:
         except Exception as e:
             print(f"グラフ生成エラー: {e}")
     
-    def print_summary(self):
+    def print_summary(self, as_of: datetime = None):
         """簡易サマリー表示"""
         jobs = self.extract_jobs()
-        timeline = self.calculate_timeline(jobs)
+        timeline = self.calculate_timeline(jobs, as_of)
         
         total = timeline[-1][1] if timeline else 0
         running = len([j for j in jobs if j.get('status') == 'running'])
@@ -417,7 +461,7 @@ class BudgetTracker:
         print(f"ジョブ数: 完了={completed}, 実行中={running}")
         
         # 予算に対する割合（仮定値）
-        budget_limits = {'最低': 1000, '目安': 2500, '上限': 5000}
+        budget_limits = {'最低': 1000, '目安': 2000, '上限': 3000}
         for label, limit in budget_limits.items():
             percentage = (total / limit * 100) if limit > 0 else 0
             print(f"{label}: {percentage:.1f}%")
@@ -433,8 +477,9 @@ def main():
     parser.add_argument('--summary', action='store_true', help='簡易サマリー表示')
     parser.add_argument('--report', action='store_true', help='詳細レポート生成')
     parser.add_argument('--json', action='store_true', help='JSON形式で出力')
-    parser.add_argument('--graph', action='store_true', help='予算消費グラフ生成')
+    parser.add_argument('--graph', action='store_true', help='予算消費グラフ生成（非推奨: デフォルトで生成されます）')
     parser.add_argument('--output', type=str, help='グラフ出力先パス')
+    parser.add_argument('--as-of', type=str, help='指定時刻までのデータを表示 (YYYY-MM-DDTHH:MM:SSZ)')
     
     args = parser.parse_args()
     
@@ -446,18 +491,37 @@ def main():
     
     tracker = BudgetTracker(project_root)
     
+    # --as-of パラメータの解析
+    as_of = None
+    if args.as_of:
+        try:
+            # ISO 8601形式でパース (Z を UTC として解釈)
+            as_of_str = args.as_of.replace('Z', '+00:00')
+            as_of = datetime.fromisoformat(as_of_str)
+            if as_of.tzinfo is None:
+                as_of = as_of.replace(tzinfo=timezone.utc)
+            print(f"時刻指定: {as_of.strftime('%Y-%m-%d %H:%M:%S UTC')} までのデータを表示")
+        except ValueError as e:
+            print(f"ERROR: --as-of の形式が不正です: {e}")
+            print("正しい形式: YYYY-MM-DDTHH:MM:SSZ (例: 2025-08-20T01:00:00Z)")
+            sys.exit(1)
+    
     if args.summary:
-        tracker.print_summary()
+        tracker.print_summary(as_of)
     elif args.json:
-        report = tracker.generate_report()
+        report = tracker.generate_report(as_of)
         print(json.dumps(report, indent=2))
     elif args.graph:
         output_path = Path(args.output) if args.output else None
-        tracker.visualize_budget(output_path)
+        tracker.visualize_budget(output_path, as_of)
     else:
-        report = tracker.generate_report()
+        # デフォルト動作：レポート生成とグラフ保存
+        report = tracker.generate_report(as_of)
         print(f"レポート生成完了: {report['total_points']:.1f} ポイント消費")
         print(f"詳細: Agent-shared/budget/snapshots/latest.json")
+        
+        # グラフも自動生成（画像を読み込まずに保存のみ）
+        tracker.visualize_budget(as_of=as_of)
 
 
 if __name__ == "__main__":

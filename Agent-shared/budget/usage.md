@@ -71,17 +71,37 @@ python Agent-shared/budget/budget_tracker.py --report
 # - latest.json（最新版）
 ```
 
-### 3. periodic_monitor.shへの統合
+### 3. グラフ生成（デフォルトで自動生成）
 ```bash
-# 5分ごとに自動集計（periodic_monitor.shに追加済み）
-if [ $((ELAPSED_MINUTES % 5)) -eq 0 ]; then
+# デフォルト動作（引数なし）で自動的にグラフも生成されます
+python Agent-shared/budget/budget_tracker.py
+# → User-shared/visualizations/budget_usage.png が生成される
+
+# --graphオプションは非推奨（deprecated）
+# デフォルトで生成されるため、明示的に指定する必要はありません
+python Agent-shared/budget/budget_tracker.py --graph  # 非推奨
+```
+
+### 4. periodic_monitor.shへの統合
+```bash
+# 3分ごとに自動集計（periodic_monitor.shに設定済み）
+if [ $((ELAPSED_MINUTES % 3)) -eq 0 ]; then
     python "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report
 fi
 ```
 
-### 4. JSON形式での取得（可視化用）
+### 5. JSON形式での取得（可視化用）
 ```bash
 python Agent-shared/budget/budget_tracker.py --json > budget.json
+```
+
+### 6. 特定時刻でのスナップショット（--as-of）
+```bash
+# 特定時刻までのデータを集計・可視化
+python Agent-shared/budget/budget_tracker.py --as-of 2025-08-20T01:00:00Z
+
+# マイルストーン時点での集計
+python Agent-shared/budget/budget_tracker.py --graph --as-of 2025-08-19T23:30:00Z
 ```
 
 ## リソースグループごとのレート
