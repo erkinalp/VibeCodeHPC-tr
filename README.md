@@ -698,6 +698,12 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 上図は真のハードウェアレベル（single-node構成）での性能推移を示しています。異なるミドルウェア（gcc, intel等）のデータを統合し、ハードウェア構成全体でのSOTA（State-of-the-Art）を追跡。各階段は新たなSOTA達成を表し、全ミドルウェアを通じた最高性能の変遷を可視化しています。
 
+### 予算消費のリアルタイム追跡
+
+![Budget Usage Timeline](_images/budget_usage.png)
+
+HPC予算の消費をリアルタイムで追跡し、線形回帰による予測と閾値到達時刻（ETA）を表示。多くのスパコンでは前日までの集計しか確認できませんが、ChangeLog.mdから即座に推定値を算出します。
+
 ### ChangeLog.md統一フォーマット
 
 エージェント間の情報共有を実現する統一ログシステム。

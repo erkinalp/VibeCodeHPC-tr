@@ -37,7 +37,11 @@
     - log: `[ログファイルパス]`
 - [x/✗] **job**
     - id: `[ジョブID]`
-    - status: `[success/error/timeout]`
+    - resource_group: `[リソースグループ名]` # 予算計算に必須
+    - start_time: `[YYYY-MM-DDTHH:MM:SSZ]` # 予算計算に必須
+    - end_time: `[YYYY-MM-DDTHH:MM:SSZ]` # 完了時必須（またはcancelled_time）
+    - runtime_sec: `[秒数]` # 実行時間（秒）
+    - status: `[success/error/timeout/cancelled/running]`
 - [x/✗] **test**
     - status: `[pass/fail]`
     - performance: `[数値]`
@@ -65,7 +69,7 @@
 
 ### 3. statusの値
 - **compile**: `success`, `warning`, `error`
-- **job**: `success`, `error`, `timeout`, `canceled`
+- **job**: `success`, `error`, `timeout`, `cancelled`, `running`
 - **test**: `pass`, `fail`, `partial`
 - **sota**: スコープは `local`（このPG内）, `family`（同一ミドルウェア内の親子世代）, `hardware`（ハードウェア構成内）, `project`（プロジェクト全体）
 
@@ -75,6 +79,11 @@
 - 生成時刻（UTC形式: YYYY-MM-DDTHH:MM:SSZ）
 - 変更点
 - compile情報（status）
+- job実行時の予算関連項目:
+  - resource_group（リソースグループ名）
+  - start_time（開始時刻）
+  - end_time（終了時刻）またはcancelled_time（キャンセル時刻）
+  - runtime_sec（実行時間（秒））
 
 #### 任意項目
 - message（エラー/警告時は必須）
@@ -91,8 +100,9 @@
 4. 基本的なparams設定
 5. compile結果の更新（status, log, message）
 6. job情報の追記（id, status）
-7. test結果の更新
-8. パフォーマンス値の記録
+7. **予算関連情報の記録**（resource_group, start_time, end_time, runtime_sec）
+8. test結果の更新
+9. パフォーマンス値の記録
 
 ## バージョニング規則
 **重要**: 基本的に `v1.0.0` から開始。`v0.x.x` は既存コードが動作しない場合のみ使用。

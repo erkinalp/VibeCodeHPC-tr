@@ -100,8 +100,12 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
    - 設計レベルから理解し、必要なら実装を読んで正確に生成
    
 3. **通常: 予算推移グラフ**
-   - `uv run Agent-shared/budget/budget_visualizer_example.py` を活用
-   - 注：スパコンのリアルタイム情報がない場合は横一線になる
+   - **初期設定（重要）**: プロジェクト開始時に以下を必ず実施
+     1. `_remote_info/`でスパコン固有のリソースグループ名とレートを確認
+     2. `Agent-shared/budget/budget_tracker.py`の`load_rates()`メソッドを編集
+     3. 正しいリソースグループ名（例: cx-share→実際の名前）とGPU数、レートに修正
+   - `python3 Agent-shared/budget/budget_tracker.py`で定期的に実行・確認
+   - 線形回帰による予測とETA表示機能を活用
 
 **PNG確認方法**:
 生成したPNGは `claude -p "このグラフの概要を説明" < path/to/image.png` で内容確認（トークン節約）
