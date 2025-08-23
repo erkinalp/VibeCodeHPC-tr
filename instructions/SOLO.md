@@ -56,7 +56,7 @@ todos = [
   - 不老: `charge`, `charge2`
   - その他: `_remote_info/`を確認、不明ならユーザに確認
 - **ジョブ確認**: `pjstat`, `pjstat2`
-- 定期的に`Agent-shared/budget_history.md`に記録
+- 定期的に`Agent-shared/budget/budget_history.md`に記録
 
 ## 📁 ファイル管理とディレクトリ構造
 
@@ -70,8 +70,8 @@ todos = [
 
 ### ChangeLog.mdとSOTA管理
 マルチエージェントと同じ仕組みを使用：
-- `Agent-shared/ChangeLog_format.md`に従って記録
-- `Agent-shared/sota_management.md`の基準でSOTA判定
+- `Agent-shared/change_log/ChangeLog_format.md`に従って記録
+- `Agent-shared/sota/sota_management.md`の基準でSOTA判定
 - 各ディレクトリにsota_local.txt配置
 
 ## 🔄 実装サイクル

@@ -90,7 +90,7 @@ pwdなどのコマンドで自分のカレントディレクトリと
 
 ## 💰予算管理 (PMが集約管理)
 - **予算追跡**: PMは`pjstat`等でスパコンの使用ポイントを定期的に確認
-- **記録**: `/Agent-shared/budget_history.md`に以下を記録
+- **記録**: `/Agent-shared/budget/budget_history.md`に以下を記録
   - 開始時のused値
   - 現在のused値
   - 本プロジェクトでの使用量（差分）

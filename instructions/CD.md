@@ -23,7 +23,7 @@
 ### 必須参照ファイル
 #### 初期化時に必ず読むべきファイル
 - `_remote_info/user_id.txt`（匿名化対象の把握）
-- `/Agent-shared/sota_management.md`（公開対象のSOTA判定）
+- `/Agent-shared/sota/sota_management.md`（公開対象のSOTA判定）
 - `/Agent-shared/artifacts_position.md`（成果物の場所）
 
 #### プロジェクト実行時

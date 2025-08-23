@@ -85,9 +85,9 @@ while true; do
         done
         
         # SOTA可視化グラフの生成（存在する場合）
-        if [ -f "$PROJECT_ROOT/Agent-shared/sota_visualizer.py" ]; then
+        if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
             echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Generating SOTA visualizations..." >> "$LOG_FILE"
-            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota_visualizer.py" --level project 2>&1 | tail -5 >> "$LOG_FILE"
+            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level project 2>&1 | tail -5 >> "$LOG_FILE"
         fi
     fi
     

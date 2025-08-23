@@ -144,9 +144,9 @@ def get_required_files(agent_id):
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
-        "PM": ["instructions/PM.md", "_remote_info/", "Agent-shared/typical_hpc_code.md", "Agent-shared/evolutional_flat_dir.md"],
-        "SE": ["instructions/SE.md", "Agent-shared/changelog_analysis_template.py"],
-        "PG": ["instructions/PG.md", "Agent-shared/ChangeLog_format.md", "Agent-shared/sota_management.md"],
+        "PM": ["instructions/PM.md", "_remote_info/", "Agent-shared/strategies/auto_tuning/typical_hpc_code.md", "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md"],
+        "SE": ["instructions/SE.md", "Agent-shared/change_log/changelog_analysis_template.py"],
+        "PG": ["instructions/PG.md", "Agent-shared/change_log/ChangeLog_format.md", "Agent-shared/sota/sota_management.md"],
         "CD": ["instructions/CD.md"]
     }
     

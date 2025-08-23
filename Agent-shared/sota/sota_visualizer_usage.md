@@ -25,15 +25,15 @@
 
 ```bash
 # プロジェクト全体のSOTA推移（デフォルト）
-python Agent-shared/sota_visualizer.py
+python Agent-shared/sota/sota_visualizer.py
 
 # 特定階層のSOTA推移
-python Agent-shared/sota_visualizer.py --level local    # PGごと
-python Agent-shared/sota_visualizer.py --level family   # ミドルウェアごと
-python Agent-shared/sota_visualizer.py --level hardware # ハードウェアごと
+python Agent-shared/sota/sota_visualizer.py --level local    # PGごと
+python Agent-shared/sota/sota_visualizer.py --level family   # ミドルウェアごと
+python Agent-shared/sota/sota_visualizer.py --level hardware # ハードウェアごと
 
 # 全階層のグラフを一括生成
-python Agent-shared/sota_visualizer.py --level all
+python Agent-shared/sota/sota_visualizer.py --level all
 ```
 
 ## オプション
@@ -41,31 +41,31 @@ python Agent-shared/sota_visualizer.py --level all
 ### X軸の選択
 ```bash
 # 経過時間ベース（デフォルト）
-python Agent-shared/sota_visualizer.py --x-axis time
+python Agent-shared/sota/sota_visualizer.py --x-axis time
 
 # 更新回数ベース
-python Agent-shared/sota_visualizer.py --x-axis count
+python Agent-shared/sota/sota_visualizer.py --x-axis count
 ```
 
 ### Y軸スケール
 ```bash
 # リニアスケール（デフォルト）
-python Agent-shared/sota_visualizer.py
+python Agent-shared/sota/sota_visualizer.py
 
 # 対数スケール（性能差が大きい場合に有効）
-python Agent-shared/sota_visualizer.py --log-scale
+python Agent-shared/sota/sota_visualizer.py --log-scale
 ```
 
 ### 理論性能の表示
 ```bash
 # 理論性能を表示（デフォルト）
-python Agent-shared/sota_visualizer.py
+python Agent-shared/sota/sota_visualizer.py
 
 # 理論性能を非表示
-python Agent-shared/sota_visualizer.py --no-theoretical
+python Agent-shared/sota/sota_visualizer.py --no-theoretical
 
 # 理論性能が不明な場合の上限設定（最高性能の10%上をデフォルト）
-python Agent-shared/sota_visualizer.py --theoretical-ratio 0.2  # 20%上に設定
+python Agent-shared/sota/sota_visualizer.py --theoretical-ratio 0.2  # 20%上に設定
 ```
 
 ## 出力先（v2での改善）
@@ -121,7 +121,7 @@ from pathlib import Path
 
 # 定期的に全階層のグラフを更新
 def update_sota_graphs():
-    script_path = Path("Agent-shared/sota_visualizer.py")
+    script_path = Path("Agent-shared/sota/sota_visualizer.py")
     
     # 全階層を一括生成
     subprocess.run(["python", str(script_path), "--level", "all"])

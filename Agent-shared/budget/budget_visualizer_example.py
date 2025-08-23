@@ -4,7 +4,7 @@
 budget_history.mdを読み取り、スパコンのポイント消費推移をグラフ化
 
 SEエージェントがプロジェクトごとにカスタマイズして使用することを想定
-配置場所: Agent-shared/budget_visualizer.py
+配置場所: Agent-shared/budget/budget_visualizer.py
 出力先: User-shared/visualizations/budget_usage.png
 """
 

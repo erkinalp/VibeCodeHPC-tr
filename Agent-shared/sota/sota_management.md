@@ -59,7 +59,7 @@ strategy: "MPI_OpenMP_AVX512"
 ## SOTA判定・更新システム
 
 ### **Python実装**
-実装は `Agent-shared/sota_checker.py` に切り出し済み
+実装は `Agent-shared/sota/sota_checker.py` に切り出し済み
 
 ### **基本使用方法**
 ```python

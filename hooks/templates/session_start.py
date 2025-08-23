@@ -185,19 +185,19 @@ def get_required_files(agent_id):
         "PM": [
             "instructions/PM.md",
             "_remote_info/",
-            "Agent-shared/typical_hpc_code.md",
-            "Agent-shared/evolutional_flat_dir.md",
+            "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
+            "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md",
             "requirement_definition.md（存在する場合）"
         ],
         "SE": [
             "instructions/SE.md",
-            "Agent-shared/changelog_analysis_template.py"
+            "Agent-shared/change_log/changelog_analysis_template.py"
         ],
         "PG": [
             "instructions/PG.md",
             "現在のディレクトリのChangeLog.md",
-            "Agent-shared/ChangeLog_format.md",
-            "Agent-shared/ChangeLog_format_PM_override.md（存在する場合）"
+            "Agent-shared/change_log/ChangeLog_format.md",
+            "Agent-shared/change_log/ChangeLog_format_PM_override.md（存在する場合）"
         ],
         "CD": [
             "instructions/CD.md"

@@ -751,8 +751,8 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 ---
 
-- 詳細：[Agent-shared/ChangeLog_format.md](Agent-shared/ChangeLog_format.md)
-- PMオーバーライド：[Agent-shared/ChangeLog_format_PM_override_template.md](Agent-shared/ChangeLog_format_PM_override_template.md)
+- 詳細：[Agent-shared/change_log/ChangeLog_format.md](Agent-shared/change_log/ChangeLog_format.md)
+- PMオーバーライド：[Agent-shared/change_log/ChangeLog_format_PM_override_template.md](Agent-shared/change_log/ChangeLog_format_PM_override_template.md)
 
 ## 🧬 進化的最適化アプローチ
 
@@ -766,13 +766,13 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 - **並列探索効率化**: 複数エージェントによる同時最適化
 - **技術継承**: 上位世代が下位世代の成果を参照可能
 
-- [ ] 詳細: [Agent-shared/evolutional_flat_dir.md](Agent-shared/evolutional_flat_dir.md)
+- [ ] 詳細: [Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md](Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md)
 
 ## 🔍 ファイルベースの情報共有
 
 ### 成果物の管理
 - 成果物配置: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
-- SOTA管理: [Agent-shared/sota_management.md](Agent-shared/sota_management.md)
+- SOTA管理: [Agent-shared/sota/sota_management.md](Agent-shared/sota/sota_management.md)
 - レポート階層: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
 > [!TIP]

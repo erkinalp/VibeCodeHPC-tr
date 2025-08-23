@@ -219,7 +219,7 @@ SEは定期的に以下のタスクを実行すること：
 - 失敗パターンの分析
 
 #### 生成方法
-Agent-shared/changelog_analysis_template.py をベースに、プロジェクトに応じてカスタマイズした解析スクリプトを作成する。テンプレートクラスを継承して、以下をカスタマイズ：
+Agent-shared/change_log/changelog_analysis_template.py をベースに、プロジェクトに応じてカスタマイズした解析スクリプトを作成する。テンプレートクラスを継承して、以下をカスタマイズ：
 - `extract_metadata()`: ディレクトリ構造からプロジェクト固有の情報を抽出
 - `aggregate_data()`: 必要な集計ロジックを実装
 - `generate_report()`: レポートフォーマットをカスタマイズ
@@ -254,17 +254,17 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 
 ### 必須参照ファイル
 #### 初期化時に必ず読むべきファイル
-- `/Agent-shared/ChangeLog_format.md`（統一記録フォーマット）
-- `/Agent-shared/ChangeLog_format_PM_override.md`（PMオーバーライド - 存在する場合）
-- `/Agent-shared/sota_management.md`（SOTA管理システム）
+- `/Agent-shared/change_log/ChangeLog_format.md`（統一記録フォーマット）
+- `/Agent-shared/change_log/ChangeLog_format_PM_override.md`（PMオーバーライド - 存在する場合）
+- `/Agent-shared/sota/sota_management.md`（SOTA管理システム）
 - `/Agent-shared/report_hierarchy.md`（レポート階層構成）
 - `/Agent-shared/artifacts_position.md`（成果物配置ルール）
-- `/Agent-shared/budget_termination_criteria.md`（予算ベース終了条件）
+- `/Agent-shared/budget/budget_termination_criteria.md`（予算ベース終了条件）
 
 #### 分析・監視用ツール
-- `/Agent-shared/changelog_analysis_template.py`（分析テンプレート）
+- `/Agent-shared/change_log/changelog_analysis_template.py`（分析テンプレート）
 - `/Agent-shared/log_analyzer.py`（ログ解析スクリプト）
-- `/Agent-shared/sota_checker.py`（SOTA確認スクリプト）
+- `/Agent-shared/sota/sota_checker.py`（SOTA確認スクリプト）
 
 #### 運用管理用
 - `/Agent-shared/directory_pane_map.txt`（エージェント配置とペイン管理）
@@ -312,7 +312,7 @@ Agent-shared/changelog_analysis_template.py をベースに、プロジェクト
 
 #### 予算ベースの終了条件（最優先）
 - **主観的判断の排除**: PMの主観ではなく、予算消費率で客観的に判断
-- **フェーズ監視**: `/Agent-shared/budget_termination_criteria.md`の5段階フェーズを理解
+- **フェーズ監視**: `/Agent-shared/budget/budget_termination_criteria.md`の5段階フェーズを理解
 - **効率分析**: 予算効率（性能向上/ポイント消費）を定期的に計算・可視化
 
 ```python

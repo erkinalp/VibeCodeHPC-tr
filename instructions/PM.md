@@ -26,8 +26,8 @@
 
 2. **必須ドキュメントの熟読**
    - `CLAUDE.md`（全エージェント共通ルール）
-   - `Agent-shared/typical_hpc_code.md`（階層設計の具体例）
-   - `Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
+   - `Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層設計の具体例）
+   - `Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
 
 3. **BaseCode/の確認**
    - _remote_info確認後に既存コードを確認
@@ -127,10 +127,10 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 3. ディレクトリ階層を適切に構成
 4. **予算管理の初期化**：
    - `pjstat`等で開始時点の予算残額を確認
-   - `/Agent-shared/budget_history.md`に初期値を記録
+   - `/Agent-shared/budget/budget_history.md`に初期値を記録
    - 予算閾値（最低/想定/デッドライン）を設定
 5. **ChangeLogフォーマット定義**：
-   - `/Agent-shared/ChangeLog_format_PM_override_template.md`を参考に
+   - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`を参考に
    - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
    - 性能指標、ログパス規則、その他プロジェクト固有ルールを定義
 6. **重要**: setup.shで作成されたセッション（デフォルト：Team1_Workers1）を使用する
@@ -378,7 +378,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 2. **予算確認（5分おき）**
    - `charge`コマンド等でused値を確認（コマンド名は_remote_info参照）
    - コマンドが不明な場合は早めにユーザに確認
-   - `/Agent-shared/budget_history.md`に記録
+   - `/Agent-shared/budget/budget_history.md`に記録
    - ポイント未消費時は該当PGに警告（ログインノード実行の疑い）
    
 2. **リソース再配分**
@@ -398,7 +398,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
 
 5. **予算管理**
    - 定期的に`pjstat`等で残額確認
-   - `/Agent-shared/budget_history.md`に記録
+   - `/Agent-shared/budget/budget_history.md`に記録
    - 閾値到達時はリソース配分を調整
 
 6. **コンテキスト使用率監視**（30分おき）
@@ -446,13 +446,13 @@ PM ≦ SE ≦ PG構成の場合（人数構成）
 - `_remote_info/`配下の全ファイル（特にcommand.md、user_id.txt）
 - `/Agent-shared/max_agent_number.txt`（利用可能ワーカー数）
 - `/Agent-shared/agent_and_pane_id_table.jsonl`（tmux構成）
-- `/Agent-shared/typical_hpc_code.md`（階層設計参考）
-- `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
+- `/Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層設計参考）
+- `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
 
 #### プロジェクト管理用
 - `/Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
-- `/Agent-shared/budget_history.md`（予算使用履歴）
-- `/Agent-shared/ChangeLog_format_PM_override_template.md`（フォーマット定義用）
+- `/Agent-shared/budget/budget_history.md`（予算使用履歴）
+- `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`（フォーマット定義用）
 - `/User-shared/final_report.md`（最終報告書 - プロジェクト終了時に作成）
 
 ## ⚠️ 制約事項
@@ -494,7 +494,7 @@ PM ≦ SE ≦ PG構成の場合（人数構成）
 1. [ ] 全エージェントの稼働状況確認
    - 各エージェントのChangeLog.mdの最終更新時刻を確認
    - 無応答エージェントがいないか確認
-2. [ ] 予算使用状況の最終記録（`/Agent-shared/budget_history.md`）
+2. [ ] 予算使用状況の最終記録（`/Agent-shared/budget/budget_history.md`）
    - 開始時点からの総使用ポイントを記録
    - 各フェーズごとの消費量を集計
 3. [ ] 最終レポート生成（`/User-shared/final_report.md`）

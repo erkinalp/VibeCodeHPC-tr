@@ -26,17 +26,17 @@
 
 ### 必須参照ファイル
 #### 初期化時に必ず読むべきファイル
-- `/Agent-shared/ChangeLog_format.md`（進捗記録フォーマット）
-- `/Agent-shared/sota_management.md`（SOTA判定基準と階層）
-- `/Agent-shared/evolutional_flat_dir.md`（進化的探索戦略）
-- `/Agent-shared/typical_hpc_code.md`（階層構造の具体例）
+- `/Agent-shared/change_log/ChangeLog_format.md`（進捗記録フォーマット）
+- `/Agent-shared/sota/sota_management.md`（SOTA判定基準と階層）
+- `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
+- `/Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層構造の具体例）
 - `/Agent-shared/ssh_guide.md`（SSH接続とファイル転送のガイド）
 
 #### プロジェクト実行時
 - `hardware_info.md`（理論性能目標 - ハードウェア階層に配置）
 - `BaseCode/`配下の既存コード
 - `PG_visible_dir.md`（親世代参照 - SEが作成した場合）
-- `/Agent-shared/ChangeLog_format_PM_override.md`（PMが作成した場合）
+- `/Agent-shared/change_log/ChangeLog_format_PM_override.md`（PMが作成した場合）
 
 ## 🔄 基本ワークフロー
 
@@ -92,7 +92,7 @@
 **重要**: 生成時刻（UTC）を必ず記録すること。以下の方法のいずれかを使用：
 ```bash
 # 方法1: ヘルパースクリプトを使用（推奨）
-python3 /Agent-shared/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
+python3 /Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
 
 # 方法2: 手動で現在のUTC時刻を取得
 date -u +"%Y-%m-%dT%H:%M:%SZ"

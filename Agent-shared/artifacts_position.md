@@ -84,7 +84,7 @@ Flow/TypeII/single-node/
 ### PG階層
 ```
 PG1.1.1/
-├── ChangeLog.md                 # 【必須】全情報統合（→Agent-shared/ChangeLog_format.md参照）
+├── ChangeLog.md                 # 【必須】全情報統合（→Agent-shared/change_log/ChangeLog_format.md参照）
 ├── visible_paths.txt            # 参照許可パス一覧（SE管理）
 ├── sota_local.txt               # Local階層SOTA（writer:PG, reader:all）
 └── results/                     # 実行結果ファイル
