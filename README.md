@@ -372,18 +372,25 @@ pip install uv
 
 uvを使用（推奨）:
 ```bash
-uv pip install --system matplotlib pandas numpy
+uv pip install --system matplotlib pandas numpy scipy
 ```
 
 uvが使用できない場合:
 ```bash
-pip3 install --user matplotlib pandas numpy
+pip3 install --user matplotlib pandas numpy scipy
 ```
+
+システムのpython3にもインストール（推奨）:
+```bash
+# uv/uvxが利用できない場合のフォールバック用
+python3 -m pip install --user -U matplotlib numpy scipy
+```
+
 > SEエージェントがSOTA可視化やレポート生成で使用します。スクリプトは以下の優先順位で実行：
-> 1. `uv run script.py`
-> 2. `uvx script.py`
-> 3. `python3 script.py`
-> 4. `python script.py`
+> 1. `uv run script.py` （uvがインストールされている場合）
+> 2. `uvx script.py` （uvxがインストールされている場合）
+> 3. `python3 script.py` （システムのpython3）
+> 4. `python script.py` （最終手段）
 </details>
 
 ---

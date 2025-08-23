@@ -20,6 +20,7 @@ CONFIG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_config.txt"
 DEFAULT_UPDATE_INTERVAL_SEC=30  # 30秒（上書き更新頻度）
 DEFAULT_MILESTONE_INTERVAL_MIN=30  # 30分（マイルストーン確認間隔）
 DEFAULT_MAX_RUNTIME_MIN=4320  # 4320分（3日）= 24 * 60 * 3
+DEFAULT_BUDGET_INTERVAL_MIN=3  # 3分（予算集計間隔）
 
 # 設定読み込み（存在すれば）
 if [ -f "$CONFIG_FILE" ]; then
@@ -30,6 +31,7 @@ fi
 UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC:-$DEFAULT_UPDATE_INTERVAL_SEC}
 MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN:-$DEFAULT_MILESTONE_INTERVAL_MIN}
 MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN:-$DEFAULT_MAX_RUNTIME_MIN}
+BUDGET_INTERVAL_MIN=${BUDGET_INTERVAL_MIN:-$DEFAULT_BUDGET_INTERVAL_MIN}
 
 # 既存のプロセスがあれば終了
 cleanup_existing_processes() {
@@ -130,9 +132,9 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level all 2>&1 | tail -2 >> "$LOG_FILE"
         fi
         
-        # 予算集計（5分ごと）
+        # 予算集計（設定可能な間隔）
         CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
-        if [ $((CURRENT_MINUTES % 5)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
+        if [ $((CURRENT_MINUTES % BUDGET_INTERVAL_MIN)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
@@ -167,8 +169,27 @@ while true; do
     for MILESTONE in "${MILESTONES[@]}"; do
         if [ $ELAPSED_MINUTES -ge $MILESTONE ] && [ $LAST_MILESTONE -lt $MILESTONE ]; then
             echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Milestone $MILESTONE minutes reached, saving..." >> "$LOG_FILE"
+            
+            # コンテキスト使用率のマイルストーン保存
             $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" \
                 --graph-type overview --max-minutes $MILESTONE 2>&1 | tail -5 >> "$LOG_FILE"
+            
+            # 予算集計のマイルストーン保存
+            if [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
+                MILESTONE_TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+                SNAPSHOT_DIR="$PROJECT_ROOT/Agent-shared/budget/snapshots"
+                mkdir -p "$SNAPSHOT_DIR"
+                
+                # 通常レポート生成
+                $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report 2>&1 | tail -1 >> "$LOG_FILE"
+                
+                # マイルストーン時点の別名保存
+                if [ -f "$SNAPSHOT_DIR/latest.json" ]; then
+                    cp "$SNAPSHOT_DIR/latest.json" "$SNAPSHOT_DIR/budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json"
+                    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone saved: budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json" >> "$LOG_FILE"
+                fi
+            fi
+            
             LAST_MILESTONE=$MILESTONE
         fi
     done

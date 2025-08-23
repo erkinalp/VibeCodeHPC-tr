@@ -8,7 +8,7 @@ ChangeLog.mdから直接時刻情報を読み取って集計
 import re
 import json
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Tuple
 import sys
 
@@ -134,9 +134,9 @@ class BudgetTracker:
                     start_file.read_text().strip().replace('Z', '+00:00')
                 )
             except:
-                project_start = datetime.utcnow() - timedelta(hours=1)
+                project_start = datetime.now(timezone.utc) - timedelta(hours=1)
         else:
-            project_start = datetime.utcnow() - timedelta(hours=1)
+            project_start = datetime.now(timezone.utc) - timedelta(hours=1)
         
         # 各ジョブからイベント生成
         for job in jobs:
@@ -148,7 +148,7 @@ class BudgetTracker:
             if not end_time_str:
                 # 実行中の場合は現在時刻を使用
                 if job.get('status') in ['running', 'pending']:
-                    end_time_str = datetime.utcnow().isoformat() + 'Z'
+                    end_time_str = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 else:
                     continue
             
@@ -203,7 +203,7 @@ class BudgetTracker:
         
         # 現在実行中のジョブがある場合
         if current_rate > 0:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             duration = (now - last_time).total_seconds()
             if duration > 0:
                 total_points += current_rate * duration
@@ -223,7 +223,7 @@ class BudgetTracker:
         snapshot_dir = self.project_root / 'Agent-shared/budget/snapshots'
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
-        timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%SZ')
+        timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H-%M-%SZ')
         
         # レポート作成
         report = {
@@ -249,6 +249,160 @@ class BudgetTracker:
         
         return report
     
+    def visualize_budget(self, output_path=None):
+        """予算消費の推移をグラフ化"""
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.dates as mdates
+            from matplotlib import rcParams
+            import numpy as np
+            from scipy import stats
+            
+            # 日本語フォント設定（利用可能な場合）
+            try:
+                rcParams['font.sans-serif'] = ['DejaVu Sans', 'Helvetica', 'Arial', 'sans-serif']
+            except:
+                pass
+            
+            jobs = self.extract_jobs()
+            timeline = self.calculate_timeline(jobs)
+            
+            if not timeline:
+                print("グラフ化するデータがありません")
+                return
+            
+            # タイムラインデータをプロット用に整理
+            times = [t[0] for t in timeline]
+            points = [t[1] for t in timeline]
+            
+            # グラフ作成
+            fig, ax = plt.subplots(figsize=(14, 7))
+            
+            # 折れ線グラフ（ジョブ実行中は線形増加）
+            ax.plot(times, points, linewidth=2, color='blue', label='Budget Usage', marker='o', markersize=4)
+            ax.fill_between(times, points, alpha=0.3, color='blue')
+            
+            # 線形回帰による予測（直近のデータを使用）
+            if len(times) >= 2:
+                # 時刻を数値に変換（最初の時刻からの秒数）
+                times_numeric = [(t - times[0]).total_seconds() for t in times]
+                
+                # 直近のデータで線形回帰（最後の30%のデータを使用）
+                recent_start = max(0, int(len(times) * 0.7))
+                recent_times = times_numeric[recent_start:]
+                recent_points = points[recent_start:]
+                
+                if len(recent_times) >= 2:
+                    # 線形回帰
+                    slope, intercept, r_value, p_value, std_err = stats.linregress(recent_times, recent_points)
+                    
+                    # 予測線の作成（現在から1時間先まで）
+                    last_time = times[-1]
+                    future_time = last_time + timedelta(hours=1)
+                    
+                    # 予測用の時間点
+                    pred_times = [last_time, future_time]
+                    pred_times_numeric = [
+                        (last_time - times[0]).total_seconds(),
+                        (future_time - times[0]).total_seconds()
+                    ]
+                    pred_points = [slope * t + intercept for t in pred_times_numeric]
+                    
+                    # 予測線を描画
+                    ax.plot(pred_times, pred_points, '--', linewidth=2, color='purple', 
+                           label=f'Prediction (rate: {slope*3600:.1f} pt/hr)', alpha=0.7)
+                    
+                    # 閾値到達時刻の計算
+                    budget_limits = {
+                        'Minimum (1000pt)': 1000,
+                        'Expected (2500pt)': 2500,
+                        'Deadline (5000pt)': 5000
+                    }
+                    
+                    # 現在のポイント
+                    current_points = points[-1]
+                    
+                    # 各閾値への到達予測
+                    predictions_text = []
+                    for label, limit in budget_limits.items():
+                        if current_points < limit and slope > 0:
+                            # 到達までの秒数
+                            seconds_to_limit = (limit - intercept) / slope
+                            # 到達時刻
+                            eta = times[0] + timedelta(seconds=seconds_to_limit)
+                            # 現在からの時間
+                            hours_from_now = (eta - last_time).total_seconds() / 3600
+                            if hours_from_now > 0:
+                                predictions_text.append(f"{label}: {eta.strftime('%m-%d %H:%M')} ({hours_from_now:.1f}h)")
+                    
+                    # 予測情報をグラフに追加（右上に配置）
+                    if predictions_text:
+                        prediction_str = "ETA:\n" + "\n".join(predictions_text)
+                        ax.text(0.98, 0.98, prediction_str, transform=ax.transAxes,
+                               verticalalignment='top', horizontalalignment='right', fontsize=10,
+                               bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
+            
+            # 予算閾値の水平線
+            budget_limits = {
+                'Minimum (1000pt)': 1000,
+                'Expected (2500pt)': 2500,
+                'Deadline (5000pt)': 5000
+            }
+            
+            colors = ['green', 'orange', 'red']
+            for (label, limit), color in zip(budget_limits.items(), colors):
+                ax.axhline(y=limit, color=color, linestyle='--', alpha=0.7, label=label)
+            
+            # 実行中ジョブがある場合の注釈
+            running_jobs = [j for j in jobs if j.get('status') == 'running']
+            if running_jobs:
+                # 最後の点に注釈を追加
+                ax.annotate('Running jobs\n(estimated)', 
+                           xy=(times[-1], points[-1]),
+                           xytext=(10, 10), textcoords='offset points',
+                           bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                           arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+            
+            # 軸の設定
+            ax.set_xlabel('Time (UTC)')
+            ax.set_ylabel('Points')
+            ax.set_title('HPC Budget Usage Timeline')
+            
+            # X軸の日付フォーマット
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
+            ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+            fig.autofmt_xdate()  # 日付ラベルを斜めに
+            
+            # グリッドと凡例
+            ax.grid(True, alpha=0.3)
+            ax.legend(loc='upper left')
+            
+            # Y軸を0から開始
+            ax.set_ylim(bottom=0)
+            
+            # 出力先の決定
+            if output_path is None:
+                output_path = self.project_root / "User-shared" / "visualizations" / "budget_usage.png"
+            
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # 保存
+            plt.tight_layout()
+            plt.savefig(output_path, dpi=100, bbox_inches='tight')
+            plt.close()
+            
+            print(f"グラフ保存完了: {output_path}")
+            
+            # 実行中ジョブの警告
+            if running_jobs:
+                print(f"※注意: 実行中ジョブ{len(running_jobs)}件を含むため、グラフ右端の値は推定値です")
+            
+        except ImportError:
+            print("ERROR: matplotlibがインストールされていません")
+            print("pip install matplotlib を実行してください")
+        except Exception as e:
+            print(f"グラフ生成エラー: {e}")
+    
     def print_summary(self):
         """簡易サマリー表示"""
         jobs = self.extract_jobs()
@@ -267,6 +421,9 @@ class BudgetTracker:
         for label, limit in budget_limits.items():
             percentage = (total / limit * 100) if limit > 0 else 0
             print(f"{label}: {percentage:.1f}%")
+        
+        if running > 0:
+            print(f"※実行中ジョブ{running}件は現在時刻まで推定")
 
 
 def main():
@@ -276,6 +433,8 @@ def main():
     parser.add_argument('--summary', action='store_true', help='簡易サマリー表示')
     parser.add_argument('--report', action='store_true', help='詳細レポート生成')
     parser.add_argument('--json', action='store_true', help='JSON形式で出力')
+    parser.add_argument('--graph', action='store_true', help='予算消費グラフ生成')
+    parser.add_argument('--output', type=str, help='グラフ出力先パス')
     
     args = parser.parse_args()
     
@@ -292,6 +451,9 @@ def main():
     elif args.json:
         report = tracker.generate_report()
         print(json.dumps(report, indent=2))
+    elif args.graph:
+        output_path = Path(args.output) if args.output else None
+        tracker.visualize_budget(output_path)
     else:
         report = tracker.generate_report()
         print(f"レポート生成完了: {report['total_points']:.1f} ポイント消費")

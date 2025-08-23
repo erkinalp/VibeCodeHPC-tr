@@ -126,9 +126,10 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    - `claude_session_id`フィールドでClaude Codeのセッション識別
 3. ディレクトリ階層を適切に構成
 4. **予算管理の初期化**：
-   - `pjstat`等で開始時点の予算残額を確認
-   - `/Agent-shared/budget/budget_history.md`に初期値を記録
+   - `pjstat`等で開始時点の予算残額を確認（前日までの集計）
+   - `/Agent-shared/project_start_time.txt`にプロジェクト開始時刻を記録
    - 予算閾値（最低/想定/デッドライン）を設定
+   - PGにChangeLog.mdへのジョブ情報記録を徹底させる
 5. **ChangeLogフォーマット定義**：
    - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`を参考に
    - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
@@ -375,10 +376,10 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - 停滞エージェントへの介入
    - agent_and_pane_id_table.jsonlの`claude_session_id`で稼働状況を確認
    
-2. **予算確認（5分おき）**
-   - `charge`コマンド等でused値を確認（コマンド名は_remote_info参照）
-   - コマンドが不明な場合は早めにユーザに確認
-   - `/Agent-shared/budget/budget_history.md`に記録
+2. **予算確認（定期的）**
+   - `charge`コマンド等でused値を確認（前日までの集計のみ）
+   - `/Agent-shared/budget/budget_tracker.py`の自動集計を確認
+   - `python Agent-shared/budget/budget_tracker.py --summary`で即座に確認可能
    - ポイント未消費時は該当PGに警告（ログインノード実行の疑い）
    
 2. **リソース再配分**
@@ -397,8 +398,7 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - 優先度の見直し
 
 5. **予算管理**
-   - 定期的に`pjstat`等で残額確認
-   - `/Agent-shared/budget/budget_history.md`に記録
+   - `budget_tracker.py --summary`で定期的にリアルタイム推定を確認
    - 閾値到達時はリソース配分を調整
 
 6. **コンテキスト使用率監視**（30分おき）
@@ -451,7 +451,8 @@ PM ≦ SE ≦ PG構成の場合（人数構成）
 
 #### プロジェクト管理用
 - `/Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
-- `/Agent-shared/budget/budget_history.md`（予算使用履歴）
+- `/Agent-shared/budget/budget_tracker.py`（予算自動集計システム）
+- `/Agent-shared/budget/usage.md`（予算集計システム使用ガイド）
 - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`（フォーマット定義用）
 - `/User-shared/final_report.md`（最終報告書 - プロジェクト終了時に作成）
 
@@ -459,19 +460,20 @@ PM ≦ SE ≦ PG構成の場合（人数構成）
 
 ### 予算管理
 - 指定された予算内で最も成果を出すようにリソース割り当てをコントロールすること
-- **budget_history.mdの記録形式**：
-  ```markdown
-  ## プロジェクト開始時
-  - UTC時刻: 2025-01-30T10:00:00Z
-  - 開始時used: 12,345 ポイント
-  
-  ## 最新確認時
-  - UTC時刻: 2025-01-30T10:15:00Z
-  - 経過時間: 15分
-  - 現在のused: 12,370 ポイント
-  - **本プロジェクトでの使用量: 25 ポイント**
-  ```
-- **重要**: チーム全体の予算残額は個人情報のため記載しない。usedと差分のみ記録
+- **budget_tracker.pyによる自動集計**：
+  - PGがChangeLog.mdに記録したジョブ情報から自動計算
+  - 3分ごとに集計実行（設定で調整可能）
+  - `python Agent-shared/budget/budget_tracker.py --summary`で即座に確認
+  - 出力例：
+    ```
+    === 予算集計サマリー ===
+    総消費: 1234.5 ポイント
+    ジョブ数: 完了=10, 実行中=2
+    最低: 123.5%
+    目安: 49.4%
+    上限: 24.7%
+    ```
+- **重要**: スパコンの`pjstat`等は前日までの集計のみ。リアルタイム推定はbudget_trackerを活用
 - **ポイント未消費時の警告**：
   - ジョブ実行後もポイントが増えない場合、ログインノード実行の疑いあり
   - 該当PGエージェントに即座に警告：
@@ -494,8 +496,9 @@ PM ≦ SE ≦ PG構成の場合（人数構成）
 1. [ ] 全エージェントの稼働状況確認
    - 各エージェントのChangeLog.mdの最終更新時刻を確認
    - 無応答エージェントがいないか確認
-2. [ ] 予算使用状況の最終記録（`/Agent-shared/budget/budget_history.md`）
-   - 開始時点からの総使用ポイントを記録
+2. [ ] 予算使用状況の最終確認
+   - `budget_tracker.py --report`で最終レポート生成
+   - 開始時点からの総使用ポイントを確認
    - 各フェーズごとの消費量を集計
 3. [ ] 最終レポート生成（`/User-shared/final_report.md`）
    - プロジェクト全体の成果サマリー

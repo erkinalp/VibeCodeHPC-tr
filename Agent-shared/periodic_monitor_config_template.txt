@@ -17,6 +17,11 @@ MILESTONE_INTERVAL_MIN=30
 # プロジェクトの予想時間に応じて調整
 MAX_RUNTIME_MIN=4320
 
+# 予算集計の実行間隔（分）
+# デフォルト: 3分
+# 推奨範囲: 1-10分
+BUDGET_INTERVAL_MIN=3
+
 # 使用例:
 # 短時間テスト用:
 # UPDATE_INTERVAL_SEC=10
