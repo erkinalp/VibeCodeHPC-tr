@@ -130,6 +130,12 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level all 2>&1 | tail -2 >> "$LOG_FILE"
         fi
         
+        # 予算集計（5分ごと）
+        CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
+        if [ $((CURRENT_MINUTES % 5)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
+            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report 2>&1 | tail -1 >> "$LOG_FILE"
+        fi
+        
         sleep $UPDATE_INTERVAL_SEC
     done
 ) &
