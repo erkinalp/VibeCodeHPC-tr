@@ -125,9 +125,9 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
         # 上書き版のグラフ生成（簡潔なログ）
         $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" --graph-type overview 2>&1 | tail -2 >> "$LOG_FILE"
         
-        # SOTA可視化（存在する場合）
+        # SOTA可視化（存在する場合、全レベル一括生成）
         if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
-            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level project 2>&1 | tail -2 >> "$LOG_FILE"
+            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level all 2>&1 | tail -2 >> "$LOG_FILE"
         fi
         
         sleep $UPDATE_INTERVAL_SEC
