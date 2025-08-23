@@ -135,7 +135,8 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
         # 予算集計（設定可能な間隔）
         CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
         if [ $((CURRENT_MINUTES % BUDGET_INTERVAL_MIN)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
-            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report 2>&1 | tail -1 >> "$LOG_FILE"
+            # 引数なしで実行（レポート生成＋グラフも自動生成）
+            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
         sleep $UPDATE_INTERVAL_SEC
@@ -180,13 +181,20 @@ while true; do
                 SNAPSHOT_DIR="$PROJECT_ROOT/Agent-shared/budget/snapshots"
                 mkdir -p "$SNAPSHOT_DIR"
                 
-                # 通常レポート生成
-                $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report 2>&1 | tail -1 >> "$LOG_FILE"
+                # 引数なしで実行（レポート生成＋グラフも自動生成）
+                $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
                 
                 # マイルストーン時点の別名保存
                 if [ -f "$SNAPSHOT_DIR/latest.json" ]; then
                     cp "$SNAPSHOT_DIR/latest.json" "$SNAPSHOT_DIR/budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json"
                     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone saved: budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json" >> "$LOG_FILE"
+                fi
+                
+                # マイルストーン時点のグラフも別名保存
+                GRAPH_PATH="$PROJECT_ROOT/User-shared/visualizations/budget_usage.png"
+                if [ -f "$GRAPH_PATH" ]; then
+                    cp "$GRAPH_PATH" "$PROJECT_ROOT/User-shared/visualizations/budget_usage_${MILESTONE}min.png"
+                    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget graph saved: budget_usage_${MILESTONE}min.png" >> "$LOG_FILE"
                 fi
             fi
             
