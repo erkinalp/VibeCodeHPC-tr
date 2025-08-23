@@ -29,22 +29,36 @@ VibeCodeHPC/
 ### Agent-shared/ (全エージェント参照)
 ```
 Agent-shared/
-├── directory_pane_map.txt       # エージェント配置とペイン管理（writer:PM, reader:all）
-├── budget_history.md            # 予算履歴（writer:PM, reader:all）
-├── ChangeLog_format.md          # ChangeLog.md基本フォーマット（writer:PM, reader:all）
-├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:運営, reader:PM）
-├── ChangeLog_format_PM_override.md # PMオーバーライド仕様（writer:PM, reader:all）※PMがテンプレートから生成
-├── sota_management.md           # SOTA管理システム仕様（writer:PM, reader:all）
-├── changelog_query/             # ChangeLog.md解析ツール群（writer:all）
-│   ├── query_changelog.py       # SQLライクなChangeLog.md検索
-│   ├── [その他解析コード自由配置]
-│   └── README.md                # 使用方法・クエリ例
-├── tools/                       # 共通ツール群
-│   ├── changelog_analysis_template.py  # ChangeLog解析テンプレート
-│   └── report_generator.py      # レポート生成補助ツール
-└── SE-shared/                   # SE専用ツール（writer:SE, reader:SE/PM）
-    ├── log_analyzer.py          # ログ解析ツール
-    └── performance_trends.png   # 統計グラフ
+├── change_log/                  # ChangeLog関連ファイル
+│   ├── ChangeLog_format.md      # 基本フォーマット定義（writer:PM, reader:all）
+│   ├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:運営, reader:PM）
+│   ├── changelog_analysis_template.py # 解析テンプレート（writer:SE, reader:all）
+│   └── changelog_helper.py      # ChangeLog記録ヘルパー（writer:all, reader:all）
+├── budget/                      # 予算管理関連
+│   ├── budget_history.md        # 予算履歴（writer:PM, reader:all）
+│   ├── budget_history_template.md # 予算履歴テンプレート（writer:運営, reader:PM）
+│   ├── budget_termination_criteria.md # 予算ベース終了条件（writer:PM, reader:all）
+│   └── budget_visualizer_example.py # 予算可視化例（writer:SE, reader:all）
+├── sota/                        # SOTA管理・可視化
+│   ├── sota_management.md       # SOTA管理システム仕様（writer:PM, reader:all）
+│   ├── sota_checker.py          # SOTA確認スクリプト（writer:SE, reader:all）
+│   ├── sota_visualizer.py       # SOTA可視化ツール（writer:SE, reader:all）
+│   ├── sota_visualizer_usage.md # 可視化ツール使用法（writer:SE, reader:all）
+│   └── sota_grouping_config_template.yaml # グループ設定テンプレート（writer:PM, reader:SE）
+├── strategies/                  # 最適化戦略
+│   └── auto_tuning/
+│       ├── typical_hpc_code.md  # HPC最適化の典型例（writer:PM, reader:all）
+│       └── evolutional_flat_dir.md # 進化的探索戦略（writer:PM, reader:all）
+├── directory_pane_map_example.md # エージェント配置例（writer:運営, reader:PM）
+├── hardware_info_guide.md       # ハードウェア情報収集ガイド（writer:SE, reader:all）
+├── compile_warning_workflow.md  # コンパイル警告処理フロー（writer:SE, reader:PG）
+├── ssh_guide.md                 # SSH/SFTP実行ガイド（writer:PM, reader:PG）
+├── sub_agent_usage.md           # サブエージェント使用法（writer:PM, reader:all）
+├── multi_agent_comparison.md    # マルチエージェント比較（writer:運営, reader:PM）
+├── report_hierarchy.md          # レポート階層構成（writer:SE, reader:all）
+├── PG_visible_dir_format.md     # PG可視化ディレクトリ形式（writer:SE, reader:PG）
+├── artifacts_position.md        # 成果物配置ルール（本ファイル）
+└── log_analyzer.py              # ログ解析スクリプト（writer:SE, reader:all）
 ```
 
 ### _remote_info/ (スパコン・ユーザ固有)
@@ -133,9 +147,21 @@ cat VibeCodeHPC/sota_project.txt
 
 ### 統合クエリ例
 ```bash
-# Agent-shared/changelog_query/内の解析ツール活用
-python3 Agent-shared/changelog_query/query_changelog.py --performance-trend
-python3 Agent-shared/changelog_query/query_changelog.py --sota-comparison
+# Agent-shared/内の解析ツール活用例
+# Python実行の優先順位: 1.uv run 2.uvx 3.python3 4.python
+
+## ChangeLog記録（PG用）
+uv run Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
+# uvが無い場合: python3 Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
+
+## SOTA可視化（SE用）  
+uv run Agent-shared/sota/sota_visualizer.py --level project
+uv run Agent-shared/sota/sota_visualizer.py --level family
+# uvが無い場合: python3 Agent-shared/sota/sota_visualizer.py --level project
+
+## ChangeLog解析（SE用）
+uv run Agent-shared/change_log/changelog_analysis_template.py
+# uvが無い場合: python3 Agent-shared/change_log/changelog_analysis_template.py
 ```
 
 要点: ChangeLog.mdのフォーマットがしっかりしていれば、エージェントが必要に応じて正規表現やPythonでパースして部分的に取得できる。加えて、SOTA情報は専用ファイルで高速アクセス可能。
