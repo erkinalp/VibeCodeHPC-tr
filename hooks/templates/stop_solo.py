@@ -155,33 +155,43 @@ SOLOエージェントとして以下の終了前タスクを実行してくだ�
     reason = f"""あなたはSOLOエージェント（シングルモード）です。待機状態に入ることは許可されていません。
 [STOP試行: {stop_count}/{threshold}] [経過時間: {elapsed_str}]
 
-ToDoリストを確認し、以下の観点から継続タスクを選択してください：
+【必須ファイルの再読み込み】
+以下のファイルから最新状態を確認してください（未読または10行のみ読んだものを優先）：
+- CLAUDE.md
+- instructions/SOLO.md
+- requirement_definition.md
+- Agent-shared/directory_pane_map.txt
+- Agent-shared/strategies/auto_tuning/typical_hpc_code.md
+- Agent-shared/budget/budget_history.md
+- Agent-shared/sota/sota_visualizer.py（SOTA可視化必須タスク）
+- telemetry/context_usage_monitor.py（コンテキスト監視必須タスク）
+- Agent-shared/ssh_guide.md（SSH/SFTP実行方法）
+- hardware_info.md（理論性能目標）
+- 現在のディレクトリのChangeLog.md
 
-【時間管理】
-- 現在の経過時間: {elapsed_str}
-- requirement_definition.mdの時間制限を確認
-- 残り時間で実行可能なタスクを優先
+【必須の非同期タスク（優先順）】
+1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
+   uv run telemetry/context_usage_monitor.py --graph-type overview
+   （30分ごと、30/60/90/120/180分でマイルストーン保存）
+
+2. **優先: SOTA性能グラフ**（成果可視化）
+   for level in project family hardware local; do
+       uv run Agent-shared/sota/sota_visualizer.py --level $level
+   done
+
+3. **通常: 予算推移**（可能な場合）
+   uv run Agent-shared/budget/budget_visualizer_example.py
 
 【役割別の継続タスク】
-
-[PM] プロジェクト管理:
-- 予算確認（charge/charge2等）
-- 戦略の見直しと優先順位調整
-- 時間効率の評価
-
-[SE] システム分析:
-- ChangeLog.mdの統計分析
-- SOTA達成状況の確認
-- 性能ボトルネックの特定
 
 [PG] コード実装:
 - 次バージョンの最適化実装
 - ジョブ結果の確認（pjstat/pjstat2）
 - パラメータチューニング
 
-[CD] GitHub管理（オプション）:
-- SOTA達成コードの選別
-- GitHub/ディレクトリへの同期
+[CD] GitHub継続的同期:
+- SOTA達成コードの定期commit（一回きりではない）
+- ChangeLog.md更新の同期
 
 現在最も優先すべきタスクをToDoリストで管理し、実行してください。
 （残りSTOP試行可能回数: {threshold - stop_count}回）

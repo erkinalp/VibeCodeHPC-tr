@@ -64,6 +64,11 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 ### フェーズ3: 環境整備タスク
 プロジェクトが安定期に入ったり、他のPMに比べ自分の管轄するエージェントが少なくて暇な時は、以下のようにプロジェクトを円滑に進めるための環境整備を進める。
 
+#### 重要原則：「漏れなくダブりなく」
+- **レポート作成時の鉄則**: 既存のレポートファイルを確認し、更新で対応できる場合は新規作成しない
+- **重複作成の禁止**: 同じ内容のレポートを複数作成しない（人間の作業負荷を考慮）
+- **進捗確認の原則**: 進捗報告を頻繁に求めるのではなく、ファイル生成やChangeLog.md更新などの実際の挙動で判断
+
 #### directory_pane_map.mdのフォーマット厳守
 **重要**: PMが作成する`/directory_pane_map.md`のフォーマットを監視し、以下を確認：
 
@@ -81,12 +86,30 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
    - 不適切な記法を発見したら即座にPMに修正を依頼
    - `agent_send.sh PM "[SE] directory_pane_map.mdが正しいMarkdown記法になっていません。修正をお願いします。"`
 
-#### 主要タスク
+#### 主要タスク（必須・非同期）
+**優先順位（MUST順）**:
+1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
+   - `uv run telemetry/context_usage_monitor.py --graph-type overview` または
+   - `python3 telemetry/context_usage_monitor.py --graph-type overview`
+   - 30分ごとに実行、マイルストーン画像保存（30, 60, 90, 120, 180分）
+   
+2. **優先: SOTA性能グラフ**（プロジェクト成果の可視化）
+   - `uv run Agent-shared/sota/sota_visualizer.py --level project` または
+   - `python3 Agent-shared/sota/sota_visualizer.py --level project`
+   - 各レベル（project/family/hardware/local）で生成
+   - 設計レベルから理解し、必要なら実装を読んで正確に生成
+   
+3. **通常: 予算推移グラフ**
+   - `uv run Agent-shared/budget/budget_visualizer_example.py` を活用
+   - 注：スパコンのリアルタイム情報がない場合は横一線になる
+
+**PNG確認方法**:
+生成したPNGは `claude -p "このグラフの概要を説明" < path/to/image.png` で内容確認（トークン節約）
+
 - エージェント統計
-- ログ可視化
+- ログ可視化  
 - テストコード作成
 - ChangeLog.mdレポート生成
-- コンテキスト使用率の監視と可視化
 
 #### ファイル管理
 - **技術的ツール**: /Agent-shared/以下に配置

@@ -138,16 +138,52 @@ def get_required_files(agent_id):
     """エージェントIDから必須ファイルリストを生成"""
     common_files = [
         "CLAUDE.md",
+        "requirement_definition.md（ユーザの意図を理解）",
         "Agent-shared/directory_pane_map.txt"
     ]
     
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
-        "PM": ["instructions/PM.md", "_remote_info/", "Agent-shared/strategies/auto_tuning/typical_hpc_code.md", "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md"],
-        "SE": ["instructions/SE.md", "Agent-shared/change_log/changelog_analysis_template.py"],
-        "PG": ["instructions/PG.md", "Agent-shared/change_log/ChangeLog_format.md", "Agent-shared/sota/sota_management.md"],
-        "CD": ["instructions/CD.md"]
+        "PM": [
+            "instructions/PM.md（詳細な役割定義）", 
+            "_remote_info/（スパコン接続情報）", 
+            "Agent-shared/max_agent_number.txt（利用可能ワーカー数）",
+            "Agent-shared/agent_and_pane_id_table.jsonl（エージェント稼働状況）",
+            "Agent-shared/stop_thresholds.json（終了閾値管理）",
+            "Agent-shared/artifacts_position.md（成果物配置ルール）",
+            "User-shared/visualizations/context_usage_*.png（auto-compact監視）",
+            "User-shared/reports/（最新レポート、重複作成防止）"
+        ],
+        "SE": [
+            "instructions/SE.md（詳細な役割定義）", 
+            "Agent-shared/report_hierarchy.md（レポート階層、既に読んでいるはず）",
+            "Agent-shared/budget/budget_termination_criteria.md（予算終了条件）",
+            "Agent-shared/compile_warning_workflow.md（PG支援用）",
+            "Agent-shared/sub_agent_usage.md（トークン節約手法）",
+            "User-shared/visualizations/sota/project/（最新PNG確認）",
+            "Flow/またはプロジェクト階層のChangeLog.md群（PG活動把握）"
+        ],
+        "PG": [
+            "instructions/PG.md（詳細な役割定義）", 
+            "_remote_info/（SSH接続情報、必要に応じて）",
+            "Agent-shared/strategies/auto_tuning/（最適化戦略、既に読んでいるはず）",
+            "Agent-shared/compile_warning_workflow.md（警告対処法）",
+            "Agent-shared/artifacts_position.md（成果物配置ルール）",
+            "hardware_info.md（該当階層、理論性能目標）", 
+            "BaseCode/（オリジナルコード、相対パスで）",
+            "../*/ChangeLog.md（他PGの成果、visible_path経由）",
+            "User-shared/visualizations/sota/family/（自分の技術領域）"
+        ],
+        "CD": [
+            "instructions/CD.md（詳細な役割定義）", 
+            "_remote_info/user_id.txt（匿名化対象）",
+            "Agent-shared/artifacts_position.md（成果物配置、既に読んでいるはず）",
+            "各PGのChangeLog.md（最新更新確認）",
+            "各PGのsota_local.txt（SOTA達成確認）",
+            "../Flow/やプロジェクト階層のsota_*.txt（新SOTA検知）",
+            "../.gitignore（GitHub/にいるため一つ上）"
+        ]
     }
     
     files = common_files.copy()
@@ -195,7 +231,34 @@ def generate_block_reason(agent_info, stop_count):
     reason = f"""あなたはポーリング型のエージェント（{agent_id}）です。待機状態に入ることは許可されていません。
 [STOP試行: {stop_count}/{threshold}]
 
-以下のファイルを再度読み込んで、プロジェクトの最新状態を確認してください：
+【プロジェクト構造の把握】
+プロジェクト全体像が曖昧な場合は、まず以下で構造を確認：
+
+1. プロジェクトルートを探す（cdは使用禁止）：
+   pwd で現在地確認後、親ディレクトリを相対パスで探索
+   例: /Flow/TypeII/single-node/OpenMP にいる場合
+   - ls ../../../../ でルート階層を確認（CLAUDE.mdとAgent-sharedがあるはず）
+   - ls ../../../../Agent-shared/ で共有リソース確認
+   - プロジェクトルートは通常 VibeCodeHPC* という名前
+
+2. 構造確認（トークン節約しつつ）：
+   - ls ../ （同階層の他エージェント/技術確認）
+   - ls -d ../../../*/ （ハードウェア階層のディレクトリのみ）
+   - cat ../../../../Agent-shared/directory_pane_map.txt （配置図）
+   - find . -name "*.md" -o -name "ChangeLog.md" | head -20 （重要ファイル）
+
+3. 自分の位置と状況確認：
+   - pwd （現在のフルパス）
+   - ls -t . | head -10 （最近更新されたファイル）
+   - ls -a . （隠しファイル含む、ただし-laは避ける）
+
+【必須ファイルの再読み込み】
+以下の基準で優先順位を決定：
+1. 未読または「曖昧に読んだ」（10行のみ等）＝実質未読として扱う
+2. .md/.txt/.py（主要ドキュメント・スクリプト）を優先
+3. ../../../../ で始まる相対パスはプロジェクトルート基準
+
+読むべきファイル：
 {chr(10).join(f'- {file}' for file in required_files)}
 
 確認後、以下の並行タスクを進めてください：
