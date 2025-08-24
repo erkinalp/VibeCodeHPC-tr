@@ -19,66 +19,6 @@ Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエー
 - **スパコン**: 不老、富岳等のHPCシステム
 - **コンパイラ**: Intel OneAPI、GCC、NVIDIA HPC SDK...
 
-## 🆕 シングルエージェントモード (v0.5.3+)
-
-<details>
-<summary>実験評価用シングルエージェントモード（クリックで展開）</summary>
-
-実験評価用のシングルエージェントモードを追加しました。1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を担当します。
-
-### 使用方法
-```bash
-# セットアップ（0ワーカー = シングルモード）
-./communication/setup.sh 0 --project GEMM
-
-# エージェント起動
-./start_solo.sh
-```
-
-起動後、以下のプロンプトが表示されるのでコピーして貼り付けてください：
-```
-あなたはVibeCodeHPCのシングルエージェントモードで動作します。
-全ての役割（PM/SE/PG/CD）を1人で担当し、効率的にプロジェクトを進めます。
-
-【初期設定】
-まず以下のファイルを読み込んでください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/SOLO.md（シングルモード専用の統合プロンプト）
-- requirement_definition.md（存在する場合）
-- Agent-shared/project_start_time.txt（プロジェクト開始時刻）
-
-【ToDoリストによる役割管理】
-TodoWriteツールを積極的に使用し、各タスクに役割タグ（[PM], [SE], [PG], [CD]）を付けて管理してください。
-
-【時間管理】
-- プロジェクト開始時刻から経過時間を定期的に確認
-- requirement_definition.mdに時間制限がある場合は厳守
-- 予算管理と並行して時間効率も意識
-
-【効率的な実行順序】
-1. [PM] 要件定義と環境調査
-2. [SE] 環境構築
-3. [PG] 実装とテスト（ループ）
-4. [SE] 統計・可視化
-5. [CD] GitHub同期（必要時）
-6. [PM] 最終報告
-
-agent_send.shは使用不要です（通信相手がいないため）。
-全ての処理を内部で完結させてください。
-
-プロジェクトを開始してください。
-```
-
-### 特徴
-- **統合実行**: 1つのインスタンスで全役割を実行
-- **ToDoリスト管理**: 役割切り替えを明示的に管理
-- **時間管理**: project_start_time.txtで経過時間を追跡
-- **マルチモードと同じ仕組み**: ChangeLog.md、SOTA管理等は共通
-
-詳細は `instructions/SOLO.md` を参照してください。
-
-</details>
-
 ## 🏗️ エージェント構成
 
 ```mermaid
@@ -310,7 +250,7 @@ cd VibeCodeHPC-jp-{バージョン}
 
 ### ☑️ **推奨ツールのインストール**
 <details>
-<summary>tmux, jq, uv, Python環境のインストール方法（クリックで展開）</summary>
+<summary>tmux, jq, Python環境のインストール方法（クリックで展開）</summary>
 
 VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
 
@@ -355,29 +295,12 @@ brew install jq
 ```
 > エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
 
-#### **uv** - Python高速実行環境（Claude Code hooks用）
-
-Linux/macOS/WSL:
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-または pip経由:
-```bash
-pip install uv
-```
-> Claude Code hooksでPythonスクリプトを高速実行します。uvがない場合は通常のPythonで代替されます
 
 #### **Pythonパッケージ** - 可視化とデータ分析用
 
 通常のインストール:
 ```bash
 pip3 install -r requirements.txt
-```
-
-uvがインストール済みの場合は追加で:
-```bash
-uv pip install --system -r requirements.txt
 ```
 
 必要なパッケージ:
@@ -388,10 +311,7 @@ uv pip install --system -r requirements.txt
 
 > これらのパッケージは主に可視化スクリプトで使用されます。バージョンは厳密に指定していないため、最新版で問題ありません
 
-> 1. `uv run script.py` （uvがインストールされている場合）
-> 2. `uvx script.py` （uvxがインストールされている場合）
-> 3. `python3 script.py` （システムのpython3）
-> 4. `python script.py` （最終手段）
+> 可視化スクリプトは `python3 script.py` で実行されます
 </details>
 
 ---
@@ -495,10 +415,26 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 # プロジェクトディレクトリに移動
 cd VibeCodeHPC-jp-main
 ```
+#### OpenTelemetryの無効化（軽量動作）
+
+環境変数で無効化:
+```bash
+export VIBECODE_ENABLE_TELEMETRY=false
+```
 
 ### 🔭 監視オプション
 
-#### 📊 Grafana + Prometheus + Loki環境（推奨）
+#### ccusage（簡易確認）
+
+```bash
+# セットアップ不要でトークン使用量を確認
+npx ccusage@latest
+```
+
+
+#### 📊 Grafana + Prometheus + Loki環境（非推奨のオプション）
+
+<details>
 
 監視環境の自動セットアップ:
 ```bash
@@ -514,26 +450,13 @@ http://localhost:3000
 - ユーザー名: `admin`
 - パスワード: `admin`
 
-#### テレメトリの無効化（軽量動作）
-
-環境変数で無効化:
-```bash
-export VIBECODE_ENABLE_TELEMETRY=false
-```
-
-#### 代替案: ccusage（簡易確認）
-
-```bash
-# セットアップ不要でトークン使用量を確認
-npx ccusage@latest
-```
 
 [ccusage](https://github.com/ryoppippi/ccusage)は、JSONLログからトークン使用量を分析するCLIツールです。
 
 ![Grafana起動成功時の画面表示例](_images/Grafana.png)
 
-<details>
-<summary>📊 Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）（クリックで展開）</summary>
+
+Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
 
 #### 基本的な使い方
 1. **Drilldown → Metrics** を選択
@@ -550,8 +473,68 @@ npx ccusage@latest
 
 </details>
 
+### 🆕 シングルエージェントモード (v0.5.3+)
 
-#### 2.1. tmuxセッションセットアップ
+<details>
+<summary>実験評価用シングルエージェントモード（クリックで展開）</summary>
+
+実験評価用のシングルエージェントモードを追加しました。1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を担当します。
+
+使用方法
+```bash
+# セットアップ（0ワーカー = シングルモード）
+./communication/setup.sh 0 --project GEMM
+
+# エージェント起動
+./start_solo.sh
+```
+
+起動後、以下のプロンプトが表示されるのでコピーして貼り付けてください：
+```
+あなたはVibeCodeHPCのシングルエージェントモードで動作します。
+全ての役割（PM/SE/PG/CD）を1人で担当し、効率的にプロジェクトを進めます。
+
+【初期設定】
+まず以下のファイルを読み込んでください：
+- CLAUDE.md（全エージェント共通ルール）
+- instructions/SOLO.md（シングルモード専用の統合プロンプト）
+- requirement_definition.md（存在する場合）
+- Agent-shared/project_start_time.txt（プロジェクト開始時刻）
+
+【ToDoリストによる役割管理】
+TodoWriteツールを積極的に使用し、各タスクに役割タグ（[PM], [SE], [PG], [CD]）を付けて管理してください。
+
+【時間管理】
+- プロジェクト開始時刻から経過時間を定期的に確認
+- requirement_definition.mdに時間制限がある場合は厳守
+- 予算管理と並行して時間効率も意識
+
+【効率的な実行順序】
+1. [PM] 要件定義と環境調査
+2. [SE] 環境構築
+3. [PG] 実装とテスト（ループ）
+4. [SE] 統計・可視化
+5. [CD] GitHub同期（必要時）
+6. [PM] 最終報告
+
+agent_send.shは使用不要です（通信相手がいないため）。
+全ての処理を内部で完結させてください。
+
+プロジェクトを開始してください。
+```
+
+#### 特徴
+- **統合実行**: 1つのインスタンスで全役割を実行
+- **ToDoリスト管理**: 役割切り替えを明示的に管理
+- **時間管理**: project_start_time.txtで経過時間を追跡
+- **マルチモードと同じ仕組み**: ChangeLog.md、SOTA管理等は共通
+
+詳細は `instructions/SOLO.md` を参照してください。
+
+</details>
+
+
+### マルチエージェント:tmuxセッション作成
 
 > [!IMPORTANT]
 > VibeCodeHPCは2つ以上ののtmuxセッションを使用します：
@@ -567,17 +550,24 @@ npx ccusage@latest
 ```bash
 cd VibeCodeHPC-jp-main
 ./communication/setup.sh [ワーカー数]  # 例: ./communication/setup.sh 12
+```
 
-# コマンドラインオプション:
+
+コマンドラインオプション:
+<details>
 #   [ワーカー数]     : PM以外のエージェント総数 (最小: 2)
 #   --project <名前> : プロジェクト名を指定（例: GEMM, MatMul）
 #   --clean-only     : 既存セッションのクリーンアップのみ実行
 #   --dry-run        : 実際のセットアップを行わずに計画を表示
 #   --help           : ヘルプメッセージを表示
+</details>
 
-# プロジェクト名指定例:
-./communication/setup.sh 12 --project GEMM  # GEMM_PM, GEMM_Workers1 セッションを作成
+#### プロジェクト名指定例:
+```bash
+./communication/setup.sh 12 --project GEMM  
 ```
+上記コマンドで `GEMM_PM`, `GEMM_Workers1` セッションを作成
+
 
 #### 参考構成例（実際の配置はPMが決定）
 
@@ -590,22 +580,14 @@ cd VibeCodeHPC-jp-main
 | 16 | 3 | 12 | 1 | 大規模 |
 
 #### 2つのターミナルタブでそれぞれアタッチ
+プロジェクト名を`GEMM`に指定した場合の例
 
 タブ1（PMエージェント用）:
 ```bash
-# デフォルトの場合
-tmux attach-session -t Team1_PM
-
-# プロジェクト名を指定した場合（例: GEMM）
 tmux attach-session -t GEMM_PM
 ```
-
 タブ2（その他のエージェント用）:
 ```bash
-# デフォルトの場合
-tmux attach-session -t Team1_Workers1
-
-# プロジェクト名を指定した場合（例: GEMM）
 tmux attach-session -t GEMM_Workers1
 ```
 
@@ -613,7 +595,7 @@ tmux attach-session -t GEMM_Workers1
 > setup.shの出力に表示される実際のセッション名を使用してください。
 
 ### 3. プロジェクト開始
-要件定義（skipした場合はPMと対話的に作成）
+要件定義（skipした場合は、PMと対話的に作成）
 ```bash
 cp requirement_definition_template.md requirement_definition.md
 # requirement_definition.mdを編集
@@ -650,9 +632,8 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 エージェントの挙動を制御するhooks機能により、以下が実現されます：
 
 #### 主な機能
-- **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
-- **auto-compact対策**: コンテキストリセット後に必須ファイルの再読み込みを促進
-- **session_id追跡**: 各エージェントのClaude session_idを記録・管理
+- [x] **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
+- [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
 
 ⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機してしまう可能性があります
 
@@ -789,16 +770,14 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 - SOTA管理: [Agent-shared/sota/sota_management.md](Agent-shared/sota/sota_management.md)
 - レポート階層: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
-> [!TIP]
-> **エージェント可視化**
-> SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
-
 > [!IMPORTANT]
 > **ユーザ向け成果物**
 > プロジェクトの成果は`User-shared/`ディレクトリに集約されます：
-> - 最終報告書（final_report.md）
-> - 統合レポート（reports/）
-> - 性能グラフ・図表（visualizations/）
+
+> [!TIP]
+> **エージェント可視化**
+> 各エージェントのコンテキスト推移を可視化
+> SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
 
 ## 🔭 監視とメトリクス
 
@@ -810,7 +789,7 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 
 ### OpenTelemetry監視（オプション）
 
-より詳細なトークン使用量やコスト、ツール実行状況の分析が必要な場合は、OpenTelemetryによる監視が可能です。ただし、スパコン環境への導入が困難な場合があるため、オプション機能として提供しています。
+より詳細なトークン使用量やコスト、ツール実行状況の分析が必要な場合は、組み込みのOpenTelemetryによる監視が可能です。ただし、スパコン環境への導入が困難な場合があるため、オプション機能として提供しています。
 
 監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
 
