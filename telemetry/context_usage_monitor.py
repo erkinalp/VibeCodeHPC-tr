@@ -1,11 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#     "matplotlib",
-#     "numpy",
-# ]
-# ///
+#!/usr/bin/env python3
 
 """
 VibeCodeHPC コンテキスト使用率監視システム
@@ -967,22 +960,19 @@ class ContextUsageMonitor:
         print("\n" + "="*60)
 
 def get_python_command():
-    """利用可能なPythonコマンドを優先順位付きで取得"""
-    commands = ['uv', 'uvx', 'python3', 'python']
+    """利用可能なPythonコマンドを取得"""
+    commands = ['python3', 'python']
     
     for cmd in commands:
         try:
             result = subprocess.run([cmd, '--version'], capture_output=True, text=True)
             if result.returncode == 0:
-                if cmd in ['uv', 'uvx']:
-                    return f"{cmd} run"
-                else:
-                    return cmd
+                return cmd
         except FileNotFoundError:
             continue
     
     # デフォルト
-    return 'python'
+    return 'python3'
 
 def main():
     """メイン処理"""
@@ -1077,22 +1067,12 @@ def main():
         update_once()
 
 if __name__ == "__main__":
-    # シェバン行がuvを使用している場合、既にuv環境で実行されている
-    if 'uv' in sys.executable or os.environ.get('UV_SCRIPT_PYTHON'):
+    # 必要なパッケージがインストールされているか確認
+    try:
+        import matplotlib
+        import numpy
         main()
-    else:
-        # 通常のPython環境の場合、必要なパッケージがインストールされているか確認
-        try:
-            import matplotlib
-            import numpy
-            main()
-        except ImportError:
-            # パッケージがない場合、uvで再実行を試みる
-            python_cmd = get_python_command()
-            if python_cmd and 'uv' in python_cmd:
-                print("📦 Reinstalling with uv for dependencies...")
-                os.execvp('uv', ['uv', 'run', '--script', __file__] + sys.argv[1:])
-            else:
-                print("❌ Error: Required packages not installed")
-                print("Please install: pip install matplotlib numpy")
-                sys.exit(1)
+    except ImportError:
+        print("❌ Error: Required packages not installed")
+        print("Please install: pip3 install -r requirements.txt")
+        sys.exit(1)

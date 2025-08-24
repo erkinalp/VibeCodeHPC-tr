@@ -89,12 +89,10 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 #### 主要タスク（必須・非同期）
 **優先順位（MUST順）**:
 1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
-   - `uv run telemetry/context_usage_monitor.py --graph-type overview` または
    - `python3 telemetry/context_usage_monitor.py --graph-type overview`
    - 30分ごとに実行、マイルストーン画像保存（30, 60, 90, 120, 180分）
    
 2. **優先: SOTA性能グラフ**（プロジェクト成果の可視化）
-   - `uv run Agent-shared/sota/sota_visualizer.py --level project` または
    - `python3 Agent-shared/sota/sota_visualizer.py --level project`
    - 各レベル（project/family/hardware/local）で生成
    - 設計レベルから理解し、必要なら実装を読んで正確に生成
@@ -126,11 +124,8 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 #### 特に優先して作成する可視化ツール
 **重要**: レポート.mdの手動作成より、Pythonでの自動グラフ生成を優先すること
 
-**Python実行の優先順位（必ず以下の順序で試すこと）**：
-1. `uv run script.py` - uvがインストールされている場合
-2. `uvx script.py` - uvxがインストールされている場合
-3. `python3 script.py` - python3がインストールされている場合
-4. `python script.py` - 最後の手段
+**Python実行方法**：
+- `python3 script.py` を使用（標準的な実行方法）
 
 Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し、指定したディレクトリ（配列で指定できると良い）内にある全てのChangeLog.mdを読み取って、以下のようなグラフを作成すること：
 

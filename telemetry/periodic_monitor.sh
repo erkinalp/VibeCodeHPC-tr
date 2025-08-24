@@ -62,16 +62,12 @@ echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Config: UPDATE_INTERVAL_SEC=${UPDATE_IN
 
 # Python実行コマンドを決定
 get_python_cmd() {
-    if command -v uv >/dev/null 2>&1; then
-        echo "uv run"
-    elif command -v uvx >/dev/null 2>&1; then
-        echo "uvx"
-    elif command -v python3 >/dev/null 2>&1; then
+    if command -v python3 >/dev/null 2>&1; then
         echo "python3"
     elif command -v python >/dev/null 2>&1; then
         echo "python"
     else
-        echo "python"
+        echo "python3"
     fi
 }
 

@@ -1,12 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#     "matplotlib",
-#     "numpy",
-#     "pandas",
-# ]
-# ///
+#!/usr/bin/env python3
 
 """
 VibeCodeHPC SOTA可視化ツール

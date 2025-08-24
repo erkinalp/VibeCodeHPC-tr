@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 
-# uvがある場合は以下で実行されます:
-# #!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = []
-# ///
 
 """
 VibeCodeHPC Stop Hook for SOLO Agent
@@ -171,16 +164,16 @@ SOLOエージェントとして以下の終了前タスクを実行してくだ�
 
 【必須の非同期タスク（優先順）】
 1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
-   uv run telemetry/context_usage_monitor.py --graph-type overview
+   python3 telemetry/context_usage_monitor.py --graph-type overview
    （30分ごと、30/60/90/120/180分でマイルストーン保存）
 
 2. **優先: SOTA性能グラフ**（成果可視化）
    for level in project family hardware local; do
-       uv run Agent-shared/sota/sota_visualizer.py --level $level
+       python3 Agent-shared/sota/sota_visualizer.py --level $level
    done
 
 3. **通常: 予算推移**（可能な場合）
-   uv run Agent-shared/budget/budget_visualizer_example.py
+   python3 Agent-shared/budget/budget_tracker.py --graph
 
 【役割別の継続タスク】
 

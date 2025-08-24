@@ -74,7 +74,7 @@ Claude起動後、SessionStart hookが自動的に：
 1. `.claude/hooks/` ディレクトリの存在確認
 2. Pythonスクリプトの実行権限確認
 3. `settings.local.json`のhooks有効化確認
-4. uvコマンドの利用可能性確認
+4. Python3の利用可能性確認
 
 ### エージェントが頻繁に停止する場合
 1. stop hookの`stop_hook_active`チェックが正常か確認

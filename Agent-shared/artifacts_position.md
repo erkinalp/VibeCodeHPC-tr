@@ -148,20 +148,17 @@ cat VibeCodeHPC/sota_project.txt
 ### 統合クエリ例
 ```bash
 # Agent-shared/内の解析ツール活用例
-# Python実行の優先順位: 1.uv run 2.uvx 3.python3 4.python
+# Python実行: python3を使用
 
 ## ChangeLog記録（PG用）
-uv run Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
-# uvが無い場合: python3 Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
+python3 Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
 
 ## SOTA可視化（SE用）  
-uv run Agent-shared/sota/sota_visualizer.py --level project
-uv run Agent-shared/sota/sota_visualizer.py --level family
-# uvが無い場合: python3 Agent-shared/sota/sota_visualizer.py --level project
+python3 Agent-shared/sota/sota_visualizer.py --level project
+python3 Agent-shared/sota/sota_visualizer.py --level family
 
 ## ChangeLog解析（SE用）
-uv run Agent-shared/change_log/changelog_analysis_template.py
-# uvが無い場合: python3 Agent-shared/change_log/changelog_analysis_template.py
+python3 Agent-shared/change_log/changelog_analysis_template.py
 ```
 
 要点: ChangeLog.mdのフォーマットがしっかりしていれば、エージェントが必要に応じて正規表現やPythonでパースして部分的に取得できる。加えて、SOTA情報は専用ファイルで高速アクセス可能。
