@@ -27,7 +27,9 @@ class ContextQuickStatus:
         """最新のトークン使用状況を取得（高速版）"""
         
         # プロジェクトディレクトリ名を生成
-        project_dir_name = str(self.project_root).replace('/', '-')
+        # Claude Codeの変換ルール: 英数字以外のすべての文字を'-'に置換
+        import re
+        project_dir_name = re.sub(r'[^a-zA-Z0-9]', '-', str(self.project_root))
         if project_dir_name.startswith('-'):
             project_dir_name = project_dir_name[1:]
             

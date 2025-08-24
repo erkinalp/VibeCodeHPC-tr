@@ -158,15 +158,21 @@ class ContextUsageMonitor:
                 full_path = self.project_root
             
             # パスをClaude projectsディレクトリ名に変換
-            if is_wsl:
-                # WSL: /mnt/c/Users/... -> -mnt-c-Users-...
-                dir_name = str(full_path).replace('/', '-')
-            elif system == "Windows":
-                # Windows: C:\Users\... -> C--Users-...
-                dir_name = str(full_path).replace('\\', '-').replace(':', '-')
+            # Claude Codeの変換ルール（実験により判明）:
+            # - 英数字(a-zA-Z0-9)以外のすべての文字を'-'に置換
+            # - パス区切り文字も'-'に変換される
+            # 例: /mnt/c/Users/test_v1.0.0 -> -mnt-c-Users-test-v1-0-0
+            import re
+            
+            # まずパス区切り文字を統一
+            if system == "Windows":
+                # Windows: バックスラッシュをスラッシュに統一
+                path_str = str(full_path).replace('\\', '/')
             else:
-                # Mac/Linux: /Users/... -> -Users-...
-                dir_name = str(full_path).replace('/', '-')
+                path_str = str(full_path)
+            
+            # 英数字以外のすべての文字（パス区切り、特殊文字、空白等）を'-'に置換
+            dir_name = re.sub(r'[^a-zA-Z0-9]', '-', path_str)
             
             # ディレクトリを検索
             project_dir = self.claude_projects_dir / dir_name
