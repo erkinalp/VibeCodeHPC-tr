@@ -799,9 +799,18 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 > - 統合レポート（reports/）
 > - 性能グラフ・図表（visualizations/）
 
-## 🔭 OpenTelemetry監視
+## 🔭 監視とメトリクス
 
-エージェントのトークン使用量やコスト、ツール実行状況をOpenTelemetryで監視・分析します。
+### 組み込みコンテキスト監視
+
+![Context Usage by Agents](_images/context_usage_agents.png)
+
+エージェントごとのコンテキスト使用量を自動追跡し、auto-compact（メモリリセット）を防ぐための監視機能を標準搭載。各エージェントの消費量を可視化し、効率的なリソース管理を支援します。
+
+### OpenTelemetry監視（オプション）
+
+より詳細なトークン使用量やコスト、ツール実行状況の分析が必要な場合は、OpenTelemetryによる監視が可能です。ただし、スパコン環境への導入が困難な場合があるため、オプション機能として提供しています。
+
 監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
 
 詳細設定: [telemetry/README.md](telemetry/README.md)
