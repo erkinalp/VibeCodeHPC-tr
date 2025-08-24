@@ -24,13 +24,13 @@
 
 ```markdown
 ### v[メジャー].[マイナー].[パッチ]
-**生成時刻**: `[YYYY-MM-DDTHH:MM:SSZ]` ※UTC  
 **変更点**: "[変更内容の簡潔な説明]"  
 **結果**: [最も重要な結果] `[値や状態]`  
 **コメント**: "[実装の詳細や注意点]"  
 
 <details>
 
+- **生成時刻**: `[YYYY-MM-DDTHH:MM:SSZ]` ※UTC
 - [x/✗] **compile**
     - status: `[success/warning/error]`
     - message: "[エラーや警告の内容]" ※エラー/警告時のみ
@@ -76,14 +76,15 @@
 ### 4. 必須項目と任意項目
 #### 必須項目
 - version
-- 生成時刻（UTC形式: YYYY-MM-DDTHH:MM:SSZ）
 - 変更点
 - compile情報（status）
-- job実行時の予算関連項目:
-  - resource_group（リソースグループ名）
-  - start_time（開始時刻）
-  - end_time（終了時刻）またはcancelled_time（キャンセル時刻）
-  - runtime_sec（実行時間（秒））
+- details内の項目:
+  - 生成時刻（UTC形式: YYYY-MM-DDTHH:MM:SSZ）
+  - job実行時の予算関連項目:
+    - resource_group（リソースグループ名）
+    - start_time（開始時刻）
+    - end_time（終了時刻）またはcancelled_time（キャンセル時刻）
+    - runtime_sec（実行時間（秒））
 
 #### 任意項目
 - message（エラー/警告時は必須）
@@ -96,13 +97,14 @@
 ### PG（プログラマー）の責務
 1. 新バージョンエントリの作成
 2. 変更点とコメントの記述
-3. compile実行とstatus記録
-4. 基本的なparams設定
-5. compile結果の更新（status, log, message）
-6. job情報の追記（id, status）
-7. **予算関連情報の記録**（resource_group, start_time, end_time, runtime_sec）
-8. test結果の更新
-9. パフォーマンス値の記録
+3. **生成時刻の記録**（details内の最初に記載）
+4. compile実行とstatus記録
+5. 基本的なparams設定
+6. compile結果の更新（status, log, message）
+7. job情報の追記（id, status）
+8. **予算関連情報の記録**（resource_group, start_time, end_time, runtime_sec）
+9. test結果の更新
+10. パフォーマンス値の記録
 
 ## バージョニング規則
 **重要**: 基本的に `v1.0.0` から開始。`v0.x.x` は既存コードが動作しない場合のみ使用。

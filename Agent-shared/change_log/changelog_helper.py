@@ -19,13 +19,13 @@ def create_changelog_entry(version, changes, result="未実行", comment=""):
     """ChangeLogエントリのテンプレートを生成"""
     
     template = f"""### v{version}
-**生成時刻**: `{get_current_utc()}`  
 **変更点**: "{changes}"  
 **結果**: {result}  
 **コメント**: "{comment}"  
 
 <details>
 
+- **生成時刻**: `{get_current_utc()}`
 - [ ] **compile**
     - status: `pending`
 - [ ] **job**

@@ -201,6 +201,10 @@ def get_required_files(agent_id):
         ],
         "CD": [
             "instructions/CD.md"
+        ],
+        "SOLO": [
+            "instructions/SOLO.md",
+            "requirement_definition.md（存在する場合）"
         ]
     }
     
@@ -241,6 +245,14 @@ def generate_context(source, agent_id, agent_type):
             context_parts.append("### 3. ポーリング型エージェントとしての再開")
             context_parts.append("あなたはポーリング型エージェントです。")
             context_parts.append("待機状態に入らず、定期的にタスクを確認してください。")
+        
+        # CDまたはSOLOエージェントへのgit push推奨
+        if agent_id == 'CD' or agent_id == 'SOLO':
+            context_parts.append("")
+            context_parts.append("### 📌 Git管理の推奨事項")
+            context_parts.append("要件定義書で明示的に禁止されていない限り、")
+            context_parts.append("**こまめにgit pushして**ユーザが進捗を確認できるようにしてください。")
+            context_parts.append("小さな変更でも定期的にコミット・プッシュすることを推奨します。")
     
     return "\n".join(context_parts) if context_parts else None
 

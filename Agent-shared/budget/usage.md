@@ -18,12 +18,12 @@ RESOURCE_GROUP="cx-small"  # 使用するリソースグループ
 ### 2. ChangeLog.mdへの記録（必須）
 ```markdown
 ### v1.2.0
-**生成時刻**: `2025-01-30T10:00:00Z`
 **変更点**: "OpenMP並列化実装"
 **結果**: 理論性能の65%達成 `312.4 GFLOPS`
 
 <details>
 
+- **生成時刻**: `2025-01-30T10:00:00Z`
 - [x] **job**
     - id: `12345`
     - resource_group: `cx-small`  # 必須：料金計算に使用

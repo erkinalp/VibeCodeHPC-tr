@@ -222,11 +222,16 @@ ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errを自分
 
 <details>
 
+- **生成時刻**: `2025-08-20T10:30:00Z`
 - [x] **compile**
     - status: `success`
     - warnings: `none`
 - [x] **job**
     - id: `123456`
+    - resource_group: `cx-small`
+    - start_time: `2025-08-20T10:30:00Z`
+    - end_time: `2025-08-20T11:00:00Z`
+    - runtime_sec: `1800`
     - status: `success`
 - [x] **test**
     - performance: `312.4`

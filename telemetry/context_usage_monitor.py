@@ -168,10 +168,6 @@ class ContextUsageMonitor:
                 # Mac/Linux: /Users/... -> -Users-...
                 dir_name = str(full_path).replace('/', '-')
             
-            # 先頭の-を削除
-            if dir_name.startswith('-'):
-                dir_name = dir_name[1:]
-            
             # ディレクトリを検索
             project_dir = self.claude_projects_dir / dir_name
             if project_dir.exists():
