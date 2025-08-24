@@ -368,25 +368,26 @@ pip install uv
 ```
 > Claude Code hooksでPythonスクリプトを高速実行します。uvがない場合は通常のPythonで代替されます
 
-#### **Python環境** - グラフ生成・統計分析用
+#### **Pythonパッケージ** - 可視化とデータ分析用
 
-uvを使用（推奨）:
+通常のインストール:
 ```bash
-uv pip install --system matplotlib pandas numpy scipy
+pip3 install -r requirements.txt
 ```
 
-uvが使用できない場合:
+uvがインストール済みの場合は追加で:
 ```bash
-pip3 install --user matplotlib pandas numpy scipy
+uv pip install -r requirements.txt
 ```
 
-システムのpython3にもインストール（推奨）:
-```bash
-# uv/uvxが利用できない場合のフォールバック用
-python3 -m pip install --user -U matplotlib numpy scipy
-```
+必要なパッケージ:
+- **matplotlib** - グラフ生成（SOTA推移、予算消費、コンテキスト使用率）
+- **numpy** - 数値計算（線形回帰、統計処理）
+- **pandas** - データ分析（ChangeLog.md解析、集計）
+- **scipy** - 統計分析（予算予測の線形回帰）
 
-> SEエージェントがSOTA可視化やレポート生成で使用します。スクリプトは以下の優先順位で実行：
+> これらのパッケージは主に可視化スクリプトで使用されます。バージョンは厳密に指定していないため、最新版で問題ありません
+
 > 1. `uv run script.py` （uvがインストールされている場合）
 > 2. `uvx script.py` （uvxがインストールされている場合）
 > 3. `python3 script.py` （システムのpython3）
