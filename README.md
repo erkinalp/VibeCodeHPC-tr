@@ -377,7 +377,7 @@ pip3 install -r requirements.txt
 
 uvがインストール済みの場合は追加で:
 ```bash
-uv pip install -r requirements.txt
+uv pip install --system -r requirements.txt
 ```
 
 必要なパッケージ:
