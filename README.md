@@ -701,17 +701,23 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 
 <details>
 
+- **生成時刻**: `2025-08-20T10:30:00Z`
 - [x] **compile**
     - status: `success`
-    - log: `/results/compile_v1.1.0.log`
+    - warnings: `none`
 - [x] **job**
     - id: `123456`
+    - resource_group: `F_small`
+    - start_time: `2025-08-20T10:31:00Z`
+    - end_time: `2025-08-20T10:31:45Z`
+    - runtime_sec: `45`
     - status: `success`
 - [x] **test**
     - status: `pass`
     - performance: `312.4`
     - unit: `GFLOPS`
     - efficiency: `65.1%`
+    - accuracy: `PASS (diff < 1e-6)`
 - [x] **sota**
     - scope: `local`
 - **params**:
@@ -729,10 +735,16 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 
 <details>
 
+- **生成時刻**: `2025-08-20T10:15:00Z`
 - [x] **compile**
     - status: `success`
+    - warnings: `none`
 - [x] **job**
     - id: `123454`
+    - resource_group: `F_small`
+    - start_time: `2025-08-20T10:16:00Z`
+    - end_time: `2025-08-20T10:16:48Z`
+    - runtime_sec: `48`
     - status: `success`
 - [x] **test**
     - status: `pass`
