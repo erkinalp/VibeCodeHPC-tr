@@ -200,12 +200,45 @@ def read_file_content(file_path, project_root, latest_entries=None):
         return f"[読み込みエラー: {str(e)}]"
 
 
+def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths=None):
+    """エージェントの位置に応じてファイルパスを解決"""
+    # ./から始まる相対パス
+    if file_path.startswith("./"):
+        resolved = agent_working_dir / file_path[2:]
+        if resolved.exists():
+            return resolved
+        # フォールバック: プロジェクトルートから
+        return project_root / file_path[2:]
+    
+    # ../から始まる相対パス
+    if file_path.startswith("../"):
+        resolved = agent_working_dir / file_path
+        if resolved.exists():
+            return resolved
+    
+    # fallback_pathsがある場合は順次試行
+    if fallback_paths:
+        for fallback in fallback_paths:
+            if fallback.startswith("../"):
+                candidate = agent_working_dir / fallback
+            else:
+                candidate = project_root / fallback
+            if candidate.exists():
+                return candidate
+    
+    # それ以外はプロジェクトルートからの相対パス
+    return project_root / file_path
+
+
 def generate_embedded_content(stop_count, threshold, agent_id, project_root):
     """埋め込みコンテンツを生成"""
     config = load_config(project_root)
     
     # エージェントロールを取得
     role = agent_id.split('.')[0] if '.' in agent_id else agent_id
+    
+    # 現在の作業ディレクトリを取得
+    agent_working_dir = Path.cwd()
     
     embedded_parts = []
     reference_parts = []
@@ -221,13 +254,13 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             embedded_parts.append(content)
             embedded_parts.append("```\n")
     
-    # 2. 確率的に提供（periodic_full）
+    # 2. 共通の高確率提供（common_full）
     provided_any = False
-    for file_config in config["file_provision"]["periodic_full"]:
+    common_full = config["file_provision"].get("common_full", [])
+    for file_config in common_full:
         if should_provide_file(file_config, stop_count):
             formatted_path = file_config["file"].replace("{role}", role)
-            latest_entries = file_config.get("latest_entries")  # ChangeLog.md用
-            content = read_file_content(formatted_path, project_root, latest_entries)
+            content = read_file_content(formatted_path, project_root)
             if content:
                 if not provided_any:
                     embedded_parts.append("\n## 📋 追加提供ファイル\n")
@@ -236,15 +269,93 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                 embedded_parts.append("```")
                 embedded_parts.append(content)
                 embedded_parts.append("```\n")
-        else:
-            # 提供しない場合はパス参照
-            reference_parts.append(file_config["file"].replace("{role}", role))
     
-    # 3. 低頻度で提供（rare_full）
-    for file_config in config["file_provision"].get("rare_full", []):
-        if should_provide_file(file_config, stop_count):
-            formatted_path = file_config["file"].replace("{role}", role)
-            latest_entries = file_config.get("latest_entries")  # ChangeLog.md用
+    # 3. periodic_full（新構造: ファイル中心）
+    periodic_full = config["file_provision"].get("periodic_full", {})
+    
+    for file_path, file_config in periodic_full.items():
+        # このロールの確率を取得
+        probabilities = file_config.get("probabilities", {})
+        if role not in probabilities:
+            continue
+        
+        probability = probabilities[role]
+        
+        # 確率判定用のconfigオブジェクトを作成
+        check_config = {"file": file_path, "probability": probability}
+        
+        if should_provide_file(check_config, stop_count):
+            # パスを解決
+            formatted_path = file_path.replace("{role}", role)
+            fallback_paths = file_config.get("fallback_paths")
+            resolved_path = resolve_file_path(formatted_path, project_root, agent_working_dir, fallback_paths)
+            
+            # ディレクトリリスティングの特別処理
+            if file_config.get("type") == "directory_listing":
+                if resolved_path and resolved_path.exists() and resolved_path.is_dir():
+                    if not provided_any:
+                        embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                        provided_any = True
+                    embedded_parts.append(f"### {formatted_path} (ディレクトリ一覧)")
+                    embedded_parts.append("```")
+                    try:
+                        import os
+                        for item in sorted(os.listdir(resolved_path)):
+                            item_path = resolved_path / item
+                            if item_path.is_dir():
+                                embedded_parts.append(f"📁 {item}/")
+                            else:
+                                embedded_parts.append(f"📄 {item}")
+                    except Exception as e:
+                        embedded_parts.append(f"[エラー: {str(e)}]")
+                    embedded_parts.append("```\n")
+            else:
+                # 通常ファイルの処理
+                latest_entries = file_config.get("latest_entries")
+                # read_file_contentは内部でresolve済みのパスを期待
+                if resolved_path and resolved_path.exists():
+                    try:
+                        with open(resolved_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            
+                            # ChangeLog.mdの特別処理
+                            if formatted_path.endswith('ChangeLog.md') and latest_entries:
+                                entries = content.split('### v')
+                                if len(entries) > 1:
+                                    recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
+                                    content = recent[:3000]
+                            
+                            # サイズ制限
+                            if len(content) > 4000:
+                                content = content[:4000] + "\n\n...[ファイルサイズが大きいため以下省略]"
+                            
+                            if content:
+                                if not provided_any:
+                                    embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                                    provided_any = True
+                                embedded_parts.append(f"### {formatted_path}")
+                                embedded_parts.append("```")
+                                embedded_parts.append(content)
+                                embedded_parts.append("```\n")
+                    except Exception:
+                        pass  # ファイルが存在しない場合は静かにスキップ
+        else:
+            # 提供しない場合はパス参照
+            reference_parts.append(file_path.replace("{role}", role))
+    
+    # 4. rare_full（低頻度）
+    rare_full = config["file_provision"].get("rare_full", {})
+    for file_path, file_config in rare_full.items():
+        probabilities = file_config.get("probabilities", {})
+        if role not in probabilities:
+            continue
+        
+        probability = probabilities[role]
+        check_config = {"file": file_path, "probability": probability}
+        
+        if should_provide_file(check_config, stop_count):
+            formatted_path = file_path.replace("{role}", role)
+            latest_entries = file_config.get("latest_entries")
             content = read_file_content(formatted_path, project_root, latest_entries)
             if content:
                 if not provided_any:
@@ -255,15 +366,14 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                 embedded_parts.append(content)
                 embedded_parts.append("```\n")
         else:
-            # 提供しない場合はパス参照
-            reference_parts.append(file_config["file"].replace("{role}", role))
+            reference_parts.append(file_path.replace("{role}", role))
     
     if reference_parts:
         embedded_parts.append("\n## 📁 参照推奨ファイル（必要に応じて読み込み）\n")
         for path in reference_parts:
             embedded_parts.append(f"- {path}")
     
-    # 4. メモリリセットの可能性を示唆
+    # 5. メモリリセットの可能性を示唆  
     if stop_count % 10 == 0:  # 10回ごと
         embedded_parts.append(f"\n{config['file_provision'].get('compact_recovery_hint', '')}")
     
@@ -298,14 +408,24 @@ def generate_block_reason(stop_count, agent_info):
     
     # 閾値到達時の処理
     if stop_count >= threshold:
+        # ロールに応じた終了準備タスク
+        role_specific_tasks = {
+            "PG": ["現在のジョブ完了待ち", "ChangeLog.mdの最終更新", "結果ファイルの整理"],
+            "SE": ["進行中の解析完了", "最終グラフ生成", "レポート更新"],
+            "PM": ["全エージェント状況確認", "final_report.md準備", "予算最終確認"],
+            "CD": ["最終commit", "GitHub同期完了", "匿名化最終確認"],
+        }
+        
+        role = agent_id.split('.')[0] if '.' in agent_id else agent_id
+        tasks = role_specific_tasks.get(role, ["現在のタスクを完了"])
+        
+        task_list = "\n".join([f"{i+1}. {task}" for i, task in enumerate(tasks)])
+        
         return f"""
 ⚠️ STOP回数が上限（{threshold}回）に達しました。
 
 【終了準備】
-1. 現在進行中のタスクを切りの良いところまで完了
-2. ChangeLog.mdの最終更新
-3. 作業ディレクトリの整理
-4. 成果物の確認
+{task_list}
 
 最終報告:
 agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"

@@ -5,51 +5,185 @@
       "Agent-shared/directory_pane_map.md",
       "CLAUDE.md"
     ],
-    "periodic_full": [
+    "common_full": [
       {
         "file": "instructions/{role}.md",
-        "probability": 0.85,
-        "description": "エージェント役割定義（85%で全文）"
-      },
-      {
-        "file": "ChangeLog.md",
         "probability": 0.75,
-        "latest_entries": 3,
-        "description": "最新3エントリ（75%で提供）"
-      },
-      {
-        "file": "Agent-shared/stop_thresholds.json",
-        "probability": 0.7,
-        "description": "終了閾値（70%で全文）"
-      },
-      {
-        "file": "hardware_info.md",
-        "probability": 0.4,
-        "description": "理論性能情報（40%で全文）"
-      },
-      {
-        "file": "Agent-shared/sota/sota_management.md",
-        "probability": 0.3,
-        "description": "SOTA管理方法（30%で全文）"
-      }
-    ],
-    "rare_full": [
-      {
-        "file": "BaseCode/README.md",
-        "probability": 0.15,
-        "description": "ベースコード概要（15%で全文）"
+        "description": "エージェント役割定義"
       },
       {
         "file": "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
-        "probability": 0.08,
-        "description": "HPC最適化戦略（8%で全文）"
+        "probability": 0.5,
+        "description": "HPC階層設計の具体例"
       },
       {
-        "file": "Agent-shared/ssh_guide.md",
-        "probability": 0.15,
-        "description": "SSH/SFTP実行方法（15%で全文）"
+        "file": "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md",
+        "probability": 0.4,
+        "description": "進化的探索戦略"
       }
     ],
+    "periodic_full": {
+      "./ChangeLog.md": {
+        "probabilities": {"PG": 0.3},
+        "latest_entries": 3,
+        "description": "作業履歴（最新3エントリ）"
+      },
+      "Agent-shared/ssh_guide.md": {
+        "probabilities": {"PM": 0.4, "PG": 0.7, "SE": 0.1},
+        "description": "SSH/SFTP実行方法"
+      },
+      "Agent-shared/agent_and_pane_id_table.jsonl": {
+        "probabilities": {"PM": 0.6, "SE": 0.2},
+        "description": "エージェント管理表"
+      },
+      "Agent-shared/change_log/ChangeLog_format.md": {
+        "probabilities": {"PG": 0.4, "SE": 0.3},
+        "description": "記録フォーマット"
+      },
+      "Agent-shared/change_log/ChangeLog_format_PM_override.md": {
+        "probabilities": {"PG": 0.3, "SE": 0.2},
+        "description": "PMカスタマイズ済みフォーマット"
+      },
+      "Agent-shared/change_log/changelog_helper.py": {
+        "probabilities": {"PG": 0.3},
+        "description": "ChangeLog生成ヘルパー"
+      },
+      "Agent-shared/budget/budget_termination_criteria.md": {
+        "probabilities": {"PM": 0.4, "SE": 0.2, "PG": 0.1},
+        "description": "予算終了条件"
+      },
+      "Agent-shared/budget/budget_tracker.py": {
+        "probabilities": {"SE": 0.5, "PM": 0.2},
+        "description": "予算解析スクリプト（長い）"
+      },
+      "Agent-shared/sota/sota_visualizer.py": {
+        "probabilities": {"SE": 0.4},
+        "description": "SOTA可視化スクリプト（長い）"
+      },
+      "Agent-shared/sota/sota_management.md": {
+        "probabilities": {"SE": 0.5, "PG": 0.4},
+        "description": "SOTA管理方法"
+      },
+      "Agent-shared/sota/sota_checker.py": {
+        "probabilities": {"PG": 0.3, "SE": 0.4},
+        "description": "SOTA判定スクリプト"
+      },
+      "Agent-shared/log_analyzer.py": {
+        "probabilities": {"SE": 0.3},
+        "description": "ログ解析スクリプト（長い）"
+      },
+      "Agent-shared/report_hierarchy.md": {
+        "probabilities": {"SE": 0.6},
+        "description": "レポート階層"
+      },
+      "Agent-shared/artifacts_position.md": {
+        "probabilities": {"SE": 0.4, "CD": 0.5, "PG": 0.2},
+        "description": "成果物配置ルール"
+      },
+      "Agent-shared/PG_visible_dir_format.md": {
+        "probabilities": {"SE": 0.3, "PG": 0.2},
+        "description": "PG参照許可フォーマット"
+      },
+      "Agent-shared/compile_warning_workflow.md": {
+        "probabilities": {"PG": 0.4},
+        "description": "警告対処法"
+      },
+      "Agent-shared/hardware_info_guide.md": {
+        "probabilities": {"PM": 0.2, "PG": 0.3, "SE": 0.2},
+        "description": "ハードウェア情報収集ガイド"
+      },
+      "Agent-shared/max_agent_number.txt": {
+        "probabilities": {"PM": 0.4},
+        "description": "利用可能ワーカー数"
+      },
+      "Agent-shared/sub_agent_usage.md": {
+        "probabilities": {"SE": 0.3, "PM": 0.2, "PG": 0.2},
+        "description": "サブエージェント活用ガイド"
+      },
+      "Agent-shared/directory_pane_map_example.md": {
+        "probabilities": {"PM": 0.3, "SE": 0.2},
+        "description": "配置マップの記載例"
+      },
+      "./directory_pane_map.md": {
+        "probabilities": {"PM": 0.4, "SE": 0.3},
+        "description": "現在の配置マップ"
+      },
+      "./visible_path_*.txt": {
+        "probabilities": {"PG": 0.3},
+        "type": "wildcard",
+        "description": "PG用参照許可パス"
+      },
+      "User-shared/reports/*.md": {
+        "probabilities": {"SE": 0.3},
+        "type": "wildcard",
+        "description": "既存レポート群"
+      },
+      "hardware_info.md": {
+        "probabilities": {"PG": 0.4, "SE": 0.3, "PM": 0.2},
+        "fallback_paths": ["../../hardware_info.md", "../hardware_info.md"],
+        "description": "理論性能情報"
+      },
+      "_remote_info/*/node_resource_groups.md": {
+        "probabilities": {"PM": 0.3, "PG": 0.2},
+        "type": "wildcard",
+        "description": "各スパコンのリソースグループ"
+      },
+      "_remote_info/*/command_list.md": {
+        "probabilities": {"PG": 0.4, "PM": 0.2},
+        "type": "wildcard",
+        "description": "各スパコンのコマンド一覧"
+      },
+      "_remote_info/*/load_custom_module.md": {
+        "probabilities": {"PG": 0.2, "PM": 0.1},
+        "type": "wildcard",
+        "description": "カスタムモジュール読み込み"
+      },
+      "_remote_info/*/user_info.md": {
+        "probabilities": {"PM": 0.2, "CD": 0.1},
+        "type": "wildcard",
+        "description": "ユーザ情報（匿名化対象）"
+      },
+      "communication/agent_send.sh": {
+        "probabilities": {"PM": 0.2, "SE": 0.1, "PG": 0.1},
+        "description": "エージェント間通信スクリプト"
+      },
+      "telemetry/context_usage_monitor.py": {
+        "probabilities": {"SE": 0.2},
+        "description": "コンテキスト使用率監視（長い）"
+      },
+      "BaseCode/": {
+        "probabilities": {"PG": 0.15},
+        "type": "directory_listing",
+        "description": "ベースコード一覧"
+      },
+      "_remote_info/user_id.txt": {
+        "probabilities": {"CD": 0.8},
+        "description": "匿名化対象"
+      },
+      ".gitignore": {
+        "probabilities": {"CD": 0.4},
+        "description": "Git除外設定"
+      }
+    },
+    "rare_full": {
+      "Agent-shared/multi_agent_comparison.md": {
+        "probabilities": {"PM": 0.05},
+        "description": "マルチエージェント比較"
+      },
+      "hooks/hooks_deployment_guide.md": {
+        "probabilities": {"PM": 0.1},
+        "description": "hooks配置ガイド"
+      },
+      "Agent-shared/change_log/changelog_analysis_template.py": {
+        "probabilities": {"SE": 0.15},
+        "description": "ChangeLog解析テンプレート（長い）"
+      },
+      "_remote_info/*/type2_compiler.md": {
+        "probabilities": {"PG": 0.1, "PM": 0.05},
+        "type": "wildcard",
+        "description": "コンパイラ一覧（長い）"
+      }
+    },
     "compact_recovery_hint": "⚠️ 記憶が部分的にリセットされた可能性があります。\n作業を再開する前に、以下を実行してください：\n- ls -R Agent-shared/ でファイル構造を確認\n- pwd で現在位置を確認\n- agent_send.sh PM '[{agent_id}] 記憶リセット後の再開' で状況報告"
   },
   "agent_tasks": {
