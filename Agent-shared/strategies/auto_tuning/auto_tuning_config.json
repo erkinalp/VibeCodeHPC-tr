@@ -9,52 +9,45 @@
       {
         "file": "instructions/{role}.md",
         "probability": 0.85,
-        "max_lines": null,
         "description": "エージェント役割定義（85%で全文）"
       },
       {
         "file": "ChangeLog.md",
         "probability": 0.75,
-        "max_lines": 50,
-        "description": "最新エントリ優先（75%で提供）"
+        "latest_entries": 3,
+        "description": "最新3エントリ（75%で提供）"
       },
       {
         "file": "Agent-shared/stop_thresholds.json",
         "probability": 0.7,
-        "max_lines": null,
-        "description": "終了閾値（70%で提供）"
+        "description": "終了閾値（70%で全文）"
       },
       {
         "file": "hardware_info.md",
-        "probability": 0.6,
-        "max_lines": 30,
-        "description": "理論性能情報（60%で提供）"
+        "probability": 0.4,
+        "description": "理論性能情報（40%で全文）"
       },
       {
         "file": "Agent-shared/sota/sota_management.md",
-        "probability": 0.5,
-        "max_lines": 40,
-        "description": "SOTA管理方法（50%で提供）"
+        "probability": 0.3,
+        "description": "SOTA管理方法（30%で全文）"
       }
     ],
     "rare_full": [
       {
         "file": "BaseCode/README.md",
-        "probability": 0.2,
-        "max_lines": 30,
-        "description": "ベースコード概要（20%で提供）"
+        "probability": 0.15,
+        "description": "ベースコード概要（15%で全文）"
       },
       {
         "file": "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
-        "probability": 0.15,
-        "max_lines": 50,
-        "description": "HPC最適化戦略（15%で提供）"
+        "probability": 0.08,
+        "description": "HPC最適化戦略（8%で全文）"
       },
       {
         "file": "Agent-shared/ssh_guide.md",
-        "probability": 0.25,
-        "max_lines": 40,
-        "description": "SSH/SFTP実行方法（25%で提供）"
+        "probability": 0.15,
+        "description": "SSH/SFTP実行方法（15%で全文）"
       }
     ],
     "compact_recovery_hint": "⚠️ 記憶が部分的にリセットされた可能性があります。\n作業を再開する前に、以下を実行してください：\n- ls -R Agent-shared/ でファイル構造を確認\n- pwd で現在位置を確認\n- agent_send.sh PM '[{agent_id}] 記憶リセット後の再開' で状況報告"

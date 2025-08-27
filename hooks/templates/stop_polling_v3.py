@@ -173,7 +173,7 @@ def should_provide_file(file_config, stop_count):
     return ((stop_count + hash_offset) % denominator) < numerator
 
 
-def read_file_content(file_path, project_root, max_lines=None):
+def read_file_content(file_path, project_root, latest_entries=None):
     """ファイル内容を読み込み（ファイルタイプに応じた抽出）"""
     full_path = project_root / file_path
     
@@ -182,48 +182,18 @@ def read_file_content(file_path, project_root, max_lines=None):
     
     try:
         content = full_path.read_text(encoding='utf-8')
-        lines = content.split('\n')
         
-        # ChangeLog.mdの特別処理（最新エントリ優先）
-        if file_path.endswith('ChangeLog.md'):
+        # ChangeLog.mdの特別処理（最新エントリのみ）
+        if file_path.endswith('ChangeLog.md') and latest_entries:
             entries = content.split('### v')
             if len(entries) > 1:
-                recent = '### v' + '### v'.join(entries[1:min(3, len(entries))])
-                return recent[:2000]
+                # 指定された数の最新エントリを取得
+                recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
+                return recent[:3000]  # ChangeLogは大きくなりがちなので制限
         
-        # instructions/*.mdの特別処理（役割セクション優先）
-        if 'instructions/' in file_path:
-            # 主要責務と基本ワークフローを優先
-            important_sections = []
-            in_important = False
-            for line in lines:
-                if '## 📋 主要責務' in line or '## 🔄 基本ワークフロー' in line:
-                    in_important = True
-                elif line.startswith('## ') and in_important:
-                    in_important = False
-                if in_important:
-                    important_sections.append(line)
-            if important_sections and max_lines:
-                return '\n'.join(important_sections[:max_lines])
-        
-        # CLAUDE.mdの特別処理（基本理念とコミュニケーション優先）
-        if file_path.endswith('CLAUDE.md'):
-            essential = []
-            for i, line in enumerate(lines):
-                if i < 30 or 'agent_send.sh' in line or '基本理念' in line:
-                    essential.append(line)
-                if len(essential) >= (max_lines or 50):
-                    break
-            return '\n'.join(essential)
-        
-        # 通常ファイルの処理
-        if max_lines:
-            # 先頭と重要そうなセクションを混合
-            return '\n'.join(lines[:max_lines])
-        
-        # サイズ制限
-        if len(content) > 3000:
-            return content[:3000] + "\n...[以下省略]"
+        # サイズ制限（全文提供だが巨大すぎるファイルは制限）
+        if len(content) > 4000:
+            return content[:4000] + "\n\n...[ファイルサイズが大きいため以下省略]"
         
         return content
     except Exception as e:
@@ -256,8 +226,8 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
     for file_config in config["file_provision"]["periodic_full"]:
         if should_provide_file(file_config, stop_count):
             formatted_path = file_config["file"].replace("{role}", role)
-            max_lines = file_config.get("max_lines")
-            content = read_file_content(formatted_path, project_root, max_lines)
+            latest_entries = file_config.get("latest_entries")  # ChangeLog.md用
+            content = read_file_content(formatted_path, project_root, latest_entries)
             if content:
                 if not provided_any:
                     embedded_parts.append("\n## 📋 追加提供ファイル\n")
@@ -274,8 +244,8 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
     for file_config in config["file_provision"].get("rare_full", []):
         if should_provide_file(file_config, stop_count):
             formatted_path = file_config["file"].replace("{role}", role)
-            max_lines = file_config.get("max_lines")
-            content = read_file_content(formatted_path, project_root, max_lines)
+            latest_entries = file_config.get("latest_entries")  # ChangeLog.md用
+            content = read_file_content(formatted_path, project_root, latest_entries)
             if content:
                 if not provided_any:
                     embedded_parts.append("\n## 📋 追加提供ファイル\n")
