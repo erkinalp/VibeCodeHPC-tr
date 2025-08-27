@@ -290,8 +290,35 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             fallback_paths = file_config.get("fallback_paths")
             resolved_path = resolve_file_path(formatted_path, project_root, agent_working_dir, fallback_paths)
             
+            # ワイルドカード処理
+            if file_config.get("type") == "wildcard":
+                # ワイルドカードパターンをglobで処理
+                import glob
+                pattern_path = str(project_root / formatted_path.lstrip('/'))
+                matched_files = glob.glob(pattern_path)
+                
+                if matched_files:
+                    for matched_file in matched_files[:3]:  # 最大3ファイルまで
+                        file_path_obj = Path(matched_file)
+                        if file_path_obj.exists():
+                            try:
+                                with open(file_path_obj, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                    # 文字制限なし（実験優先）
+                                    if content:
+                                        if not provided_any:
+                                            embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                                            provided_any = True
+                                        # プロジェクトルートからの相対パス表示
+                                        rel_path = file_path_obj.relative_to(project_root)
+                                        embedded_parts.append(f"### {rel_path}")
+                                        embedded_parts.append("```")
+                                        embedded_parts.append(content)
+                                        embedded_parts.append("```\n")
+                            except Exception:
+                                pass
             # ディレクトリリスティングの特別処理
-            if file_config.get("type") == "directory_listing":
+            elif file_config.get("type") == "directory_listing":
                 if resolved_path and resolved_path.exists() and resolved_path.is_dir():
                     if not provided_any:
                         embedded_parts.append("\n## 📋 追加提供ファイル\n")
@@ -323,11 +350,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                                 entries = content.split('### v')
                                 if len(entries) > 1:
                                     recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
-                                    content = recent[:3000]
-                            
-                            # サイズ制限
-                            if len(content) > 4000:
-                                content = content[:4000] + "\n\n...[ファイルサイズが大きいため以下省略]"
+                                    content = recent  # 文字制限なし
                             
                             if content:
                                 if not provided_any:
@@ -411,9 +434,9 @@ def generate_block_reason(stop_count, agent_info):
         # ロールに応じた終了準備タスク
         role_specific_tasks = {
             "PG": ["現在のジョブ完了待ち", "ChangeLog.mdの最終更新", "結果ファイルの整理"],
-            "SE": ["進行中の解析完了", "最終グラフ生成", "レポート更新"],
+            "SE": ["進行中の解析完了", "最終グラフ更新", "レポート更新"],
             "PM": ["全エージェント状況確認", "final_report.md準備", "予算最終確認"],
-            "CD": ["最終commit", "GitHub同期完了", "匿名化最終確認"],
+            "CD": ["最終commit(禁止でなければpush)", "GitHub同期完了", "匿名化最終確認"],
         }
         
         role = agent_id.split('.')[0] if '.' in agent_id else agent_id
@@ -431,7 +454,7 @@ def generate_block_reason(stop_count, agent_info):
 agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
 
 その後、PMからの指示（ESC強制中止/続投/転属）を待ってください。
-10秒ごとにsleepしながら、定期的にPMに状況確認してください。
+sleep 20等を実行 → そのまま止まらずに追加で仕事がないかチェック → 定期的にPMに状況確認 … を繰り返して下さい。
 """
     
     # 通常のブロック
