@@ -634,6 +634,19 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 #### 主な機能
 - [x] **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
 - [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
+- [x] **v2/v3切り替え**: プロジェクト特性に応じたhooks動作の選択
+
+#### Hooksバージョンの選択
+```bash
+# v3（デフォルト）: ファイル内容を確率的に埋め込み、自律性重視
+./communication/setup.sh 12
+
+# v2: ファイルパスのみ提供、軽量動作
+./communication/setup.sh 12 --hooks v2
+```
+
+- **v3（推奨）**: 長期プロジェクトやauto-compact対策に有効。`auto_tuning_config.json`でカスタマイズ可能
+- **v2**: 短期プロジェクトや実験評価向け。エージェントが必要に応じてファイル読み込み
 
 ⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機してしまう可能性があります
 

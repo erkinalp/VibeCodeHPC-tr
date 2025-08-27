@@ -13,6 +13,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 PROJECT_NAME=""  # ユーザが指定するプロジェクト名
 USE_DEFAULT_NAMES=true  # デフォルト名使用フラグ
 DRY_RUN=false  # dry-runフラグ
+HOOKS_VERSION="v3"  # hooksバージョン（デフォルトv3）
 
 # デフォルトセッション名
 DEFAULT_PM_SESSION="Team1_PM"
@@ -50,6 +51,7 @@ show_usage() {
   
 オプション:
   --project <名前>  : プロジェクト名を指定（例: GEMM, MatMul）
+  --hooks <v2|v3>  : hooksバージョンを指定（デフォルト: v3）
   --clean-only     : 既存セッションのクリーンアップのみ実行
   --dry-run        : 実際のセットアップを行わずに計画を表示
   --help           : このヘルプを表示
@@ -57,6 +59,7 @@ show_usage() {
 例:
   $0 11                    # デフォルト名 (Team1_PM, Team1_Workers1)
   $0 11 --project GEMM     # プロジェクト名指定 (GEMM_PM, GEMM_Workers1)
+  $0 11 --hooks v2         # hooks v2を使用
   $0 --clean-only          # クリーンアップのみ
   $0 --dry-run 11          # 11ワーカー構成の計画表示
 
@@ -658,6 +661,18 @@ main() {
                 USE_DEFAULT_NAMES=false
                 shift 2
                 ;;
+            --hooks)
+                if [[ $# -lt 2 ]]; then
+                    log_error "--hooks オプションにはバージョン（v2|v3）が必要です"
+                    exit 1
+                fi
+                if [[ "$2" != "v2" && "$2" != "v3" ]]; then
+                    log_error "hooksバージョンは v2 または v3 を指定してください"
+                    exit 1
+                fi
+                HOOKS_VERSION="$2"
+                shift 2
+                ;;
             --clean-only)
                 log_info "クリーンアップモード"
                 # _old_つきのセッションを削除
@@ -735,6 +750,10 @@ main() {
     # エージェント数をファイルに記録（PMがリソース配分計画に使用）
     echo "$worker_count" > ./Agent-shared/max_agent_number.txt
     log_info "エージェント数を記録: $worker_count (PM除く)"
+    
+    # hooksバージョンを記録
+    echo "$HOOKS_VERSION" > ./hooks/.hooks_version
+    log_info "🎣 hooksバージョンを設定: $HOOKS_VERSION"
     
     # PMセッション作成
     create_pm_session

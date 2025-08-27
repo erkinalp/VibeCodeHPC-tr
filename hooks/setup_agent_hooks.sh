@@ -21,7 +21,14 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 TEMPLATE_DIR="$PROJECT_ROOT/hooks/templates"
 
-echo "🔧 Setting up hooks for agent: $AGENT_ID (type: $AGENT_TYPE)"
+# hooksバージョンを読み込み（同階層の.hooks_version）
+if [ -f "$SCRIPT_DIR/.hooks_version" ]; then
+    HOOKS_VERSION=$(cat "$SCRIPT_DIR/.hooks_version")
+else
+    HOOKS_VERSION="v3"  # デフォルトv3
+fi
+
+echo "🔧 Setting up hooks for agent: $AGENT_ID (type: $AGENT_TYPE, version: $HOOKS_VERSION)"
 
 # .claude/hooks ディレクトリ作成
 mkdir -p "$AGENT_DIR/.claude/hooks"
@@ -58,7 +65,15 @@ if [ "$AGENT_ID" = "SOLO" ]; then
 EOF
     echo "✅ SOLO agent hooks configured"
 elif [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]]; then
-    cp "$TEMPLATE_DIR/stop_polling_v2.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    # hooksバージョンに応じてファイルを選択
+    if [ "$HOOKS_VERSION" = "v2" ]; then
+        cp "$TEMPLATE_DIR/stop_polling_v2.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    elif [ "$HOOKS_VERSION" = "v3" ]; then
+        cp "$TEMPLATE_DIR/stop_polling_v3.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    else
+        echo "⚠️ Unknown hooks version '$HOOKS_VERSION', using v3"
+        cp "$TEMPLATE_DIR/stop_polling_v3.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    fi
     # settings.jsonを作成（絶対パスを使用）
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {
