@@ -613,6 +613,12 @@ agent_send.sh PG1.1.1 "[PM] 処理を再開してください。先ほどの続�
 - agent_send.shではESCキー相当の制御文字は送信できない
 - 再起動は不要で、メッセージ送信だけで再開可能
 
+**推奨停止順序（プロジェクト終了時）**:
+1. **PG（最優先）**: ジョブ実行中の可能性があるため最初に停止
+2. **SE**: PG監視役のため次に停止
+3. **CD**: GitHub同期を完了させてから停止
+4. **PM（最後）**: 全エージェント停止確認後、最後に自身を停止
+
 ### 注意事項
 - **--continueオプションを忘れずに**: これがないと、エージェントの記憶（コンテキスト）が失われます
 - **EOFシグナル（Ctrl+D）は送信しない**: エージェントが終了してしまいます
@@ -638,14 +644,22 @@ agent_send.sh PG1.1.1 "[PM] 処理を再開してください。先ほどの続�
 #### 閾値管理
 - **設定ファイル**: `/Agent-shared/stop_thresholds.json`で一元管理
 - **個別調整**: requirement_definition.mdまたは設定ファイルで変更可能
-- **カウントリセット**: PMは各エージェントの`.claude/hooks/stop_count.txt`を直接編集可能
+- **カウントリセット手順**: PMは各エージェントの`.claude/hooks/stop_count.txt`を直接編集可能
   ```bash
-  # 例: SE1のカウントをリセット
+  # 1. 現在のカウントを確認
+  cat Flow/TypeII/single-node/.claude/hooks/stop_count.txt
+  
+  # 2. カウントをリセット（0に戻す）
   echo "0" > Flow/TypeII/single-node/.claude/hooks/stop_count.txt
   
-  # 例: PG1.1.1のカウントを10に設定
+  # 3. エージェントに通知
+  agent_send.sh SE1 "[PM] STOPカウントをリセットしました。作業を継続してください。"
+  
+  # 例: PG1.1.1のカウントを10に設定（部分リセット）
   echo "10" > Flow/TypeII/single-node/OpenMP/.claude/hooks/stop_count.txt
   ```
+  
+  **重要**: カウントリセット後は必ずエージェントに通知すること
 
 #### 閾値到達時の動作
 1. エージェントがPMに終了通知を送信
