@@ -1,0 +1,124 @@
+{
+  "file_provision": {
+    "always_full": [
+      "requirement_definition.md",
+      "Agent-shared/directory_pane_map.md",
+      "CLAUDE.md"
+    ],
+    "periodic_full": [
+      {
+        "file": "instructions/{role}.md",
+        "probability": 0.85,
+        "max_lines": null,
+        "description": "エージェント役割定義（85%で全文）"
+      },
+      {
+        "file": "ChangeLog.md",
+        "probability": 0.75,
+        "max_lines": 50,
+        "description": "最新エントリ優先（75%で提供）"
+      },
+      {
+        "file": "Agent-shared/stop_thresholds.json",
+        "probability": 0.7,
+        "max_lines": null,
+        "description": "終了閾値（70%で提供）"
+      },
+      {
+        "file": "hardware_info.md",
+        "probability": 0.6,
+        "max_lines": 30,
+        "description": "理論性能情報（60%で提供）"
+      },
+      {
+        "file": "Agent-shared/sota/sota_management.md",
+        "probability": 0.5,
+        "max_lines": 40,
+        "description": "SOTA管理方法（50%で提供）"
+      }
+    ],
+    "rare_full": [
+      {
+        "file": "BaseCode/README.md",
+        "probability": 0.2,
+        "max_lines": 30,
+        "description": "ベースコード概要（20%で提供）"
+      },
+      {
+        "file": "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
+        "probability": 0.15,
+        "max_lines": 50,
+        "description": "HPC最適化戦略（15%で提供）"
+      },
+      {
+        "file": "Agent-shared/ssh_guide.md",
+        "probability": 0.25,
+        "max_lines": 40,
+        "description": "SSH/SFTP実行方法（25%で提供）"
+      }
+    ],
+    "compact_recovery_hint": "⚠️ 記憶が部分的にリセットされた可能性があります。\n作業を再開する前に、以下を実行してください：\n- ls -R Agent-shared/ でファイル構造を確認\n- pwd で現在位置を確認\n- agent_send.sh PM '[{agent_id}] 記憶リセット後の再開' で状況報告"
+  },
+  "agent_tasks": {
+    "PG": [
+      "ローカルでコード生成・修正",
+      "SSH/SFTPでリモート転送（mcp__desktop-commander使用）",
+      "コンパイル実行と警告確認",
+      "適切なジョブリソースグループ選定（許可範囲内で）",
+      "ジョブ投入（sbatch/pjsub）",
+      "ジョブ状態確認（squeue/pjstat/pjstat2）",
+      "実行結果取得と性能評価",
+      "ChangeLog.md即座更新（生成時刻UTC必須）",
+      "SOTA判定と記録（local/family/hardware/project）",
+      "パラメータチューニング検討",
+      "次バージョンの最適化戦略立案"
+    ],
+    "SE": [
+      "User-shared/以下の既存レポート確認（ls -la User-shared/reports/）",
+      "重複レポート作成の防止（既存を更新）",
+      "全PGのChangeLog.md監視（5分以上更新なし→介入）",
+      "SOTA推移グラフ生成（時間軸優先、バージョン軸も可）",
+      "visualizations/画像の相対パス参照確認",
+      "Python可視化スクリプト再実行（ハードコード禁止）",
+      "停滞エージェントへの積極的介入",
+      "visible_path_*.txt作成・更新",
+      "コンテキスト使用率監視（30分ごと）",
+      "予算効率分析レポート"
+    ],
+    "PM": [
+      "全エージェント巡回（3-5分間隔）",
+      "agent_and_pane_id_table.jsonl確認",
+      "予算状況確認（budget_tracker.py --summary）",
+      "リソース再配分検討",
+      "directory_pane_map.md最新化",
+      "停滞エージェントへの!cdコマンド転属",
+      "stop_count確認と必要時リセット",
+      "requirement_definition.md達成度確認",
+      "プロジェクト終了判定",
+      "User-shared/final_report.md準備"
+    ],
+    "CD": [
+      "GitHub/へのプロジェクトコピー更新",
+      "SOTA達成コードの定期commit",
+      "ChangeLog.md更新の同期",
+      "個人情報の匿名化確認",
+      "git status確認",
+      "定期的なgit push（禁止されていない限り）",
+      ".gitignore管理",
+      "README.md更新",
+      "プルリクエスト準備"
+    ],
+    "SOLO": [
+      "要件定義と環境調査（PM役）",
+      "環境構築とmodule確認（SE役）",
+      "コード生成と最適化実装（PG役）",
+      "ジョブ実行と結果確認（PG役）",
+      "統計分析と可視化（SE役）",
+      "GitHub同期（CD役・必要時）",
+      "予算管理と進捗確認（PM役）",
+      "ToDoリストで役割管理",
+      "時間制限の確認",
+      "最終報告準備"
+    ]
+  }
+}
