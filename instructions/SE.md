@@ -88,7 +88,24 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 
 #### 主要タスク（必須・非同期）
 **優先順位（MUST順）**:
-1. **最優先: 予算閾値の設定**（プロジェクト開始時）
+1. **最優先: hardware_info.md作成**（プロジェクト開始直後）
+   - **SE主導で実施**（PGは最適化作業に専念させるため）
+   - **Agent-shared/hardware_info_guide.md**の手順に従い実施
+   - **実機でのコマンド実行が必須**（推測や仮定値は厳禁）
+   - バッチジョブまたはインタラクティブジョブでSSH接続して実行：
+     ```bash
+     # CPU情報取得
+     lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|Socket|MHz"
+     # GPU情報取得（存在する場合）  
+     nvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv
+     ```
+   - **理論演算性能の計算と記載**（SOTA判定の基準となるため必須）：
+     - FP64: `XXX.X GFLOPS`
+     - FP32: `XXX.X GFLOPS`
+   - **配置場所**: 各ハードウェア階層（例: `/Flow/TypeII/single-node/hardware_info.md`）
+   - **PGと協力**: 複数PGがいる場合は情報を統合（文殊の知恵）
+   
+2. **最優先: 予算閾値の設定**（プロジェクト開始時）
    - `requirement_definition.md`から予算制約（最低/想定/デッドライン）を確認
    - `Agent-shared/budget/budget_tracker.py`の`budget_limits`辞書を更新：
      ```python
