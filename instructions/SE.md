@@ -88,20 +88,25 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 
 #### 主要タスク（必須・非同期）
 **優先順位（MUST順）**:
-1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
-   - `python3 telemetry/context_usage_monitor.py --graph-type overview`
-   - 30分ごとに実行、マイルストーン画像保存（30, 60, 90, 120, 180分）
+1. **最優先: 予算閾値の設定**（プロジェクト開始時）
+   - `requirement_definition.md`から予算制約（最低/想定/デッドライン）を確認
+   - `Agent-shared/budget/budget_tracker.py`の`budget_limits`辞書を更新：
+     ```python
+     budget_limits = {
+         'Minimum (XXXpt)': XXX,  # 要件定義の最低値
+         'Expected (XXXpt)': XXX,  # 要件定義の想定値
+         'Deadline (XXXpt)': XXX   # 要件定義の上限値
+     }
+     ```
+   - **リソースグループ設定**: `_remote_info/`の情報に基づき`load_rates()`も修正
+     - 正しいリソースグループ名（例: cx-share→実際の名前）とGPU数、レートに修正
    
 2. **優先: SOTA性能グラフ**（プロジェクト成果の可視化）
    - `python3 Agent-shared/sota/sota_visualizer.py --level project`
    - 各レベル（project/family/hardware/local）で生成
    - 設計レベルから理解し、必要なら実装を読んで正確に生成
    
-3. **通常: 予算推移グラフ**
-   - **初期設定（重要）**: プロジェクト開始時に以下を必ず実施
-     1. `_remote_info/`でスパコン固有のリソースグループ名とレートを確認
-     2. `Agent-shared/budget/budget_tracker.py`の`load_rates()`メソッドを編集
-     3. 正しいリソースグループ名（例: cx-share→実際の名前）とGPU数、レートに修正
+3. **通常: 予算推移グラフ**（定期実行）
    - `python3 Agent-shared/budget/budget_tracker.py`で定期的に実行・確認
    - 線形回帰による予測とETA表示機能を活用
 
@@ -189,15 +194,10 @@ SEは定期的にサブエージェント（claude -p）の使用状況を分析
    - サブエージェントを活用すべき場面の特定
    - 各エージェントへの使用方法のアドバイス
 
-#### コンテキスト使用率監視
+#### エージェント健全性監視
 SEは定期的に以下のタスクを実行すること：
 
-1. **コンテキスト使用状況の確認**
-   - プロジェクトルートから `python telemetry/context_usage_monitor.py` を実行
-   - 全エージェントのコンテキスト使用率グラフを生成
-   - `python telemetry/context_usage_quick_status.py` でクイック確認
-
-2. **auto-compact発生時の対応**
+1. **auto-compact発生時の対応**
    - auto-compact直後のエージェントに以下のメッセージを送信：
      ```
      agent_send.sh [AGENT_ID] "[SE] auto-compactを検知しました。プロジェクトの継続性のため、以下のファイルを再読み込みしてください：
@@ -207,7 +207,7 @@ SEは定期的に以下のタスクを実行すること：
      - Agent-shared/directory_pane_map.txt（エージェント配置とペイン管理）"
      ```
 
-3. **エージェント健全性監視**
+2. **エージェント健全性監視**
    - **逸脱行動の検知**：
      - 担当外の並列化モジュールを実装（例：OpenMP担当がMPIを実装）
        → **重要**: 第1世代では必ず単一モジュールのみ。MPI担当がOpenMPを使い始めたら即座に指摘
