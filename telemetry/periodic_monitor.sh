@@ -167,7 +167,8 @@ while true; do
         if [ $ELAPSED_MINUTES -ge $MILESTONE ] && [ $LAST_MILESTONE -lt $MILESTONE ]; then
             echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Milestone $MILESTONE minutes reached, saving..." >> "$LOG_FILE"
             
-            # コンテキスト使用率のマイルストーン保存
+            # コンテキスト使用率のマイルストーン保存（visualizations直下のみ）
+            # 注: context_usage_monitor.pyは自動的にvisualizations/context_usage_${MILESTONE}min.pngを生成
             $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" \
                 --graph-type overview --max-minutes $MILESTONE 2>&1 | tail -5 >> "$LOG_FILE"
             

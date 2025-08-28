@@ -354,9 +354,9 @@ class BudgetTracker:
                     
                     # 閾値到達時刻の計算
                     budget_limits = {
-                        'Minimum (1000pt)': 1000,
-                        'Expected (2000pt)': 2000,
-                        'Deadline (3000pt)': 3000
+                        'Minimum (500pt)': 500,
+                        'Expected (1000pt)': 1000,
+                        'Deadline (1500pt)': 1500
                     }
                     
                     # 現在のポイント（実行中のジョブがある場合は推定値）

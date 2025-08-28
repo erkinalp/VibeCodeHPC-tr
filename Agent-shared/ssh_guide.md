@@ -10,8 +10,23 @@ MCPサーバ（wcgw、DesktopCommanderなど）を活用することで以下の
 
 ## 運用方針
 
+### Desktop Commander MCPの使用とフォールバック
+**重要**: Desktop Commander MCPで約4割が失敗する問題があるため、以下の方針で対処：
+
+1. **初回試行**: Desktop Commander MCPを試みる
+2. **失敗時**: 即座に標準Bashツールにフォールバック
+3. **2段階認証の場合**: 後回しにしてPMに報告
+
+```bash
+# MCPでの試行（推奨）
+mcp__desktop-commander__start_process(command="ssh user@host")
+
+# 失敗時は標準Bashへフォールバック
+Bash(command="ssh user@host 'cd /path && sbatch job.sh'")
+```
+
 ### MCPサーバ使用対象
-- **PG（Program Generator）エージェント**: 主要なMCPサーバ使用者
+- **PG（Program Generator）エージェント**: 主要な使用者（失敗時はBashフォールバック）
   - ジョブ実行ログの取得
   - 大容量ファイルの転送（SFTP）
   - 長時間のコンパイル・実行処理

@@ -453,6 +453,9 @@ def generate_block_reason(stop_count, agent_info):
 最終報告:
 agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
 
+PMへの重要な依頼:
+agent_send.sh PM "[{agent_id}] 処理を停止する場合は、tmux send-keys -t [該当ペイン] Escape でESCキーを送信してください"
+
 その後、PMからの指示（ESC強制中止/続投/転属）を待ってください。
 sleep 20等を実行 → そのまま止まらずに追加で仕事がないかチェック → 定期的にPMに状況確認 … を繰り返して下さい。
 """
