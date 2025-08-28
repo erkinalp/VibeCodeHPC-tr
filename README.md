@@ -645,8 +645,8 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 ./communication/setup.sh 12 --hooks v2
 ```
 
-- **v3（推奨）**: 長期プロジェクトやauto-compact対策に有効。`auto_tuning_config.json`でカスタマイズ可能
-- **v2**: 短期プロジェクトや実験評価向け。エージェントが必要に応じてファイル読み込み
+- **v3**: マルチエージェントモードや長期プロジェクトに有効。`auto_tuning_config.json`でカスタマイズ可能
+- **v2**: シングルエージェントモードや短期実験評価向け。エージェントが必要に応じてファイル読み込み
 
 ⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機してしまう可能性があります
 
