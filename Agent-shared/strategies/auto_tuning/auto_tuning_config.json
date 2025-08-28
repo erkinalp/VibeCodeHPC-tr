@@ -190,7 +190,7 @@
       "User-shared/以下の既存レポート確認（ls -la User-shared/reports/）",
       "重複レポート作成の防止（既存を更新）",
       "全PGのChangeLog.md監視（5分以上更新なし→介入）",
-      "SOTA推移グラフ生成（時間軸優先、バージョン軸も可）",
+      "SOTA全レベル可視化（sota_visualizer.py --level all）",
       "visualizations/画像の相対パス参照確認",
       "Python可視化スクリプト再実行（ハードコード禁止）",
       "停滞エージェントへの積極的介入",

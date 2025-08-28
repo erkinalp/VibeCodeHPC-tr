@@ -123,16 +123,21 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
         # 上書き版のグラフ生成（簡潔なログ）
         $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" --graph-type overview 2>&1 | tail -2 >> "$LOG_FILE"
         
-        # SOTA可視化（存在する場合、全レベル一括生成）
-        if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
-            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level all 2>&1 | tail -2 >> "$LOG_FILE"
+        # 予算集計とSOTA可視化を時間差実行（負荷分散）
+        CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
+        
+        # 予算集計: 3分間隔（元のまま）
+        if [ $((CURRENT_MINUTES % BUDGET_INTERVAL_MIN)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
+            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
-        # 予算集計（設定可能な間隔）
-        CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
-        if [ $((CURRENT_MINUTES % BUDGET_INTERVAL_MIN)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
-            # 引数なしで実行（レポート生成＋グラフも自動生成）
-            $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
+        # SOTA可視化: 30分ごと+2分後（32, 62, 92分...）に実行
+        SOTA_AFTER_MIN=2  # 30分の2分後に実行
+        if [ $(((CURRENT_MINUTES - SOTA_AFTER_MIN) % 30)) -eq 0 ] && [ $CURRENT_MINUTES -ge $SOTA_AFTER_MIN ]; then
+            if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
+                echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Running SOTA visualization (after_30min)" >> "$LOG_FILE"
+                $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level all 2>&1 | tail -2 >> "$LOG_FILE"
+            fi
         fi
         
         sleep $UPDATE_INTERVAL_SEC
@@ -172,28 +177,31 @@ while true; do
             $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" \
                 --graph-type overview --max-minutes $MILESTONE 2>&1 | tail -5 >> "$LOG_FILE"
             
-            # 予算集計のマイルストーン保存
-            if [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
-                MILESTONE_TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-                SNAPSHOT_DIR="$PROJECT_ROOT/Agent-shared/budget/snapshots"
-                mkdir -p "$SNAPSHOT_DIR"
-                
-                # 引数なしで実行（レポート生成＋グラフも自動生成）
-                $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
-                
-                # マイルストーン時点の別名保存
-                if [ -f "$SNAPSHOT_DIR/latest.json" ]; then
-                    cp "$SNAPSHOT_DIR/latest.json" "$SNAPSHOT_DIR/budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json"
-                    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone saved: budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json" >> "$LOG_FILE"
+            # 予算集計のマイルストーン保存（after_30min: 1分遅延）
+            (
+                sleep 60  # 1分遅延で負荷分散
+                if [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
+                    MILESTONE_TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+                    SNAPSHOT_DIR="$PROJECT_ROOT/Agent-shared/budget/snapshots"
+                    mkdir -p "$SNAPSHOT_DIR"
+                    
+                    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone (after_30min) for ${MILESTONE}min" >> "$LOG_FILE"
+                    $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
+                    
+                    # マイルストーン時点の別名保存
+                    if [ -f "$SNAPSHOT_DIR/latest.json" ]; then
+                        cp "$SNAPSHOT_DIR/latest.json" "$SNAPSHOT_DIR/budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json"
+                        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone saved: budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json" >> "$LOG_FILE"
+                    fi
+                    
+                    # マイルストーン時点のグラフも別名保存
+                    GRAPH_PATH="$PROJECT_ROOT/User-shared/visualizations/budget_usage.png"
+                    if [ -f "$GRAPH_PATH" ]; then
+                        cp "$GRAPH_PATH" "$PROJECT_ROOT/User-shared/visualizations/budget_usage_${MILESTONE}min.png"
+                        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget graph saved: budget_usage_${MILESTONE}min.png" >> "$LOG_FILE"
+                    fi
                 fi
-                
-                # マイルストーン時点のグラフも別名保存
-                GRAPH_PATH="$PROJECT_ROOT/User-shared/visualizations/budget_usage.png"
-                if [ -f "$GRAPH_PATH" ]; then
-                    cp "$GRAPH_PATH" "$PROJECT_ROOT/User-shared/visualizations/budget_usage_${MILESTONE}min.png"
-                    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget graph saved: budget_usage_${MILESTONE}min.png" >> "$LOG_FILE"
-                fi
-            fi
+            ) &
             
             LAST_MILESTONE=$MILESTONE
         fi
