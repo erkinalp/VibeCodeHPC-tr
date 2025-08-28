@@ -101,10 +101,14 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
    - **リソースグループ設定**: `_remote_info/`の情報に基づき`load_rates()`も修正
      - 正しいリソースグループ名（例: cx-share→実際の名前）とGPU数、レートに修正
    
-2. **優先: SOTA性能グラフ**（プロジェクト成果の可視化）
-   - `python3 Agent-shared/sota/sota_visualizer.py --level project`
-   - 各レベル（project/family/hardware/local）で生成
-   - 設計レベルから理解し、必要なら実装を読んで正確に生成
+2. **優先: SOTA追加分析**（自動生成でカバーされない特殊ケースのみ）
+   - **基本グラフは自動生成済み**（periodic_monitor.shが30-45分ごとに生成）
+   - **SEが手動生成すべき特殊ケース**：
+     - 特定ファミリーの深掘り: `--specific OpenMP_MPI`など個別指定
+     - 理論性能比の調整: `--theoretical-ratio 0.5`（50%目標線）
+     - 理論性能非表示版: `--no-theoretical`（プレゼン用）
+     - 特定期間のみ: `--start-time "2025-01-01T10:00:00Z" --end-time "2025-01-01T12:00:00Z"`
+   - **重要**: 通常のproject/family/hardware/localは自動生成されるため手動実行不要
    
 3. **通常: 予算推移グラフ**（定期実行）
    - `python3 Agent-shared/budget/budget_tracker.py`で定期的に実行・確認

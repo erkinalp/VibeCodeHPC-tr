@@ -78,6 +78,27 @@ echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Using Python command: $PYTHON_CMD" >> "
 MILESTONES=(30 60 90 120 180)
 LAST_MILESTONE=0
 
+# プロジェクト開始時刻を読み取り
+PROJECT_START_TIME=""
+if [ -f "$PROJECT_ROOT/Agent-shared/project_start_time.txt" ]; then
+    PROJECT_START_TIME=$(head -n 1 "$PROJECT_ROOT/Agent-shared/project_start_time.txt" 2>/dev/null || echo "")
+fi
+
+# プロジェクト開始からの経過分数を計算
+get_elapsed_minutes() {
+    if [ -n "$PROJECT_START_TIME" ]; then
+        START_EPOCH=$(date -d "$PROJECT_START_TIME" +%s 2>/dev/null || echo "0")
+        if [ "$START_EPOCH" != "0" ]; then
+            CURRENT_EPOCH=$(date +%s)
+            echo $(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
+        else
+            echo "0"
+        fi
+    else
+        echo "0"
+    fi
+}
+
 # tmuxセッションが終了したら自動終了
 cleanup_and_exit() {
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Monitor terminated" >> "$LOG_FILE"
@@ -131,12 +152,48 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
-        # SOTA可視化: 30分ごと+2分後（32, 62, 92分...）に実行
-        SOTA_AFTER_MIN=2  # 30分の2分後に実行
-        if [ $(((CURRENT_MINUTES - SOTA_AFTER_MIN) % 30)) -eq 0 ] && [ $CURRENT_MINUTES -ge $SOTA_AFTER_MIN ]; then
-            if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
-                echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Running SOTA visualization (after_30min)" >> "$LOG_FILE"
-                $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" --level all 2>&1 | tail -2 >> "$LOG_FILE"
+        # SOTA可視化: 30分ごとに分散実行（30-45分の間で複数のレベルを順次生成）
+        # プロジェクト開始からの経過時間を基準に、相対時刻でグラフを生成
+        PROJECT_ELAPSED=$(get_elapsed_minutes)
+        if [ "$PROJECT_ELAPSED" -gt 0 ]; then
+            # 30分ごとのマイルストーンを基準に、そこから0-15分の間で分散
+            MILESTONE_BASE=$((PROJECT_ELAPSED / 30 * 30))  # 30, 60, 90...
+            OFFSET_FROM_MILESTONE=$((PROJECT_ELAPSED - MILESTONE_BASE))
+            
+            # 0-15分の間で異なるレベルのグラフを生成
+            if [ $OFFSET_FROM_MILESTONE -ge 2 ] && [ $OFFSET_FROM_MILESTONE -lt 17 ]; then
+                SOTA_CMD=""
+                case $OFFSET_FROM_MILESTONE in
+                    2|3)  # 32-33分: projectレベル
+                        SOTA_CMD="--level project --x-axis time"
+                        ;;
+                    5|6)  # 35-36分: localレベル
+                        SOTA_CMD="--level local --x-axis time"
+                        ;;
+                    8|9)  # 38-39分: familyレベル（全て）
+                        SOTA_CMD="--level family --x-axis time"
+                        ;;
+                    11|12) # 41-42分: hardwareレベル
+                        SOTA_CMD="--level hardware --x-axis time"
+                        ;;
+                    14|15) # 44-45分: カウントベース
+                        SOTA_CMD="--level project --x-axis count"
+                        ;;
+                esac
+                
+                # 効率化版を優先的に使用
+                if [ -n "$SOTA_CMD" ]; then
+                    if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer_efficient.py" ]; then
+                        # 効率化版がある場合はそれを使用（レベルごとに一括生成）
+                        LEVEL_ONLY=$(echo $SOTA_CMD | grep -oP '(?<=--level )\w+')
+                        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA efficient: level=$LEVEL_ONLY (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
+                        $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer_efficient.py" --level $LEVEL_ONLY 2>&1 | tail -2 >> "$LOG_FILE"
+                    elif [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
+                        # 従来版へのフォールバック
+                        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA vis: $SOTA_CMD (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
+                        $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" $SOTA_CMD 2>&1 | tail -2 >> "$LOG_FILE"
+                    fi
+                fi
             fi
         fi
         
