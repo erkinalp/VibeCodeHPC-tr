@@ -131,8 +131,45 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
    - `python3 Agent-shared/budget/budget_tracker.py`で定期的に実行・確認
    - 線形回帰による予測とETA表示機能を活用
 
-**PNG確認方法**:
-生成したPNGは `claude -p "このグラフの概要を説明" < path/to/image.png` で内容確認（トークン節約）
+**画像確認とデータ整合性の鉄則（最重要）**:
+
+1. **画像は必ずサブエージェントで確認**（自己防衛）
+```bash
+# ✅ 正しい方法（プロジェクトルートからの絶対パスまたは相対パス調整）
+# SEが例えば Flow/TypeII/single-node/ にいる場合
+claude -p "このSOTAグラフから読み取れる性能値を列挙" < ../../../User-shared/visualizations/sota/sota_project_time_linear.png
+
+# または絶対パスで指定
+PROJECT_ROOT=$(pwd | sed 's|\(/VibeCodeHPC[^/]*\).*|\1|')
+claude -p "グラフの性能値を教えて" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png
+
+# ❌ 絶対に避ける（auto-compact誘発）
+Read file_path="/path/to/graph.png"  # メインコンテキストで直接読み込み
+```
+
+2. **SOTA可視化の整合性確認（SE中核業務）**
+```bash
+# プロジェクトルートを取得
+PROJECT_ROOT=$(pwd | sed 's|\(/VibeCodeHPC[^/]*\).*|\1|')
+
+# グラフとChangeLog.mdの相互検証
+claude -p "グラフに表示されている全ての性能値をリストアップ" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png > graph_values.txt
+grep "GFLOPS" */ChangeLog.md | grep -oE "[0-9]+\.[0-9]+" > changelog_values.txt
+diff graph_values.txt changelog_values.txt  # 抜けがないか確認
+
+# sota_local.txtとの照合（ファミリー別グラフ）
+claude -p "このグラフの最高値を教えて" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_family_OpenMP_time_linear.png
+cat OpenMP/sota_local.txt  # 一致するか確認
+```
+
+3. **解像度管理の方針**
+- **序盤（〜60分）**: 低解像度（DPI 80-100）でトークン節約
+- **中盤以降**: 実験報告用に高解像度（DPI 150-200）に切り替え
+  ```bash
+  # PMに提案
+  agent_send.sh PM "[SE] 60分経過したので実験報告用に高解像度グラフを生成します"
+  ```
+- **注意**: マイルストーン版（30/60/90分）は常に高解像度で保持
 
 - エージェント統計
 - ログ可視化  
