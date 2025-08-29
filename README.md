@@ -38,9 +38,9 @@ graph TD
 
 | Agent | 役割 | 主要成果物 | 責任範囲 |
 |-------|------|------------|----------|
-| **PM** | プロジェクト統括 | assign_history.txt<br/>User-shared/final_report.md | 要件定義・リソース配分・予算管理 |
-| **SE** | システム設計 | User-shared/reports/<br/>User-shared/visualizations/ | エージェント監視・統計分析・レポート生成 |
-| **PG** | コード生成・実行 | ChangeLog.md<br/>sota_local.txt<br/>job_list_PG*.txt | 並列化実装・SSH/SFTP接続・ジョブ実行・性能測定・SOTA判定 |
+| **PM** | プロジェクト統括 | directory_pane_map.md<br/>User-shared/final_report.md | 要件定義・リソース配分・予算管理 |
+| **SE** | システム設計 | User-shared/の画像とレポート | エージェント監視・統計分析・レポート生成 |
+| **PG** | コード生成・実行 | ChangeLog.md<br/>sota_local.txt | 並列化実装・SSH/SFTP接続・ジョブ実行・性能測定 |
 | **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
 
 ## 📁 ディレクトリ構造
@@ -52,9 +52,7 @@ VibeCodeHPC/🤖PM
 ├── 📄 directory_pane_map.md         # エージェント配置とtmuxペイン統合管理
 ├── 📄 sota_project.txt              # プロジェクト全体SOTA
 │
-├── 📁 Agent-shared/                 # 全エージェント共有
-│   ├── 📄 ChangeLog_format.md       # 基本フォーマット
-│   └── 📄 budget_history.md         # 予算使用履歴
+├── 📁 Agent-shared/                 # エージェント共有指示書
 │
 ├── 📁 User-shared/                  # ユーザ向け成果物
 │   ├── 📄 final_report.md           # 最終報告書
@@ -63,20 +61,17 @@ VibeCodeHPC/🤖PM
 │
 ├── 📁 BaseCode/                     # 既存のオリジナルコード
 │
-├── 📁 communication/                # tmux通信システム
-│   ├── 🔧 agent_send.sh
-│   └── 🔧 setup.sh
+├── 📁 communication/                # エージェント起動・tmux通信システム
 │
 ├── 📁 GitHub/🤖CD
 │
 └── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
-    ├── 📄 hardware_info.md          # ハードウェア仕様（理論性能含む）
-    ├── 📄 sota_hardware.txt         # 指定ハード内の Hardware SOTA
+    ├── 📄 hardware_info.md          # 計算ノードのスペック情報
+    ├── 📄 sota_hardware.txt         # 指定ハード内のSOTA
     ├── 📁 intel2024/                 # コンパイラ環境                       
     │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
     │        ├── 📄 ChangeLog.md      # 進捗記録
-    │        ├── 📄 sota_local.txt
-    │        └── 📄 matrix_v1.2.3.c
+    │        └── 📄 sota_local.txt
     └── 📁 gcc11.3.0/                 # 別コンパイラ
         └── 📁 CUDA/🤖PG1.2.1
 ```
@@ -402,9 +397,9 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 
 > [!WARNING]
 > **mcp-screenshotはWSLでは機能しません**
-> WSL環境ではスクリーンショット機能が動作しないため、ネイティブLinuxまたはmacOSでの使用を推奨します。
+> WSL環境ではスクリーンショット機能が動作しないため、OSネイティブなコマンドプロンプトでの使用を推奨します。
 
-設定後、Claude Codeを起動します。起動方法は以下に示す２通り（OpenTelemetry有無）
+
 
 ![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
 ---
@@ -473,7 +468,7 @@ Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
 
 </details>
 
-### 🆕 シングルエージェントモード (v0.5.3+)
+### 🤖シングルエージェントモード (v0.5.3+)
 
 <details>
 <summary>実験評価用シングルエージェントモード（クリックで展開）</summary>
@@ -537,7 +532,7 @@ agent_send.shは使用不要です（通信相手がいないため）。
 ### マルチエージェント:tmuxセッション作成
 
 > [!IMPORTANT]
-> VibeCodeHPCは2つ以上ののtmuxセッションを使用します：
+> VibeCodeHPCは複数のtmuxセッションを使用します：
 > - **PMセッション**: PMエージェント専用（ユーザとの対話用）
 >   - デフォルト: `Team1_PM`
 >   - プロジェクト指定時: `{ProjectName}_PM`
@@ -545,7 +540,7 @@ agent_send.shは使用不要です（通信相手がいないため）。
 >   - デフォルト: `Team1_Workers1`
 >   - プロジェクト指定時: `{ProjectName}_Workers1`
 > 
-> 最小エージェント数は2です（SE + PG）。解像度に応じて調整してください。
+> 最小エージェント数は2です（SE + PG）
 
 ```bash
 cd VibeCodeHPC-jp-main
@@ -634,21 +629,20 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 #### 主な機能
 - [x] **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
 - [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
-- [x] **v2/v3切り替え**: プロジェクト特性に応じたhooks動作の選択
 
-#### Hooksバージョンの選択
+#### STOP Hooksバージョンの選択
 ```bash
-# v3（デフォルト）: ファイル内容を確率的に埋め込み、自律性重視
+# v3（デフォルト）確率的に生のドキュメントを提供
 ./communication/setup.sh 12
 
-# v2: ファイルパスのみ提供、軽量動作
+# v2: ファイルパスのみ提供
 ./communication/setup.sh 12 --hooks v2
 ```
 
 - **v3**: マルチエージェントモードや長期プロジェクトに有効。`auto_tuning_config.json`でカスタマイズ可能
 - **v2**: シングルエージェントモードや短期実験評価向け。エージェントが必要に応じてファイル読み込み
 
-⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機してしまう可能性があります
+⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機状態に入りプロジェクト未達成のまま終了するリスク大
 
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 
@@ -666,7 +660,7 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
 - agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
-- directory_pane_map.txt（エージェント配置とペイン管理）
+- directory_pane_map_example.md（エージェント配置とペイン管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 
 全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
@@ -691,7 +685,8 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 ![Hardware Level SOTA Performance](_images/generation_hardware_count.png)
 
-上図は真のハードウェアレベル（single-node構成）での性能推移を示しています。異なるミドルウェア（gcc, intel等）のデータを統合し、ハードウェア構成全体でのSOTA（State-of-the-Art）を追跡。各階段は新たなSOTA達成を表し、全ミドルウェアを通じた最高性能の変遷を可視化しています。
+異なるミドルウェア（gcc, intel等）のデータを統合し、ハードウェア（single-node）構成全体での性能変遷が自動プロットされる。
+特にその時点での最高性能：SOTA（State-of-the-Art）を可視化する。
 
 ### 予算消費のリアルタイム追跡
 
