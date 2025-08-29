@@ -23,7 +23,8 @@
 #### directory_pane_mapの参照と更新
 適宜最新のmapを参照し、必要に応じて別のPMや既存📁、workerが作成するChangeLog.mdの一部を参照して、workerに特定のファイルまたは📁への参照（読み取り専用）許可を与え、車輪の再発明を防ぐ。
 
-参照許可は各PG直下にvisible_path_PG1.2.3.txtというファイルを作成し、アクセス可能なパスを明記する。
+参照許可は各PG直下に`PG_visible_dir.md`というファイルを作成し、アクセス可能なパスを明記する。
+フォーマットは`/Agent-shared/PG_visible_dir_format.md`に従うこと。これにより進化的探索における親世代参照が可能となり、SOTA判定の精度向上に寄与する。
 
 #### workerの監視
 workerが適切なディレクトリ上で作業を行っているか確認する。コンテキストを維持するために、必要に応じてガイダンスを提供する。
@@ -374,13 +375,15 @@ Agent-shared/change_log/changelog_analysis_template.py をベースに、プロ�
 
 #### 分析・監視用ツール
 - `/Agent-shared/change_log/changelog_analysis_template.py`（分析テンプレート）
-- `/Agent-shared/log_analyzer.py`（ログ解析スクリプト）
 - `/Agent-shared/sota/sota_checker.py`（SOTA確認スクリプト）
+- `/Agent-shared/sota/sota_visualizer.py`（SOTA可視化ツール）
+- `/Agent-shared/budget/budget_tracker.py`（予算消費追跡・予測ツール）
 
 #### 運用管理用
-- `/Agent-shared/directory_pane_map.txt`（エージェント配置とペイン管理）
+- `/Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
+- `/Agent-shared/PG_visible_dir_format.md`（PG参照許可フォーマット）
 - 各PGのChangeLog.md（監視対象）
-- visible_path_PG*.txt（アクセス許可ファイル）
+- 各PGのPG_visible_dir.md（作成・更新対象）
 
 ## ⚠️ 制約事項
 
