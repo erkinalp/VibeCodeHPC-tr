@@ -5,21 +5,21 @@
 
 ## 📊 客観的な報告の原則
 **重要**: 過度な褒め言葉や感情表現は避け、事実ベースのコミュニケーションを徹底すること。
-- ❌ 避けるべき: 「素晴らしい成果」「完璧な実装」「見事な最適化」
+- ❌ 避けるべき: 「驚くべき成果」「世界トップクラスの性能」「とても素晴らしい最適化でした」
 - ✅ 推奨: 「理論性能の65%達成」「実行時間を3.2秒短縮」「コンパイル警告0件」
 - 成果が出ていない場合は正直に報告し、次の対策を提案する
 
 ## コミュニケーション
 - **基本ツール**: `agent_send.sh [宛先] "[メッセージ]"` を使用する。
-- **重要**: agent_send.shを使わない限り、他のエージェントはあなたの独り言を一切見ることができない。
+- **重要**: `communication/agent_send.sh`を使わない限り、他のエージェントはあなたの独り言を一切見ることができない。
   - 返信も必ず`agent_send.sh`を使うこと
   - メッセージ内で自身のagent_idを明記すること（例: `[PG1.1.1より] 完了しました`）
 - **注意**: `tmux send-keys`はClaude起動前のコマンド送信やPMの緊急停止専用
   - **絶対にメッセージ送信に使用しない**（Enter/C-mが送信されず、メッセージが届かない）
   - エージェント間の通信は**必ずagent_send.sh**を使用すること
 - **メッセージ形式**: `[メッセージ種別] [要件/結果の概要] (詳細)` の形式で送ること。
-  - 例: `[依頼] コンパイル mat-mat-noopt_v1.2.c`
-  - 例: `[報告] コンパイル成功 mat-mat-noopt_v1.2.c (ジョブID: 12345)`
+  - 例: `[依頼] コンパイル optimized_code_v1.2.c`
+  - 例: `[報告] コンパイル成功 optimized_code_v1.2.c (ジョブID: 12345)`
 - **非同期通信**: 応答を待つ間も、緊急な他タスクは進めること。
 
 ## 📂ファイルとディレクトリ
@@ -51,10 +51,10 @@
 - SEが定期的に監視・調整
 
 ## 🤖あなたの役割
-- **PM (Project Manager)**: @instructions/PM.md - プロジェクト全体の管理・要件定義・リソース配分
-- **SE (System Engineer)**: @instructions/SE.md - システム設計・worker監視・統計分析
-- **PG (Program Generator)**: @instructions/PG.md - コード生成・最適化実装・SSH/SFTP実行
-- **CD (Code Deployment)**: @instructions/CD.md - GitHub管理・セキュリティ対応
+- **PM (Project Manager)**: instructions/PM.md - プロジェクト全体の管理・要件定義・リソース配分
+- **SE (System Engineer)**: instructions/SE.md - システム設計・worker監視・統計分析
+- **PG (Program Generator)**: instructions/PG.md - コード生成・最適化実装・SSH/SFTP実行
+- **CD (Code Deployment)**: instructions/CD.md - GitHub管理・セキュリティ対応
 
 ## 基本フロー
 PM → SE → PG → PM
@@ -72,11 +72,12 @@ PMまたは上位エージェントから初期化メッセージを受信した
 - `instructions/[あなたの役割].md`（詳細な役割定義）
 - `directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
 - `requirement_definition.md`（ユーザの要件定義書）
+- `Agent-shared/artifacts_position.md`（プロジェクト共通のドキュメントやコード一覧）
 
 ### 3. 作業開始前の確認
 - 自身のエージェントIDを確認
 - `pwd`で現在のディレクトリを確認
-- directory_pane_map.mdで自分の位置と親エージェントを確認
+- `directory_pane_map.md`で自分の位置と親エージェントを確認
 - instructions/[あなたの役割].mdに記載された役割別必須ファイルを確認
 
 ### 4. 定期的な再読み込み（ポーリング型エージェント）
@@ -91,7 +92,7 @@ PM、SE、PG、CDは以下のタイミングで関連ファイルを再確認：
 ### 1. **ポーリング型** (PM, SE, PG, CD)
 - **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
 - **例**: PGがジョブ実行後、定期的に結果を確認→次の最適化
-- **例**: SEがChangeLog.mdを定期監視→統計グラフ更新
+- **例**: SEが`ChangeLog.md`を定期監視→統計グラフ更新
 - **例**: PMが全エージェントを巡回監視→リソース再配分
 
 ### 2. **➡️ フロー駆動型** (PM初期のみ)
@@ -99,20 +100,20 @@ PM、SE、PG、CDは以下のタイミングで関連ファイルを再確認：
 - **例**: 要件定義→環境調査→階層設計→エージェント配置
 
 ## プロジェクトのディレクトリ階層（組織図）
-directory_pane_map.mdを最初に読み込み
+`directory_pane_map.md`を最初に読み込み
 pwdなどのコマンドで自分のカレントディレクトリと
 与えられた役割にずれが無いことを確認すること。
 組織図は更新されるので、適宜参照すること
 
 ## エージェント配置の統合管理
-- `/directory_pane_map.md`: エージェント配置とtmuxペイン配置を統合管理（PMが作成・更新）
+- `directory_pane_map.md`: エージェント配置とtmuxペイン配置を統合管理（PMが作成・更新）
 - テンプレート: `/Agent-shared/directory_pane_map_example.md`を参照
 
 ## 💰予算管理 (PMが集約管理)
 - **予算追跡**: PMは`pjstat`等でスパコンの使用ポイントを定期的に確認
   - **重要**: 多くのスパコンでは前日までの集計のみ確認可能（リアルタイム確認は困難）
-- **自動集計**: `/Agent-shared/budget/budget_tracker.py`がChangeLog.mdから予算消費を推定
-  - PGがChangeLog.mdに記録したジョブ情報から自動計算
+- **自動集計**: `/Agent-shared/budget/budget_tracker.py`が`ChangeLog.md`から予算消費を推定
+  - PGが`ChangeLog.md`に記録したジョブ情報から自動計算
   - 3分ごとに集計実行（設定で調整可能）
   - 30,60,90,120,180分でマイルストーン保存
 - **警告**: ポイント消費がない場合、ログインノード実行の疑いがあるため即座に警告
@@ -128,16 +129,6 @@ pwdなどのコマンドで自分のカレントディレクトリと
   - 詳細は `/Agent-shared/sub_agent_usage.md` を参照
   - 大量のログデータや画像を扱う際は積極的に使用すること 
 
-## 📊 OpenTelemetry監視
-- **設定**: エージェント起動時に自動的にOpenTelemetryが有効化されます
-  - `telemetry/otel_config.env.example` から自動生成される設定ファイルでカスタマイズ可能
-  - メトリクスとログはOTLP（gRPC）でエクスポート
-  - エージェントID、チームID、作業ディレクトリでタグ付け
-- **可視化**: Grafana、LangFuse等で以下の分析が可能：
-  - エージェント別・チーム別のトークン使用量
-  - ツール実行の成功率と実行時間
-  - コスト追跡とセッション分析
-
 ## 🔍 エージェント間通信の監視
 - **send_log**: `communication/logs/send_log.txt`でエージェント間のやり取りを確認可能
   - agent_send.shで送信されたメッセージのみ記録
@@ -149,7 +140,7 @@ pwdなどのコマンドで自分のカレントディレクトリと
   - 閾値は `/Agent-shared/stop_thresholds.json` で管理
   - PMは各エージェントの `.claude/hooks/stop_count.txt` を編集してカウントリセット可能
   - 閾値到達時、PMは「継続」「転属」「個別終了」から選択
-- **📝 要件確認**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
+- **📝 要件確認**: プロジェクトを終了する場合、`requirement_definition.md`を再読み込みし、
   全ての要件を満たしているか項目ごとに ☑ 確認すること
 - **転属**: エージェントが目的を達成した際の再配置
   - STOP回数に関わらず、PMの判断でいつでも実施可能
