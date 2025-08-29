@@ -10,8 +10,6 @@
 ```
 VibeCodeHPC/
 ├── CLAUDE.md                    # 共通ルール（writer:PM, reader:all）
-├── assign_history.txt           # PM管理（writer:PM, reader:all）
-├── resource_allocation.md       # リソース割り当て（writer:PM, reader:all）
 ├── sota_project.txt             # Project階層SOTA（writer:PG, reader:all）
 ├── history/
 │   └── sota_project_history.txt # Project SOTA履歴（writer:PG, reader:PM）
@@ -30,10 +28,10 @@ VibeCodeHPC/
 ```
 Agent-shared/
 ├── change_log/                  # ChangeLog関連ファイル
-│   ├── ChangeLog_format.md      # 基本フォーマット定義（writer:PM, reader:all）
-│   ├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:運営, reader:PM）
+│   ├── ChangeLog_format.md      # 基本フォーマット定義（reader:all）
+│   ├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:PM, reader:SE,PG）
 │   ├── changelog_analysis_template.py # 解析テンプレート（writer:SE, reader:all）
-│   └── changelog_helper.py      # ChangeLog記録ヘルパー（writer:all, reader:all）
+│   └── changelog_helper.py      # ChangeLog記録ヘルパー（writer:SE, reader:all）
 ├── budget/                      # 予算管理関連
 │   ├── budget_history.md        # 予算履歴（writer:PM, reader:all）
 │   ├── budget_history_template.md # 予算履歴テンプレート（writer:運営, reader:PM）
@@ -52,7 +50,7 @@ Agent-shared/
 ├── directory_pane_map_example.md # エージェント配置例（writer:運営, reader:PM）
 ├── hardware_info_guide.md       # ハードウェア情報収集ガイド（writer:SE, reader:all）
 ├── compile_warning_workflow.md  # コンパイル警告処理フロー（writer:SE, reader:PG）
-├── ssh_sftp_guide.md            # SSH/SFTP接続・実行ガイド（writer:PM, reader:PG/SE）
+├── ssh_sftp_guide.md            # SSH/SFTP接続・実行ガイド（reader:PM,SE,PG）
 ├── sub_agent_usage.md           # サブエージェント使用法（writer:PM, reader:all）
 ├── multi_agent_comparison.md    # マルチエージェント比較（writer:運営, reader:PM）
 ├── report_hierarchy.md          # レポート階層構成（writer:SE, reader:all）
