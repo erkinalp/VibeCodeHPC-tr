@@ -13,6 +13,11 @@
 4. テストコード作成
 5. システム環境整備
 
+## 計算ノードのスペック調査
+PMの指示があった場合、以下のファイルを読んでから作業にあたること
+- `/Agent-shared/ssh_sftp_guide.md`
+- `/Agent-shared/hardware_info_guide.md`
+
 ## 🔄 基本ワークフロー
 
 ### フェーズ1: 環境確認
@@ -74,13 +79,12 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 **重要**: PMが作成する`directory_pane_map.md`（プロジェクトルート直下）のフォーマットを監視し、以下を確認：
 
 1. **Markdown記法の厳守**
-   - 特表は`|`を使用したMarkdownテーブル記法を必須
-   - `----`や`||`などの独自記法は使用禁止
+   - 特表は`|`を使用したMarkdownテーブル記法
+   - `----`や`||`などの独自記法によるpane可視化は非推奨
    - `/Agent-shared/directory_pane_map_example.md`のフォーマットを参照
 
 2. **色の一貫性**
    - PGエージェントごとに統一された色を使用
-   - 例: gcc系PGは🔵、intel系PGは🔴など
    - SOTAグラフでも同じ色マッピングを反映させることを推奨
 
 3. **フォーマット違反への対応**
@@ -164,7 +168,7 @@ cat OpenMP/sota_local.txt  # 一致するか確認
 ```
 
 3. **解像度管理の方針**
-- **序盤（〜60分）**: 低解像度（DPI 80-100）でトークン節約
+- **序盤**: 低解像度（DPI 80-100）でトークン節約
 - **中盤以降**: 実験報告用に高解像度（DPI 150-200）に切り替え
   ```bash
   # PMに提案
@@ -456,7 +460,7 @@ def calculate_efficiency(performance_gain, points_used):
 1. [ ] 最終的な統計グラフ生成
    - 全PGの性能推移を統合したグラフ
    - SOTA達成履歴の時系列グラフ
-   - `/User-shared/visualizations/final_*.png`として保存
+   - `/User-shared/visualizations/*.png`として保存
 2. [ ] ChangeLog.mdの統合レポート作成
    - 全PGのChangeLog.mdを解析
    - 成功率、試行回数、性能向上率を集計

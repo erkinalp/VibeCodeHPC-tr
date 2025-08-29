@@ -90,6 +90,9 @@ todos = [
    - requirement_definition.md確認または対話的に作成
 
 ### フェーズ2: 環境構築（SE役割）
+- `Agent-shared/ssh_sftp_guide.md`
+- `/Agent-shared/hardware_info_guide.md`
+上記２ファイルを必ずREADしてからSSH等を行うこと
 ```bash
 # SSH接続とmodule確認
 mcp__desktop-commander__start_process(command="ssh user@host")

@@ -28,6 +28,7 @@
    - `CLAUDE.md`（全エージェント共通ルール）
    - `Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層設計の具体例）
    - `Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
+   - `Agent-shared/ssh_sftp_guide.md`（SSH/SFTP接続・実行ガイド）
 
 3. **BaseCode/の確認**
    - _remote_info確認後に既存コードを確認
