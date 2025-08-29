@@ -1,4 +1,4 @@
-#　📋 VibeCodeHPC 成果物配置ガイド
+# 📋 VibeCodeHPC 成果物配置ガイド
 
 ## 核心原則
 - ChangeLog.md中心設計: 進捗情報の一元管理
@@ -15,7 +15,7 @@ VibeCodeHPC/
 ├── directory_pane_map.md        # エージェント配置とtmuxペイン管理（writer:PM, reader:all）
 ├── sota_project.txt             # Project階層SOTA（writer:PG, reader:all）
 ├── GitHub/                      # CD管理（writer:CD, reader:all）
-│   └── [プロジェクトコピー]
+│   └── [匿名版プロジェクトコピー]
 └── User-shared/                 # ユーザ向け成果物（writer:SE/PM, reader:User）
     ├── final_report.md          # 最終報告書
     ├── reports/                 # 統合レポート
