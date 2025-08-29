@@ -28,9 +28,9 @@
         "latest_entries": 3,
         "description": "作業履歴（最新3エントリ）"
       },
-      "Agent-shared/ssh_guide.md": {
+      "Agent-shared/ssh_sftp_guide.md": {
         "probabilities": {"PM": 0.2, "PG": 0.35, "SE": 0.05, "SOLO": 0.3},
-        "description": "SSH/SFTP実行方法"
+        "description": "SSH/SFTP接続・実行ガイド"
       },
       "Agent-shared/agent_and_pane_id_table.jsonl": {
         "probabilities": {"PM": 0.2, "SE": 0.05, "SOLO": 0.05},

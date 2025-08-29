@@ -30,7 +30,7 @@
 - `/Agent-shared/sota/sota_management.md`（SOTA判定基準と階層）
 - `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
 - `/Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層構造の具体例）
-- `/Agent-shared/ssh_guide.md`（SSH接続とファイル転送のガイド）
+- `/Agent-shared/ssh_sftp_guide.md`（SSH/SFTP接続・実行ガイド）
 
 #### プロジェクト実行時
 - `hardware_info.md`（理論性能目標 - ハードウェア階層に配置）
@@ -102,31 +102,13 @@ date -u +"%Y-%m-%dT%H:%M:%SZ"
 
 #### SSH/SFTP実行管理
 
-##### Desktop Commander MCPの使用
-```python
-# MCPが利用可能な場合（推奨）
-mcp__desktop-commander__start_process(command="ssh user@host")
-mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="cd /path && make")
+Desktop Commander MCPを使用してSSH/SFTP接続を管理します。
+詳細な実装方法とベストプラクティスは `/Agent-shared/ssh_sftp_guide.md` を参照してください。
 
-# ファイル転送
-mcp__desktop-commander__start_process(command="sftp user@host")
-mcp__desktop-commander__interact_with_process(pid=sftp_pid, input="put optimized.c")
-```
-
-##### MCPが利用不可の場合
-```bash
-# 標準のBashツールを使用
-Bash(command="ssh user@host 'cd /path && make'")
-Bash(command="scp local.c user@host:/path/")
-```
-
-##### エラー処理（重要）
-SSH/SFTP実行に失敗した場合は、必ずagent_send.shでPMに通知：
-```bash
-agent_send.sh PM "[PG1.1.1] SSH実行失敗：2段階認証の可能性があります。MCP設定を確認してください"
-```
-
-**注意**: エラーメッセージを標準出力に表示しても他エージェントには伝わりません。必ずagent_send.sh経由で通知してください。
+**重要なポイント**:
+- セッション作成時は必ずPIDを記録し、`ssh_sftp_sessions.json`で管理
+- エラー時はBashツールへのフォールバックを実装
+- エラーメッセージは必ずagent_send.sh経由でPMに通知
 
 #### コンパイル実行と警告文の確認
 自分でコンパイルを実行し、警告を直接確認する：
@@ -152,7 +134,7 @@ agent_send.sh PM "[PG1.1.1] SSH実行失敗：2段階認証の可能性があり
 
 #### ジョブ実行と結果確認
 1. **ジョブ投入**
-   ```bash
+   ```python
    # バッチジョブ実行（推奨）
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="sbatch job.sh")
    ```

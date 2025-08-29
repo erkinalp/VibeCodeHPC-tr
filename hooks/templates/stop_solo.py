@@ -158,7 +158,7 @@ SOLOエージェントとして以下の終了前タスクを実行してくだ�
 - Agent-shared/budget/budget_history.md
 - Agent-shared/sota/sota_visualizer.py（SOTA可視化必須タスク）
 - telemetry/context_usage_monitor.py（コンテキスト監視必須タスク）
-- Agent-shared/ssh_guide.md（SSH/SFTP実行方法）
+- Agent-shared/ssh_sftp_guide.md（SSH/SFTP接続・実行ガイド）
 - hardware_info.md（理論性能目標）
 - 現在のディレクトリのChangeLog.md
 
