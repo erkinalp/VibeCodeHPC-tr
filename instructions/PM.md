@@ -116,7 +116,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 - ✅ 推奨: `/OpenMP/`, `/MPI/`, `/CUDA/` など単一技術
 - 理由: 各技術の基礎性能を把握してから融合することで、効果的な最適化が可能
 
-`Agent-Shared/directory_pane_map.md`に📁階層とtmuxペイン配置を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
+`directory_pane_map.md`（プロジェクトルート直下）に📁階層とtmuxペイン配置を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
 
 
 ### フェーズ4: プロジェクト初期化
@@ -266,7 +266,7 @@ agent_send.sh PG1.1.1 "あなたはPG1.1.1（コード生成・SSH/SFTP実行エ
 プロジェクトルート発見後、以下のファイルを読み込んでください：
 - CLAUDE.md（全エージェント共通ルール）
 - instructions/PG.md（あなたの役割詳細）  
-- Agent-shared/directory_pane_map.md（エージェント配置とtmuxペイン統合管理）
+- directory_pane_map.md（エージェント配置とtmuxペイン統合管理 - プロジェクトルート直下）
 - 現在のディレクトリのChangeLog.md（存在する場合）
 
 【通信方法】
@@ -306,7 +306,7 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
 - Claude起動後、**1秒以上待機**してから初期化メッセージを送信すること
 - 初期化メッセージなしでは、エージェントは自分の役割を理解できない
 
-いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。/Agent-shared/directory_pane_map.mdの更新を忘れてはならない。
+いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。directory_pane_map.mdの更新を忘れてはならない。
 
 #### directory_pane_mapの更新ルール
 1. **即時更新**: エージェントを割り当てた直後に必ず更新する
@@ -330,7 +330,7 @@ agent_send.sh PG1.1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1
    - directory_pane_map.md更新時はディレクトリ構造とtmuxペイン配置を両方記載
    
 #### directory_pane_map.mdのフォーマット厳守
-**重要**: `/directory_pane_map.md`は必ずMarkdown記法を厳守すること
+**重要**: `directory_pane_map.md`（プロジェクトルート直下）は必ずMarkdown記法を厳守すること
 
 1. **Markdownテーブル記法の使用**
    ```markdown
@@ -387,9 +387,8 @@ PGが4人いる際（PG1.1.1~PG1.1.4）、1人追加した際は新たに追加�
    - 新規タスクの割り当て
    - **重要**: 中盤以降は人員維持を最優先（auto-compact対策）
 
-3. **directory_pane_map更新**
-   - 実際の配置状況を反映
-   - future_directory_pane_map.mdとの差分確認
+3. **directory_pane_map.md更新**
+   - 実際の配置状況を反映（プロジェクトルート直下）
    - working_dirとの整合性確認
 
 4. **ToDoリスト整理**
@@ -450,7 +449,7 @@ PM ≦ SE ≦ PG構成の場合（人数構成）
 - `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
 
 #### プロジェクト管理用
-- `/Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
+- `/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理 - プロジェクトルート直下）
 - `/Agent-shared/budget/budget_tracker.py`（予算自動集計システム）
 - `/Agent-shared/budget/usage.md`（予算集計システム使用ガイド）
 - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`（フォーマット定義用）

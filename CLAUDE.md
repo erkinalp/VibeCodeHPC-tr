@@ -70,7 +70,7 @@ PMまたは上位エージェントから初期化メッセージを受信した
 以下のファイルは全エージェントが必ず読み込むこと：
 - `CLAUDE.md`（このファイル - 全エージェント共通ルール）
 - `instructions/[あなたの役割].md`（詳細な役割定義）
-- `Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
+- `directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
 - `requirement_definition.md`（ユーザの要件定義書）
 
 ### 3. 作業開始前の確認
@@ -99,13 +99,13 @@ PM、SE、PG、CDは以下のタイミングで関連ファイルを再確認：
 - **例**: 要件定義→環境調査→階層設計→エージェント配置
 
 ## プロジェクトのディレクトリ階層（組織図）
-Agent-shared\directory_pane_map.mdを最初に読み込み
+directory_pane_map.mdを最初に読み込み
 pwdなどのコマンドで自分のカレントディレクトリと
 与えられた役割にずれが無いことを確認すること。
 組織図は更新されるので、適宜参照すること
 
 ## エージェント配置の統合管理
-- `/Agent-shared/directory_pane_map.md`: エージェント配置とtmuxペイン配置を統合管理（PMが作成・更新）
+- `/directory_pane_map.md`: エージェント配置とtmuxペイン配置を統合管理（PMが作成・更新）
 - テンプレート: `/Agent-shared/directory_pane_map_example.md`を参照
 
 ## 💰予算管理 (PMが集約管理)

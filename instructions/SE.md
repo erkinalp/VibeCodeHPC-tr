@@ -71,7 +71,7 @@ workerが適切なディレクトリ上で作業を行っているか確認す�
 - **進捗確認の原則**: 進捗報告を頻繁に求めるのではなく、ファイル生成やChangeLog.md更新などの実際の挙動で判断
 
 #### directory_pane_map.mdのフォーマット厳守
-**重要**: PMが作成する`/directory_pane_map.md`のフォーマットを監視し、以下を確認：
+**重要**: PMが作成する`directory_pane_map.md`（プロジェクトルート直下）のフォーマットを監視し、以下を確認：
 
 1. **Markdown記法の厳守**
    - 特表は`|`を使用したMarkdownテーブル記法を必須
@@ -263,7 +263,7 @@ SEは定期的に以下のタスクを実行すること：
      - CLAUDE.md（共通ルール）
      - instructions/[役割].md（あなたの役割）
      - 現在のディレクトリのChangeLog.md（進捗状況）
-     - Agent-shared/directory_pane_map.txt（エージェント配置とペイン管理）"
+     - directory_pane_map.md（エージェント配置とペイン管理 - プロジェクトルート直下）"
      ```
 
 2. **エージェント健全性監視**
@@ -380,7 +380,7 @@ Agent-shared/change_log/changelog_analysis_template.py をベースに、プロ�
 - `/Agent-shared/budget/budget_tracker.py`（予算消費追跡・予測ツール）
 
 #### 運用管理用
-- `/Agent-shared/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理）
+- `/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理 - プロジェクトルート直下）
 - `/Agent-shared/PG_visible_dir_format.md`（PG参照許可フォーマット）
 - 各PGのChangeLog.md（監視対象）
 - 各PGのPG_visible_dir.md（作成・更新対象）
