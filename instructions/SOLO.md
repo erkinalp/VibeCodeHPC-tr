@@ -105,6 +105,7 @@ mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module avail")
    - 即座にChangeLog.md更新
 
 2. **実行と測定**
+   **重要**: requirement_definition.mdで許可されていない限り、コンパイル・実行はすべてSSH経由でスパコン上で行うこと。
    ```bash
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="sbatch job.sh")
    # ポーリングで結果確認
