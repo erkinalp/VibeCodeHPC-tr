@@ -68,10 +68,6 @@
         "probabilities": {"PG": 0.15, "SE": 0.1, "SOLO": 0.1},
         "description": "SOTA判定スクリプト"
       },
-      "Agent-shared/log_analyzer.py": {
-        "probabilities": {"SE": 0.1},
-        "description": "ログ解析スクリプト（長い）"
-      },
       "Agent-shared/report_hierarchy.md": {
         "probabilities": {"SE": 0.2},
         "description": "レポート階層"
@@ -174,15 +170,14 @@
   },
   "agent_tasks": {
     "PG": [
-      "ローカルでコード生成・修正",
+      "ローカルでコード生成・修正 → 即座にChangeLog.mdに追記",
       "SSH/SFTPでリモート転送（mcp__desktop-commander使用）",
       "コンパイル実行と警告確認",
       "適切なジョブリソースグループ選定（許可範囲内で）",
-      "ジョブ投入",
+      "ジョブ投入 → 即座にChangeLog.md更新",
       "ジョブ状態確認",
-      "実行結果取得と性能評価",
-      "ChangeLog.md即座更新（生成時刻UTC必須）",
-      "SOTA判定と記録（local/family/hardware/project）",
+      "実行結果取得→ 即座にChangeLog.md更新",
+      "SOTA判定と記録（local/family/hardware/project）→ 即座にChangeLog.md更新",
       "パラメータチューニング検討",
       "次バージョンの最適化戦略立案"
     ],
@@ -190,7 +185,7 @@
       "User-shared/以下の既存レポート確認（ls -la User-shared/reports/）",
       "重複レポート作成の防止（既存を更新）",
       "全PGのChangeLog.md監視（5分以上更新なし→介入）",
-      "SOTA全レベル可視化（sota_visualizer.py --level all）",
+      "SOTA全レベル可視化されるようにChangeLog.md整備・更新促進（特にジョブの実行忘れ・スパコン上で結果が出ているのに未読のケース有）",
       "visualizations/画像の相対パス参照確認",
       "Python可視化スクリプト再実行（ハードコード禁止）",
       "停滞エージェントへの積極的介入",
@@ -206,7 +201,7 @@
       "停滞エージェントへの!cdコマンド転属",
       "stop_count確認と必要時リセット",
       "requirement_definition.md達成度確認",
-      "プロジェクト終了判定",
+      "予算・時間ベースのプロジェクト終了判定",
       "User-shared/final_report.md準備"
     ],
     "CD": [
@@ -224,6 +219,7 @@
       "環境構築とmodule確認（SE役）",
       "コード生成と最適化実装（PG役）",
       "ジョブ実行と結果確認（PG役）",
+      "ChangeLog.md更新（PG役）",
       "統計分析と可視化（SE役）",
       "GitHub同期（CD役・必要時）",
       "予算管理と進捗確認（PM役）",
