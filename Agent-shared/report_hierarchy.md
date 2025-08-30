@@ -38,49 +38,16 @@ VibeCodeHPCでは、技術的詳細から経営層向けまで、3段階のレ�
 ```
 VibeCodeHPC/
 ├── Agent-shared/                # エージェント用（技術的）
-│   ├── tools/
-│   │   ├── changelog_analyzer.py
-│   │   └── report_generator.py
-│   └── templates/
-│       └── report_template.md
+│   ├── sota/
+│   │   └── sota_visualizer.py  # SOTA可視化ツール
+│   └── budget/
+│       └── budget_tracker.py   # 予算追跡ツール
 └── User-shared/                 # ユーザ用（成果物）
     ├── final_report.md          # 最終報告書
     ├── reports/
     │   └── performance_summary.md
     └── visualizations/
-        ├── sota_trends.png
-        ├── efficiency_radar.png
-        └── cost_performance.png
-```
-
-## 二次レポート生成スクリプト例
-
-```python
-# Agent-shared/tools/generate_user_report.py
-import matplotlib.pyplot as plt
-import pandas as pd
-from pathlib import Path
-import datetime
-
-class UserReportGenerator:
-    def __init__(self):
-        self.output_dir = Path('User-shared/reports')
-        self.viz_dir = Path('User-shared/visualizations')
-        
-    def generate_summary_report(self):
-        # ChangeLog.mdからデータ収集
-        data = self.collect_performance_data()
-        
-        # グラフ生成（日本語ラベル）
-        self.create_performance_graph(data)
-        
-        # レポート生成
-        report = self.format_report(data)
-        
-        # 保存
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        report_path = self.output_dir / f'summary_{timestamp}.md'
-        report_path.write_text(report, encoding='utf-8')
+        └── sota/                # SOTA可視化グラフ
 ```
 
 ## レポート作成のタイミング
@@ -113,6 +80,6 @@ class UserReportGenerator:
 
 ## 注意事項
 
-- Agent-shared/には解析ツールやテンプレートを配置
+- Agent-shared/にはエージェント間で共有する技術的ツールを配置
 - User-shared/には最終成果物のみを配置
 - 機密情報の扱いに注意（特に最終報告書）
