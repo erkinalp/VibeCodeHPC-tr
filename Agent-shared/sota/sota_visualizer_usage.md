@@ -1,7 +1,7 @@
-# SOTA Visualizer 使用ガイド
+# SOTA Visualizer 使用ガイド（Pipeline Edition）
 
 ## 概要
-`sota_visualizer.py`は、VibeCodeHPCプロジェクトの4階層SOTA（State-of-the-Art）性能推移を可視化するツールです。
+`sota_visualizer.py`は、VibeCodeHPCプロジェクトの4階層SOTA（State-of-the-Art）性能推移を効率的に可視化するパイプライン型ツールです。メモリ効率とストレージIO最適化により、大規模プロジェクトでも高速動作します。
 
 ## SOTA階層の定義
 
@@ -23,18 +23,46 @@
 
 ## 基本的な使い方
 
+### パイプラインモード（推奨）
 ```bash
-# プロジェクト全体のSOTA推移（デフォルト）
+# デフォルト実行（local→hardware→project順に効率的処理）
 python Agent-shared/sota/sota_visualizer.py
 
-# 特定階層のSOTA推移
-python Agent-shared/sota/sota_visualizer.py --level local    # PGごと
-python Agent-shared/sota/sota_visualizer.py --level family   # ミドルウェアごと
-python Agent-shared/sota/sota_visualizer.py --level hardware # ハードウェアごと
+# デバッグモード（低解像度で高速）
+python Agent-shared/sota/sota_visualizer.py --debug
 
-# 全階層のグラフを一括生成
-python Agent-shared/sota/sota_visualizer.py --level all
+# サマリー表示（グラフ生成なし、データ確認のみ）
+python Agent-shared/sota/sota_visualizer.py --summary
+
+# 特定レベルのみ実行
+python Agent-shared/sota/sota_visualizer.py --levels local,project
+
+# 特定PGを高解像度で
+python Agent-shared/sota/sota_visualizer.py --specific PG1.2:150
 ```
+
+### 実行の流れ（重要）
+**自動定期実行（SEは触らない）**:
+- PMのhooksで既に自動起動されているはず
+- 30分ごとに`User-shared/visualizations/sota/`にPNG生成される
+- SEは定期実行を開始する必要なし（既に動いている）
+
+**SEの確認作業**:
+```bash
+# PNG生成を確認（画像を直接見ない）
+ls -la User-shared/visualizations/sota/**/*.png
+
+# データ整合性を確認
+python Agent-shared/sota/sota_visualizer.py --summary
+
+# 問題があればデバッグモードで調査
+python Agent-shared/sota/sota_visualizer.py --debug --levels local
+```
+
+**SEのカスタマイズ作業**:
+- プロジェクト固有のChangeLogフォーマットに合わせて`_parse_changelog()`を修正
+- 性能値の単位が異なる場合は正規表現を調整
+- 必要に応じて階層判定ロジックを改善
 
 ## オプション
 
@@ -135,27 +163,39 @@ python Agent-shared/sota/sota_visualizer_efficient.py --summary
 
 ## SEエージェントでの活用例
 
+### データ分析とカスタマイズ
 ```python
-# SEのChangeLog監視スクリプト内で
-import subprocess
-from pathlib import Path
+# プロジェクト固有のChangeLogフォーマットに対応
+# sota_visualizer.py の _parse_changelog() を直接編集
 
-# 定期的に全階層のグラフを更新
-def update_sota_graphs():
-    script_path = Path("Agent-shared/sota/sota_visualizer.py")
+def _parse_changelog(self, path: Path) -> List[Dict]:
+    """プロジェクト固有フォーマット対応"""
+    entries = []
     
-    # 全階層を一括生成
-    subprocess.run(["python", str(script_path), "--level", "all"])
+    # 例: 独自の性能単位 "iterations/sec" を使う場合
+    if 'iterations/sec' in line:
+        match = re.search(r'([\d.]+)\s*iterations/sec', line)
+        if match:
+            # GFLOPS相当値に変換（プロジェクト固有の計算）
+            current_entry['performance'] = float(match.group(1)) * 0.001
     
-    # 特に重要なプロジェクト全体は追加オプションで生成
-    subprocess.run(["python", str(script_path), 
-                   "--level", "project", 
-                   "--log-scale"])  # 対数版も生成
-    
-    print("✅ SOTA graphs updated")
+    # 例: タグ形式が異なる場合
+    elif line.startswith('## Version'):  # ### v ではなく ## Version
+        # プロジェクトに合わせて調整
+        ...
+```
 
-# 5分ごとに実行
-update_sota_graphs()
+### マルチプロジェクト統合
+```bash
+# 実験1のデータをエクスポート
+cd experiment1
+python Agent-shared/sota/sota_visualizer.py --export
+
+# 実験2のデータをエクスポート  
+cd ../experiment2
+python Agent-shared/sota/sota_visualizer.py --export
+
+# 後で統合スクリプトで合成（SE独自作成）
 ```
 
 ## トラブルシューティング
