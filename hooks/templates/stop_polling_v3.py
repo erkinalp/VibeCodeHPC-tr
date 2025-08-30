@@ -115,6 +115,8 @@ def get_stop_threshold(agent_id):
     # フォールバック値
     if agent_id == "PM":
         return 50
+    elif agent_id == "SOLO":
+        return 100
     elif agent_id.startswith("CD"):
         return 40
     elif agent_id.startswith("SE"):
@@ -189,11 +191,11 @@ def read_file_content(file_path, project_root, latest_entries=None):
             if len(entries) > 1:
                 # 指定された数の最新エントリを取得
                 recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
-                return recent[:3000]  # ChangeLogは大きくなりがちなので制限
+                return recent[:10000]  # ChangeLogの制限を緩和
         
         # サイズ制限（全文提供だが巨大すぎるファイルは制限）
-        if len(content) > 4000:
-            return content[:4000] + "\n\n...[ファイルサイズが大きいため以下省略]"
+        if len(content) > 10000:
+            return content[:10000] + "\n\n...[ファイルサイズが大きいため以下省略]"
         
         return content
     except Exception as e:
@@ -234,8 +236,8 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
     """埋め込みコンテンツを生成"""
     config = load_config(project_root)
     
-    # エージェントロールを取得
-    role = agent_id.split('.')[0] if '.' in agent_id else agent_id
+    # エージェントロールを取得（SOLOはそのまま）
+    role = agent_id if agent_id == "SOLO" else (agent_id.split('.')[0] if '.' in agent_id else agent_id)
     
     # 現在の作業ディレクトリを取得
     agent_working_dir = Path.cwd()
@@ -298,7 +300,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                 matched_files = glob.glob(pattern_path)
                 
                 if matched_files:
-                    for matched_file in matched_files[:3]:  # 最大3ファイルまで
+                    for matched_file in matched_files[:10]:  # 最大10ファイルまで（実験優先）
                         file_path_obj = Path(matched_file)
                         if file_path_obj.exists():
                             try:
@@ -350,7 +352,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                                 entries = content.split('### v')
                                 if len(entries) > 1:
                                     recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
-                                    content = recent  # 文字制限なし
+                                    content = recent[:10000]  # 緩和した制限
                             
                             if content:
                                 if not provided_any:

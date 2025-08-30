@@ -41,9 +41,10 @@ echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
 
 # エージェントタイプに応じたstop hookをコピー
 # v0.4以降：PGもポーリング型に変更（全エージェントがポーリング型）
-# v0.5: SOLOエージェント対応
+# v0.5: SOLOエージェントもv3を使用（auto_tuning_config.json活用）
 if [ "$AGENT_ID" = "SOLO" ]; then
-    cp "$TEMPLATE_DIR/stop_solo.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    # SOLOもstop_polling_v3.pyを使用（SOLOの確率設定あり）
+    cp "$TEMPLATE_DIR/stop_polling_v3.py" "$AGENT_DIR/.claude/hooks/stop.py"
     # settings.jsonを作成（SOLOも同じ構造）
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {
@@ -63,7 +64,7 @@ if [ "$AGENT_ID" = "SOLO" ]; then
   }
 }
 EOF
-    echo "✅ SOLO agent hooks configured"
+    echo "✅ SOLO agent hooks configured (using v3 with SOLO probabilities)"
 elif [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]]; then
     # hooksバージョンに応じてファイルを選択
     if [ "$HOOKS_VERSION" = "v2" ]; then
