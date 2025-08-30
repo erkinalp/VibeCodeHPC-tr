@@ -177,10 +177,30 @@ class EfficientSOTAVisualizer:
                 ax.set_yscale('log')
             
             if x_axis == 'time':
-                ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-                ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
+                # データの時間範囲を取得（x_time_dataから最大値を計算）
+                if x_time_data:
+                    max_minutes = max([max(x) if x else 0 for x in x_time_data])
+                else:
+                    max_minutes = 60  # デフォルト
+                
+                # 時間範囲に応じて適切なフォーマッタとロケータを設定
+                if max_minutes < 120:  # 2時間未満
+                    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+                    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
+                    ax.set_xlabel('Time (minutes from start)')
+                elif max_minutes < 1440:  # 24時間未満
+                    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+                    ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))
+                    ax.set_xlabel('Time (hours from start)')
+                else:  # 1日以上
+                    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d日 %H時'))
+                    ax.xaxis.set_major_locator(mdates.HourLocator(interval=6))
+                    ax.set_xlabel('Time (days from start)')
+                
+                # tick数を制限（matplotlib.tickerをインポート）
+                from matplotlib import ticker
+                ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=15))
                 plt.xticks(rotation=45)
-                ax.set_xlabel('Time (from project start)')
             else:
                 ax.set_xlabel('Trial Count')
             
@@ -452,6 +472,8 @@ def main():
                        default='all', help='Visualization level')
     parser.add_argument('--specific', help='Specific key for family/hardware level')
     parser.add_argument('--milestone', type=int, help='Milestone minutes for snapshot')
+    parser.add_argument('--summary', action='store_true',
+                       help='Show summary without generating graphs (for SE debugging)')
     
     args = parser.parse_args()
     
@@ -467,6 +489,60 @@ def main():
         sys.exit(1)
     
     visualizer = EfficientSOTAVisualizer(project_root)
+    
+    # サマリーモード（グラフ生成なし）
+    if args.summary:
+        print("=" * 60)
+        print("SOTA Data Summary (Efficient Version)")
+        print("=" * 60)
+        
+        # データ収集
+        visualizer._collect_all_data()
+        
+        # 各レベルのデータ数を表示
+        for level in ['project', 'local', 'family', 'hardware']:
+            if level in visualizer.sota_data and visualizer.sota_data[level]:
+                print(f"\n[{level.upper()}]")
+                data_dict = visualizer.sota_data[level]
+                for key, data in data_dict.items():
+                    if 'data' in data and data['data']:
+                        entries = data['data']
+                        print(f"  {key}: {len(entries)} points")
+                        # 最新3件のみ表示
+                        for entry in entries[-3:]:
+                            if 'elapsed_seconds' in entry and 'performance' in entry:
+                                time_str = f"{entry['elapsed_seconds']/60:.1f}m"
+                                perf_str = f"{entry['performance']:.1f} GFLOPS"
+                                print(f"    ({time_str}, {perf_str})")
+        
+        # メモリ使用量推定
+        print("\n[MEMORY ESTIMATE]")
+        total_points = sum(
+            len(data.get('data', [])) 
+            for level_data in visualizer.sota_data.values() 
+            for data in level_data.values()
+        )
+        print(f"  Total data points: {total_points}")
+        print(f"  Estimated memory: ~{total_points * 100 / 1024:.1f} KB")
+        
+        # tick数チェック
+        print("\n[TICK CHECK]")
+        max_time = 0
+        for level_data in visualizer.sota_data.values():
+            for data in level_data.values():
+                if 'data' in data:
+                    for entry in data['data']:
+                        if 'elapsed_seconds' in entry:
+                            max_time = max(max_time, entry['elapsed_seconds'])
+        
+        if max_time > 0:
+            estimated_ticks = int(max_time / 60)
+            print(f"  Max time: {max_time/3600:.1f} hours")
+            print(f"  Estimated ticks: {estimated_ticks}")
+            if estimated_ticks > 1000:
+                print(f"  ⚠️ WARNING: Would exceed MAXTICKS!")
+                print(f"  ✅ Fix: Dynamic time units + MaxNLocator")
+        return
     
     if args.level == 'all':
         visualizer.generate_all_efficient(args.milestone)

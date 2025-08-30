@@ -68,6 +68,27 @@ python Agent-shared/sota/sota_visualizer.py --no-theoretical
 python Agent-shared/sota/sota_visualizer.py --theoretical-ratio 0.2  # 20%上に設定
 ```
 
+### デバッグ機能
+```bash
+# サマリー表示（グラフ生成なし、データ確認のみ）
+python Agent-shared/sota/sota_visualizer.py --summary
+
+# 出力例:
+# [PROJECT]
+#   全体: 
+#     (120.5m, 234.5 GFLOPS)
+#     (145.2m, 256.7 GFLOPS)
+#     ... and 23 more points
+# [TICK CHECK]
+#   Max time: 17.3 hours
+#   Estimated ticks: 1038
+#   ⚠️ WARNING: Would exceed MAXTICKS limit!
+#   ✅ Fix applied: MaxNLocator(nbins=15)
+
+# Efficient版も同様のサマリー機能を提供
+python Agent-shared/sota/sota_visualizer_efficient.py --summary
+```
+
 ## 出力先（v2での改善）
 - 生成されたグラフ: `/User-shared/visualizations/sota/[階層]/`
   - `/sota/project/` - プロジェクト全体

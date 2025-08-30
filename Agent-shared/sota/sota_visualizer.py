@@ -1,744 +1,893 @@
 #!/usr/bin/env python3
-
 """
-VibeCodeHPC SOTA可視化ツール
-4階層（local/family/hardware/project）のSOTA推移をグラフ化
+SOTA Visualizer - Pipeline Edition
+効率的なデータ処理とSE向けの柔軟な制御を実現
+
+主な特徴:
+- メモリ効率的なパイプライン処理
+- ストレージIO最小化
+- SE向けの改変しやすい設計
+- マルチプロジェクト統合対応
 """
 
-import re
 import json
+import argparse
+import sys
+import time
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime, timezone, timedelta
+from typing import Dict, List, Optional, Tuple, Any
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import matplotlib.dates as mdates
 import numpy as np
-import pandas as pd
+
 
 class SOTAVisualizer:
-    """SOTA性能推移の可視化クラス"""
+    """効率的なSOTA可視化パイプライン"""
     
-    def __init__(self, project_root: Path):
-        self.project_root = project_root
-        self.base_output_dir = project_root / "User-shared" / "visualizations" / "sota"
+    def __init__(self, project_root: Path, config: Optional[Dict] = None):
+        """
+        Args:
+            project_root: プロジェクトルートパス
+            config: 設定辞書（Noneの場合はデフォルト/ファイルから読み込み）
+        """
+        self.project_root = Path(project_root)
+        self.config = config or self._load_config()
         
-        # 階層別の出力ディレクトリ
+        # データキャッシュ（メモリ効率のため）
+        self.data_cache = {}
+        self.changelog_cache = {}
+        
+        # 出力ディレクトリ
+        self.output_base = self.project_root / "User-shared/visualizations/sota"
         self.output_dirs = {
-            'project': self.base_output_dir / 'project',
-            'hardware': self.base_output_dir / 'hardware',  # ミドルウェアレベル
-            'true_hardware': self.base_output_dir / 'true_hardware',  # 真のハードウェアレベル
-            'family': self.base_output_dir / 'family',
-            'local': self.base_output_dir / 'local',
-            'comparison': self.base_output_dir / 'comparison'
+            'project': self.output_base / 'project',
+            'hardware': self.output_base / 'hardware', 
+            'family': self.output_base / 'family',
+            'local': self.output_base / 'local'
         }
-        for dir_path in self.output_dirs.values():
-            dir_path.mkdir(parents=True, exist_ok=True)
+        
+        # プロジェクト開始時刻
+        self.project_start_time = self._get_project_start_time()
+        
+        # 理論性能（hardware_info.mdから読み取り）
+        self.theoretical_performance = None
+        
+    def _load_config(self) -> Dict:
+        """設定ファイル読み込み（SE制御用）"""
+        config_path = self.project_root / "Agent-shared/sota_pipeline_config.json"
+        
+        if config_path.exists():
+            try:
+                with open(config_path) as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Config load error: {e}, using defaults")
         
         # デフォルト設定
-        self.theoretical_perf = None  # 理論性能（hardware_info.mdから読み取る）
-        self.use_log_scale = False
-        self.show_theoretical = False
-        self.x_axis_type = 'time'  # 'time' or 'count'
+        return {
+            "pipeline": {
+                "levels": ["local", "hardware", "project"],  # 実行順序
+                "critical_section": True,  # ロック制御
+                "max_local_agents": 10,  # localの最大処理数
+                "io_delay_ms": 500  # IO負荷軽減用待機時間
+            },
+            "dpi": {
+                "local": {"linear": 60, "log": 40},
+                "family": {"linear": 70, "log": 45},
+                "hardware": {"linear": 80, "log": 50},
+                "project": {"linear": 100, "log": 60},
+                "debug": 30  # デバッグ時の統一DPI
+            },
+            "axes": {
+                "x_options": ["time", "count", "version"],
+                "y_options": ["performance", "accuracy", "efficiency"],
+                "show_error_bars": True,
+                "accuracy_threshold": None  # 精度フィルタ（例: 95.0）
+            },
+            "io_optimization": {
+                "compress_level": 1,  # PNG圧縮レベル(1=最小)
+                "buffer_writes": True,
+                "cleanup_old_hours": 2  # 古いファイル削除
+            }
+        }
+    
+    def _get_project_start_time(self) -> datetime:
+        """プロジェクト開始時刻を取得"""
+        start_file = self.project_root / "Agent-shared/project_start_time.txt"
         
-    def parse_changelog_entry(self, content: str) -> List[Dict]:
-        """ChangeLog.mdから性能データを抽出"""
+        if start_file.exists():
+            try:
+                content = start_file.read_text().strip()
+                return datetime.fromisoformat(content.replace('Z', '+00:00'))
+            except:
+                pass
+        
+        # デフォルト: 現在時刻
+        now = datetime.now(timezone.utc)
+        start_file.parent.mkdir(parents=True, exist_ok=True)
+        start_file.write_text(now.isoformat())
+        return now
+    
+    def run(self, mode: str = 'pipeline', **params) -> bool:
+        """
+        メインエントリポイント
+        
+        Args:
+            mode: 実行モード ('pipeline', 'single', 'debug', 'summary', 'export')
+            **params: 追加パラメータ
+        
+        Returns:
+            成功時True
+        """
+        if mode == 'summary':
+            return self._run_summary_mode(**params)
+        elif mode == 'export':
+            return self._run_export_mode(**params)
+        elif mode == 'debug':
+            params['debug'] = True
+            return self._run_pipeline_mode(**params)
+        elif mode == 'single':
+            return self._run_single_mode(**params)
+        else:
+            return self._run_pipeline_mode(**params)
+    
+    def _run_pipeline_mode(self, **params) -> bool:
+        """パイプラインモード（定期実行・SE制御両対応）"""
+        
+        # クリティカルセクション制御
+        lock_file = self.project_root / "Agent-shared/.sota_pipeline.lock"
+        
+        if self.config['pipeline']['critical_section'] and not params.get('force'):
+            if lock_file.exists():
+                age = (datetime.now() - datetime.fromtimestamp(lock_file.stat().st_mtime)).seconds
+                if age < 1800:  # 30分以内なら実行中とみなす
+                    print(f"Pipeline locked ({age}s ago), skipping")
+                    return False
+                lock_file.unlink()  # 古いロックは削除
+        
+        lock_file.touch()
+        start_time = datetime.now()
+        
+        try:
+            print(f"[{start_time.strftime('%H:%M:%S')}] Pipeline started")
+            
+            # 1. データ収集フェーズ（全ChangeLog.mdを一度だけ読み込み）
+            self._collect_all_data()
+            
+            # 2. DPI設定
+            dpi_config = self._get_dpi_config(params)
+            
+            # 3. 実行レベル
+            levels = params.get('levels', self.config['pipeline']['levels'])
+            
+            generated_files = []
+            
+            for level in levels:
+                level_start = datetime.now()
+                
+                if level == 'local':
+                    # localは個別処理（メモリ効率）
+                    files = self._process_local_level(dpi_config['local'], params)
+                elif level == 'family':
+                    # family（第2世代以降の融合技術）
+                    files = self._process_family_level(dpi_config['family'], params)
+                elif level == 'hardware':
+                    # hardware（localから直接集約）
+                    files = self._process_hardware_level(dpi_config['hardware'], params)
+                elif level == 'project':
+                    # project（全体集約）
+                    files = self._process_project_level(dpi_config['project'], params)
+                else:
+                    continue
+                
+                generated_files.extend(files)
+                elapsed = (datetime.now() - level_start).seconds
+                print(f"  {level}: {len(files)} graphs in {elapsed}s")
+                
+                # IO負荷軽減
+                if not params.get('no_delay'):
+                    time.sleep(self.config['io_optimization'].get('io_delay_ms', 500) / 1000)
+            
+            total_elapsed = (datetime.now() - start_time).seconds
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Completed: {len(generated_files)} files in {total_elapsed}s")
+            
+            # 古いファイル削除（ストレージ管理）
+            if self.config['io_optimization'].get('cleanup_old_hours'):
+                self._cleanup_old_files()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Pipeline error: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+            
+        finally:
+            lock_file.unlink(missing_ok=True)
+    
+    def _collect_all_data(self):
+        """全ChangeLog.mdを効率的に収集"""
+        self.changelog_cache = {}
+        
+        for changelog in self.project_root.rglob("ChangeLog.md"):
+            rel_path = changelog.parent.relative_to(self.project_root)
+            entries = self._parse_changelog(changelog)
+            if entries:
+                self.changelog_cache[str(rel_path)] = entries
+        
+        print(f"  Collected: {len(self.changelog_cache)} ChangeLogs, "
+              f"{sum(len(e) for e in self.changelog_cache.values())} entries")
+    
+    def _parse_changelog(self, path: Path) -> List[Dict]:
+        """ChangeLog.mdを解析（効率重視）"""
         entries = []
         
-        # パターン定義
-        version_pattern = r'### v(\d+\.\d+\.\d+)'
-        time_pattern = r'\*\*生成時刻\*\*:\s*`(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)`'
-        result_patterns = [
-            r'\*\*結果\*\*:.*?`([\d.]+)\s*(GFLOPS|TFLOPS|GB/s|ms|sec|fps)`',
-            r'performance:\s*`([\d.]+)`.*?unit:\s*`([^`]+)`',
-        ]
-        
-        # バージョンごとに処理
-        for version_match in re.finditer(version_pattern, content):
-            version = version_match.group(1)
-            start = version_match.end()
+        try:
+            content = path.read_text(encoding='utf-8')
+            lines = content.split('\n')
             
-            # 次のバージョンまでのセクションを取得
-            next_match = re.search(version_pattern, content[start:])
-            end = start + next_match.start() if next_match else len(content)
-            section = content[start:end]
+            current_entry = {}
             
-            # 時刻を抽出
-            time_match = re.search(time_pattern, section)
-            timestamp = time_match.group(1) if time_match else None
+            for line in lines:
+                # バージョン行
+                if line.startswith('### v'):
+                    if current_entry and 'performance' in current_entry:
+                        entries.append(current_entry.copy())
+                    current_entry = {'version': line.replace('### ', '').strip()}
+                
+                # 性能値抽出（複数形式対応）
+                elif 'GFLOPS' in line or 'TFLOPS' in line:
+                    import re
+                    # "312.4 GFLOPS" や "`0.312 TFLOPS`" など
+                    match = re.search(r'([\d.]+)\s*(GFLOPS|TFLOPS)', line)
+                    if match:
+                        value = float(match.group(1))
+                        if match.group(2) == 'TFLOPS':
+                            value *= 1000  # TFLOPS→GFLOPS変換
+                        current_entry['performance'] = value
+                
+                # 生成時刻
+                elif '生成時刻' in line and '`' in line:
+                    time_str = line.split('`')[1].split('`')[0]
+                    try:
+                        timestamp = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                        current_entry['timestamp'] = timestamp
+                        # 経過時間計算
+                        elapsed = (timestamp - self.project_start_time).total_seconds()
+                        current_entry['elapsed_seconds'] = elapsed
+                    except:
+                        pass
+                
+                # 精度情報（オプション）
+                elif '精度' in line or 'accuracy' in line.lower():
+                    import re
+                    match = re.search(r'([\d.]+)\s*%', line)
+                    if match:
+                        current_entry['accuracy'] = float(match.group(1))
+                
+                # 誤差情報（科学記法対応）
+                elif '誤差' in line or 'error' in line.lower():
+                    import re
+                    # "2.7e-4" や "±0.003" 形式
+                    match = re.search(r'([±]?\s*[\d.]+e?[+-]?\d*)', line)
+                    if match:
+                        error_str = match.group(1).replace('±', '').strip()
+                        try:
+                            current_entry['error'] = float(error_str)
+                        except:
+                            pass
             
-            # 結果を抽出
-            for pattern in result_patterns:
-                result_match = re.search(pattern, section)
-                if result_match:
-                    value = float(result_match.group(1))
-                    unit = result_match.group(2)
-                    
-                    # 単位を正規化（TFLOPS→GFLOPS変換など）
-                    if unit == 'TFLOPS':
-                        value *= 1000
-                        unit = 'GFLOPS'
-                    elif unit in ['ms', 'sec']:
-                        # 実行時間の場合は逆数を取って性能指標に
-                        if unit == 'ms':
-                            value = 1000.0 / value if value > 0 else 0
-                        else:
-                            value = 1.0 / value if value > 0 else 0
-                        unit = 'throughput'
-                    
-                    entries.append({
-                        'version': version,
-                        'timestamp': timestamp,
-                        'value': value,
-                        'unit': unit
-                    })
-                    break
+            # 最後のエントリ
+            if current_entry and 'performance' in current_entry:
+                entries.append(current_entry)
+                
+        except Exception as e:
+            print(f"  Parse error {path}: {e}")
         
         return entries
     
-    def collect_sota_data(self) -> Dict[str, Dict]:
-        """全階層のSOTAデータを収集"""
-        sota_data = {
-            'local': {},     # PGごと（相対パスベース）
-            'family': {},    # 親子関係（第1世代→第2世代）
-            'hardware': {},  # ミドルウェア構成ごと（gcc, intel等）
-            'true_hardware': {},  # 真のハードウェアレベル（single-node, multi-node等）
-            'project': []    # プロジェクト全体
-        }
+    def _process_local_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
+        """localレベル処理（PGごと）"""
+        generated = []
         
-        # 世代別の技術を格納
-        generation_techs = {
-            1: [],  # 第1世代（単一技術）
-            2: [],  # 第2世代（融合）
-            3: []   # 第3世代（さらなる融合）
-        }
+        # 特定エージェントDPI指定を解析
+        specific_dpis = self._parse_specific_dpis(params.get('specific', ''))
         
-        # ChangeLog.mdを全探索
-        for changelog_path in self.project_root.rglob('ChangeLog.md'):
-            # GitHubディレクトリは除外
-            if 'GitHub' in str(changelog_path):
-                continue
-            
-            content = changelog_path.read_text(encoding='utf-8')
-            entries = self.parse_changelog_entry(content)
-            
-            if not entries:
-                continue
-            
-            # パスから階層情報を抽出
-            rel_path = changelog_path.relative_to(self.project_root)
-            parts = rel_path.parts
-            
-            # 相対作業ディレクトリを識別子とする（Flow/TypeII/を除く）
-            work_dir_parts = []
-            skip_parts = ['Flow', 'TypeII', 'ChangeLog.md']
-            for part in parts:
-                if part not in skip_parts:
-                    work_dir_parts.append(part)
-            
-            # Local SOTA（相対パスベース）
-            if work_dir_parts:
-                local_id = '-'.join(work_dir_parts[:-1] + [work_dir_parts[-1].replace('_', '-')])
-                if local_id not in sota_data['local']:
-                    sota_data['local'][local_id] = []
-                sota_data['local'][local_id].extend(entries)
-            
-            # 技術名を抽出（最後のディレクトリ名）
-            tech_name = changelog_path.parent.name
-            
-            # 世代を判定（_の数で判定）
-            if '_' not in tech_name:
-                # 第1世代（単一技術、深化含む）
-                generation = 1
-                generation_techs[1].append((tech_name, entries))
-            elif tech_name.count('_') == 1:
-                # 第2世代（2つの技術の融合）
-                generation = 2
-                generation_techs[2].append((tech_name, entries))
-            else:
-                # 第3世代以降
-                generation = 3
-                generation_techs[3].append((tech_name, entries))
-            
-            # Middleware SOTA（hardware_info.mdの位置で階層を判定）
-            hardware_path = None
-            for i in range(len(parts)):
-                check_path = self.project_root / Path(*parts[:i+1])
-                if (check_path / 'hardware_info.md').exists():
-                    hardware_path = '/'.join(parts[:i+1])
-                    break
-            
-            if hardware_path:
-                # ミドルウェアレベル（gcc, intel等）
-                if hardware_path not in sota_data['hardware']:
-                    sota_data['hardware'][hardware_path] = []
-                sota_data['hardware'][hardware_path].extend(entries)
-                
-                # 真のハードウェアレベル（single-node, multi-node等）を判定
-                # hardware_info.mdがある親ディレクトリを取得
-                if len(parts) >= 3:  # Flow/TypeII/single-node のような構造を想定
-                    # hardware_info.mdの親ディレクトリ名を真のハードウェアレベルとする
-                    hardware_parts = hardware_path.split('/')
-                    if len(hardware_parts) >= 3:
-                        true_hw_level = hardware_parts[2]  # single-node, multi-node等
-                        
-                        if true_hw_level not in sota_data['true_hardware']:
-                            sota_data['true_hardware'][true_hw_level] = []
-                        sota_data['true_hardware'][true_hw_level].extend(entries)
-            
-            # Project SOTA（全エントリ）
-            sota_data['project'].extend(entries)
+        # PGエージェントを識別
+        pg_dirs = {}
+        for path, entries in self.changelog_cache.items():
+            # PG1.2形式を検出
+            if 'PG' in path or '/PG' in path:
+                agent_id = self._extract_agent_id(path)
+                if agent_id:
+                    pg_dirs[agent_id] = entries
         
-        # Family SOTAを構築（親子関係）
-        # 第2世代の各技術について、その親となる第1世代を見つける
-        for gen2_tech, gen2_entries in generation_techs[2]:
-            parent_techs = gen2_tech.split('_')
-            family_name = f"Family:{gen2_tech}"
-            sota_data['family'][family_name] = {
-                'child': gen2_entries,
-                'parents': {}
-            }
+        # 最大処理数制限
+        max_agents = params.get('max_local', self.config['pipeline']['max_local_agents'])
+        
+        for i, (agent_id, entries) in enumerate(list(pg_dirs.items())[:max_agents]):
+            # DPI決定（個別指定 or デフォルト）
+            dpi = specific_dpis.get(agent_id, dpi_config['linear'])
             
-            # 親技術のデータを収集
-            for parent_tech in parent_techs:
-                for gen1_tech, gen1_entries in generation_techs[1]:
-                    # 完全一致で親技術を探す
-                    if gen1_tech == parent_tech:
-                        sota_data['family'][family_name]['parents'][parent_tech] = gen1_entries
+            # SOTA抽出（単調増加）
+            sota_entries = self._extract_sota_progression(entries)
+            
+            if sota_entries:
+                # グラフ生成
+                for x_axis in params.get('x_axes', ['time']):
+                    output_path = self._generate_graph(
+                        f'local/{agent_id}',
+                        sota_entries,
+                        f"SOTA: {agent_id}",
+                        x_axis,
+                        dpi,
+                        params
+                    )
+                    if output_path:
+                        generated.append(output_path)
+        
+        return generated
+    
+    def _process_hardware_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
+        """hardwareレベル処理（localから集約）"""
+        generated = []
+        
+        # hardware階層を識別（single-node/gcc11.3.0など）
+        hardware_groups = {}
+        
+        for path, entries in self.changelog_cache.items():
+            # hardware階層を判定
+            hw_key = self._extract_hardware_key(path)
+            if hw_key:
+                if hw_key not in hardware_groups:
+                    hardware_groups[hw_key] = []
+                hardware_groups[hw_key].extend(entries)
+        
+        # 各hardwareグループで集約
+        for hw_key, all_entries in hardware_groups.items():
+            # 時系列でSOTA更新
+            sota_entries = self._aggregate_sota_by_time(all_entries)
+            
+            if sota_entries:
+                for x_axis in params.get('x_axes', ['time']):
+                    output_path = self._generate_graph(
+                        f'hardware/{hw_key.replace("/", "_")}',
+                        sota_entries,
+                        f"SOTA: {hw_key}",
+                        x_axis,
+                        dpi_config['linear'],
+                        params
+                    )
+                    if output_path:
+                        generated.append(output_path)
+        
+        return generated
+    
+    def _process_project_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
+        """projectレベル処理（全体集約）"""
+        generated = []
+        
+        # 全エントリを時系列で集約
+        all_entries = []
+        for entries in self.changelog_cache.values():
+            all_entries.extend(entries)
+        
+        # SOTA更新履歴
+        sota_entries = self._aggregate_sota_by_time(all_entries)
+        
+        if sota_entries:
+            for x_axis in params.get('x_axes', ['time', 'count']):
+                for log_scale in [False, True]:
+                    dpi = dpi_config['log' if log_scale else 'linear']
+                    
+                    output_path = self._generate_graph(
+                        f'project/sota_project_{x_axis}{"_log" if log_scale else ""}',
+                        sota_entries,
+                        "SOTA: Project Overall",
+                        x_axis,
+                        dpi,
+                        params,
+                        log_scale=log_scale
+                    )
+                    if output_path:
+                        generated.append(output_path)
+        
+        return generated
+    
+    def _process_family_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
+        """familyレベル処理（第2世代以降の融合技術）"""
+        generated = []
+        
+        # family判定（OpenMP_MPI, OpenMP_AVX2など）
+        family_groups = {}
+        
+        for path, entries in self.changelog_cache.items():
+            # アンダースコアを含む技術名を検出
+            if '_' in path:
+                parts = path.split('/')
+                for part in parts:
+                    if '_' in part and any(tech in part for tech in ['OpenMP', 'MPI', 'CUDA', 'AVX']):
+                        if part not in family_groups:
+                            family_groups[part] = []
+                        family_groups[part].extend(entries)
                         break
         
-        return sota_data
-    
-    def extract_sota_progression(self, entries: List[Dict]) -> Tuple[List, List, List]:
-        """エントリからSOTA更新の推移を抽出（全生成での位置を保持）"""
-        if not entries:
-            return [], [], []
-        
-        # タイムスタンプでソート
-        sorted_entries = sorted(entries, key=lambda x: x['timestamp'] or '0')
-        
-        # 最初のタイムスタンプからの経過時間を計算
-        start_time = None
-        times = []
-        values = []
-        versions = []
-        
-        max_value = 0
-        for i, entry in enumerate(sorted_entries):
-            if entry['value'] > max_value:  # SOTA更新時のみ記録
-                max_value = entry['value']
-                values.append(entry['value'])
-                versions.append(entry['version'])
-                
-                if self.x_axis_type == 'time' and entry['timestamp']:
-                    if not start_time:
-                        start_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
-                    current_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
-                    elapsed_seconds = (current_time - start_time).total_seconds()
-                    times.append(elapsed_seconds)
-                else:
-                    # カウントベース（全生成での実際の位置を使用）
-                    times.append(i)
-        
-        return times, values, versions
-    
-    def extract_all_progression(self, entries: List[Dict]) -> Tuple[List, List, List]:
-        """全エントリの推移を抽出（SOTAでないものも含む）"""
-        if not entries:
-            return [], [], []
-        
-        # タイムスタンプでソート
-        sorted_entries = sorted(entries, key=lambda x: x['timestamp'] or '0')
-        
-        # 最初のタイムスタンプからの経過時間を計算
-        start_time = None
-        times = []
-        values = []
-        versions = []
-        
-        for i, entry in enumerate(sorted_entries):
-            values.append(entry['value'])
-            versions.append(entry['version'])
+        # 各familyで処理
+        for family_key, all_entries in family_groups.items():
+            sota_entries = self._aggregate_sota_by_time(all_entries)
             
-            if self.x_axis_type == 'time' and entry['timestamp']:
-                if not start_time:
-                    start_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
-                current_time = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
-                elapsed_seconds = (current_time - start_time).total_seconds()
-                times.append(elapsed_seconds)
-            else:
-                # カウントベース（生成順）
-                times.append(i)
+            if sota_entries:
+                output_path = self._generate_graph(
+                    f'family/{family_key}',
+                    sota_entries,
+                    f"SOTA: {family_key}",
+                    'time',
+                    dpi_config['linear'],
+                    params
+                )
+                if output_path:
+                    generated.append(output_path)
         
-        return times, values, versions
+        return generated
     
-    def load_hardware_info(self, hardware_path: Path) -> Optional[float]:
-        """hardware_info.mdから理論性能を読み取る"""
-        info_path = hardware_path / 'hardware_info.md'
-        if not info_path.exists():
+    def _generate_graph(self, name: str, entries: List[Dict], title: str, 
+                       x_axis: str, dpi: int, params: Dict, log_scale: bool = False) -> Optional[Path]:
+        """グラフ生成（IO最適化版）"""
+        if not entries:
             return None
         
-        content = info_path.read_text(encoding='utf-8')
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            # データ準備
+            if x_axis == 'time':
+                x_data = [e['elapsed_seconds'] / 60 for e in entries]  # 分単位
+                x_label = 'Time (minutes from start)'
+                
+                # 時間スケール調整（tick数問題対策）
+                max_time = max(e['elapsed_seconds'] for e in entries)
+                if max_time < 7200:  # 2時間未満
+                    x_label = 'Time (minutes from start)'
+                    x_formatter = lambda x, pos: f'{x:.0f}m'
+                elif max_time < 86400:  # 24時間未満
+                    x_data = [e['elapsed_seconds'] / 3600 for e in entries]
+                    x_label = 'Time (hours from start)'
+                    x_formatter = lambda x, pos: f'{x:.1f}h'
+                else:  # 1日以上
+                    x_data = [e['elapsed_seconds'] / 86400 for e in entries]
+                    x_label = 'Time (days from start)'
+                    x_formatter = lambda x, pos: f'{x:.1f}d'
+                
+                ax.xaxis.set_major_formatter(plt.FuncFormatter(x_formatter))
+                
+            elif x_axis == 'count':
+                x_data = list(range(1, len(entries) + 1))
+                x_label = 'Generation Count'
+                
+            elif x_axis == 'version':
+                x_data = list(range(len(entries)))
+                x_label = 'Version'
+                # バージョンラベル設定
+                ax.set_xticks(x_data)
+                ax.set_xticklabels([e.get('version', f'v{i}') for i, e in enumerate(entries)], 
+                                   rotation=45)
+            else:
+                x_data = list(range(len(entries)))
+                x_label = x_axis.capitalize()
+            
+            y_data = [e['performance'] for e in entries]
+            
+            # 精度フィルタリング
+            if params.get('accuracy_threshold'):
+                filtered = [(x, y, e) for x, y, e in zip(x_data, y_data, entries)
+                           if e.get('accuracy', 100) >= params['accuracy_threshold']]
+                if filtered:
+                    x_data, y_data, entries = zip(*filtered)
+            
+            # プロット（階段状）
+            ax.step(x_data, y_data, 'r-', where='post', linewidth=2, label='SOTA')
+            ax.plot(x_data, y_data, 'ro', markersize=6)
+            
+            # 誤差バー（あれば）
+            if self.config['axes']['show_error_bars'] and any('error' in e for e in entries):
+                yerr = [e.get('error', 0) for e in entries]
+                ax.errorbar(x_data, y_data, yerr=yerr, fmt='none', ecolor='gray', alpha=0.5)
+            
+            # 理論性能線（あれば）
+            if self.theoretical_performance and not params.get('no_theoretical'):
+                ax.axhline(y=self.theoretical_performance, color='red', 
+                          linestyle='--', alpha=0.5, label='Theoretical')
+            
+            # tick数制限（MAXTICKS対策）
+            ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=15))
+            
+            # スケール設定
+            if log_scale:
+                ax.set_yscale('log')
+            
+            ax.set_xlabel(x_label)
+            ax.set_ylabel('Performance (GFLOPS)')
+            ax.set_title(title)
+            ax.grid(True, alpha=0.3)
+            ax.legend()
+            
+            # 出力パス
+            output_dir = self.output_base / name.rsplit('/', 1)[0]
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = output_dir / f"{name.rsplit('/', 1)[-1]}.png"
+            
+            # 保存（圧縮最小化）
+            plt.savefig(output_path, dpi=dpi, bbox_inches='tight',
+                       compress_level=self.config['io_optimization']['compress_level'])
+            plt.close()
+            
+            return output_path
+            
+        except Exception as e:
+            print(f"  Graph error {name}: {e}")
+            plt.close()
+            return None
+    
+    def _extract_sota_progression(self, entries: List[Dict]) -> List[Dict]:
+        """SOTA更新のみ抽出（単調増加）"""
+        if not entries:
+            return []
         
-        # 理論性能のパターン
-        patterns = [
-            r'理論性能[：:]\s*([\d.]+)\s*(GFLOPS|TFLOPS)',
-            r'Peak Performance[：:]\s*([\d.]+)\s*(GFLOPS|TFLOPS)',
-            r'理論演算性能[：:]\s*([\d.]+)\s*(GFLOPS|TFLOPS)',
-        ]
+        # タイムスタンプでソート
+        sorted_entries = sorted(entries, key=lambda e: e.get('elapsed_seconds', 0))
         
-        for pattern in patterns:
-            match = re.search(pattern, content, re.IGNORECASE)
-            if match:
-                value = float(match.group(1))
-                unit = match.group(2)
-                if unit == 'TFLOPS':
-                    value *= 1000
-                return value
+        sota = []
+        max_perf = 0
+        
+        for entry in sorted_entries:
+            perf = entry.get('performance', 0)
+            if perf > max_perf:
+                max_perf = perf
+                sota.append(entry)
+        
+        return sota
+    
+    def _aggregate_sota_by_time(self, entries: List[Dict]) -> List[Dict]:
+        """時系列でSOTA集約"""
+        if not entries:
+            return []
+        
+        # タイムスタンプでソート
+        sorted_entries = sorted(entries, key=lambda e: e.get('elapsed_seconds', 0))
+        
+        sota = []
+        max_perf = 0
+        
+        for entry in sorted_entries:
+            perf = entry.get('performance', 0)
+            if perf > max_perf:
+                max_perf = perf
+                # 集約エントリ作成
+                sota_entry = entry.copy()
+                sota_entry['generation_count'] = len(sota) + 1
+                sota.append(sota_entry)
+        
+        return sota
+    
+    def _extract_agent_id(self, path: str) -> Optional[str]:
+        """パスからエージェントID抽出（PG1.2形式対応）"""
+        import re
+        # PG1, PG1.2, PG10.3などに対応
+        match = re.search(r'PG\d+(?:\.\d+)?', path)
+        return match.group() if match else None
+    
+    def _extract_hardware_key(self, path: str) -> Optional[str]:
+        """パスからhardwareキー抽出"""
+        # single-node/gcc11.3.0 形式を検出
+        parts = path.split('/')
+        
+        # hardware階層のパターン
+        hw_patterns = ['single-node', 'multi-node', 'gpu-cluster']
+        
+        for i, part in enumerate(parts):
+            if part in hw_patterns and i + 1 < len(parts):
+                # 次の要素がコンパイラ/モジュール
+                return f"{part}/{parts[i+1]}"
         
         return None
     
-    def plot_sota_comparison(self, 
-                            sota_level: str = 'project',
-                            x_axis: str = 'time',
-                            log_scale: bool = False,
-                            show_theoretical: bool = True,
-                            theoretical_ratio: float = 0.1,
-                            specific_key: Optional[str] = None):
-        """SOTA推移グラフを生成
+    def _parse_specific_dpis(self, specific_str: str) -> Dict[str, int]:
+        """特定エージェントDPI指定を解析
         
-        Args:
-            sota_level: 'local', 'family', 'hardware', 'project'のいずれか
-            x_axis: 'time'（経過時間）または 'count'（更新回数）
-            log_scale: Y軸を対数スケールにするか
-            show_theoretical: 理論性能を表示するか
-            theoretical_ratio: 理論性能が不明な場合の上限設定（最高性能の何倍か）
-            specific_key: 特定のキーのみをプロット（family/hardwareで使用）
+        形式: "PG1.2:120,PG2:80,SE1:100"
         """
-        self.x_axis_type = x_axis
-        self.use_log_scale = log_scale
-        self.show_theoretical = show_theoretical
+        result = {}
+        
+        if not specific_str:
+            return result
+        
+        for item in specific_str.split(','):
+            if ':' in item:
+                agent, dpi = item.split(':', 1)
+                agent = agent.strip()
+                try:
+                    result[agent] = int(dpi)
+                except:
+                    pass
+        
+        return result
+    
+    def _get_dpi_config(self, params: Dict) -> Dict:
+        """DPI設定取得"""
+        if params.get('debug'):
+            # デバッグモード
+            debug_dpi = self.config['dpi'].get('debug', 30)
+            return {
+                'local': {'linear': debug_dpi, 'log': debug_dpi - 5},
+                'family': {'linear': debug_dpi, 'log': debug_dpi - 5},
+                'hardware': {'linear': debug_dpi + 10, 'log': debug_dpi},
+                'project': {'linear': debug_dpi + 20, 'log': debug_dpi + 10}
+            }
+        
+        return self.config['dpi']
+    
+    def _cleanup_old_files(self):
+        """古いグラフファイル削除（ストレージ管理）"""
+        max_age_hours = self.config['io_optimization'].get('cleanup_old_hours', 2)
+        
+        if max_age_hours <= 0:
+            return
+        
+        cutoff_time = time.time() - (max_age_hours * 3600)
+        removed = 0
+        
+        for png in self.output_base.rglob("*.png"):
+            # milestoneは削除しない
+            if 'milestone' in png.name:
+                continue
+            
+            if png.stat().st_mtime < cutoff_time:
+                png.unlink()
+                removed += 1
+        
+        if removed > 0:
+            print(f"  Cleaned up {removed} old files")
+    
+    def _run_summary_mode(self, **params) -> bool:
+        """サマリーモード（グラフ生成なし、データ確認のみ）"""
+        print("=" * 60)
+        print("SOTA Data Summary")
+        print("=" * 60)
         
         # データ収集
-        sota_data = self.collect_sota_data()
+        self._collect_all_data()
         
-        # グラフ設定
-        fig, ax = plt.subplots(figsize=(14, 8))
+        # 統計表示
+        total_entries = sum(len(e) for e in self.changelog_cache.values())
+        print(f"\nTotal: {len(self.changelog_cache)} ChangeLogs, {total_entries} entries")
         
-        if sota_level == 'project':
-            # プロジェクト全体（1つのグラフ）
-            if x_axis == 'count':
-                # カウントベースは全生成＋SOTA水準線
-                all_times, all_values, all_versions = self.extract_all_progression(sota_data['project'])
-                sota_times, sota_values, sota_versions = self.extract_sota_progression(sota_data['project'])
-                
-                if all_times and all_values:
-                    # 全生成の折れ線
-                    ax.plot(all_times, all_values, marker='o', 
-                           label='All Generations', color='C0', linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
-                    
-                    # 各SOTA更新点から最後まで水平線を引く（階段状になる）
-                    if sota_times and sota_values and len(all_times) > 0:
-                        max_time = max(all_times)
-                        for i, (t, v) in enumerate(zip(sota_times, sota_values)):
-                            # 各SOTA点から最後まで水平線（色指定なしでデフォルト色）
-                            ax.hlines(v, t, max_time, linestyles='--', 
-                                     linewidth=2.0, alpha=0.6,
-                                     label='SOTA Level' if i == 0 else "")
-            else:
-                # 時間ベースはSOTAのみ
-                times, values, versions = self.extract_sota_progression(sota_data['project'])
-                if times and values:
-                    ax.step(times, values, where='post', marker='o', 
-                           label='SOTA Performance', color='C0', linewidth=3.0, markersize=7, markeredgewidth=1.5)
-                
-                # 理論性能の表示
-                if show_theoretical and values:
-                    max_value = max(values)
-                    theoretical = self.theoretical_perf or (max_value * (1 + theoretical_ratio))
-                    ax.axhline(y=theoretical, color='red', linestyle='--', 
-                             label=f'Theoretical Peak ({theoretical:.1f} GFLOPS)')
+        # レベル別サマリー
+        print("\n[LOCAL]")
+        pg_count = sum(1 for p in self.changelog_cache.keys() if 'PG' in p)
+        print(f"  PG agents: {pg_count}")
         
-        elif sota_level == 'family':
-            # Family階層（親子関係）
-            data_dict = sota_data['family']
+        # 最新性能TOP5
+        print("\n[TOP PERFORMANCE]")
+        all_perfs = []
+        for path, entries in self.changelog_cache.items():
+            if entries:
+                latest = max(entries, key=lambda e: e.get('performance', 0))
+                all_perfs.append((path, latest.get('performance', 0)))
+        
+        for path, perf in sorted(all_perfs, key=lambda x: x[1], reverse=True)[:5]:
+            print(f"  {path}: {perf:.1f} GFLOPS")
+        
+        # tick数チェック
+        print("\n[TICK CHECK]")
+        max_time = max((e.get('elapsed_seconds', 0) for entries in self.changelog_cache.values() 
+                       for e in entries), default=0)
+        
+        if max_time > 0:
+            print(f"  Max elapsed: {max_time/3600:.1f} hours")
+            estimated_ticks = int(max_time / 60)
+            print(f"  Estimated ticks (minutes): {estimated_ticks}")
             
-            # 特定のファミリーのみをプロット
-            if specific_key:
-                data_dict = {specific_key: data_dict[specific_key]} if specific_key in data_dict else {}
-            
-            # 色の設定（論文向けの標準的な原色を使用）
-            # matplotlibのデフォルトカラーサイクル（C0, C1, C2...）を使用
-            parent_colors = {'OpenMP': 'C0', 'MPI': 'C1', 'CUDA': 'C2', 'AVX2': 'C3'}
-            child_colors = {'OpenMP_MPI': 'C4', 'OpenMP_CUDA': 'C5', 'MPI_CUDA': 'C6', 'OpenMP_AVX2': 'C7'}
-            
-            for family_name, family_data in data_dict.items():
-                if isinstance(family_data, dict) and 'child' in family_data:
-                    if x_axis == 'count':
-                        # カウントベースは全生成＋SOTA水準線
-                        # 子（第2世代）
-                        child_name = family_name.replace('Family:', '')
-                        all_times, all_values, all_versions = self.extract_all_progression(family_data['child'])
-                        sota_times, sota_values, sota_versions = self.extract_sota_progression(family_data['child'])
-                        
-                        if all_times and all_values:
-                            color = child_colors.get(child_name, 'navy')
-                            # 全生成の折れ線（太く濃く表示）
-                            ax.plot(all_times, all_values, marker='o',
-                                   label=f'{child_name} (Gen2)',
-                                   color=color, linewidth=3.0, markersize=8, alpha=1.0, markeredgewidth=1.5)
-                            
-                            # 各SOTA更新点から最後まで水平線
-                            if sota_times and sota_values and len(all_times) > 0:
-                                max_time = max(all_times)
-                                for j, (t, v) in enumerate(zip(sota_times, sota_values)):
-                                    ax.hlines(v, t, max_time, colors=color, linestyles='--',
-                                             linewidth=2.5, alpha=0.8)
-                        
-                        # 親（第1世代）
-                        for parent_name, parent_entries in family_data.get('parents', {}).items():
-                            all_times, all_values, all_versions = self.extract_all_progression(parent_entries)
-                            sota_times, sota_values, sota_versions = self.extract_sota_progression(parent_entries)
-                            
-                            if all_times and all_values:
-                                color = parent_colors.get(parent_name, 'darkgray')
-                                ax.plot(all_times, all_values, marker='^',
-                                       label=f'{parent_name} (Gen1)',
-                                       color=color, linewidth=2.5, markersize=6, alpha=1.0, linestyle=':')
-                                
-                                # 各SOTA更新点から最後まで水平線
-                                if sota_times and sota_values and len(all_times) > 0:
-                                    max_time = max(all_times)
-                                    for j, (t, v) in enumerate(zip(sota_times, sota_values)):
-                                        ax.hlines(v, t, max_time, colors=color, linestyles=':',
-                                                 linewidth=2.0, alpha=0.7)
-                    else:
-                        # 時間ベースはSOTAのみ階段状
-                        # 子（第2世代）
-                        child_name = family_name.replace('Family:', '')
-                        times, values, versions = self.extract_sota_progression(family_data['child'])
-                        if times and values:
-                            color = child_colors.get(child_name, 'navy')
-                            ax.step(times, values, where='post', marker='o',
-                                   label=f'{child_name} (Gen2, Max: {max(values):.1f})',
-                                   color=color, linewidth=2.5, markersize=7, markeredgewidth=1.5)
-                        
-                        # 親（第1世代）
-                        for parent_name, parent_entries in family_data.get('parents', {}).items():
-                            times, values, versions = self.extract_sota_progression(parent_entries)
-                            if times and values:
-                                color = parent_colors.get(parent_name, 'darkgray')
-                                ax.step(times, values, where='post', marker='s',
-                                       label=f'{parent_name} (Gen1, Max: {max(values):.1f})',
-                                       color=color, linewidth=2.0, markersize=5, alpha=0.9, linestyle='--')
+            if estimated_ticks > 1000:
+                print(f"  ⚠️ WARNING: Would exceed MAXTICKS!")
+                print(f"  ✅ Fix: Dynamic time units + MaxNLocator(nbins=15)")
         
-        elif sota_level in ['local', 'hardware', 'true_hardware']:
-            # 複数のグラフ
-            data_dict = sota_data[sota_level]
-            
-            # hardwareレベルでspecific_keyが指定された場合の処理
-            if sota_level == 'hardware' and specific_key:
-                filtered_dict = {}
-                for key, entries in data_dict.items():
-                    # hw_keyの最後の部分でフィルタリング
-                    path_parts = key.split('/')
-                    if path_parts and path_parts[-1] == specific_key:
-                        filtered_dict[key] = entries
-                data_dict = filtered_dict
-            # 特定のキーのみをプロット（その他の場合）
-            elif specific_key:
-                data_dict = {specific_key: data_dict[specific_key]} if specific_key in data_dict else {}
-            
-            # matplotlibのデフォルトカラーサイクルを使用（論文向けの濃い原色）
-            # C0=青, C1=オレンジ, C2=緑, C3=赤, C4=紫, C5=茶, C6=ピンク, C7=灰, C8=黄緑, C9=水色
-            colors = [f'C{i}' for i in range(min(10, len(data_dict)))]
-            
-            for i, (key, entries) in enumerate(data_dict.items()):
-                if x_axis == 'count':
-                    # カウントベースは全生成＋SOTA水準線
-                    all_times, all_values, all_versions = self.extract_all_progression(entries)
-                    sota_times, sota_values, sota_versions = self.extract_sota_progression(entries)
-                    
-                    if all_times and all_values:
-                        color = colors[i % len(colors)]
-                        # 全生成の折れ線
-                        ax.plot(all_times, all_values, marker='o',
-                               label=f'{key}',
-                               color=color, linewidth=2.5, markersize=6, alpha=1.0, markeredgewidth=1.2)
-                        
-                        # 各SOTA更新点から最後まで水平線
-                        if sota_times and sota_values and len(all_times) > 0:
-                            max_time = max(all_times)
-                            for j, (t, v) in enumerate(zip(sota_times, sota_values)):
-                                ax.hlines(v, t, max_time, colors=color, linestyles='--',
-                                         linewidth=2.0, alpha=0.7)
-                else:
-                    # 時間ベースはSOTAのみ階段状
-                    times, values, versions = self.extract_sota_progression(entries)
-                    if times and values:
-                        color = colors[i % len(colors)]
-                        ax.step(times, values, where='post', marker='o',
-                               label=f'{key} (Max: {max(values):.1f})',
-                               color=color, linewidth=2.5, markersize=6, markeredgewidth=1.2)
-        
-        # 軸設定
-        if x_axis == 'time':
-            ax.set_xlabel('Time (seconds from start)')
-            # 秒を分に変換して表示（読みやすさのため）
-            import matplotlib.ticker as ticker
-            def format_seconds(x, pos):
-                minutes = int(x // 60)
-                seconds = int(x % 60)
-                if x < 60:
-                    return f'{int(x)}s'
-                elif seconds == 0:
-                    return f'{minutes}m'
-                else:
-                    return f'{minutes}m{seconds}s'
-            ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_seconds))
-        else:
-            ax.set_xlabel('Code Generation Count')
-            # X軸を整数表示にする
-            import matplotlib.ticker as ticker
-            ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-        
-        ax.set_ylabel('Performance (GFLOPS equivalent)')
-        
-        if log_scale:
-            ax.set_yscale('log')
-        
-        # 右y軸にも目盛りを表示
-        ax2 = ax.twinx()
-        ax2.set_ylim(ax.get_ylim())
-        if log_scale:
-            ax2.set_yscale('log')  # 右軸も対数スケールに設定
-        ax2.set_ylabel('')  # 右側にはラベルなし
-        ax2.tick_params(axis='y', which='both', length=5)
-        
-        # グラフ装飾
-        # タイトルを適切に設定
-        if sota_level == 'hardware':
-            title_level = 'Middleware (Compiler/Library)'
-        elif sota_level == 'true_hardware':
-            title_level = 'Hardware (Node Configuration)'
-        else:
-            title_level = f'{sota_level.capitalize()} Level'
-        ax.set_title(f'SOTA Performance Progression - {title_level}')
-        ax.legend(loc='best', fontsize=9)
-        ax.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        
-        # ファイル保存（階層別ディレクトリに）
-        if x_axis == 'count':
-            filename = f"generation_{sota_level}_{x_axis}"
-        else:
-            filename = f"sota_{sota_level}_{x_axis}"
-        
-        if log_scale:
-            filename += "_log_scale"  # 'log'ではなく'log_scale'を使用
-        
-        # 適切な出力ディレクトリを選択
-        if sota_level in self.output_dirs:
-            output_dir = self.output_dirs[sota_level]
-        else:
-            output_dir = self.base_output_dir
-        
-        # specific_keyがある場合はサブディレクトリに保存
-        if specific_key:
-            # ファイル名として使える形式に変換
-            safe_key = specific_key.replace('Family:', '').replace('/', '_').replace(':', '_')
-            # サブディレクトリを作成
-            output_dir = output_dir / safe_key
-            output_dir.mkdir(parents=True, exist_ok=True)
-        
-        output_path = output_dir / f"{filename}.png"
-        
-        plt.savefig(output_path, dpi=120, bbox_inches='tight')
-        plt.close()
-        
-        print(f"✅ SOTA graph saved: {output_path}")
-        return output_path
+        return True
     
-    def generate_all_graphs(self):
-        """全パターンのグラフを生成"""
-        generated_files = []  # 生成されたファイルパスを記録
+    def _run_export_mode(self, **params) -> bool:
+        """エクスポートモード（マルチプロジェクト統合用）"""
         
-        # プロジェクトレベル（1つのグラフ）
-        for x_axis in ['time', 'count']:
-            for log_scale in [False, True]:
-                if x_axis == 'count' and log_scale:
-                    continue  # カウント軸の対数は不要
-                path = self.plot_sota_comparison('project', x_axis, log_scale, True)
-                generated_files.append(path)
+        # データ収集
+        self._collect_all_data()
         
-        # ローカルレベル（1つのグラフに全PG）
-        for x_axis in ['time', 'count']:
-            for log_scale in [False, True]:
-                if x_axis == 'count' and log_scale:
-                    continue
-                path = self.plot_sota_comparison('local', x_axis, log_scale, True)
-                generated_files.append(path)
+        # エクスポートディレクトリ
+        export_dir = self.project_root / "Agent-shared/exports"
+        export_dir.mkdir(parents=True, exist_ok=True)
         
-        # ファミリーレベル（各ファミリーごとに個別グラフ）
-        sota_data = self.collect_sota_data()
-        for family_key in sota_data['family'].keys():
-            for x_axis in ['time', 'count']:
-                for log_scale in [False, True]:
-                    if x_axis == 'count' and log_scale:
-                        continue
-                    path = self.plot_sota_comparison('family', x_axis, log_scale, True, specific_key=family_key)
-                    generated_files.append(path)
+        # ファイル名
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        export_path = export_dir / f"sota_export_{timestamp}.json"
         
-        # ミドルウェアレベル（hardware_info.mdの親ディレクトリ名でグループ化）
-        hardware_groups = {}
-        for hw_key in sota_data['hardware'].keys():
-            # hw_keyの最後の部分をグループ名とする
-            # 例: Flow/TypeII/single-node/gcc11.3.0 → gcc11.3.0
-            path_parts = hw_key.split('/')
-            if path_parts:
-                hw_group = path_parts[-1]  # 最後の要素をグループ名に
-                if hw_group not in hardware_groups:
-                    hardware_groups[hw_group] = []
-                hardware_groups[hw_group].append(hw_key)
+        # エクスポートデータ構築
+        export_data = {
+            'project': str(self.project_root.name),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'start_time': self.project_start_time.isoformat(),
+            'data': {},
+            'metadata': {
+                'total_changelogs': len(self.changelog_cache),
+                'total_entries': sum(len(e) for e in self.changelog_cache.values()),
+                'config': self.config
+            }
+        }
         
-        # 各ミドルウェアグループごとにグラフ生成
-        for hw_group in hardware_groups.keys():
-            for x_axis in ['time', 'count']:
-                for log_scale in [False, True]:
-                    if x_axis == 'count' and log_scale:
-                        continue
-                    path = self.plot_sota_comparison('hardware', x_axis, log_scale, True, 
-                                                    specific_key=hw_group)
-                    generated_files.append(path)
+        # データ変換（datetime対応）
+        for path, entries in self.changelog_cache.items():
+            export_data['data'][path] = [
+                {k: (v.isoformat() if isinstance(v, datetime) else v)
+                 for k, v in entry.items()}
+                for entry in entries
+            ]
         
-        # 真のハードウェアレベル（single-node, multi-node等）
-        for true_hw_key in sota_data['true_hardware'].keys():
-            for x_axis in ['time', 'count']:
-                for log_scale in [False, True]:
-                    if x_axis == 'count' and log_scale:
-                        continue
-                    path = self.plot_sota_comparison('true_hardware', x_axis, log_scale, True,
-                                                    specific_key=true_hw_key)
-                    generated_files.append(path)
+        # JSON保存
+        with open(export_path, 'w') as f:
+            json.dump(export_data, f, indent=2)
         
-        # レポート生成
-        self.generate_visualization_report(len(generated_files))
+        print(f"✅ Exported to: {export_path}")
+        print(f"   Size: {export_path.stat().st_size / 1024:.1f} KB")
         
-        print(f"✅ All SOTA graphs generated: {len(generated_files)} files")
-        return generated_files
+        return True
     
-    def generate_all_graphs_with_milestone(self, elapsed_minutes: int = 0):
-        """マイルストーン付きで全グラフ生成
+    def _run_single_mode(self, **params) -> bool:
+        """単一グラフ生成モード（デバッグ・個別確認用）"""
         
-        Args:
-            elapsed_minutes: プロジェクト開始からの経過時間（分）
-        """
-        # マイルストーン判定
-        milestones = [30, 60, 90, 120, 180]
-        is_milestone = elapsed_minutes in milestones
+        level = params.get('level', 'project')
+        specific = params.get('specific')
         
-        # 通常のグラフ生成
-        generated_files = self.generate_all_graphs()
+        # データ収集
+        self._collect_all_data()
         
-        # マイルストーン時はコピーを保存
-        if is_milestone:
-            milestone_dir = self.base_output_dir / 'milestones' / f'{elapsed_minutes}min'
-            milestone_dir.mkdir(parents=True, exist_ok=True)
-            
-            for file_path in generated_files:
-                if Path(file_path).exists():
-                    import shutil
-                    dest = milestone_dir / Path(file_path).name
-                    shutil.copy2(file_path, dest)
-            
-            print(f"✅ Milestone graphs saved: {milestone_dir}")
+        # DPI設定
+        dpi = params.get('dpi', 100)
         
-        return generated_files
-    
-    def generate_visualization_report(self, total_count: int):
-        """可視化レポートを自動生成"""
-        report_dir = self.project_root / "User-shared" / "reports"
-        report_dir.mkdir(parents=True, exist_ok=True)
-        report_path = report_dir / "sota_visualization_report.md"
+        if level == 'local' and specific:
+            # 特定PGのみ
+            for path, entries in self.changelog_cache.items():
+                if specific in path:
+                    sota = self._extract_sota_progression(entries)
+                    if sota:
+                        output = self._generate_graph(
+                            f'local/{specific}',
+                            sota,
+                            f"SOTA: {specific}",
+                            params.get('x_axis', 'time'),
+                            dpi,
+                            params
+                        )
+                        if output:
+                            print(f"✅ Generated: {output}")
+                            return True
         
-        with open(report_path, 'w', encoding='utf-8') as f:
-            f.write(f"# SOTA Visualization Report\n\n")
-            f.write(f"Generated: {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')}\n\n")
-            
-            # 各階層のグラフリンクを動的に生成
-            for level_name, level_dir in self.output_dirs.items():
-                if level_name == 'comparison':  # comparisonはレポートから除外
-                    continue
-                    
-                if level_dir.exists():
-                    f.write(f"## {level_name.capitalize()} Level\n\n")
-                    
-                    # サブディレクトリがあるか確認
-                    subdirs = [d for d in level_dir.iterdir() if d.is_dir()]
-                    
-                    if subdirs:
-                        # サブディレクトリごとに処理
-                        for subdir in sorted(subdirs):
-                            png_files = sorted(subdir.glob("*.png"))
-                            if png_files:
-                                f.write(f"### {subdir.name}\n\n")
-                                for png_file in png_files:
-                                    # sota_countは除外
-                                    if 'sota' in png_file.stem and 'count' in png_file.stem and 'generation' not in png_file.stem:
-                                        continue
-                                    rel_path = Path(f"../visualizations/sota/{level_name}") / subdir.name / png_file.name
-                                    f.write(f"#### {png_file.stem}\n")
-                                    f.write(f"![{png_file.stem}]({rel_path})\n\n")
-                    else:
-                        # サブディレクトリがない場合のみ直下を確認
-                        png_files = sorted([f for f in level_dir.glob("*.png") if f.is_file()])
-                        for png_file in png_files:
-                            # sota_countは除外
-                            if 'sota' in png_file.stem and 'count' in png_file.stem and 'generation' not in png_file.stem:
-                                continue
-                            rel_path = Path(f"../visualizations/sota/{level_name}") / png_file.name
-                            f.write(f"### {png_file.stem}\n")
-                            f.write(f"![{png_file.stem}]({rel_path})\n\n")
-            
-            f.write(f"\n## Summary\n")
-            f.write(f"- Total graphs: {total_count}\n")
-            f.write(f"- Levels: local, family, middleware (hardware), true hardware, project\n")
-            f.write(f"- Variants: time/count axis, linear/log scale\n")
-        
-        print(f"✅ Report saved: {report_path}")
+        print("No data found for specified criteria")
+        return False
 
 
 def main():
-    """メイン処理"""
-    import argparse
+    """メインエントリポイント"""
+    parser = argparse.ArgumentParser(
+        description='SOTA Visualizer - Efficient Pipeline Edition',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # 通常のパイプライン実行（定期実行用）
+  python sota_visualizer.py
+  
+  # デバッグモード（低解像度）
+  python sota_visualizer.py --debug
+  
+  # サマリー表示（グラフ生成なし）
+  python sota_visualizer.py --summary
+  
+  # 特定PGのみ高解像度
+  python sota_visualizer.py --specific PG1.2:150
+  
+  # データエクスポート
+  python sota_visualizer.py --export
+  
+  # SEカスタム実行
+  python sota_visualizer.py --levels local,project --dpi 80
+        """
+    )
     
-    parser = argparse.ArgumentParser(description='VibeCodeHPC SOTA Visualizer')
-    parser.add_argument('--level', default='project',
-                       choices=['local', 'family', 'hardware', 'true_hardware', 'project', 'all'],
-                       help='SOTA level to visualize')
-    parser.add_argument('--x-axis', default='time', choices=['time', 'count'],
+    # モード選択
+    parser.add_argument('--pipeline', action='store_true', default=True,
+                       help='Pipeline mode (default)')
+    parser.add_argument('--debug', action='store_true',
+                       help='Debug mode with low DPI')
+    parser.add_argument('--summary', action='store_true',
+                       help='Show summary without generating graphs')
+    parser.add_argument('--export', action='store_true',
+                       help='Export data for multi-project analysis')
+    parser.add_argument('--single', action='store_true',
+                       help='Single graph generation mode')
+    
+    # パイプライン制御
+    parser.add_argument('--levels', type=str,
+                       help='Comma-separated levels (e.g., local,hardware,project)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if locked')
+    parser.add_argument('--no-delay', action='store_true',
+                       help='No IO delay between levels')
+    
+    # グラフ制御
+    parser.add_argument('--specific', type=str,
+                       help='Specific agents with DPI (e.g., PG1.2:120,PG2:80)')
+    parser.add_argument('--x-axis', type=str, default='time',
+                       choices=['time', 'count', 'version'],
                        help='X-axis type')
-    parser.add_argument('--log-scale', action='store_true',
-                       help='Use logarithmic scale for Y-axis')
+    parser.add_argument('--dpi', type=int,
+                       help='Override default DPI')
+    parser.add_argument('--accuracy-threshold', type=float,
+                       help='Filter by accuracy (e.g., 95.0)')
     parser.add_argument('--no-theoretical', action='store_true',
                        help='Hide theoretical performance line')
-    parser.add_argument('--theoretical-ratio', type=float, default=0.1,
-                       help='Theoretical performance ratio when unknown')
+    
+    # レベル指定（単一モード用）
+    parser.add_argument('--level', type=str, default='project',
+                       choices=['local', 'family', 'hardware', 'project'],
+                       help='Level for single mode')
     
     args = parser.parse_args()
     
-    project_root = Path(__file__).parent.parent
+    # プロジェクトルート検索
+    current = Path.cwd()
+    project_root = None
+    
+    while current != current.parent:
+        if (current / "CLAUDE.md").exists():
+            project_root = current
+            break
+        current = current.parent
+    
+    if not project_root:
+        print("Error: Could not find project root (CLAUDE.md)")
+        sys.exit(1)
+    
+    # Visualizer作成
     visualizer = SOTAVisualizer(project_root)
     
-    if args.level == 'all':
-        visualizer.generate_all_graphs()
+    # パラメータ構築
+    params = {
+        'force': args.force,
+        'no_delay': args.no_delay,
+        'specific': args.specific,
+        'x_axis': args.x_axis,
+        'accuracy_threshold': args.accuracy_threshold,
+        'no_theoretical': args.no_theoretical
+    }
+    
+    if args.levels:
+        params['levels'] = args.levels.split(',')
+    
+    if args.dpi:
+        params['dpi'] = args.dpi
+    
+    # モード判定と実行
+    if args.summary:
+        success = visualizer.run('summary', **params)
+    elif args.export:
+        success = visualizer.run('export', **params)
+    elif args.debug:
+        success = visualizer.run('debug', **params)
+    elif args.single:
+        params['level'] = args.level
+        success = visualizer.run('single', **params)
     else:
-        visualizer.plot_sota_comparison(
-            sota_level=args.level,
-            x_axis=args.x_axis,
-            log_scale=args.log_scale,
-            show_theoretical=not args.no_theoretical,
-            theoretical_ratio=args.theoretical_ratio
-        )
+        success = visualizer.run('pipeline', **params)
+    
+    sys.exit(0 if success else 1)
 
 
 if __name__ == "__main__":
