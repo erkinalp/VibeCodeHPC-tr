@@ -58,7 +58,7 @@
       },
       "Agent-shared/sota/sota_visualizer.py": {
         "probabilities": {"SE": 0.15, "SOLO": 0.1},
-        "description": "SOTA可視化スクリプト（長い）"
+        "description": "SOTA可視化パイプライン（効率版）"
       },
       "Agent-shared/sota/sota_management.md": {
         "probabilities": {"SE": 0.2, "PG": 0.15, "SOLO": 0.15},
@@ -189,7 +189,7 @@
       "重複レポート作成の防止（既存を更新）",
       "全PGのChangeLog.md監視（5分以上更新なし→介入）",
       "SOTA全レベル可視化されるようにChangeLog.md整備・更新促進（特にジョブの実行忘れ・スパコン上で結果が出ているのに未読のケース有）",
-      "sota_visualizer.py改造・全結果プロット確認（テキストでも結果が分かるようデバッグ追記）",
+      "sota_visualizer.py --summaryでデータ確認（グラフ生成せず高速）",
       "visualizations/画像の相対パス参照確認",
       "Python可視化スクリプト再実行（ハードコード禁止）",
       "停滞エージェントへの積極的介入",
@@ -229,7 +229,7 @@
       "ジョブ状態確認→結果ファイル(.out/.err)取得（PG役）",
       "理論性能との実効効率計算・ChangeLog.md記録（PG役）",
       "SOTA全階層の判定と更新（PG役）",
-      "sota_visualizer.py実行・改造（全結果プロット確認）（SE役）",
+      "sota_visualizer.py --debug実行（低解像度で高速確認）（SE役）",
       "budget_tracker.py --summary実行（PM役）",
       "コンテキスト使用率確認（telemetry/ --summary）（SE役）",
       "GitHub/へのSOTA達成コード同期（CD役・必要時）",
