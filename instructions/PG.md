@@ -105,6 +105,9 @@ date -u +"%Y-%m-%dT%H:%M:%SZ"
 Desktop Commander MCPを使用してSSH/SFTP接続を管理します。
 詳細な実装方法とベストプラクティスは `/Agent-shared/ssh_sftp_guide.md` を参照してください。
 
+**重要**: requirement_definition.mdで許可されていない限り、コンパイル・実行はすべてSSH経由でスパコン上で行うこと。
+ローカルPCでの実行は禁止。ローカルで許可されるのは集計・可視化・ChangeLog.md編集のみ。
+
 **重要なポイント**:
 - セッション作成時は必ずPIDを記録し、`ssh_sftp_sessions.json`で管理
 - エラー時はBashツールへのフォールバックを実装
