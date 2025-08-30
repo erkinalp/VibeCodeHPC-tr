@@ -178,23 +178,30 @@
       "ジョブ状態確認",
       "実行結果取得→ 即座にChangeLog.md更新",
       "SOTA判定と記録（local/family/hardware/project）→ 即座にChangeLog.md更新",
+      "他PGのChangeLog.md参照（ただし参照可能スコープvisible_path_*.txtに従う）",
+      "結果ファイル(.out/.err)の定期確認・取得",
       "パラメータチューニング検討",
-      "次バージョンの最適化戦略立案"
+      "次バージョンの最適化戦略立案",
+      "sleep後も作業継続（待機禁止）"
     ],
     "SE": [
       "User-shared/以下の既存レポート確認（ls -la User-shared/reports/）",
       "重複レポート作成の防止（既存を更新）",
       "全PGのChangeLog.md監視（5分以上更新なし→介入）",
       "SOTA全レベル可視化されるようにChangeLog.md整備・更新促進（特にジョブの実行忘れ・スパコン上で結果が出ているのに未読のケース有）",
+      "sota_visualizer.py改造・全結果プロット確認（テキストでも結果が分かるようデバッグ追記）",
       "visualizations/画像の相対パス参照確認",
       "Python可視化スクリプト再実行（ハードコード禁止）",
       "停滞エージェントへの積極的介入",
       "visible_path_*.txt作成・更新",
-      "予算効率分析レポート"
+      "予算効率分析レポート",
+      "sleep後も作業継続（待機禁止）"
     ],
     "PM": [
       "全エージェント巡回（3-5分間隔）",
       "agent_and_pane_id_table.jsonl確認",
+      "エージェント間通信ログ確認(communication/logs/send_log.txt)",
+      "各エージェントの.claude/hooks/stop_count.txt確認",
       "予算状況確認（budget_tracker.py --summary）",
       "リソース再配分検討",
       "directory_pane_map.md最新化",
@@ -202,7 +209,8 @@
       "stop_count確認と必要時リセット",
       "requirement_definition.md達成度確認",
       "予算・時間ベースのプロジェクト終了判定",
-      "User-shared/final_report.md準備"
+      "User-shared/final_report.md準備",
+      "sleep後も作業継続（待機禁止）"
     ],
     "CD": [
       "GitHub/へのプロジェクトコピー更新",
@@ -212,20 +220,22 @@
       "git status確認",
       "定期的なgit push（禁止されていない限り）",
       ".gitignore管理",
-      "README.md更新"
+      "README.md更新",
+      "sleep後も作業継続（待機禁止）"
     ],
     "SOLO": [
-      "要件定義と環境調査（PM役）",
       "環境構築とmodule確認（SE役）",
-      "コード生成と最適化実装（PG役）",
-      "ジョブ実行と結果確認（PG役）",
-      "ChangeLog.md更新（PG役）",
-      "統計分析と可視化（SE役）",
-      "GitHub同期（CD役・必要時）",
-      "予算管理と進捗確認（PM役）",
-      "ToDoリストで役割管理",
-      "時間制限の確認",
-      "最終報告準備"
+      "コード生成・修正→即座にChangeLog.md更新（PG役）",
+      "ジョブ状態確認→結果ファイル(.out/.err)取得（PG役）",
+      "理論性能との実効効率計算・ChangeLog.md記録（PG役）",
+      "SOTA全階層の判定と更新（PG役）",
+      "sota_visualizer.py実行・改造（全結果プロット確認）（SE役）",
+      "budget_tracker.py --summary実行（PM役）",
+      "コンテキスト使用率確認（telemetry/ --summary）（SE役）",
+      "GitHub/へのSOTA達成コード同期（CD役・必要時）",
+      "ToDoリストで次タスク管理（必須）",
+      "時間・予算制限の確認（PM役）",
+      "sleep後も作業継続（待機禁止）"
     ]
   }
 }
