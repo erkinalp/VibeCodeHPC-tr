@@ -152,48 +152,20 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
-        # SOTA可視化: 30分ごとに分散実行（30-45分の間で複数のレベルを順次生成）
-        # プロジェクト開始からの経過時間を基準に、相対時刻でグラフを生成
+        # SOTA可視化: パイプライン版で効率的に実行
+        # プロジェクト開始5分後から30分ごとに実行
         PROJECT_ELAPSED=$(get_elapsed_minutes)
-        if [ "$PROJECT_ELAPSED" -gt 0 ]; then
-            # 30分ごとのマイルストーンを基準に、そこから0-15分の間で分散
-            MILESTONE_BASE=$((PROJECT_ELAPSED / 30 * 30))  # 30, 60, 90...
-            OFFSET_FROM_MILESTONE=$((PROJECT_ELAPSED - MILESTONE_BASE))
-            
-            # 0-15分の間で異なるレベルのグラフを生成
-            if [ $OFFSET_FROM_MILESTONE -ge 2 ] && [ $OFFSET_FROM_MILESTONE -lt 17 ]; then
-                SOTA_CMD=""
-                case $OFFSET_FROM_MILESTONE in
-                    2|3)  # 32-33分: projectレベル
-                        SOTA_CMD="--level project --x-axis time"
-                        ;;
-                    5|6)  # 35-36分: localレベル
-                        SOTA_CMD="--level local --x-axis time"
-                        ;;
-                    8|9)  # 38-39分: familyレベル（全て）
-                        SOTA_CMD="--level family --x-axis time"
-                        ;;
-                    11|12) # 41-42分: hardwareレベル
-                        SOTA_CMD="--level hardware --x-axis time"
-                        ;;
-                    14|15) # 44-45分: カウントベース
-                        SOTA_CMD="--level project --x-axis count"
-                        ;;
-                esac
+        
+        # 初回は5分後、その後30分ごと
+        if [ $PROJECT_ELAPSED -eq 5 ] || ([ $PROJECT_ELAPSED -gt 5 ] && [ $((PROJECT_ELAPSED % 30)) -eq 5 ]); then
+            if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
+                echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA pipeline starting (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
                 
-                # 効率化版を優先的に使用
-                if [ -n "$SOTA_CMD" ]; then
-                    if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer_efficient.py" ]; then
-                        # 効率化版がある場合はそれを使用（レベルごとに一括生成）
-                        LEVEL_ONLY=$(echo $SOTA_CMD | grep -oP '(?<=--level )\w+')
-                        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA efficient: level=$LEVEL_ONLY (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
-                        $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer_efficient.py" --level $LEVEL_ONLY 2>&1 | tail -2 >> "$LOG_FILE"
-                    elif [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
-                        # 従来版へのフォールバック
-                        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA vis: $SOTA_CMD (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
-                        $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" $SOTA_CMD 2>&1 | tail -2 >> "$LOG_FILE"
-                    fi
-                fi
+                # パイプラインモードで実行（タイムアウト25分）
+                timeout 25m $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" \
+                    --no-delay 2>&1 | tail -5 >> "$LOG_FILE" &
+                
+                echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA pipeline launched in background" >> "$LOG_FILE"
             fi
         fi
         
