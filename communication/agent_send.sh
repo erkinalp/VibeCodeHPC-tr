@@ -292,15 +292,15 @@ send_message() {
     
     # Claude Codeのプロンプトを一度クリア
     tmux send-keys -t "$session:$window.$pane" C-c 2>/dev/null
-    sleep 0.2
+    sleep 0.3
     
     # メッセージ送信（改行含む全体を送信）
     tmux send-keys -t "$session:$window.$pane" "$message"
-    sleep 0.2
+    sleep 0.1
     
     # エンター押下（単独で送信）
     tmux send-keys -t "$session:$window.$pane" C-m
-    sleep 0.3
+    sleep 0.5
     
     return 0
 }
