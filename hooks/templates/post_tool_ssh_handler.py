@@ -68,8 +68,8 @@ Desktop Commander MCPでのセッション管理：
 
 ⚠️ この警告表示後も作業を継続してください（STOPしないこと）:
 • /Agent-shared/ssh_sftp_guide.mdを確認
-• list_sessionsでセッション確認
-• ssh_sftp_sessions.jsonの作成/更新を進める
+• mcp__desktop-commander__list_sessionsでMCPセッション確認
+• ssh_sftp_sessions.jsonの{"更新" if has_sessions else "作成"}を進める
 """
                     
                     # stderrに出力して終了コード2でClaudeに表示
@@ -99,7 +99,6 @@ Desktop Commander MCPでのセッション管理：
 
 ⚠️ この警告表示後も作業を継続してください（STOPしないこと）:
 • /Agent-shared/ssh_sftp_guide.mdを確認
-• 出力が大量の場合は早めにCtrl+Cで中断
 • Desktop Commander MCPへの移行を検討
 """
                 
