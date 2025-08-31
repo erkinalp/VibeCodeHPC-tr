@@ -11,6 +11,18 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+def check_ssh_sessions_file():
+    """ssh_sftp_sessions.jsonの存在確認"""
+    sessions_file = Path.cwd() / "ssh_sftp_sessions.json"
+    if sessions_file.exists():
+        try:
+            with open(sessions_file, 'r') as f:
+                sessions = json.load(f)
+                return len(sessions.get("sessions", [])) > 0
+        except:
+            return False
+    return False
+
 def main():
     try:
         # JSONを読み込み
@@ -36,10 +48,16 @@ def main():
                     pid = pid_match.group(1)
                 
                 if pid:
+                    has_sessions = check_ssh_sessions_file()
                     message = f"""
 SSH/SFTPセッション開始を検出しました:
 • PID: {pid}
 • コマンド: {command}
+
+Desktop Commander MCPでのセッション管理：
+• /Agent-shared/ssh_sftp_guide.md を参照してください
+• ssh_sftp_sessions.jsonでセッション管理が必要です
+{"• 既存セッションファイルを検出 - interact_with_processの使用を検討" if has_sessions else "• セッションファイルが未作成 - start_processから開始"}
 
 【重要】以下の手順でセッション管理してください:
 1. ssh_sftp_sessions.jsonを作成/更新してPID {pid}を記録
@@ -58,11 +76,16 @@ SSH/SFTPセッション開始を検出しました:
             command = tool_input.get("command", "")
             
             if command.strip().startswith(("ssh ", "sftp ", "scp ")):
-                message = """
+                has_sessions = check_ssh_sessions_file()
+                message = f"""
 ⚠️ Bashツールで直接SSH/SFTP/SCPを実行しました。
 
 【推奨】Desktop Commander MCPを使用してください:
-• /Agent-shared/ssh_sftp_guide.mdを参照
+• /Agent-shared/ssh_sftp_guide.md を参照してください
+• ssh_sftp_sessions.jsonでセッション管理が必要です
+{"• 既存セッションファイルを検出 - interact_with_processの使用を検討" if has_sessions else "• セッションファイルが未作成 - start_processから開始"}
+
+理由：
 • セッション管理が可能
 • 大量出力によるコンテキスト消費を防止
 • 2段階認証の回避
