@@ -115,7 +115,7 @@ flowchart TB
 
       %% データフロー
       subgraph DataFlow["💾 データ管理"]
-          SetupHooks -->|配置| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>agent_id.txt ]
+          SetupHooks -->|配置| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt ]
 
           LocalScript -->|working_dir記録| JSONL
           Claude -->|SessionStartイベント| SessionHook[session_start.py]
