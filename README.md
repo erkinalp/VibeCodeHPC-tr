@@ -622,12 +622,13 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 **注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
 </details>
 
-### 🎣 Claude Code Hooks機能
+### 🪝 Claude Code Hooks機能
 
 エージェントの挙動を制御するhooks機能により、以下が実現されます：
 
 #### 主な機能
 - [x] **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
+- [x] **SSH/SFTP接続支援**: PostToolUseフックがSSH接続を検出し、Desktop Commander MCPでのセッション管理方法を自動案内
 - [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
 
 #### STOP Hooksバージョンの選択
