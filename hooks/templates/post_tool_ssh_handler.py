@@ -65,6 +65,11 @@ Desktop Commander MCPでのセッション管理：
 3. セッション終了時はforce_terminate（PID: {pid}）
 
 -ttオプションなしで接続した場合、インタラクティブ操作で問題が発生する可能性があります。
+
+⚠️ この警告表示後も作業を継続してください（STOPしないこと）:
+• /Agent-shared/ssh_sftp_guide.mdを確認
+• list_sessionsでセッション確認
+• ssh_sftp_sessions.jsonの作成/更新を進める
 """
                     
                     # stderrに出力して終了コード2でClaudeに表示
@@ -91,6 +96,11 @@ Desktop Commander MCPでのセッション管理：
 • 2段階認証の回避
 
 次回からはmcp__desktop-commander__start_processの使用を検討してください。
+
+⚠️ この警告表示後も作業を継続してください（STOPしないこと）:
+• /Agent-shared/ssh_sftp_guide.mdを確認
+• 出力が大量の場合は早めにCtrl+Cで中断
+• Desktop Commander MCPへの移行を検討
 """
                 
                 # stderrに出力して終了コード2でClaudeに表示
