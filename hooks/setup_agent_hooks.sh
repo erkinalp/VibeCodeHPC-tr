@@ -36,6 +36,9 @@ mkdir -p "$AGENT_DIR/.claude/hooks"
 # session_start.pyをコピー（全エージェント共通）
 cp "$TEMPLATE_DIR/session_start.py" "$AGENT_DIR/.claude/hooks/"
 
+# post_tool_ssh_handler.pyをコピー（PostToolUse SSH/SFTP支援）
+cp "$TEMPLATE_DIR/post_tool_ssh_handler.py" "$AGENT_DIR/.claude/hooks/"
+
 # agent_id.txtを作成
 echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
 
@@ -49,6 +52,13 @@ if [ "$AGENT_ID" = "SOLO" ]; then
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {
   "hooks": {
+    "PostToolUse": [{
+      "matcher": "mcp__desktop-commander__start_process|Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 .claude/hooks/post_tool_ssh_handler.py"
+      }]
+    }],
     "Stop": [{
       "hooks": [{
         "type": "command",
@@ -79,6 +89,13 @@ elif [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]]; then
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {
   "hooks": {
+    "PostToolUse": [{
+      "matcher": "mcp__desktop-commander__start_process|Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 .claude/hooks/post_tool_ssh_handler.py"
+      }]
+    }],
     "Stop": [{
       "hooks": [{
         "type": "command",
@@ -101,6 +118,13 @@ else
     cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {
   "hooks": {
+    "PostToolUse": [{
+      "matcher": "mcp__desktop-commander__start_process|Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 .claude/hooks/post_tool_ssh_handler.py"
+      }]
+    }],
     "Stop": [{
       "hooks": [{
         "type": "command",
