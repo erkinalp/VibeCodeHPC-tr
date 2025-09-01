@@ -290,23 +290,24 @@ send_message() {
     # メッセージ送信
     echo "📤 $agent_name ← '$message'"
     
-    # Claude Codeのプロンプトを一度クリア
-    tmux send-keys -t "$session:$window.$pane" C-c 2>/dev/null
-    sleep 0.3
+    # 現在の行をクリア（C-uで制御文字もクリア）
+    tmux send-keys -t "$session:$window.$pane" C-u 2>/dev/null
+    sleep 0.1
     
     # メッセージ送信（改行含む全体を送信）
     tmux send-keys -t "$session:$window.$pane" "$message"
-    sleep 0.1
+    # sleep 0.01  # 待機なし（コメントアウト）
     
-    # エンター押下（3連続で送信して成功率向上 - 失敗率30% → 3%へ）
-    # 1回目: 通常送信
+    # エンター押下（時間差3段送信で信頼性向上）
+    # 1回目: 即送信（基本的にはこれで成功）
+    tmux send-keys -t "$session:$window.$pane" C-m
+    sleep 2.0  # UIが不安定なら2秒は待つ
+    # 2回目: スクロールや出力処理が落ち着いた頃
+    tmux send-keys -t "$session:$window.$pane" C-m
+    sleep 4.0  # さらに確実を期す
+    # 3回目: 最終確認（この時点でUIは確実に安定）
     tmux send-keys -t "$session:$window.$pane" C-m
     sleep 0.5
-    # 2回目: 念のため追加送信
-    tmux send-keys -t "$session:$window.$pane" C-m
-    sleep 0.2
-    # 3回目: 最終確認送信
-    tmux send-keys -t "$session:$window.$pane" C-m
     
     return 0
 }
