@@ -559,9 +559,11 @@ cd VibeCodeHPC-jp-main
 
 #### プロジェクト名指定例:
 ```bash
-./communication/setup.sh 12 --project GEMM  
+./communication/setup.sh 12 --project GEMM  # デフォルト60秒間隔で定期Enter送信
+./communication/setup.sh 12 --project GEMM --periodic-enter 30  # 30秒間隔
+./communication/setup.sh 12 --project GEMM --periodic-enter 0  # 定期Enter無効
 ```
-上記コマンドで `GEMM_PM`, `GEMM_Workers1` セッションを作成
+上記コマンドで `GEMM_PM`, `GEMM_Workers1` セッションを作成、残留メッセージ強制送信機能も起動
 
 
 #### 参考構成例（実際の配置はPMが決定）
