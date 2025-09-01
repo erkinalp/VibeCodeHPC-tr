@@ -14,6 +14,7 @@ PROJECT_NAME=""  # ユーザが指定するプロジェクト名
 USE_DEFAULT_NAMES=true  # デフォルト名使用フラグ
 DRY_RUN=false  # dry-runフラグ
 HOOKS_VERSION="v3"  # hooksバージョン（デフォルトv3）
+PERIODIC_ENTER_INTERVAL=60  # 定期Enter送信間隔（秒）、0で無効
 
 # デフォルトセッション名
 DEFAULT_PM_SESSION="Team1_PM"
@@ -52,6 +53,7 @@ show_usage() {
 オプション:
   --project <名前>  : プロジェクト名を指定（例: GEMM, MatMul）
   --hooks <v2|v3>  : hooksバージョンを指定（デフォルト: v3）
+  --periodic-enter <秒> : 定期Enter送信間隔を指定（デフォルト: 60秒、0で無効）
   --clean-only     : 既存セッションのクリーンアップのみ実行
   --dry-run        : 実際のセットアップを行わずに計画を表示
   --help           : このヘルプを表示
@@ -671,6 +673,18 @@ main() {
                     exit 1
                 fi
                 HOOKS_VERSION="$2"
+                shift 2
+                ;;
+            --periodic-enter)
+                if [[ $# -lt 2 ]]; then
+                    log_error "--periodic-enter オプションには秒数が必要です"
+                    exit 1
+                fi
+                if ! [[ "$2" =~ ^[0-9]+$ ]]; then
+                    log_error "--periodic-enter には数値を指定してください"
+                    exit 1
+                fi
+                PERIODIC_ENTER_INTERVAL="$2"
                 shift 2
                 ;;
             --clean-only)
