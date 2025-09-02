@@ -300,21 +300,26 @@ class SOTAVisualizer:
         # 特定エージェントDPI指定を解析
         specific_dpis = self._parse_specific_dpis(params.get('specific', ''))
         
-        # PGエージェントを識別
-        pg_dirs = {}
+        # ChangeLogがあるディレクトリごとに処理（localレベル = 技術ディレクトリごと）
+        local_dirs = {}
         for path, entries in self.changelog_cache.items():
-            # PG1.2形式を検出
-            if 'PG' in path or '/PG' in path:
-                agent_id = self._extract_agent_id(path)
-                if agent_id:
-                    pg_dirs[agent_id] = entries
+            if entries:
+                # パスから見やすい識別子を生成（例: "intel2024/OpenMP"）
+                path_parts = path.split('/')
+                if len(path_parts) >= 2:
+                    # 最後の2階層を使用（例: intel2024/OpenMP）
+                    dir_id = '/'.join(path_parts[-2:])
+                else:
+                    dir_id = path_parts[-1] if path_parts else path
+                
+                local_dirs[dir_id] = entries
         
         # 最大処理数制限
         max_agents = params.get('max_local', self.config['pipeline']['max_local_agents'])
         
-        for i, (agent_id, entries) in enumerate(list(pg_dirs.items())[:max_agents]):
+        for i, (dir_id, entries) in enumerate(list(local_dirs.items())[:max_agents]):
             # DPI決定（個別指定 or デフォルト）
-            dpi = specific_dpis.get(agent_id, dpi_config['linear'])
+            dpi = specific_dpis.get(dir_id, dpi_config['linear'])
             
             # SOTA抽出（単調増加）
             sota_entries = self._extract_sota_progression(entries)
@@ -323,9 +328,9 @@ class SOTAVisualizer:
                 # グラフ生成
                 for x_axis in params.get('x_axes', ['time']):
                     output_path = self._generate_graph(
-                        f'local/{agent_id}',
+                        f'local/{dir_id.replace("/", "_")}',
                         sota_entries,
-                        f"SOTA: {agent_id}",
+                        f"SOTA: {dir_id}",
                         x_axis,
                         dpi,
                         params
