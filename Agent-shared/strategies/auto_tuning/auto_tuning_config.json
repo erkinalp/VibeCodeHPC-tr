@@ -68,6 +68,10 @@
         "probabilities": {"PG": 0.15, "SE": 0.1, "SOLO": 0.1},
         "description": "SOTA判定スクリプト"
       },
+      "Agent-shared/sota/sota_checker_usage.md": {
+        "probabilities": {"PG": 0.2, "SE": 0.1, "SOLO": 0.15},
+        "description": "SOTA判定ツール使用法"
+      },
       "Agent-shared/report_hierarchy.md": {
         "probabilities": {"SE": 0.2},
         "description": "レポート階層"
