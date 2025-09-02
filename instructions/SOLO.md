@@ -72,6 +72,7 @@ todos = [
 マルチエージェントと同じ仕組みを使用：
 - `Agent-shared/change_log/ChangeLog_format.md`に従って記録
 - `Agent-shared/sota/sota_management.md`の基準でSOTA判定
+- `Agent-shared/sota/sota_checker_usage.md`でSOTA判定・txtファイル更新
 - 各ディレクトリにsota_local.txt配置
 
 ## 🔄 実装サイクル

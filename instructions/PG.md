@@ -29,6 +29,7 @@
 #### 初期化時に必ず読むべきファイル
 - `/Agent-shared/change_log/ChangeLog_format.md`（進捗記録フォーマット）
 - `/Agent-shared/sota/sota_management.md`（SOTA判定基準と階層）
+- `/Agent-shared/sota/sota_checker_usage.md`（SOTA判定・txtファイル更新ツール使用法）
 - `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
 - `/Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層構造の具体例）
 - `/Agent-shared/ssh_sftp_guide.md`（SSH/SFTP接続・実行ガイド）

@@ -38,7 +38,8 @@ Agent-shared/
 │   └── usage.md                 # 予算システム使用ガイド（reader:PM,SE）
 ├── sota/                        # SOTA管理・可視化
 │   ├── sota_management.md       # SOTA管理システム仕様（reader:all）
-│   ├── sota_checker.py          # SOTA確認スクリプト（writer:SE, reader:all）
+│   ├── sota_checker.py          # SOTA判定・記録スクリプト（writer:SE, reader:all）
+│   ├── sota_checker_usage.md    # SOTA判定ツール使用法（reader:all）
 │   ├── sota_visualizer.py       # SOTA可視化ツール（writer:SE, reader:SE）
 │   ├── sota_visualizer_usage.md # 可視化ツール使用法（reader:SE）
 │   └── sota_grouping_config_template.yaml # グループ設定テンプレート（writer:SE, reader:SE）
