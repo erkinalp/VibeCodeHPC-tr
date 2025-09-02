@@ -249,17 +249,21 @@ class SOTAVisualizer:
                             value *= 1000  # TFLOPS→GFLOPS変換
                         current_entry['performance'] = value
                 
-                # 生成時刻
-                elif '生成時刻' in line and '`' in line:
-                    time_str = line.split('`')[1].split('`')[0]
-                    try:
-                        timestamp = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
-                        current_entry['timestamp'] = timestamp
-                        # 経過時間計算
-                        elapsed = (timestamp - self.project_start_time).total_seconds()
-                        current_entry['elapsed_seconds'] = elapsed
-                    except:
-                        pass
+                # 生成時刻（details内、バッククォート必須）
+                elif '生成時刻' in line:
+                    # `2025-08-19T23:45:00Z` 形式を抽出
+                    import re
+                    match = re.search(r'`(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)`', line)
+                    if match:
+                        time_str = match.group(1)
+                        try:
+                            timestamp = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                            current_entry['timestamp'] = timestamp
+                            # 経過時間計算
+                            elapsed = (timestamp - self.project_start_time).total_seconds()
+                            current_entry['elapsed_seconds'] = elapsed
+                        except:
+                            pass
                 
                 # 精度情報（オプション）
                 elif '精度' in line or 'accuracy' in line.lower():
@@ -444,6 +448,18 @@ class SOTAVisualizer:
             
             # データ準備
             if x_axis == 'time':
+                # elapsed_secondsがないエントリを検出
+                missing_time = [e.get('version', f'unknown_{i}') for i, e in enumerate(entries) if 'elapsed_seconds' not in e]
+                if missing_time:
+                    print(f"  ⚠️ Warning: ChangeLogに生成時刻が不足: {', '.join(missing_time)}")
+                    print(f"     {len(missing_time)}個のエントリを除外してグラフ生成")
+                    # 有効なエントリのみ使用
+                    entries = [e for e in entries if 'elapsed_seconds' in e]
+                
+                if not entries:
+                    print(f"  ❌ Error: 時間情報が1つもありません。このグラフをスキップ")
+                    return None
+                
                 x_data = [e['elapsed_seconds'] / 60 for e in entries]  # 分単位
                 x_label = 'Time (minutes from start)'
                 
@@ -520,8 +536,13 @@ class SOTAVisualizer:
             output_path = output_dir / f"{name.rsplit('/', 1)[-1]}.png"
             
             # 保存（圧縮最小化）
-            plt.savefig(output_path, dpi=dpi, bbox_inches='tight',
-                       compress_level=self.config['io_optimization']['compress_level'])
+            # compress_levelはmatplotlib 3.8+のみ対応
+            try:
+                plt.savefig(output_path, dpi=dpi, bbox_inches='tight',
+                           compress_level=self.config['io_optimization']['compress_level'])
+            except TypeError:
+                # 古いmatplotlibではcompress_level未対応
+                plt.savefig(output_path, dpi=dpi, bbox_inches='tight')
             plt.close()
             
             return output_path
