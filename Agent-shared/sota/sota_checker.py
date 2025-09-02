@@ -12,7 +12,7 @@ import glob
 
 class SOTAChecker:
     def __init__(self, current_dir):
-        self.current_dir = Path(current_dir)
+        self.current_dir = Path(current_dir).resolve()  # 絶対パスに変換
         self.performance = None
         
     def check_sota_levels(self, performance_metric):
@@ -22,7 +22,7 @@ class SOTAChecker:
         results = {
             'local': self.check_local_sota(),
             'parent': self.check_parent_sota(),
-            'global': self.check_global_sota(),
+            'hardware': self.check_hardware_sota(),
             'project': self.check_project_sota()
         }
         
@@ -81,14 +81,14 @@ class SOTAChecker:
         
         return paths
     
-    def check_global_sota(self):
-        """Global SOTA判定"""
-        # hardware_info.txt階層のsota_global.txtを確認
+    def check_hardware_sota(self):
+        """Hardware SOTA判定"""
+        # hardware_info.txt階層のsota_hardware.txtを確認
         hardware_dir = self.find_hardware_info_dir()
         if not hardware_dir:
             return False
             
-        sota_file = hardware_dir / "sota_global.txt"
+        sota_file = hardware_dir / "sota_hardware.txt"
         if not sota_file.exists():
             return True  # 初回は必ずSOTA
             
@@ -101,6 +101,9 @@ class SOTAChecker:
         """Project SOTA判定"""
         # VibeCodeHPCルートのsota_project.txtを確認
         project_root = self.find_project_root()
+        if not project_root:
+            return False
+            
         sota_file = project_root / "sota_project.txt"
         
         if not sota_file.exists():
@@ -124,7 +127,7 @@ class SOTAChecker:
         """VibeCodeHPCルートを探す"""
         current = self.current_dir
         while current != current.parent:
-            if current.name == "VibeCodeHPC":
+            if current.name.startswith("VibeCodeHPC"):
                 return current
             current = current.parent
         return None
@@ -134,7 +137,7 @@ class SOTAChecker:
         sota_info = {
             'local': self.check_local_sota(),
             'parent': self.check_parent_sota(),
-            'global': self.check_global_sota(),
+            'hardware': self.check_hardware_sota(),
             'project': self.check_project_sota()
         }
         
@@ -142,9 +145,9 @@ class SOTAChecker:
         if sota_info['local']:
             self.update_local_sota(version, timestamp, agent_id)
         
-        # Global更新
-        if sota_info['global']:
-            self.update_global_sota(version, timestamp, agent_id)
+        # Hardware更新
+        if sota_info['hardware']:
+            self.update_hardware_sota(version, timestamp, agent_id)
         
         # Project更新
         if sota_info['project']:
@@ -161,11 +164,11 @@ class SOTAChecker:
             f.write(f'timestamp: "{timestamp}"\n')
             f.write(f'agent_id: "{agent_id}"\n')
     
-    def update_global_sota(self, version, timestamp, agent_id):
-        """Global SOTAファイル更新"""
+    def update_hardware_sota(self, version, timestamp, agent_id):
+        """Hardware SOTAファイル更新"""
         hardware_dir = self.find_hardware_info_dir()
         if hardware_dir:
-            sota_file = hardware_dir / "sota_global.txt"
+            sota_file = hardware_dir / "sota_hardware.txt"
             with open(sota_file, 'w') as f:
                 f.write(f'current_best: "{self.performance} GFLOPS"\n')
                 f.write(f'achieved_by: "{agent_id}"\n')
@@ -264,14 +267,33 @@ def get_virtual_parent_sota(current_dir):
     
     return parent_sota, best_info
 
-# 使用例
+# CLI実行対応
 if __name__ == "__main__":
-    checker = SOTAChecker("/path/to/PG1.1.1")
-    results = checker.check_sota_levels("285.7 GFLOPS")
+    import sys
+    from datetime import datetime
     
-    print("SOTA Levels Updated:")
-    for level, updated in results.items():
-        if updated:
-            print(f"  {level}: NEW SOTA!")
-        else:
-            print(f"  {level}: no update")
+    if len(sys.argv) < 2:
+        print("使用方法:")
+        print("  python sota_checker.py <性能値> [ディレクトリ] [バージョン] [agent_id]")
+        print("  例: python sota_checker.py '350.0 GFLOPS'")
+        print("  例: python sota_checker.py '350.0 GFLOPS' . v1.2.3 PG1.1")
+        sys.exit(1)
+    
+    performance = sys.argv[1]
+    directory = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
+    version = sys.argv[3] if len(sys.argv) > 3 else "unknown"
+    agent_id = sys.argv[4] if len(sys.argv) > 4 else "unknown"
+    
+    checker = SOTAChecker(directory)
+    results = checker.check_sota_levels(performance)
+    
+    print(f"SOTA判定結果 ({performance}):")
+    for level, is_sota in results.items():
+        status = "✓ NEW SOTA!" if is_sota else "- no update"
+        print(f"  {level:10s}: {status}")
+    
+    # SOTA更新があれば記録
+    if any(results.values()):
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        checker.update_sota_files(version, timestamp, agent_id)
+        print(f"\nSOTAファイル更新完了 (timestamp: {timestamp})")
