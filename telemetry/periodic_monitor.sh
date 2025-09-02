@@ -21,6 +21,7 @@ DEFAULT_UPDATE_INTERVAL_SEC=30  # 30秒（上書き更新頻度）
 DEFAULT_MILESTONE_INTERVAL_MIN=30  # 30分（マイルストーン確認間隔）
 DEFAULT_MAX_RUNTIME_MIN=4320  # 4320分（3日）= 24 * 60 * 3
 DEFAULT_BUDGET_INTERVAL_MIN=3  # 3分（予算集計間隔）
+DEFAULT_SOTA_INTERVAL_MIN=15  # 15分（SOTA可視化間隔）
 
 # 設定読み込み（存在すれば）
 if [ -f "$CONFIG_FILE" ]; then
@@ -32,6 +33,7 @@ UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC:-$DEFAULT_UPDATE_INTERVAL_SEC}
 MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN:-$DEFAULT_MILESTONE_INTERVAL_MIN}
 MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN:-$DEFAULT_MAX_RUNTIME_MIN}
 BUDGET_INTERVAL_MIN=${BUDGET_INTERVAL_MIN:-$DEFAULT_BUDGET_INTERVAL_MIN}
+SOTA_INTERVAL_MIN=${SOTA_INTERVAL_MIN:-$DEFAULT_SOTA_INTERVAL_MIN}
 
 # 既存のプロセスがあれば終了
 cleanup_existing_processes() {
@@ -153,16 +155,17 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
         fi
         
         # SOTA可視化: パイプライン版で効率的に実行
-        # プロジェクト開始5分後から30分ごとに実行
+        # プロジェクト開始5分後から定期実行
         PROJECT_ELAPSED=$(get_elapsed_minutes)
         
-        # 初回は5分後、その後30分ごと
-        if [ $PROJECT_ELAPSED -eq 5 ] || ([ $PROJECT_ELAPSED -gt 5 ] && [ $((PROJECT_ELAPSED % 30)) -eq 5 ]); then
+        # 初回は5分後、その後SOTA_INTERVAL_MIN分ごと
+        if [ $PROJECT_ELAPSED -eq 5 ] || ([ $PROJECT_ELAPSED -gt 5 ] && [ $((PROJECT_ELAPSED % SOTA_INTERVAL_MIN)) -eq 5 ]); then
             if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
                 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA pipeline starting (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
                 
-                # パイプラインモードで実行（タイムアウト25分）
-                timeout 25m $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" \
+                # パイプラインモードで実行（タイムアウトはSOTA間隔と同じ）
+                SOTA_TIMEOUT=${SOTA_INTERVAL_MIN}m
+                timeout $SOTA_TIMEOUT $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" \
                     --no-delay 2>&1 | tail -5 >> "$LOG_FILE" &
                 
                 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA pipeline launched in background" >> "$LOG_FILE"

@@ -68,7 +68,7 @@ class SOTAVisualizer:
         # デフォルト設定
         return {
             "pipeline": {
-                "levels": ["local", "hardware", "project"],  # 実行順序
+                "levels": ["local", "family", "hardware", "project"],  # 実行順序
                 "critical_section": True,  # ロック制御
                 "max_local_agents": 10,  # localの最大処理数
                 "io_delay_ms": 500  # IO負荷軽減用待機時間
@@ -344,18 +344,26 @@ class SOTAVisualizer:
         """hardwareレベル処理（localから集約）"""
         generated = []
         
-        # hardware階層を識別（single-node/gcc11.3.0など）
-        hardware_groups = {}
+        # hardware階層を識別
+        hardware_groups = {}  # コンパイラごと（single-node/gcc11.3.0など）
+        hardware_merged = {}  # ハードウェア全体（single-nodeなど）
         
         for path, entries in self.changelog_cache.items():
             # hardware階層を判定
             hw_key = self._extract_hardware_key(path)
             if hw_key:
+                # コンパイラごとのグループ
                 if hw_key not in hardware_groups:
                     hardware_groups[hw_key] = []
                 hardware_groups[hw_key].extend(entries)
+                
+                # ハードウェア全体のグループ（コンパイラ統合）
+                hw_base = hw_key.split('/')[0]  # single-node部分のみ
+                if hw_base not in hardware_merged:
+                    hardware_merged[hw_base] = []
+                hardware_merged[hw_base].extend(entries)
         
-        # 各hardwareグループで集約
+        # コンパイラごとのグラフ生成
         for hw_key, all_entries in hardware_groups.items():
             # 時系列でSOTA更新
             sota_entries = self._aggregate_sota_by_time(all_entries)
@@ -366,6 +374,24 @@ class SOTAVisualizer:
                         f'hardware/{hw_key.replace("/", "_")}',
                         sota_entries,
                         f"SOTA: {hw_key}",
+                        x_axis,
+                        dpi_config['linear'],
+                        params
+                    )
+                    if output_path:
+                        generated.append(output_path)
+        
+        # ハードウェア全体（コンパイラ統合）のグラフ生成
+        for hw_base, all_entries in hardware_merged.items():
+            # 時系列でSOTA更新
+            sota_entries = self._aggregate_sota_by_time(all_entries)
+            
+            if sota_entries:
+                for x_axis in params.get('x_axes', ['time']):
+                    output_path = self._generate_graph(
+                        f'hardware/{hw_base}_all',
+                        sota_entries,
+                        f"SOTA: {hw_base} (All Compilers)",
                         x_axis,
                         dpi_config['linear'],
                         params
@@ -407,32 +433,63 @@ class SOTAVisualizer:
         return generated
     
     def _process_family_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
-        """familyレベル処理（第2世代以降の融合技術）"""
+        """familyレベル処理（第2世代以降の融合技術とその親技術）"""
         generated = []
         
         # family判定（OpenMP_MPI, OpenMP_AVX2など）
-        family_groups = {}
+        family_found = set()
         
-        for path, entries in self.changelog_cache.items():
+        for path in self.changelog_cache.keys():
             # アンダースコアを含む技術名を検出
             if '_' in path:
                 parts = path.split('/')
                 for part in parts:
                     if '_' in part and any(tech in part for tech in ['OpenMP', 'MPI', 'CUDA', 'AVX']):
-                        if part not in family_groups:
-                            family_groups[part] = []
-                        family_groups[part].extend(entries)
+                        family_found.add(part)
                         break
         
-        # 各familyで処理
-        for family_key, all_entries in family_groups.items():
-            sota_entries = self._aggregate_sota_by_time(all_entries)
+        # 各familyで処理（親技術も含めて）
+        for family_key in family_found:
+            # 親技術を特定（例：OpenMP_MPI → ['OpenMP', 'MPI']）
+            parent_techs = family_key.split('_')
             
-            if sota_entries:
-                output_path = self._generate_graph(
+            # 関連する全データを収集
+            multi_series_data = {}
+            
+            # 1. family自体のデータ
+            for path, entries in self.changelog_cache.items():
+                if family_key in path:
+                    # パスから識別名を生成（例：intel2024/OpenMP_MPI）
+                    path_parts = path.split('/')
+                    if len(path_parts) >= 2:
+                        series_key = '/'.join(path_parts[-2:])
+                    else:
+                        series_key = path_parts[-1] if path_parts else path
+                    
+                    multi_series_data[series_key] = entries
+            
+            # 2. 親技術のデータも収集
+            for parent_tech in parent_techs:
+                for path, entries in self.changelog_cache.items():
+                    # 親技術の単独ディレクトリを探す（_を含まない）
+                    path_parts = path.split('/')
+                    for part in path_parts:
+                        if part == parent_tech:  # 完全一致で親技術
+                            if len(path_parts) >= 2:
+                                series_key = '/'.join(path_parts[-2:])
+                            else:
+                                series_key = path_parts[-1] if path_parts else path
+                            
+                            if series_key not in multi_series_data:
+                                multi_series_data[series_key] = entries
+                            break
+            
+            # 複数系列のグラフを生成
+            if multi_series_data:
+                output_path = self._generate_multi_series_graph(
                     f'family/{family_key}',
-                    sota_entries,
-                    f"SOTA: {family_key}",
+                    multi_series_data,
+                    f"Family: {family_key}",
                     'time',
                     dpi_config['linear'],
                     params
@@ -464,6 +521,9 @@ class SOTAVisualizer:
                 if not entries:
                     print(f"  ❌ Error: 時間情報が1つもありません。このグラフをスキップ")
                     return None
+                
+                # 時系列順にソート（重要！）
+                entries = sorted(entries, key=lambda e: e['elapsed_seconds'])
                 
                 x_data = [e['elapsed_seconds'] / 60 for e in entries]  # 分単位
                 x_label = 'Time (minutes from start)'
@@ -508,9 +568,9 @@ class SOTAVisualizer:
                 if filtered:
                     x_data, y_data, entries = zip(*filtered)
             
-            # プロット（階段状）
-            ax.step(x_data, y_data, 'r-', where='post', linewidth=2, label='SOTA')
-            ax.plot(x_data, y_data, 'ro', markersize=6)
+            # プロット（階段状、青系の色）
+            ax.step(x_data, y_data, 'b-', where='post', linewidth=2, label='SOTA', alpha=0.8)
+            ax.plot(x_data, y_data, 'bo', markersize=6, alpha=0.8)
             
             # 誤差バー（あれば）
             if self.config['axes']['show_error_bars'] and any('error' in e for e in entries):
@@ -519,7 +579,7 @@ class SOTAVisualizer:
             
             # 理論性能線（あれば）
             if self.theoretical_performance and not params.get('no_theoretical'):
-                ax.axhline(y=self.theoretical_performance, color='red', 
+                ax.axhline(y=self.theoretical_performance, color='gray', 
                           linestyle='--', alpha=0.5, label='Theoretical')
             
             # tick数制限（MAXTICKS対策）
@@ -557,13 +617,83 @@ class SOTAVisualizer:
             plt.close()
             return None
     
+    def _generate_multi_series_graph(self, name: str, multi_series_data: Dict[str, List[Dict]], 
+                                    title: str, x_axis: str, dpi: int, params: Dict) -> Optional[Path]:
+        """複数系列のグラフ生成（family用）"""
+        if not multi_series_data:
+            return None
+        
+        try:
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # matplotlibのデフォルトカラーサイクルを使用
+            colors = plt.cm.tab10(np.linspace(0, 1, 10))
+            
+            # 各系列をプロット
+            for idx, (series_key, entries) in enumerate(multi_series_data.items()):
+                # SOTA進行を抽出
+                sota_entries = self._extract_sota_progression(entries)
+                
+                if not sota_entries:
+                    continue
+                
+                # elapsed_secondsがあるエントリのみ
+                valid_entries = [e for e in sota_entries if 'elapsed_seconds' in e]
+                if not valid_entries:
+                    continue
+                
+                # 時系列順にソート
+                valid_entries = sorted(valid_entries, key=lambda e: e['elapsed_seconds'])
+                
+                # データ準備
+                x_data = [e['elapsed_seconds'] / 60 for e in valid_entries]  # 分単位
+                y_data = [e['performance'] for e in valid_entries]
+                
+                # プロット（階段状、色は自動割り当て）
+                color = colors[idx % len(colors)]
+                ax.step(x_data, y_data, where='post', linewidth=2, 
+                       label=series_key, color=color, alpha=0.8)
+                ax.plot(x_data, y_data, 'o', markersize=4, color=color, alpha=0.8)
+            
+            # 軸設定
+            ax.set_xlabel('Time (minutes from start)')
+            ax.set_ylabel('Performance (GFLOPS)')
+            ax.set_title(title)
+            ax.grid(True, alpha=0.3)
+            ax.legend(loc='best')
+            
+            # tick数制限
+            ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=15))
+            
+            # 出力パス
+            output_dir = self.output_base / name.rsplit('/', 1)[0]
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = output_dir / f"{name.rsplit('/', 1)[-1]}.png"
+            
+            # 保存
+            plt.savefig(output_path, dpi=dpi, bbox_inches='tight')
+            plt.close()
+            
+            return output_path
+            
+        except Exception as e:
+            print(f"  Multi-series graph error {name}: {e}")
+            plt.close()
+            return None
+    
     def _extract_sota_progression(self, entries: List[Dict]) -> List[Dict]:
         """SOTA更新のみ抽出（単調増加）"""
         if not entries:
             return []
         
+        # elapsed_secondsがあるエントリのみでソート（重要！）
+        valid_entries = [e for e in entries if 'elapsed_seconds' in e]
+        if not valid_entries:
+            # タイムスタンプがない場合は元の順序を保持
+            valid_entries = entries
+        
         # タイムスタンプでソート
-        sorted_entries = sorted(entries, key=lambda e: e.get('elapsed_seconds', 0))
+        sorted_entries = sorted(valid_entries, key=lambda e: e.get('elapsed_seconds', float('inf')))
         
         sota = []
         max_perf = 0
@@ -581,8 +711,14 @@ class SOTAVisualizer:
         if not entries:
             return []
         
+        # elapsed_secondsがあるエントリのみでソート
+        valid_entries = [e for e in entries if 'elapsed_seconds' in e]
+        if not valid_entries:
+            # タイムスタンプがない場合は元の順序を保持
+            valid_entries = entries
+        
         # タイムスタンプでソート
-        sorted_entries = sorted(entries, key=lambda e: e.get('elapsed_seconds', 0))
+        sorted_entries = sorted(valid_entries, key=lambda e: e.get('elapsed_seconds', float('inf')))
         
         sota = []
         max_perf = 0

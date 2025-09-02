@@ -6,20 +6,25 @@
 ## SOTA階層の定義
 
 ### 4つの階層
-1. **Local**: 各PGエージェント内での最高性能
-   - グラフ数 = PGエージェントの累計数
-   - 例: PG1.1.1, PG1.1.2, PG2.1.1...
+1. **Local**: 各技術ディレクトリごとの最高性能
+   - グラフ数 = 技術ディレクトリの累計数
+   - 例: intel2024_OpenMP, gcc11.3.0_MPI...
+   - 各グラフは単一の青色曲線
 
-2. **Family**: 同一ミドルウェア階層（第2世代以降）での最高性能
-   - グラフ数 = 使用した技術の組み合わせ数
-   - 例: OpenMP, MPI, OpenMP_MPI, CUDA...
+2. **Family**: 第2世代融合技術とその親技術の比較
+   - グラフ数 = 融合技術の数（OpenMP_MPI, OpenMP_AVX2など）
+   - **複数曲線グラフ**: 融合技術と親技術を同時表示
+   - 例: OpenMP_MPIグラフには3本の曲線（OpenMP_MPI、OpenMP単体、MPI単体）
+   - 各曲線は異なる色で自動割り当て
 
-3. **Hardware**: ハードウェア構成全体での最高性能
-   - グラフ数 = ハードウェア構成ディレクトリ数（≈ SEの累積数）
-   - 例: single-node/intel2024, multi-node/gcc...
+3. **Hardware**: ハードウェア構成での最高性能
+   - **コンパイラごと**: single-node_gcc11.3.0, single-node_intel2024など
+   - **ハードウェア全体**: single-node_all（全コンパイラ統合）
+   - 例: single-node_allは全コンパイラのデータを統合した最高性能推移
 
 4. **Project**: プロジェクト全体での最高性能
-   - グラフ数 = 1（全体を統合）
+   - グラフ数 = 4（time/count × linear/log）
+   - 全データを統合した最終的な性能推移
 
 ## 基本的な使い方
 
@@ -44,8 +49,9 @@ python Agent-shared/sota/sota_visualizer.py --specific PG1.2:150
 ### 実行の流れ（重要）
 **自動定期実行（SEは触らない）**:
 - PMのhooksで既に自動起動されているはず
-- 30分ごとに`User-shared/visualizations/sota/`にPNG生成される
+- **15分ごと**に`User-shared/visualizations/sota/`にPNG生成される
 - SEは定期実行を開始する必要なし（既に動いている）
+- 頻度変更は`Agent-shared/periodic_monitor_config.txt`で`SOTA_INTERVAL_MIN=10`のように設定
 
 **SEの確認作業**:
 ```bash
@@ -113,8 +119,6 @@ python Agent-shared/sota/sota_visualizer.py --summary
 #   ⚠️ WARNING: Would exceed MAXTICKS limit!
 #   ✅ Fix applied: MaxNLocator(nbins=15)
 
-# Efficient版も同様のサマリー機能を提供
-python Agent-shared/sota/sota_visualizer_efficient.py --summary
 ```
 
 ## 出力先（v2での改善）
@@ -131,14 +135,21 @@ python Agent-shared/sota/sota_visualizer_efficient.py --summary
 ### 対応フォーマット
 ```markdown
 ### v1.0.0
-**生成時刻**: `2025-01-30T12:00:00Z`  
+**変更点**: "OpenMP並列化実装"
 **結果**: 理論性能の65.1%達成 `312.4 GFLOPS`
+**コメント**: "初回実装"
 
-または
+<details>
 
-- performance: `312.4`
-- unit: `GFLOPS`
+- **生成時刻**: `2025-01-30T12:00:00Z`
+- [x] **test**
+    - performance: `312.4`
+    - unit: `GFLOPS`
+
+</details>
 ```
+
+**重要**: 生成時刻は`<details>`タグ内に記載すること
 
 ### 単位の自動変換
 - **TFLOPS → GFLOPS**: 自動的に1000倍して統一
