@@ -6,6 +6,12 @@
         "type": "command",
         "command": "python3 .claude/hooks/post_tool_ssh_handler.py"
       }]
+    }, {
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 .claude/hooks/post_tool_echo_warning.py"
+      }]
     }],
     "Stop": [{
       "hooks": [{

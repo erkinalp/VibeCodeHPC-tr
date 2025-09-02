@@ -196,23 +196,43 @@ cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1
    - SE1配下のPG → SE2配下のPG - 別チームへの移籍
 
 4. **転属時の手順**
+   
+   **パターンA: 記憶継続型転属（agent_id固定）**
    ```bash
-   # 1. 転属先でのMCP設定確認（必要に応じて）
-   # 2. telemetry環境の準備確認
-   # 3. 必要なディレクトリ作成
+   # 1. 必要なディレクトリ作成
    mkdir -p /path/to/new/location
    
-   # 4. エージェントに転属の意思確認（推奨）
+   # 2. エージェントに転属の意思確認（推奨）
    agent_send.sh PG1.1 "[PM] 現在のOpenMP最適化は十分な成果を上げました。OpenMP_MPIへの転属を検討していますが、ビジョンや希望はありますか？"
    
-   # 5. !cdコマンドで移動（PMの特権）
+   # 3. !cdコマンドで移動（PMの特権）
    agent_send.sh PG1.1 "!cd /path/to/new/location"
    
-   # 6. 新しい役割の通知
+   # 4. hooks再設定が必要な場合
+   agent_send.sh PG1.1 "[PM] 必要に応じて.claude/hooks/を確認してください"
+   
+   # 5. 新しい役割の通知
    agent_send.sh PG1.1 "[PM] OpenMP_MPI担当として新たなスタートです。必要なファイルを再読み込みしてください。"
    
-   # 7. directory_pane_map.mdの更新
-   # 8. agent_and_pane_id_table.jsonlのworking_dir更新
+   # 6. directory_pane_map.mdの更新（dirのみ変更、agent_idは維持）
+   # 注意: agent_and_pane_id_table.jsonlのworking_dirは変更しない（コンテキスト監視のため）
+   ```
+   
+   **パターンB: 新規起動型転属（完全リセット）**
+   ```bash
+   # 1. 既存エージェントを終了
+   agent_send.sh PG1.1 "[PM] 任務完了です。終了してください。"
+   
+   # 2. agent_and_pane_id_table.jsonl更新（新agent_id記載）
+   
+   # 3. tmuxペインで新しいagent_idでstart_agent.sh実行
+   # 例: PG1.1だったペインでSE3として起動
+   ./communication/start_agent.sh SE3
+   
+   # 4. 初期化メッセージ送信
+   agent_send.sh SE3 "[PM] SE3として新規起動しました。instructions/SE.mdを読み込んでください。"
+   
+   # 5. directory_pane_map.md更新
    ```
 
    **重要: 役割変更時の追加考慮事項**
