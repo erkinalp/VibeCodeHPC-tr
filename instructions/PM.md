@@ -144,6 +144,7 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
    - エージェント配置変更時は必ずこのファイルを更新
    - ワーカー数に応じた配置図（4x3、3x3等）を記載
 8. 各ペインにエージェントを配置（SE、PG、CD）
+   - CDエージェントは`GitHub/`ディレクトリで起動（プロジェクト公開用）
 
 
 
@@ -273,6 +274,9 @@ cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1
 ```bash
 # ステップ1: エージェント起動
 ./communication/start_agent.sh PG1.1 /Flow/TypeII/single-node/intel2024/OpenMP
+
+# CDエージェントの起動（GitHub管理用）
+./communication/start_agent.sh CD GitHub/
 
 # オプション：テレメトリ無効
 VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1 /path/to/workdir
@@ -451,7 +455,10 @@ PGが4人いる際（PG1.1~PG1.4）、1人追加した際は新たに追加し�
 ### 下位エージェント
 - **SE**: 再発明を防ぐための監視・テストコードを含む有用な情報をPGに共有
 - **PG**: コード生成→SSH/SFTP実行→結果確認
-- **CD**: GitHub管理係。必ずしも同期しないので後からCD係を追加することも可能。/GitHubにプロジェクトのコピーを作成し、ユーザIDなど固有の情報⇆匿名化されたIDなどの変換を行う
+- **CD**: GitHub管理係。必ずしも同期しないので後からCD係を追加することも可能
+  - 作業場所：`GitHub/`ディレクトリ
+  - 起動コマンド：`./communication/start_agent.sh CD GitHub/`
+  - プロジェクトのコピーを作成し、ユーザIDなど固有の情報を匿名化
 
 ### 想定される構成
 PM ≦ SE ≦ PG構成の場合（人数構成）
