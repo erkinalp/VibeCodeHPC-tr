@@ -8,6 +8,29 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# TMUXセッションから自動的にプロジェクト名を検出
+if [ -n "$TMUX" ]; then
+    # 現在のtmuxセッション名を取得
+    CURRENT_SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "")
+    
+    # プロジェクト名を抽出（最後の_PMまたは_Workersを削除）
+    if [[ "$CURRENT_SESSION" =~ ^(.*)_PM$ ]]; then
+        PROJECT_NAME="${BASH_REMATCH[1]}"
+    elif [[ "$CURRENT_SESSION" =~ ^(.*)_Workers[0-9]*$ ]]; then
+        PROJECT_NAME="${BASH_REMATCH[1]}"
+    else
+        # パターンにマッチしない場合はデフォルト
+        PROJECT_NAME="Team1"
+    fi
+else
+    # TMUX外から起動された場合のフォールバック
+    PROJECT_NAME="Team1"
+fi
+
+# 検出されたプロジェクト名でセッション名を構築
+PM_SESSION="${PROJECT_NAME}_PM"
+WORKER_SESSION="${PROJECT_NAME}_Workers1"
+
 # ログファイル
 LOG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor.log"
 PID_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor.pid"
@@ -59,7 +82,8 @@ cleanup_existing_processes
 # 新しいPIDを記録
 echo $$ > "$PID_FILE"
 
-echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Periodic monitor started (PID: $$)" >> "$LOG_FILE"
+echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Periodic monitor started (PID: $$, Project: ${PROJECT_NAME})" >> "$LOG_FILE"
+echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Monitoring sessions: ${PM_SESSION}, ${WORKER_SESSION}" >> "$LOG_FILE"
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Config: UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC}s, MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN}min, MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN}min" >> "$LOG_FILE"
 
 # Python実行コマンドを決定
@@ -129,9 +153,9 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
     echo $BASHPID > "$CHILD_PID_FILE"
     
     while true; do
-        # プロジェクト名を含むセッションの存在確認（より安全な方法）
-        if ! tmux list-panes -t Team1_PM 2>/dev/null | grep -q . && \
-           ! tmux list-panes -t Team1_Workers1 2>/dev/null | grep -q .; then
+        # プロジェクト名を含むセッションの存在確認（動的に検出）
+        if ! tmux list-panes -t "$PM_SESSION" 2>/dev/null | grep -q . && \
+           ! tmux list-panes -t "$WORKER_SESSION" 2>/dev/null | grep -q .; then
             # 該当プロジェクトのセッションが存在しない場合のみ終了
             exit 0
         fi
@@ -182,10 +206,10 @@ LAST_MILESTONE=0
 MILESTONE_CHECK_INTERVAL=$((MILESTONE_INTERVAL_MIN * 60))  # 分を秒に変換
 
 while true; do
-    # プロジェクト名を含むセッションの存在確認（より安全な方法）
-    if ! tmux list-panes -t Team1_PM 2>/dev/null | grep -q . && \
-       ! tmux list-panes -t Team1_Workers1 2>/dev/null | grep -q .; then
-        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] No project tmux sessions found, exiting" >> "$LOG_FILE"
+    # プロジェクト名を含むセッションの存在確認（動的に検出）
+    if ! tmux list-panes -t "$PM_SESSION" 2>/dev/null | grep -q . && \
+       ! tmux list-panes -t "$WORKER_SESSION" 2>/dev/null | grep -q .; then
+        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] No project tmux sessions found (${PROJECT_NAME}), exiting" >> "$LOG_FILE"
         cleanup_and_exit
     fi
     
