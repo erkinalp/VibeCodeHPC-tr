@@ -354,9 +354,9 @@ class BudgetTracker:
                     
                     # 閾値到達時刻の計算
                     budget_limits = {
-                        'Minimum (500pt)': 500,
-                        'Expected (1000pt)': 1000,
-                        'Deadline (1500pt)': 1500
+                        'Minimum (100pt)': 100,
+                        'Expected (500pt)': 500,
+                        'Deadline (1000pt)': 1000
                     }
                     
                     # 現在のポイント（実行中のジョブがある場合は推定値）
@@ -388,9 +388,9 @@ class BudgetTracker:
             
             # 予算閾値の水平線
             budget_limits = {
-                'Minimum (1000pt)': 1000,
-                'Expected (2000pt)': 2000,
-                'Deadline (3000pt)': 3000
+                'Minimum (100pt)': 100,
+                'Expected (500pt)': 500,
+                'Deadline (1000pt)': 1000
             }
             
             colors = ['green', 'orange', 'red']
@@ -461,7 +461,7 @@ class BudgetTracker:
         print(f"ジョブ数: 完了={completed}, 実行中={running}")
         
         # 予算に対する割合（仮定値）
-        budget_limits = {'最低': 1000, '目安': 2000, '上限': 3000}
+        budget_limits = {'最低': 100, '目安': 500, '上限': 1000}
         for label, limit in budget_limits.items():
             percentage = (total / limit * 100) if limit > 0 else 0
             print(f"{label}: {percentage:.1f}%")

@@ -170,10 +170,11 @@
         "description": "ChangeLog解析テンプレート（長い）"
       }
     },
-    "compact_recovery_hint": "⚠️ 記憶が部分的にリセットされた可能性があります。\n作業を再開する前に、以下を実行してください：\n- ls -R Agent-shared/ でファイル構造を確認\n- pwd で現在位置を確認\n- agent_send.sh PM '[{agent_id}] 記憶リセット後の再開' で状況報告"
+    "compact_recovery_hint": "⚠️ 記憶が部分的にリセットされた可能性があります。\n作業を再開する前に、以下を実行してください：\n- ls -R Agent-shared/ でファイル構造を確認\n- pwd で現在位置を確認\n- agent_send.sh PM '[{agent_id}] 記憶リセット後の再開' で状況報告\n\n【重要な行動原則】\n- sleep後も作業継続（待機やSTOP禁止）\n- sleep最大60秒（長時間は60秒単位で分割）\n- コンテキスト90%でもToDoリスト更新優先（sleep連発禁止）\n- メッセージには3分以内に返信（TCP風返信義務）"
   },
   "agent_tasks": {
     "PG": [
+      "メッセージ受信後3分以内に返信（TCP風返信義務）",
       "ローカルでコード生成・修正 → 即座にChangeLog.mdに追記",
       "SSH/SFTPでリモート転送（mcp__desktop-commander使用）",
       "コンパイル実行と警告確認",
@@ -190,6 +191,9 @@
       "sleep後も作業継続（待機禁止）"
     ],
     "SE": [
+      "メッセージ受信後3分以内に返信（TCP風返信義務）",
+      "tmux list-panes -t Team1_Workers1で自チームのエージェント死活監視",
+      "5分無応答エージェントをPMに報告→蘇生依頼",
       "User-shared/以下の既存レポート確認（ls -la User-shared/reports/）",
       "重複レポート作成の防止（既存を更新）",
       "全PGのChangeLog.md監視（5分以上更新なし→介入）",
@@ -204,6 +208,10 @@
     ],
     "PM": [
       "全エージェント巡回（3-5分間隔）",
+      "tmux list-panes -t Team1_Workers1、Team1_PM等で各セッション監視",
+      "無応答エージェント確認: !./communication/agent_send.sh [PM宛] '生存確認応答'を送信",
+      "応答なしの場合のみ蘇生（claude --continue --dangerously-skip-permissions）",
+      "終盤管理: 必要に応じてEscキーで一時停止制御",
       "agent_and_pane_id_table.jsonl確認",
       "エージェント間通信ログ確認(communication/logs/send_log.txt)",
       "各エージェントの.claude/hooks/stop_count.txt確認",
@@ -218,6 +226,8 @@
       "sleep後も作業継続（待機禁止）"
     ],
     "CD": [
+      "メッセージ受信後3分以内に返信（TCP風返信義務）",
+      "tmux list-panes -t Team1_Workers1で同セッション内監視",
       "GitHub/へのプロジェクトコピー更新",
       "SOTA達成コードの定期commit",
       "ChangeLog.md更新の同期",
