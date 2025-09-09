@@ -129,9 +129,10 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
     echo $BASHPID > "$CHILD_PID_FILE"
     
     while true; do
-        # tmuxセッション確認（任意のセッション名に対応）
-        if ! tmux list-sessions 2>/dev/null | grep -q .; then
-            # セッションが1つも存在しない場合のみ終了
+        # プロジェクト名を含むセッションの存在確認（より安全な方法）
+        if ! tmux list-panes -t Team1_PM 2>/dev/null | grep -q . && \
+           ! tmux list-panes -t Team1_Workers1 2>/dev/null | grep -q .; then
+            # 該当プロジェクトのセッションが存在しない場合のみ終了
             exit 0
         fi
         
@@ -181,9 +182,10 @@ LAST_MILESTONE=0
 MILESTONE_CHECK_INTERVAL=$((MILESTONE_INTERVAL_MIN * 60))  # 分を秒に変換
 
 while true; do
-    # tmuxセッション確認（任意のセッション名に対応）
-    if ! tmux list-sessions 2>/dev/null | grep -q .; then
-        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] No tmux sessions found, exiting" >> "$LOG_FILE"
+    # プロジェクト名を含むセッションの存在確認（より安全な方法）
+    if ! tmux list-panes -t Team1_PM 2>/dev/null | grep -q . && \
+       ! tmux list-panes -t Team1_Workers1 2>/dev/null | grep -q .; then
+        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] No project tmux sessions found, exiting" >> "$LOG_FILE"
         cleanup_and_exit
     fi
     
