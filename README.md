@@ -7,6 +7,7 @@ Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエー
 
 ## Paper
 - [📝arXiv (2025/10/02)](https://arxiv.org/abs/2510.00031)
+- [🎞️Googleスライド（実験編）](https://docs.google.com/presentation/d/1u9aK52nouAgjFTTchJAiZm5HglynGwl-Hwi97EK2Gis/edit?usp=sharing)
 - [Multiエージェントの実験結果](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
 - [Soloエージェントの実験結果](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-solo-ex1/blob/solo_commited_push_later/User-shared/reports/final_report.md)
 
