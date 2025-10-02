@@ -242,10 +242,8 @@ class BudgetTracker:
             'jobs': jobs,
             'timeline': [(t.isoformat(), p) for t, p in timeline]
         }
-        
-        with open(snapshot_dir / f'budget_{timestamp}.json', 'w') as f:
-            json.dump(report_full, f, indent=2, default=str)
-        
+
+        # latest.jsonのみ上書き（タイムスタンプ付きファイルは生成しない）
         with open(snapshot_dir / 'latest.json', 'w') as f:
             json.dump(report_full, f, indent=2, default=str)
         
