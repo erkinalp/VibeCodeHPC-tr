@@ -60,26 +60,12 @@ if [ "$CLI_HOOKS_MODE" = "custom" ]; then
         cp "$TEMPLATE_DIR/stop_event.py" "$AGENT_DIR/.claude/hooks/stop.py"
     fi
 
-    # 既存のsettings.local.jsonがあればhooksセクションのみ削除、なければ新規作成
-    if [ -f "$AGENT_DIR/.claude/settings.local.json" ]; then
-        if command -v jq &> /dev/null; then
-            jq '. + {"hooks": {}}' "$AGENT_DIR/.claude/settings.local.json" > "$AGENT_DIR/.claude/settings.local.json.tmp"
-            mv "$AGENT_DIR/.claude/settings.local.json.tmp" "$AGENT_DIR/.claude/settings.local.json"
-        else
-            echo "⚠️  jq not found, cannot preserve existing settings"
-            cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
+    # settings.local.jsonを空のhooksで作成（Claude起動前なので既存設定は存在しない）
+    cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
 {
   "hooks": {}
 }
 EOF
-        fi
-    else
-        cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
-{
-  "hooks": {}
-}
-EOF
-    fi
     echo "✅ Custom hooks mode configured (hooks will be called by state monitor)"
 
 elif [ "$AGENT_ID" = "SOLO" ]; then
