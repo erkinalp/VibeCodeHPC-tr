@@ -13,7 +13,10 @@ echo "================================"
 
 # 1. PM用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
+    # CLI_HOOKS_MODEを取得（デフォルト: auto）
+    CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     echo "🔧 Setting up hooks for PM..."
+    echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
     if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
         "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" PM "$PROJECT_ROOT" polling
     else
