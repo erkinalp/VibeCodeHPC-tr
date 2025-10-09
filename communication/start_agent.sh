@@ -49,6 +49,10 @@ echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 # 1. プロジェクトルートを環境変数として設定
 ./communication/agent_send.sh "$AGENT_ID" "export VIBECODE_ROOT='$PROJECT_ROOT'"
 
+# CLI_HOOKS_MODEを環境変数として設定（未設定時はauto）
+CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
+./communication/agent_send.sh "$AGENT_ID" "export CLI_HOOKS_MODE='$CLI_HOOKS_MODE'"
+
 # 2. ターゲットディレクトリに移動
 # TARGET_DIRが絶対パスか相対パスかを判定
 if [[ "$TARGET_DIR" = /* ]]; then

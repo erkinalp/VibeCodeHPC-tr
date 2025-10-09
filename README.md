@@ -654,6 +654,19 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 ⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機状態に入りプロジェクト未達成のまま終了するリスク大
 
+#### カスタム監視モード（v0.7+）
+
+公式hooks不安定時の代替として、tmux監視による状態検出を提供します。
+
+**有効化方法**:
+```bash
+export CLI_HOOKS_MODE=custom
+./communication/setup.sh 12
+```
+
+- **機能**: Stop/SessionStart/PostToolUse hooksをtmux capture-pane経由で実現
+- **詳細**: [Issue #45](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/45)
+
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 
 

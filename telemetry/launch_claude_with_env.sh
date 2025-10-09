@@ -114,6 +114,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# カスタム監視モード時にstate_monitorを起動
+HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
+if [ "$HOOKS_MODE" = "custom" ] || [ "$HOOKS_MODE" = "hybrid" ]; then
+    if [ -n "$TMUX_PANE" ]; then
+        echo "🔍 Starting state monitor for $AGENT_ID (pane: $TMUX_PANE)"
+        "$TELEMETRY_DIR/state_monitor_tmux.sh" "$AGENT_ID" "$TMUX_PANE" > /dev/null 2>&1 &
+        MONITOR_PID=$!
+        echo "   Monitor PID: $MONITOR_PID"
+    else
+        echo "⚠️  Warning: Not in tmux pane, custom hooks monitoring disabled"
+    fi
+fi
+
 # Claude Codeを起動
 echo "Starting claude with options: --dangerously-skip-permissions $@"
 echo "Current directory: $CURRENT_DIR"

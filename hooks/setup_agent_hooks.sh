@@ -30,6 +30,10 @@ fi
 
 echo "🔧 Setting up hooks for agent: $AGENT_ID (type: $AGENT_TYPE, version: $HOOKS_VERSION)"
 
+# CLI_HOOKS_MODEを取得（環境変数から）
+CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
+echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
+
 # .claude/hooks ディレクトリ作成
 mkdir -p "$AGENT_DIR/.claude/hooks"
 
@@ -45,7 +49,40 @@ echo "$AGENT_ID" > "$AGENT_DIR/.claude/hooks/agent_id.txt"
 # エージェントタイプに応じたstop hookをコピー
 # v0.4以降：PGもポーリング型に変更（全エージェントがポーリング型）
 # v0.5: SOLOエージェントもv3を使用（auto_tuning_config.json活用）
-if [ "$AGENT_ID" = "SOLO" ]; then
+
+# CLI_HOOKS_MODE=customの場合は、hooksセクションのみ空にする
+if [ "$CLI_HOOKS_MODE" = "custom" ]; then
+    echo "   Custom hooks mode: hooks section will be empty"
+    # stop.pyはコピーするが、settings.local.jsonには登録しない
+    if [ "$AGENT_TYPE" = "polling" ] || [[ "$AGENT_ID" =~ ^PG ]] || [ "$AGENT_ID" = "SOLO" ]; then
+        cp "$TEMPLATE_DIR/stop_polling_v3.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    else
+        cp "$TEMPLATE_DIR/stop_event.py" "$AGENT_DIR/.claude/hooks/stop.py"
+    fi
+
+    # 既存のsettings.local.jsonがあればhooksセクションのみ削除、なければ新規作成
+    if [ -f "$AGENT_DIR/.claude/settings.local.json" ]; then
+        if command -v jq &> /dev/null; then
+            jq '. + {"hooks": {}}' "$AGENT_DIR/.claude/settings.local.json" > "$AGENT_DIR/.claude/settings.local.json.tmp"
+            mv "$AGENT_DIR/.claude/settings.local.json.tmp" "$AGENT_DIR/.claude/settings.local.json"
+        else
+            echo "⚠️  jq not found, cannot preserve existing settings"
+            cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
+{
+  "hooks": {}
+}
+EOF
+        fi
+    else
+        cat > "$AGENT_DIR/.claude/settings.local.json" << EOF
+{
+  "hooks": {}
+}
+EOF
+    fi
+    echo "✅ Custom hooks mode configured (hooks will be called by state monitor)"
+
+elif [ "$AGENT_ID" = "SOLO" ]; then
     # SOLOもstop_polling_v3.pyを使用（SOLOの確率設定あり）
     cp "$TEMPLATE_DIR/stop_polling_v3.py" "$AGENT_DIR/.claude/hooks/stop.py"
     # settings.jsonを作成（SOLOも同じ構造）
