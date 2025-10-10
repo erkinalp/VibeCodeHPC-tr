@@ -7,8 +7,8 @@ if [ $# -lt 2 ]; then
     echo "Example: $0 PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP"
     echo ""
     echo "Environment variables:"
-    echo "  VIBECODE_ENABLE_TELEMETRY=false  # テレメトリを無効化"
-    echo "  VIBECODE_ENABLE_HOOKS=false      # hooks無効化（非推奨）"
+    echo "  VIBECODE_ENABLE_TELEMETRY=false  # Telemetriyi devre dışı bırak"
+    echo "  VIBECODE_ENABLE_HOOKS=false      # kancaları devre dışı bırak (önerilmez)"
     exit 1
 fi
 
@@ -25,12 +25,12 @@ TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
 if [ -f "$TABLE_FILE" ]; then
     # AGENT_IDが「待機中」で始まるかチェック
     if [[ "$AGENT_ID" =~ ^待機中 ]]; then
-        echo "❌ エラー: エージェントIDが「待機中」のままです"
-        echo "   先にagent_and_pane_id_table.jsonlのagent_idを正しいID（例: PG1.1.3）に更新してください"
+        echo "❌ Hata: Aracı ID’si '待機中' olarak kalmış"
+        echo "   Önce agent_and_pane_id_table.jsonl içindeki agent_id’yi doğru kimlik ile güncelleyin (ör: PG1.1.3)"
         echo ""
-        echo "   例: 「待機中3」→「PG1.1.3」"
+        echo "   Örnek: '待機中3' → 'PG1.1.3'"
         echo ""
-        echo "   その後、正しいIDでこのコマンドを実行してください："
+        echo "   Sonrasında bu komutu doğru kimlikle çalıştırın:"
         echo "   ./communication/start_agent.sh PG1.1.3 $TARGET_DIR"
         exit 1
     fi
@@ -38,8 +38,8 @@ if [ -f "$TABLE_FILE" ]; then
     # テーブルに存在するか確認（jqがある場合のみ）
     if command -v jq &> /dev/null; then
         if ! grep -q "\"agent_id\":[[:space:]]*\"$AGENT_ID\"" "$TABLE_FILE"; then
-            echo "⚠️  警告: agent_and_pane_id_table.jsonlに $AGENT_ID が見つかりません"
-            echo "   テーブルにエージェントIDを追加してから実行することを推奨します"
+            echo "⚠️  Uyarı: agent_and_pane_id_table.jsonl içinde $AGENT_ID bulunamadı"
+            echo "   Çalıştırmadan önce tabloya aracı kimliğini eklemenizi öneririz"
         fi
     fi
 fi
