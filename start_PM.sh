@@ -89,7 +89,7 @@ EOF
 echo "================================================================"
 echo ""
 
-# テレメトリ設定に基づいてClaude起動
+# Telemetri ayarına göre Claude’u başlat
 if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting PM without telemetry"
     exec claude --dangerously-skip-permissions "$@"

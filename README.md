@@ -111,7 +111,7 @@ flowchart TB
           LocalScript -->|Çalıştır| LaunchClaude
       end
 
-      %% 共通処理の流れ
+      %% Ortak işlem akışı
       subgraph CommonFlow["🔄 Ortak işlem akışı"]
           LaunchClaude[launch_claude_with_env.sh]
           LaunchClaude -->|1.hooks ayar kontrolü| SetupHooks[setup_agent_hooks.sh]
@@ -119,7 +119,7 @@ flowchart TB
           LaunchClaude -->|3.claude --dangerously-skip-permissions| Claude[claude --dangerously-skip-permissions]
       end
 
-      %% データフロー
+      %% Veri akışı
       subgraph DataFlow["💾 Veri yönetimi"]
           SetupHooks -->|Yerleştir| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt ]
 
@@ -134,7 +134,7 @@ flowchart TB
       Claude[claude başlatıldı] -->|Stop olayı| StopHook[stop.py çalıştır]
       StopHook -->|polling tipi| PreventWait[Bekleme önleme görevi sun]
 
-      %% スタイリング
+      %% Stil ayarları
       style StartScripts fill:#fff8fc,stroke:#c2185b,stroke-width:2px
 
       style CommonFlow fill:#e3f2fd,stroke:#0288d1,stroke-width:3px
@@ -182,7 +182,7 @@ Proje kapanış koşulları ve akış şeması için bkz. [Issue #33: Proje kapa
 # 🚀 Hızlı Başlangıç
 
 ## 1. Ön hazırlık
-本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
+Bu sistemi kullanmadan önce aşağıdaki ortamın kurulu olduğunu doğrulayın.
 
 ### ☑️ VibeCodeHPC deposu kodlarını indirin
 
@@ -402,33 +402,33 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 ```
 
 > [!WARNING]
-> **mcp-screenshotはWSLでは機能しません**
-> WSL環境ではスクリーンショット機能が動作しないため、OSネイティブなコマンドプロンプトでの使用を推奨します。
+> **mcp-screenshot WSL üzerinde çalışmaz**
+> WSL ortamında ekran görüntüsü özelliği çalışmadığından, işletim sistemi yerel komut istemcisini kullanmanız önerilir.
 
 
 
 ![SSH ile uzaktan komutların tamamen otomatik yürütülmesi için sistem bileşenleri](_images/safety_ssh.png)
 ---
 
-## 2. 環境セットアップ
+## 2. Ortam kurulumu
 
 ```bash
-# プロジェクトディレクトリに移動
+# Proje dizinine geç
 cd VibeCodeHPC-jp-main
 ```
-#### OpenTelemetryの無効化（軽量動作）
+#### OpenTelemetry’yi devre dışı bırakma (hafif çalışma)
 
-環境変数で無効化:
+Ortam değişkeniyle devre dışı bırakın:
 ```bash
 export VIBECODE_ENABLE_TELEMETRY=false
 ```
 
-### 🔭 監視オプション
+### 🔭 İzleme seçenekleri
 
-#### ccusage（簡易確認）
+#### ccusage (hızlı kontrol)
 
 ```bash
-# セットアップ不要でトークン使用量を確認
+# Kurulum gerektirmeden token kullanımını görüntüle
 npx ccusage@latest
 ```
 
@@ -437,17 +437,17 @@ npx ccusage@latest
 
 <details>
 
-監視環境の自動セットアップ:
+İzleme ortamını otomatik kurulum:
 ```bash
 ./telemetry/setup_grafana.sh
 ```
 
-ブラウザでアクセス:
+Tarayıcıdan erişim:
 ```
 http://localhost:3000
 ```
 
-ログイン情報:
+Giriş bilgileri:
 - ユーザー名: `admin`
 - パスワード: `admin`
 

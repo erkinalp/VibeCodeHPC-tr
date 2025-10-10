@@ -22,14 +22,12 @@ else
     echo "   tmux kurulumu önerilir. Ayrıntılar için README.md."
 fi
 
-# 1. SOLO用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
-    # CLI_HOOKS_MODEを取得（デフォルト: auto）
+    # CLI_HOOKS_MODE değerini al (varsayılan: auto)
     CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     echo "🔧 Setting up hooks for SOLO agent..."
     echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
     if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
-        # SOLOはポーリング型として設定
         "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" SOLO "$PROJECT_ROOT" polling "$CLI_HOOKS_MODE"
     else
         echo "⚠️  Warning: hooks setup script not found"
@@ -38,7 +36,6 @@ else
     echo "⚠️  Hooks disabled by VIBECODE_ENABLE_HOOKS=false"
 fi
 
-# 2. プロジェクト開始時刻を記録
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     echo "📅 Recording project start time..."
@@ -46,7 +43,7 @@ if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     date -u +"%Y-%m-%dT%H:%M:%SZ" > "$START_TIME_FILE"
 fi
 
-# 3. agent_and_pane_id_table.jsonlのSOLOエントリを更新
+# 3. agent_and_pane_id_table.jsonl içindeki SOLO kaydını güncelle
 if command -v jq &> /dev/null; then
     TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
     if [ -f "$TABLE_FILE" ]; then
@@ -71,7 +68,7 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# 4. stop_thresholds.jsonにSOLO用設定を追加（存在しない場合）
+# 4. stop_thresholds.json’a SOLO için eşik ekle (yoksa)
 THRESHOLDS_FILE="$PROJECT_ROOT/Agent-shared/stop_thresholds.json"
 if [ -f "$THRESHOLDS_FILE" ] && command -v jq &> /dev/null; then
     if ! jq '.thresholds | has("SOLO")' "$THRESHOLDS_FILE" | grep -q true; then
@@ -83,13 +80,12 @@ if [ -f "$THRESHOLDS_FILE" ] && command -v jq &> /dev/null; then
     fi
 fi
 
-# 5. MCP（Desktop Commander）を設定
 echo "🔧 Setting up MCP for SOLO agent..."
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander 2>/dev/null || {
     echo "⚠️  MCP yapılandırması atlandı (zaten ayarlı veya hata)"
 }
 
-# 6. Claude起動
+# 6. Claude’u başlat
 echo ""
 echo "Başladıktan sonra, aşağıdaki istemi kopyalayıp yapıştırın:"
 echo "================================================================"
@@ -128,7 +124,6 @@ EOF
 echo "================================================================"
 echo ""
 
-# テレメトリ設定に基づいてClaude起動
 if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting SOLO without telemetry"
     exec claude --dangerously-skip-permissions "$@"
