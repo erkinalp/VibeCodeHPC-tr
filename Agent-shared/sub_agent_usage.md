@@ -38,42 +38,42 @@ claude -p "Yalnızca SOTA güncellemesi olan maddeleri listele" < changelog_unif
 claude -p "Performans verilerini zaman serisi halinde JSON formatında düzenle" --output-format json < performance_logs.txt
 ```
 
-## 推奨される使用場面
+## Önerilen kullanım durumları
 
-### ✅ 積極的に使用すべきケース
+### ✅ Aktif olarak kullanılmalı
 
-1. **大規模ログファイルの解析**
+1. **Büyük günlük dosyalarının analizi**
    ```bash
-   # 100MB以上のジョブ実行ログから必要な情報だけ抽出
+   # 100MB’den büyük iş çalıştırma günlüklerinden sadece gereken bilgileri çıkar
    claude -p "Paralelleştirmenin etkili olduğu bölümleri belirle" < job_12345.out
    ```
 
-2. **画像・グラフの解析**
+2. **Görsel ve grafik analizi**
    ```bash
-   # 性能グラフから具体的な数値を読み取る
+   # Performans grafiğinden somut sayıları oku
    claude -p "Bu grafikten her paralelleştirme yönteminin performans artış oranını sayısal ver" < sota_graph.png
    ```
 
-3. **複数ファイルの統合分析**
+3. **Birden çok dosyanın bütünleşik analizi**
    ```bash
-   # 各PGのChangeLog.mdを統合して分析
+   # Her PG’nin ChangeLog.md dosyalarını birleştirerek analiz et
    for file in PG*/ChangeLog.md; do
      echo "=== $file ===" 
      cat "$file"
    done | claude -p "Tüm PG’lerin ilerlemesini yatay analiz et ve başarı kalıplarını çıkar"
    ```
 
-4. **テストコードの自動生成**
+4. **Test kodunun otomatik üretilmesi**
    ```bash
-   # 既存コードからテストケースを生成
+   # Mevcut koddan test örnekleri üret
    claude -p "Bu kod için birim testleri üret" < matrix_multiply_v3.2.1.c
    ```
 
-### ⚠️ 使用を避けるべきケース
+### ⚠️ Kaçınılması gereken kullanım durumları
 
-- 小さなファイル（数KB程度）の単純な読み取り
-- エージェント間の通信（agent_send.shを使用）
-- プロジェクトの意思決定が必要なタスク
+- Küçük dosyaların (birkaç KB) basit okunması
+- Aracılar arası iletişim (agent_send.sh kullanın)
+- Proje düzeyinde karar gerektiren görevler
 
 ## 高度な使用例
 

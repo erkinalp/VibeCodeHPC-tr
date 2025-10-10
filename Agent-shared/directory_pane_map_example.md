@@ -1,18 +1,18 @@
-# VibeCodeHPC エージェント配置マップ
+# VibeCodeHPC Aracı Yerleşim Haritası
 
-## プロジェクト階層構造
+## Proje hiyerarşi yapısı
 ```
 VibeCodeHPC-GEMM📂
-├── 🤖PM (プロジェクト管理)
-├── directory_pane_map.md (このファイル - IDエージェント代替)
+├── 🤖PM (Proje Yönetimi)
+├── directory_pane_map.md (bu dosya - ID aracı yerine geçer)
 ├── GitHub📁 🤖CD ⬛
-└── Flow/TypeII📂
+└── Akış/TypeII📂
     ├── single-node📂 🤖SE1 🟨
     │   ├── gcc11.3.0📂
     │   │   ├── OpenMP📁 🤖PG1.1 🟦
     │   │   ├── MPI📁 🤖PG1.2 🟦
     │   │   ├── AVX2📁 🤖PG1.3 🟦
-    │   │   └── OpenMP_MPI📁 (第2世代)
+    │   │   └── OpenMP_MPI📁 (2. nesil)
     │   ├── intel2024📂
     │   │   ├── OpenMP📁 🤖PG1.4 🟪
     │   │   ├── MPI📁 🤖PG1.5 🟪
@@ -28,46 +28,46 @@ VibeCodeHPC-GEMM📂
             └── MPI📁 🤖PG2.3 🟣
 ```
 
-## tmux配置図（Worker数:12のとき）
-markdownを文字のまま表示するエディタ上でも見やすいように
-以下のフォーマットを徹底し、空白文字で上下を揃えること
+## tmux yerleşim diyagramı (Worker sayısı: 12 iken)
+Markdown’ı düz metin gösteren editörlerde de okunabilir kılmak için
+aşağıdaki formata uyun ve boşluklarla hizalamayı koruyun
 
-### tmux分割が1Windowで収まる場合（12/12ペイン - 4x3配置）
+### tmux bölünmesi tek bir Window’a sığarsa (12/12 pane - 4x3 düzen)
 | Team1 | Workers1 | | |
 |:---|:---|:---|:---|
 | 🟨SE1     | 🟦PG1.1   | 🟦PG1.2   | 🟦PG1.3   |
 | 🟪PG1.4   | 🟪PG1.5   | 🟫PG1.6   | 🟡SE2     |
 | 🔵PG2.1   | 🔵PG2.2   | 🟣PG2.3   | ⬛CD      |
 
-### 狭すぎて1Windowでは分割しきれない場合
-`no space for new pane`エラーとなった際は自動で複数tmuxセッションを作成
-※tmuxセッション：tmux Window = 1：1
+### Tek bir Window yetmeyecek kadar darsa
+`no space for new pane` hatası oluşursa otomatik olarak birden fazla tmux oturumu oluşturulur
+Not: tmux session : tmux Window = 1 : 1
 
-#### Team1_Workers1（7/9ペイン - 3x3配置）
+#### Team1_Workers1 (7/9 pane - 3x3 düzen)
 | Team1 | Workers1 | |
 |:---|:---|:---|
 | 🟨SE1     | 🟦PG1.1   | 🟦PG1.2   |
 | 🟦PG1.3   | 🟪PG1.4   | 🟪PG1.5   |
 | 🟫PG1.6   | ⬜        | ⬜        |
 
-#### Team1_Workers2（5/9ペイン - 3x3配置）
+#### Team1_Workers2 (5/9 pane - 3x3 düzen)
 | Team1 | Workers2 | |
 |:---|:---|:---|
 | 🟡SE2     | 🔵PG2.1   | 🔵PG2.2   |
 | 🟣PG2.3   | ⬛CD      | ⬜        |
 | ⬜        | ⬜        | ⬜        |
 
-## 色凡例（優先度順）
-### 四角絵文字（基本）
-- 🟨 黄: SE1（single-node監視）
-- 🟦 青: gcc系PG（SE1配下）
-- 🟪 紫: intel系PG（SE1配下）
-- 🟫 茶: nvidia系PG（SE1配下）
-- ⬛ 黒: CD（GitHub管理）
-- ⬜ 白: 空きペイン
+## Renk efsanesi (öncelik sırasıyla)
+### Kare emojiler (temel)
+- 🟨 Sarı: SE1 (single-node izleme)
+- 🟦 Mavi: gcc-tabanlı PG (SE1 altında)
+- 🟪 Mor: intel-tabanlı PG (SE1 altında)
+- 🟫 Kahverengi: nvidia-tabanlı PG (SE1 altında)
+- ⬛ Siyah: CD (GitHub yönetimi)
+- ⬜ Beyaz: Boş pane
 
-### 丸絵文字（色不足時）
-- 🟡 金: SE2（multi-node監視）
-- 🔵 青丸: multi-node gcc系PG（SE2配下）
-- 🟣 紫丸: multi-node intel系PG（SE2配下）
-- 🟤 茶丸: 追加チーム用（必要時）
+### Daire emojiler (renk yetersizse)
+- 🟡 Altın: SE2 (multi-node izleme)
+- 🔵 Mavi daire: multi-node gcc-tabanlı PG (SE2 altında)
+- 🟣 Mor daire: multi-node intel-tabanlı PG (SE2 altında)
+- 🟤 Kahverengi daire: Ek takım için (gerektiğinde)

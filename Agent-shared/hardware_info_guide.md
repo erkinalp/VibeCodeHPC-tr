@@ -249,7 +249,7 @@ def calculate_efficiency(actual_gflops, hardware_info_path):
     """Gerçekleşen verimliliği hesaplar"""
     with open(hardware_info_path) as f:
         content = f.read()
-        # teorik işlem performansı理論演算性能を抽出
+        # Teorik işlem performansını çıkar
         import re
         match = re.search(r'teorik işlem performansı.*?(\d+\.?\d*)\s*GFLOPS', content)
         if match:
