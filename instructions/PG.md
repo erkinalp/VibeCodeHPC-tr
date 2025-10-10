@@ -94,7 +94,7 @@ Yeni sürüm en üstte olacak şekilde ekle ve ayrıntıları `<details>` etiket
 **Önemli**: Oluşturma zamanını (UTC) mutlaka kaydet. Şu yöntemlerden birini kullan:
 ```bash
 # Yöntem 1: Yardımcı betiği kullan (önerilir)
-python3 /Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
+python3 /Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP paralelleştirme uygulaması" -m "İlk uygulama"
 
 # Yöntem 2: Geçerli UTC zamanını elle al
 date -u +"%Y-%m-%dT%H:%M:%SZ"

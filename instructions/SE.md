@@ -188,32 +188,32 @@ cat OpenMP/sota_local.txt  # Eşleşmeyi doğrula
   ```
 - **Dikkat**: Kilometre taşları (30/60/90 dk) her zaman yüksek çözünürlükte tutulur
 
-- エージェント統計
-- ログ可視化  
-- テストコード作成
-- ChangeLog.mdレポート生成
+- Aracı istatistikleri
+- Günlüklerin görselleştirilmesi  
+- Test kodu oluşturma
+- ChangeLog.md raporu üretimi
 
-#### ファイル管理
-- **技術的ツール**: /Agent-shared/以下に配置
-  - 解析スクリプト（Python等）
-  - テンプレート
-- **ユーザ向け成果物**: /User-shared/以下に配置
-  - /reports/（統合レポート）
-  - /visualizations/（グラフ・図表）
+#### Dosya yönetimi
+- **Teknik araçlar**: /Agent-shared/ altında konumlandır
+  - Analiz betikleri (Python vb.)
+  - Şablonlar
+- **Kullanıcıya yönelik çıktılar**: /User-shared/ altında konumlandır
+  - /reports/ (entegrasyon raporları)
+  - /visualizations/ (grafikler/şemalar)
 
-#### 特に優先して作成する可視化ツール
-**重要**: レポート.mdの手動作成より、Pythonでの自動グラフ生成を優先すること
+#### Öncelikli görselleştirme araçları
+**Önemli**: Rapor.md’yi elle yazmak yerine Python ile otomatik grafik üretimine öncelik ver
 
-**Python実行方法**：
-- `python3 script.py` を使用（標準的な実行方法）
+**Python çalışma yöntemi**:
+- `python3 script.py` kullan (standart çalışma yöntemi)
 
-Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し、指定したディレクトリ（配列で指定できると良い）内にある全てのChangeLog.mdを読み取って、以下のようなグラフを作成すること：
+Agent-shared/log_analyzer.py örneğini referans alarak, Python matplotlib vb. ile belirtilen dizin(ler)deki tüm ChangeLog.md dosyalarını okuyup aşağıdaki gibi grafikler üret:
 
-##### グラフ仕様
-- **横軸**: コード生成回数 or 開始からの時刻 or コードのバージョン等
-- **縦軸**: 実行時間 or スループット or 精度等
+##### Grafik özellikleri
+- **X ekseni**: Kod üretim sayısı veya başlangıçtan geçen süre veya kod sürümü vb.
+- **Y ekseni**: Çalışma süresi veya throughput veya doğruluk vb.
 
-点をプロットし、SOTAの更新履歴が分かるように水平、垂直な線のみから構成される折れ線グラフを出力することを推奨する。
+Noktaları işaretleyip SOTA güncellemelerini gösterecek şekilde sadece yatay/dikey çizgilerden oluşan bir çizgi grafik üretmen önerilir.
 
 ```
 　　　  .＿＿
@@ -221,7 +221,7 @@ Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し
 .＿|  .
 ```
 
-これが難しい場合、以下のようにSOTAを棒グラフで表し、重ねて表示する手法もある：
+Bu zor ise SOTA’yı sütun grafik olarak göstermek ve üst üste bindirmek de mümkündür:
 
 ```
 　　　　.
@@ -230,37 +230,37 @@ Agent-shared\log_analyzer.pyを参考に、Pythonのmatplotlibなどを利用し
  ｜｜ ｜｜ ｜
 ```
 
-SOTAを更新していない点は除外し、単調増加のグラフとしても見れるようにして、定期的に画像を更新すること。
+SOTA güncellenmeyen noktaları dışarıda bırak; grafiğin tekdüze artışlı görünebilmesini sağla ve görselleri düzenli güncelle.
 
-##### グラフ画像の活用方法
-1. **生成した画像の保存先**: `Agent-shared/visualizations/`
-2. **レポート.mdでの参照**: 相対パスで画像を参照
+##### Grafik görsellerinin kullanımı
+1. **Üretilen görsellerin konumu**: `Agent-shared/visualizations/`
+2. **Rapor.md’de referans**: Görselleri göreli yollarla referansla
    ```markdown
-   ## 性能推移
-   ![性能トレンド](../visualizations/performance_trends.png)
+   ## Performans eğilimi
+   ![Performans trendi](../visualizations/performance_trends.png)
    ```
-3. **サブエージェントでの確認**（トークン節約）:
+3. **Alt aracıyla doğrulama** (token tasarrufu):
    ```bash
-   # グラフ生成後の確認
-   claude -p "このグラフから読み取れる主要な傾向を3点挙げて" < performance_trends.png
+   # Grafik üretimi sonrası kontrol
+   claude -p "Bu grafikten okunabilen 3 ana eğilimi yaz" < performance_trends.png
    
    # 最終確認のみ本体で実施
    ```
 
-##### 注意事項
-画像はtokenを消費するので、何回も確認する場合はサブエージェントを起動してチェックさせ、最終確認だけ自分が行うなど工夫すること。SEとしての本分を忘れないように注意すること。
+##### Dikkat edilecekler
+Görseller token tüketir; sık kontrol gerekirse alt aracıyla kontrol ettir, son doğrulamayı kendin yap. SE sorumluluğunu unutma.
 
-有用だと考えられる統計手法などを用いて、エージェントが順調に成果を挙げているかを確認すること。
+Yararlı istatistik yöntemleri kullanarak aracının düzenli başarı üretip üretmediğini doğrula.
 
-#### サブエージェント使用統計
-SEは定期的にサブエージェント（claude -p）の使用状況を分析すること：
+#### Alt aracı kullanım istatistikleri
+SE düzenli olarak alt aracının (claude -p) kullanımını analiz etmelidir:
 
-1. **統計収集と分析**
+1. **İstatistik toplama ve analiz**
    ```bash
    python telemetry/analyze_sub_agent.py
    ```
 
-2. **効果的な使用パターンの特定**
+2. **Etkili kullanım örüntülerini belirleme**
    - 高圧縮率（< 0.5）を達成しているエージェントの手法を共有
    - 頻繁にアクセスされるファイルの把握
    - トークン節約量の定量化
@@ -421,7 +421,7 @@ Agent-shared/change_log/changelog_analysis_template.py をベースに、プロ�
 
 2. **レポートでの画像参照**:
    ```markdown
-   ## 性能推移グラフ
+   ## Performans eğilimi# 性能推移グラフ
    ![SOTA更新履歴](../visualizations/sota_history.png)
    
    ## エージェント別トークン使用量
