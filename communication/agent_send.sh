@@ -139,7 +139,7 @@ show_agents() {
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
-        echo "❌ エージェントが見つかりません"
+        echo "❌ Aracı bulunamadı"
         echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın"
         return 1
     fi
@@ -157,7 +157,6 @@ show_agents() {
                 local role=$(get_agent_role "$agent")
                 local color=$(get_agent_color "$agent")
                 
-                # セッション存在確認
                 local session="${target%%:*}"
                 if tmux has-session -t "$session" 2>/dev/null; then
                     echo -e "  \033[${color}m$agent\033[0m → $target ($role)"
@@ -169,7 +168,7 @@ show_agents() {
         done
         
         if [[ "$found" == false ]]; then
-            echo "  (該当エージェントなし)"
+            echo "  (Uygun aracı yok)"
         fi
     done
     
@@ -182,7 +181,7 @@ show_status() {
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
-        echo "❌ エージェントが見つかりません"
+        echo "❌ Aracı bulunamadı"
         return 1
     fi
     
@@ -198,22 +197,22 @@ show_status() {
         
         if tmux has-session -t "$session" 2>/dev/null; then
             if tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
-                echo "✅ $agent : アクティブ"
+                echo "✅ $agent : aktif"
                 ((active_count++))
             else
-                echo "⚠️  $agent : セッション存在、ペイン不明"
+                echo "⚠️  $agent : oturum var, pencere/pane bilinmiyor"
             fi
         else
-            echo "❌ $agent : 未起動"
+            echo "❌ $agent : başlatılmamış"
         fi
     done
     
     echo ""
-    echo "アクティブ: $active_count / $total_count"
+    echo "Aktif: $active_count / $total_count"
     
     # tmuxセッション情報
     echo ""
-    echo "📺 tmuxセッション情報:"
+    echo "📺 tmux oturum bilgileri:"
     # アクティブなセッションをすべて表示
     tmux list-sessions 2>/dev/null | while IFS=: read -r session rest; do
         local pane_count=$(tmux list-panes -t "$session" 2>/dev/null | wc -l)
@@ -227,7 +226,7 @@ broadcast_message() {
     local sent_count=0
     local failed_count=0
     
-    echo "📢 ブロードキャスト送信開始: '$message'"
+    echo "📢 Yayın gönderimi başlatıldı: '$message'"
     echo "================================"
     
     for agent in "${!AGENT_MAP[@]}"; do
@@ -241,13 +240,12 @@ broadcast_message() {
     done
     
     echo ""
-    echo "📊 ブロードキャスト結果:"
-    echo "  成功: $sent_count"
-    echo "  失敗: $failed_count"
-    echo "  総計: $((sent_count + failed_count))"
+    echo "📊 Yayın sonuçları:"
+    echo "  Başarılı: $sent_count"
+    echo "  Başarısız: $failed_count"
+    echo "  Toplam: $((sent_count + failed_count))"
 }
 
-# メッセージ送信
 send_message() {
     local target="$1"
     local message="$2"
@@ -258,33 +256,28 @@ send_message() {
     local window="${window_pane%%.*}"
     local pane="${window_pane##*.}"
     
-    # セッション存在確認
     if ! tmux has-session -t "$session" 2>/dev/null; then
-        echo "❌ $agent_name: セッション '$session' が見つかりません"
+        echo "❌ $agent_name: セッOturum '$session' bulunamadı"
         return 1
     fi
     
-    # ペイン存在確認
     if ! tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
-        echo "❌ $agent_name: ペイン '$pane' が見つかりません"
+        echo "❌ $agent_name: ペイPencere/pane '$pane' bulunamadı"
         return 1
     fi
     
-    # メッセージ送信
     echo "📤 $agent_name ← '$message'"
     
-    # メッセージ送信（クリア不要 - 新しい入力は自動的に置き換わる）
+    # Mesaj gönderimi    # メッセージ送信（クリア不要 - 新しい入力は自動的に置き換わる）
     tmux send-keys -t "$session:$window.$pane" "$message"
     sleep 0.1
     
-    # エンター押下
     tmux send-keys -t "$session:$window.$pane" C-m
     sleep 0.3
     
     return 0
 }
 
-# ログ記録
 log_message() {
     local agent="$1"
     local message="$2"
@@ -353,9 +346,7 @@ main() {
         exit 1
     fi
     
-    # メッセージ送信
     if send_message "$target" "$message" "$agent_name"; then
-        # ログ記録
         log_message "$agent_name" "$message"
         echo "✅ 送信完了: $aTamamlandı: $agent_name"
     else
