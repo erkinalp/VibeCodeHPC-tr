@@ -297,7 +297,7 @@ brew install jq
 > エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
 
 
-#### **Pythonパッケージ** - 可視化とデータ分析用
+#### Python paketleri - Görselleştirme ve veri analizi için
 
 通常のインストール:
 ```bash
@@ -317,8 +317,8 @@ pip3 install -r requirements.txt
 
 ---
 
-### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
-GitHubのGUIでリポジトリ作成（Privateも可）
+### ☑️ GitHub kimlik doğrulaması (CD aracısı kullanılmıyorsa gerekmez)
+GitHub arayüzünden bir depo oluşturun (özel olabilir)
 
 GitHub/📁に移動
 ```bash
@@ -407,7 +407,7 @@ claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 
 
 
-![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
+![SSH ile uzaktan komutların tamamen otomatik yürütülmesi için sistem bileşenleri](_images/safety_ssh.png)
 ---
 
 ## 2. 環境セットアップ
@@ -433,7 +433,7 @@ npx ccusage@latest
 ```
 
 
-#### 📊 Grafana + Prometheus + Loki環境（非推奨のオプション）
+#### 📊 Grafana + Prometheus + Loki ortamı (önerilmez bir seçenek)
 
 <details>
 
@@ -454,7 +454,7 @@ http://localhost:3000
 
 [ccusage](https://github.com/ryoppippi/ccusage)は、JSONLログからトークン使用量を分析するCLIツールです。
 
-![Grafana起動成功時の画面表示例](_images/Grafana.png)
+![Grafana başarıyla başlatıldığında örnek ekran](_images/Grafana.png)
 
 
 Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
@@ -474,7 +474,7 @@ Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
 
 </details>
 
-### 🤖シングルエージェントモード (v0.5.3+)
+### 🤖 Tek Aracı Modu (v0.5.3+)
 
 <details>
 <summary>実験評価用シングルエージェントモード（クリックで展開）</summary>
@@ -535,7 +535,7 @@ agent_send.shは使用不要です（通信相手がいないため）。
 </details>
 
 
-### マルチエージェント:tmuxセッション作成
+### Çoklu Aracı: tmux oturumu oluşturma
 
 > [!IMPORTANT]
 > VibeCodeHPCは複数のtmuxセッションを使用します：

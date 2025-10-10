@@ -1,60 +1,60 @@
-# VibeCodeHPC 共通ルール (全エージェントが最初に読むべき指示)
+# VibeCodeHPC Ortak Kurallar (Tüm aracılar için ilk okunacak talimatlar)
 
-## 基本理念
-我々はチームとして連携し、HPC環境におけるコードの自動最適化という単一の目標を達成するために協力する。各エージェントは自身の役割に専念し、他のエージェントの専門性を尊重する。報告・連絡・相談を密に行い、プロジェクト全体の進捗を最大化する。
+## Temel İlke
+Bir ekip olarak birlikte çalışır, HPC ortamında kodun otomatik optimizasyonu hedefini gerçekleştirmek için iş birliği yaparız. Her aracı kendi rolüne odaklanır, diğerlerinin uzmanlığına saygı duyar. Bildirim–iletişim–danışma süreçlerini düzenli yürütür, projenin genel ilerlemesini en üst düzeye çıkarırız.
 
-## 📊 客観的な報告の原則
-**重要**: 過度な褒め言葉や感情表現は避け、事実ベースのコミュニケーションを徹底すること。
-- ❌ 避けるべき: 「驚くべき成果」「世界トップクラスの性能」「とても素晴らしい最適化でした」
-- ✅ 推奨: 「理論性能の65%達成」「実行時間を3.2秒短縮」「コンパイル警告0件」
-- 成果が出ていない場合は正直に報告し、次の対策を提案する
+## 📊 Nesnel raporlama ilkesi
+Önemli: Aşırı övgü ve duygusal ifadelerden kaçının; iletişimi olgulara dayandırın.
+- Kaçınılacak: “Şaşırtıcı başarı”, “Dünya çapında performans”, “Harika bir optimizasyon”
+- Önerilen: “Teorik performansın %65’i elde edildi”, “Çalışma süresi 3.2 sn azaldı”, “Derleme uyarısı 0”
+- Sonuç yoksa dürüstçe bildirin ve bir sonraki adımı önerin
 
-## コミュニケーション
-- **基本ツール**: `agent_send.sh [宛先] "[メッセージ]"` を使用する。
-- **重要**: `communication/agent_send.sh`を使わない限り、他のエージェントはあなたの独り言を一切見ることができない。
-  - 返信も必ず`agent_send.sh`を使うこと
-  - メッセージ内で自身のagent_idを明記すること（例: `[PG1.1.1より] 完了しました`）
-- **注意**: `tmux send-keys`はClaude起動前のコマンド送信やPMの緊急停止専用
-  - **絶対にメッセージ送信に使用しない**（Enter/C-mが送信されず、メッセージが届かない）
-  - エージェント間の通信は**必ずagent_send.sh**を使用すること
-- **メッセージ形式**: `[メッセージ種別] [要件/結果の概要] (詳細)` の形式で送ること。
-  - 例: `[依頼] コンパイル optimized_code_v1.2.c`
-  - 例: `[報告] コンパイル成功 optimized_code_v1.2.c (ジョブID: 12345)`
-- **非同期通信**: 応答を待つ間も、緊急な他タスクは進めること。
+## İletişim
+- Temel araç: `agent_send.sh [hedef] "[mesaj]"` kullanın.
+- Önemli: `communication/agent_send.sh` kullanılmadıkça diğer aracılar sizin yazdıklarınızı görmez.
+  - Yanıtlar da mutlaka `agent_send.sh` ile gönderilmelidir
+  - Mesaj içinde kendi agent_id’nizi belirtin (ör. `[PG1.1.1] Tamamlandı`)
+- Not: `tmux send-keys` yalnızca Claude başlamadan önce komut iletimi ve PM’in acil durdurması içindir
+  - Mesaj göndermek için asla kullanmayın (Enter/C-m gitmez, mesaj ulaşmaz)
+  - Aracılar arası iletişim için daima `agent_send.sh` kullanın
+- Mesaj biçimi: `[Tür] [Özet] (Detay)` şeklinde gönderin.
+  - Ör: `[İstek] Derle optimized_code_v1.2.c`
+  - Ör: `[Rapor] Derleme başarılı optimized_code_v1.2.c (Job ID: 12345)`
+- Eşzamansız iletişim: Yanıt beklerken acil diğer işleri ilerletin
 
-### 📡 TCP風返信義務化ルール
-- **3分ルール**: メッセージ受信後3分以内に返信（少なくとも「受信確認」を送る）
-- **5分ルール**: 5分間ログ出力がない場合、エージェント死亡の疑い
-- **死活監視**: `tmux list-panes -t Team1_Workers1` 等でセッション状態を確認
+### 📡 Zorunlu yanıt kuralları (TCP benzeri)
+- 3 dakika kuralı: Mesajı aldıktan sonra en geç 3 dakika içinde yanıt verin (en az “alındı”).
+- 5 dakika kuralı: 5 dakika log yoksa aracı çökme şüphesi vardır.
+- Canlılık izlemesi: `tmux list-panes -t Team1_Workers1` ile oturum durumunu kontrol edin.
 
-### 🔍 エージェント生存確認手順（重要：Esc送信は厳禁）
+### 🔍 Aracının hayatta olduğunun doğrulanması (Önemli: Esc göndermek yasaktır)
 
-#### 安全な生存確認方法
+#### Güvenli doğrulama
 ```bash
-# 対象エージェントに自動返信コマンドを送信
-./communication/agent_send.sh [対象ID] "!./communication/agent_send.sh [自分のID] '[対象ID]生存確認OK'"
+# Hedef aracıya otomatik yanıt komutu gönder
+./communication/agent_send.sh [TARGET_ID] "!./communication/agent_send.sh [SELF_ID] '[TARGET_ID] alive-ok'"
 
-# 数秒待って返信を確認
-# 返信あり → エージェント生存（入力待ち状態）
-# 返信なし → 本当に落ちている可能性
+# Birkaç saniye bekleyip yanıtı kontrol et
+# Yanıt varsa → Aracı canlı (girdi bekliyor)
+# Yanıt yoksa → Gerçekten düşmüş olabilir
 ```
 
-#### 蘇生手順（生存確認で応答なしの場合のみ）
-1. PMに報告して蘇生依頼（最優先）
+#### Diriltme adımları (yalnızca yanıtsızsa)
+1. Önce PM’e rapor edip diriltme isteyin
    ```bash
-   ./communication/agent_send.sh PM "[自分のID] [対象ID]が生存確認に無応答"
+   ./communication/agent_send.sh PM "[SELF_ID] [TARGET_ID] canlılık doğrulamasına yanıt vermiyor"
    ```
-2. PMも無応答なら直接蘇生
+2. PM de yanıtsızsa doğrudan diriltin
    ```bash
-   ./communication/agent_send.sh [対象ID] "claude --continue --dangerously-skip-permissions"
+   ./communication/agent_send.sh [TARGET_ID] "claude --continue --dangerously-skip-permissions"
    ```
-3. 蘇生後、ToDoリストとChangeLog確認を促す
+3. Diriltme sonrası ToDo listesi ve ChangeLog kontrolünü isteyin
 
-**⚠️ Escキー使用権限**：
-- **PM専用**: エージェント一時停止制御（特に終盤の管理）
-- **他エージェント**: PMが落ちている緊急時のみ使用可
-- **効果**: "Interrupted by user"で入力待ち（メッセージで再開可能）
-- **注意**: hooksも停止するため、意図的な制御にのみ使用
+⚠️ Esc tuşu yetkisi:
+- Yalnız PM: Aracıyı geçici durdurma (özellikle son aşama yönetimi)
+- Diğer aracılar: Sadece PM çökmüşse acil durumda
+- Etki: “Interrupted by user” ile girdi beklemeye geçer (mesajla devam edilebilir)
+- Not: Hooks da durur; yalnızca kasıtlı kontrol için kullanın
 
 ## 📂ファイルとディレクトリ
 - `cd`コマンドでの自主的な移動は禁止。全てのファイルパスはプロジェクトルートからの相対パスで指定する。
