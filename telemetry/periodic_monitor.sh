@@ -29,24 +29,22 @@ CHILD_PID_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_child.pid"
 
 CONFIG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_config.txt"
 
-DEFAULT_UPDATE_INTERVAL_SEC=30  # 30秒（上書き更新頻度）
-DEFAULT_MILESTONE_INTERVAL_MIN=30  # 30分（マイルストーン確認間隔）
-DEFAULT_MAX_RUNTIME_MIN=1440  # 1440分（1日）= 24 * 60
-DEFAULT_BUDGET_INTERVAL_MIN=3  # 3分（予算集計間隔）
-DEFAULT_SOTA_INTERVAL_MIN=15  # 15分（SOTA可視化間隔）
+DEFAULT_UPDATE_INTERVAL_SEC=30  # 30 saniye (üstüne yazma güncelleme sıklığı)
+DEFAULT_MILESTONE_INTERVAL_MIN=30  # 30 dakika (kilometre taşı kontrol aralığı)
+DEFAULT_MAX_RUNTIME_MIN=1440  # 1440 dakika (1 gün) = 24 * 60
+DEFAULT_BUDGET_INTERVAL_MIN=3  # 3 dakika (bütçe toplama aralığı)
+DEFAULT_SOTA_INTERVAL_MIN=15  # 15 dakika (SOTA görselleştirme aralığı)
 
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi
 
-# 変数初期化（オーバライド可能）
 UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC:-$DEFAULT_UPDATE_INTERVAL_SEC}
 MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN:-$DEFAULT_MILESTONE_INTERVAL_MIN}
 MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN:-$DEFAULT_MAX_RUNTIME_MIN}
 BUDGET_INTERVAL_MIN=${BUDGET_INTERVAL_MIN:-$DEFAULT_BUDGET_INTERVAL_MIN}
 SOTA_INTERVAL_MIN=${SOTA_INTERVAL_MIN:-$DEFAULT_SOTA_INTERVAL_MIN}
 
-# 既存のプロセスがあれば終了
 cleanup_existing_processes() {
     if [ -f "$PID_FILE" ]; then
         OLD_PID=$(cat "$PID_FILE")
@@ -67,14 +65,12 @@ cleanup_existing_processes() {
 
 cleanup_existing_processes
 
-# 新しいPIDを記録
 echo $$ > "$PID_FILE"
 
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Periodic monitor started (PID: $$, Project: ${PROJECT_NAME})" >> "$LOG_FILE"
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Monitoring sessions: ${PM_SESSION}, ${WORKER_SESSION}" >> "$LOG_FILE"
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Config: UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC}s, MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN}min, MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN}min" >> "$LOG_FILE"
 
-# Python実行コマンドを決定
 get_python_cmd() {
     if command -v python3 >/dev/null 2>&1; then
         echo "python3"
@@ -88,17 +84,14 @@ get_python_cmd() {
 PYTHON_CMD=$(get_python_cmd)
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Using Python command: $PYTHON_CMD" >> "$LOG_FILE"
 
-# マイルストーン時間（分）
 MILESTONES=(30 60 90 120 180)
 LAST_MILESTONE=0
 
-# プロジェクト開始時刻を読み取り
 PROJECT_START_TIME=""
 if [ -f "$PROJECT_ROOT/Agent-shared/project_start_time.txt" ]; then
     PROJECT_START_TIME=$(head -n 1 "$PROJECT_ROOT/Agent-shared/project_start_time.txt" 2>/dev/null || echo "")
 fi
 
-# プロジェクト開始からの経過分数を計算
 get_elapsed_minutes() {
     if [ -n "$PROJECT_START_TIME" ]; then
         START_EPOCH=$(date -d "$PROJECT_START_TIME" +%s 2>/dev/null || echo "0")
@@ -113,7 +106,6 @@ get_elapsed_minutes() {
     fi
 }
 
-# tmuxセッションが終了したら自動終了
 cleanup_and_exit() {
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Monitor terminated" >> "$LOG_FILE"
     if [ -f "$CHILD_PID_FILE" ]; then
@@ -126,7 +118,6 @@ cleanup_and_exit() {
 }
 trap cleanup_and_exit TERM INT
 
-# プロジェクト開始時刻を取得
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ]; then
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] project_start_time.txt not found, creating..." >> "$LOG_FILE"

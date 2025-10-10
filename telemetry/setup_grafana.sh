@@ -22,7 +22,7 @@ show_usage() {
 📊 VibeCodeHPC Grafana ortamı kurulumu
 
 Kullanım:
-  $0 [オプション]
+  $0 [seçenekler]
 
 Seçenekler:
   --check-only   : Sadece yapılandırmayı kontrol et (Docker başlatılmaz)
@@ -126,7 +126,6 @@ show_connection_info() {
     
     if grep -qi microsoft /proc/version; then
         echo "   WSL ortamında: Windows tarafındaki tarayıcıdan erişin"
-        # WSL2の場合、実際のIPアドレスも表示
         if command -v ip &> /dev/null; then
             WSL_IP=$(ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
             echo "   veya: http://${WSL_IP}:3000"
@@ -169,7 +168,6 @@ reset_containers() {
     log_success "Mevcut konteynerler silindi"
 }
 
-# メイン処理
 main() {
     case "${1:-}" in
         --help|-h)
