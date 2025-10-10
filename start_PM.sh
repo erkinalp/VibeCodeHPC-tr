@@ -9,7 +9,7 @@ echo "🎯 VibeCodeHPC PM Başlatma Scripti"
 echo "================================"
 
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
-    # CLI_HOOKS_MODEを取得（デフォルト: auto）
+    # CLI_HOOKS_MODE değerini al (varsayılan: auto)
     CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     echo "🔧 Setting up hooks for PM..."
     echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
@@ -26,7 +26,7 @@ fi
 echo "🔍 Checking TMUX environment..."
 if [ -n "$TMUX_PANE" ]; then
     echo "  TMUX_PANE: $TMUX_PANE"
-    # settings.local.jsonに環境変数を追加（Claude Codeに引き継がれない可能性への対策）
+    # settings.local.json içine ortam değişkeni ek notu (Claude Code devralmayabilir)
     if [ -f "$PROJECT_ROOT/.claude/settings.local.json" ]; then
         echo "  ⚠️  Note: Claude Code may not inherit TMUX_PANE environment variable"
     fi
@@ -50,7 +50,6 @@ if command -v jq &> /dev/null; then
             if [[ -z "$line" || "$line" =~ ^# ]]; then
                 echo "$line"
             else
-                # JSONとして解析して、PMの場合はworking_dirを更新
                 updated_line=$(echo "$line" | jq -c '
                     if .agent_id == "PM" then
                         . + {working_dir: "", last_updated: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))}

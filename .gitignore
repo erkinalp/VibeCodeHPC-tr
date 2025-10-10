@@ -7,7 +7,7 @@
 # ===========================================
 
 # Remote connection and authentication
-# _images/  # README用の参考画像は含める
+# _images/  # README’de kullanılan örnek görseller dâhil edilebilir
 _remote_info/
 *.pem
 *.key
@@ -86,5 +86,5 @@ telemetry/sub_agent_logs/
 **/prometheus-data/
 **/loki-data/
 
-# 古いバックアップファイル
+# Eski yedek dosyaları
 communication/start_agent_old.sh

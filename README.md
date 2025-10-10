@@ -53,32 +53,32 @@ graph TD
 
 ```
 VibeCodeHPC/🤖PM
-├── 📄 CLAUDE.md                     # 全エージェント共通ルール
-├── 📄 requirement_definition.md     # 要件定義書
-├── 📄 directory_pane_map.md         # エージェント配置とtmuxペイン統合管理
-├── 📄 sota_project.txt              # プロジェクト全体SOTA
+├── 📄 CLAUDE.md                     # 全エージェント# Tüm aracılar için ortak kurallar
+├── 📄 requirement_definition.md     # 要件定義書# Gereksinim tanımı belgesi
+├── 📄 directory_pane_map.md         # エージェント配# Aracı yerleşimi ve tmux pane bütünleşik yönetimi
+├── 📄 sota_project.txt              # プロジェクト全# Proje genel SOTA bilgisi
 │
-├── 📁 Agent-shared/                 # エージェント共有指示書
+├── 📁 Agent-shared/                 # エージェント共# Aracı paylaşım talimatları
 │
-├── 📁 User-shared/                  # ユーザ向け成果物
-│   ├── 📄 final_report.md           # 最終報告書
-│   ├── 📁 reports/                  # 統合レポート
-│   └── 📁 visualizations/           # グラフ・図表
+├── 📁 User-shared/                  # ユーザ向け成果# Kullanıcıya yönelik çıktı dosyaları
+│   ├── 📄 final_report.md           # 最終報告書# Nihai rapor
+│   ├── 📁 reports/                  # 統合レポート# Birleşik raporlar
+│   └── 📁 visualizations/           # グラフ・図表# Grafikler ve çizimler
 │
-├── 📁 BaseCode/                     # 既存のオリジナルコード
+├── 📁 BaseCode/                     # 既存のオリジナ# Mevcut özgün kodlar
 │
-├── 📁 communication/                # エージェント起動・tmux通信システム
+├── 📁 communication/                # エージェント起# Aracı başlatma ve tmux iletişim sistemi
 │
 ├── 📁 GitHub/🤖CD
 │
-└── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
-    ├── 📄 hardware_info.md          # 計算ノードのスペック情報
-    ├── 📄 sota_hardware.txt         # 指定ハード内のSOTA
-    ├── 📁 intel2024/                 # コンパイラ環境                       
-    │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
-    │        ├── 📄 ChangeLog.md      # 進捗記録
+└── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層# Donanım katmanı
+    ├── 📄 hardware_info.md          # 計算ノードのス# Hesaplama düğümü özellik bilgileri
+    ├── 📄 sota_hardware.txt         # 指定ハード内の# Belirli donanım için SOTA
+    ├── 📁 intel2024/                 # コンパイラ環境# Derleyici ortamı                       
+    │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール# Paralelleştirme modülü
+    │        ├── 📄 ChangeLog.md      # 進捗記録# İlerleme kaydı
     │        └── 📄 sota_local.txt
-    └── 📁 gcc11.3.0/                 # 別コンパイラ
+    └── 📁 gcc11.3.0/                 # 別コンパイラ# Alternatif derleyici
         └── 📁 CUDA/🤖PG1.2.1
 ```
 
@@ -362,41 +362,41 @@ https://zenn.dev/jeffi7/articles/dccb6f29fbb640
 
 
 <details>
-<summary>選択肢２：gh</summary>
+<summary>Seçenek 2: gh</summary>
 
-gh (GitHub CLIツール)ダウンロード
+gh (GitHub CLI) indirme
 ```bash
 sudo apt update
 sudo apt install gh
 ```
-ghでの認証
+gh ile kimlik doğrulama
 ```bash
 gh auth login
 ```
-ブラウザ経由でログイン
+Tarayıcı üzerinden oturum açma
 </details>
 
 ---
 
-### ☑️ **MCPサーバのセットアップ**
+### ☑️ **MCP sunucu kurulumu**
 
-開始直前に以下のMCPサーバを設定することを推奨します：
+Başlamadan hemen önce aşağıdaki MCP sunucularını eklemeniz önerilir:
 
-プロジェクトルート📂で起動するPM🤖にMCPサーバを与えます。
-**重要**: Claude Code起動前にMCPを設定してください。
+Proje kökünde çalışan PM 🤖 için MCP sunucuları tanımlayın.
+**Önemli**: Claude Code’u başlatmadan önce MCP’yi ayarlayın.
 
 ```bash
 cd VibeCodeHPC-main
 ```
 
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
-PM、SE、PGがHPC環境へのSSH/SFTP接続を管理に活用
+PM, SE, PG için HPC ortamına SSH/SFTP bağlantı yönetiminde kullanılır
 ```bash
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
 
 [mcp-screenshot](https://github.com/kazuph/mcp-screenshot)
-PMが障害対応等でtmux全体の状況を視覚的な確認に活用
+PM, arıza durumlarında tmux genel görünümünü görsel olarak doğrulamak için kullanır
 ```bash
 claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 ```
