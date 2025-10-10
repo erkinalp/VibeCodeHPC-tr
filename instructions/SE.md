@@ -262,23 +262,23 @@ SE düzenli olarak alt aracının (claude -p) kullanımını analiz etmelidir:
 
 2. **Etkili kullanım örüntülerini belirleme**
    - Yüksek sıkıştırma oranı (< 0.5) başaran aracıların yöntemlerini paylaş
-   - 頻繁にアクセスされるファイルの把握
-   - トークン節約量の定量化
+   - Sıklıkla erişilen dosyaları tespit et
+   - Token tasarrufu miktarını nicelleştir
 
 3. **Önerilerin oluşturulması**
    - Alt aracıların kullanılacağı durumların belirlenmesi
-   - 各エージェントへの使用方法のアドバイス
+   - Her aracı için kullanım yöntemi tavsiyeleri
 
 #### Aracı sağlık izleme
 SE aşağıdaki görevleri düzenli olarak yürütmelidir:
 
 1. **auto-compact oluştuğunda yapılacaklar**
-   - auto-compact直後のエージェントに以下のメッセージを送信：
+   - auto-compact sonrası ilgili aracıya şu mesajı gönderin:
      ```
      agent_send.sh [AGENT_ID] "[SE] auto-compact tespit edildi. Projenin sürekliliği için lütfen şu dosyaları yeniden yükleyin:
      - CLAUDE.md(ortak kurallar)
-     - instructions/[役割].md（あなた(sizin rolünüz)
-     - 現在のディレクトリのChangeLog.md（進捗状況）(ilerleme durumu)
+     - instructions/[rol].md (sizin rolünüz)
+     - Geçerli dizindeki ChangeLog.md (ilerleme durumu)
      - directory_pane_map.md(aracı yerleşimi ve pencere yönetimi - proje kökünde)"
      ```
 
@@ -289,38 +289,38 @@ SE aşağıdaki görevleri düzenli olarak yürütmelidir:
        → Ancak, aynı modül içinde algoritma optimizasyonu (döngü dönüşümü, veri yapısı iyileştirme vb.) teşvik edilir
      - belirtilen dizin dışı çalışma
      - uygunsuz dosya silme veya üzerine yazma
-     → 発見時は該当エージェントに指摘、改善されない場合はPMに報告
+     → Tespit edildiğinde ilgili aracı uyarın; düzelmezse PM’e raporlayın
    
    - **Yanıt vermeyen aracının tespiti**:
-     - 5分以上ChangeLog.mdが更新されていない
+     - ChangeLog.md 5 dakikadan uzun süredir güncellenmiyor
      - komut yürütme izi yok
-     → 以下の手順で対応：
+     → Şu adımlarla ilerleyin:
        1. `agent_send.sh [AGENT_ID] "[SE] Çalışma durumunuzu kontrol etmek istiyoruz. Lütfen mevcut ilerlemenizi bildirin."`
-       2. 1分待って応答がなければPMに報告：
+       2. 1 dakika bekleyip yanıt gelmezse PM’e raporlayın:
           `agent_send.sh PM "[SE] [AGENT_ID] 5 dakikadan uzun süredir yanıt vermiyor. Lütfen kontrol edin."`
 
-### ChangeLog.mdとSOTA管理（SEの中核業務）
+### ChangeLog.md ve SOTA yönetimi (SE’nin çekirdek görevi)
 
-#### 1. ChangeLog.mdフォーマット監視と是正
-**最重要タスク**: フォーマットの統一性を維持し、自動化ツールの正常動作を保証
+#### 1. ChangeLog.md format izleme ve düzeltme
+**En önemli görev**: Format birliğini korumak ve otomasyon araçlarının düzgün çalışmasını sağlamak
 
-- **フォーマット監視**:
-  - PMが定めた3行サマリー形式（変更点・結果・コメント）の厳守確認
-  - `<details>`タグで詳細を折り畳む形式の維持
-  - 性能値の抽出可能性確認（`XXX.X GFLOPS`形式）
+- **Format izleme**:
+  - PM’in belirlediği 3 satırlık özet (değişiklikler/sonuç/yorum) formatına uyumu doğrula
+  - Ayrıntıları `<details>` etiketi ile katlama biçiminin korunması
+  - Performans değerlerinin çıkarılabilirliğini doğrula (`XXX.X GFLOPS` biçimi)
   
-- **違反発見時の対応**:
+- **İhlal tespitinde yapılacaklar**:
   ```bash
-  # PGへの修正依頼
-  agent_send.sh PG1.1.1 "[SE] ChangeLog.mdのフォーマット違反を検出。結果行に性能値がありません"
+  # PG’den düzeltme talebi
+  agent_send.sh PG1.1.1 "[SE] ChangeLog.md format ihlali tespit edildi. Sonuç satırında performans değeri yok."
   
-  # 緊急時は直接修正（フォーマットのみ）
-  # 性能値の位置調整、タグの修正等
+  # Acil durumda doğrudan düzelt (yalnızca format)
+  # Performans değerinin konum ayarı, etiket düzeltmeleri vb.
   ```
   
-- **PMへの進言**:
-  - フォーマット違反が頻発する場合、PMに再統一を提案
-  - `ChangeLog_format_PM_override.md`の更新を依頼
+- **PM’e öneri**:
+  - Format ihlalleri sıklaşırsa PM’e yeniden standardizasyon öner
+  - `ChangeLog_format_PM_override.md` güncellemesini iste
 
 #### 2. SOTA判定システムの監視と改良
 **重要**: SOTAの自動判定は正規表現に依存するため、継続的な調整が必要

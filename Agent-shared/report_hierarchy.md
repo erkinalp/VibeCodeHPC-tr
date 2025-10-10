@@ -47,7 +47,7 @@ VibeCodeHPC/
     ├── reports/
     │   └── performance_summary.md
     └── visualizations/
-        └── sota/                # SOTA可視化グラフ
+        └── sota/                # SOTA görselleştirme grafikleri
 ```
 
 ## Rapor oluşturma zamanları
