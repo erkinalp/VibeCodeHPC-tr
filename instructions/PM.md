@@ -231,14 +231,14 @@ Aracı transferi aşağıdaki zamanlarda yapılabilir:
    ./communication/start_agent.sh SE3
    
    # 4. Başlatma/ilk mesajı gönder
-   agent_send.sh SE3 "[PM] SE3として新規起動しました。instructions/SE.mdを読み込んでください。"
+   agent_send.sh SE3 "[PM] SE3 olarak yeni başlatıldın. Lütfen instructions/SE.md’yi oku."
    
-   # 5. directory_pane_map.md更新
+   # 5. directory_pane_map.md’yi güncelle
    ```
 
-   **重要: 役割変更時の追加考慮事項**
-   - PG→SE等の役割変更時はhooksの再設定が必要
-   - MCPサーバ設定も!cdだけでは解決しない場合あり
+   **Önemli: Rol değişiminde ek hususlar**
+   - PG→SE gibi rol değişimlerinde kancaları yeniden ayarlamak gerekir
+   - MCP sunucu ayarı yalnızca !cd ile çözülemeyebilir
    - Sorunla karşılaşıldığında:
      1. README.md’i başlangıç alarak ilgili betikleri özyineli biçimde incele
      2. Yeni rol için hook ayarlarını `/hooks/setup_agent_hooks.sh` ile uygula
@@ -250,57 +250,57 @@ Güvenlik açısından aracının kendi başına cd çalıştırması yasaktır.
 #### Aracı başlatma adımları
 Aracıları yerleştirirken aşağıdaki adımlara sıkı sıkıya uyun:
 
-### start_agent.shの使用（推奨）
+### start_agent.sh kullanımı (önerilir)
 
-#### 事前準備（重要）
-**必ず**agent_and_pane_id_table.jsonlのagent_idを更新してから実行すること：
-- 「待機中1」→「SE1」
-- 「待機中2」→「PG1.1」
-- 「待機中3」→「PG1.2」
-等、正しいエージェントIDに変更
+#### Ön hazırlık (önemli)
+Çalıştırmadan önce agent_and_pane_id_table.jsonl içindeki agent_id’yi mutlaka güncelle:
+- “Beklemede1” → “SE1”
+- “Beklemede2” → “PG1.1”
+- “Beklemede3” → “PG1.2”
+gibi doğru aracı kimliklerine değiştir
 
-**エージェントID命名規則（重要）**：
-- **CDエージェントは必ず「CD」として命名**（「CD1」ではない）
-- SEは「SE1」「SE2」等の番号付きOK
-- PGは「PG1.1」「PG2.3」等の**2階層**命名（3階層は禁止）
-- **誤った命名例**: CD1、PG1.1.1、PG1.2.3（agent_send.shが機能しなくなる）
-- **正しい命名例**: CD、PG1.1、PG2.3、SE1
+**Aracı ID adlandırma kuralları (önemli)**:
+- **CD aracı mutlaka “CD” olarak adlandırılır** (“CD1” değil)
+- SE için “SE1”, “SE2” gibi numaralı adlandırma uygundur
+- PG için “PG1.1”, “PG2.3” gibi **2 katmanlı** adlandırma (3 katman yasak)
+- **Yanlış örnekler**: CD1, PG1.1.1, PG1.2.3 (agent_send.sh çalışmaz)
+- **Doğru örnekler**: CD, PG1.1, PG2.3, SE1
 
-シンプル化されたstart_agent.shの動作：
-1. エージェントのカレントディレクトリに`start_agent_local.sh`を生成
-2. hooks設定とtelemetry設定を自動的に適用
-3. working_dirをagent_and_pane_id_table.jsonlに記録
+Basitleştirilmiş start_agent.sh davranışı:
+1. Aracının geçerli dizininde `start_agent_local.sh` dosyasını üretir
+2. kanca ve telemetri ayarlarını otomatik uygular
+3. working_dir’i agent_and_pane_id_table.jsonl’ye kaydeder
 
 ```bash
-# ステップ1: エージェント起動
+# Adım 1: Aracının başlatılması
 ./communication/start_agent.sh PG1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
-# CDエージェントの起動（GitHub管理用）
+# CD aracını başlat (GitHub yönetimi için)
 ./communication/start_agent.sh CD GitHub/
 
-# オプション：テレメトリ無効
+# Seçenek: Telemetri devre dışı
 VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1 /path/to/workdir
 
-# オプション：再起動時（記憶を維持）
+# Seçenek: Yeniden başlatma (belleği koru)
 ./communication/start_agent.sh SE1 /path/to/workdir --continue
 
-# ステップ2: 待機（重要！）
-# start_agent.shを同時に複数起動すると失敗するため、
-# 必ず1体ずつ順番に起動すること
-# Claude起動完了まで3秒以上待機してから次へ
+# Adım 2: Bekleme (önemli!)
+# start_agent.sh aynı anda birden fazla kez başlatılırsa başarısız olur,
+# her seferinde yalnızca bir aracı başlat
+# Claude tamamen başlayana kadar en az 3 sn bekle
 
-# ステップ3: 待機（重要！）
-# Claude起動直後は入力を受け付けない可能性があるため
+# Adım 3: Bekleme (önemli!)
+# Claude başlatıldıktan hemen sonra girdi kabul etmeyebilir
 sleep 1  # 並行作業を行った場合は時間経過しているため省略可
 
-# ステップ4: 初期化メッセージ送信
-# 重要: claudeが入力待機中の場合、tmux list-panesでは"bash"と表示される
-# 稼働中（処理中）の時のみ"claude"と表示されるため、
-# 初回起動時の確認は無意味。まずメッセージを送信する
-agent_send.sh PG1.1 "あなたはPG1.1（コード生成・SSH/SFTP実行エージェント）です。
+# Adım 4: Başlatma/ilk mesajı gönder
+# Önemli: Claude girdi bekliyorsa tmux list-panes "bash" gösterir
+# Yalnızca işlem yaparken "claude" gösterilir,
+# Bu yüzden ilk başlatmada kontrol anlamsızdır; önce mesajı gönder
+agent_send.sh PG1.1 "Sen PG1.1’sin (kod üretimi ve SSH/SFTP yürütme aracısı).
 
-【重要】プロジェクトルートを見つけてください：
-現在のディレクトリから親ディレクトリを辿り、以下のディレクトリが存在する場所がプロジェクトルートです：
+[Önemli] Proje kökünü bulun:
+Geçerli dizinden üst dizinlere çıkarak aşağıdaki dizinlerin birlikte bulunduğu yer proje köküdür:
 - Agent-shared/, User-shared/, GitHub/, communication/
 - VibeCodeHPC*というディレクトリ名が一般的です
 
