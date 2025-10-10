@@ -446,11 +446,11 @@ Böylece HPC optimizasyonu dışındaki projelere de esnek şekilde uyarlanabili
 - **Verimlilik analizi**: Bütçe verimliliğini (performans artışı/puan tüketimi) düzenli hesaplayıp görselleştirin
 
 ```python
-# 予算効率の計算例
+# Bütçe verimliliği hesaplama örneği
 def calculate_efficiency(performance_gain, points_used):
     """
-    効率スコア = 性能向上率 / ポイント消費
-    高効率: > 0.1, 標準: 0.01-0.1, 低効率: < 0.01
+    Verimlilik skoru = Performans artış oranı / Puan tüketimi
+    Yüksek verim: > 0.1, Standart: 0.01-0.1, Düşük verim: < 0.01
     """
     return performance_gain / points_used if points_used > 0 else 0
 ```
