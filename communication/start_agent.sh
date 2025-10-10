@@ -159,6 +159,10 @@ EOF
 
 chmod +x "$FULL_PATH/start_agent_local.sh"
 
+# CLI_HOOKS_MODEの値をstart_agent_local.shに埋め込む（環境変数依存を回避）
+sed -i.bak "s|CLI_HOOKS_MODE=\"\\\${CLI_HOOKS_MODE:-auto}\"|CLI_HOOKS_MODE=\"$CLI_HOOKS_MODE\"|" "$FULL_PATH/start_agent_local.sh"
+rm -f "$FULL_PATH/start_agent_local.sh.bak"
+
 # 5. 起動スクリプトを実行
 ./communication/agent_send.sh "$AGENT_ID" "./start_agent_local.sh $AGENT_ID $ADDITIONAL_OPTIONS"
 
