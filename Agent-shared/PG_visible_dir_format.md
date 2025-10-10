@@ -5,7 +5,7 @@ OpenMP_MPI
 
 ## Relative visible PATH (Read Only)
 
-### Virtual parent (パース目的でこの部分のみ📁を付与)
+### Sanal üst (yalnızca ayrıştırma amacıyla bu kısma 📁 eklenir)
 ../MPI📁
 ../OpenMP📁
 
@@ -13,11 +13,11 @@ OpenMP_MPI
 ../../gcc/OpenMP_MPI
 ```
 
-このファイルはPGエージェントが割り当てられた直下に作成されます
-名前は PG_visible_dir.md
+Bu dosya, PG aracına atanmış dizinin hemen altında oluşturulur
+Dosya adı: PG_visible_dir.md
 
-進化的ディレクトリ構成を採用している場合の例
-下記３つはintel以下の同階層のディレクトリに存在する
+Evrimsel dizin yapısı kullanıldığında örnek
+Aşağıdaki üçü intel altında aynı seviyedeki dizinlerde bulunur
 ```
 intel📂
     MPI📁 

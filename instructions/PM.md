@@ -81,13 +81,13 @@ Aşağıdakiler yoksa ve aynı düzeyde kullanıcı tarafından oluşturulmuş d
 
 
 ### Faz 2: Ortam kurulum yöntemleri için aday çıkarma
-手元で既存のmakefileや実行ファイルが依存するライブラリを確認した上で、SSH接続を確立し、ログインノード（状況によっては計算ノード）でmodule availなどのコマンドで使用可能なモジュール一覧を確認すること。
+Yerelde mevcut makefile ve çalıştırılabilir dosyanın bağımlı olduğu kütüphaneleri kontrol ettikten sonra, SSH bağlantısı kurup oturum açma düğümünde (duruma göre hesaplama düğümünde) module avail gibi komutlarla kullanılabilir modül listesini kontrol et.
 
-予算確認コマンド（`charge`等）についても、この段階で確認すること。_remote_infoに記載がない場合は、スパコンのマニュアル（PDF等）を探すか、早めにユーザに確認すること。
+Bütçe doğrulama komutlarını (örn. `charge`) bu aşamada kontrol et. _remote_info'da belirtilmemişse, süper bilgisayarın kılavuzunu (PDF vb.) ara veya erken aşamada kullanıcıya danış.
 
-ただし、gccなど特定のライブラリをロードした上でしかリストに出現しないモジュールがあることに注意する。
+Ancak gcc gibi belirli kütüphaneler yüklendikten sonra listede görünen modüller olabileceğine dikkat et.
 
-一部のスパコンでは、以下のようなコンパイラの依存関係を出力してくれるコマンドも存在する。
+Bazı süper bilgisayarlarda, derleyici bağımlılıklarını çıktılayan komutlar da bulunur.
 
 show_module (Miyabi-G örneği):
 ```
@@ -99,13 +99,13 @@ PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Login-G   
 PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G    cuda/12.4
 ```
 
-可能な組み合わせを網羅的に考え、ハードウェア📂直下に/gcc11.3.0、/intel2022.3などを作成する。実際に問題なく実行できるかを確認するのはPMの仕事である。環境構築方法の概要だけgcc11.3.0直下にsetup.mdを置くことを推奨する。
+Olası kombinasyonları kapsamlı biçimde değerlendirerek hardware📂 altında /gcc11.3.0, /intel2022.3 gibi dizinler oluştur. Sorunsuz çalışıp çalışmadığını doğrulamak PM’in görevidir. Yalnızca yöntem özeti için gcc11.3.0 altında setup.md bulundurulması önerilir.
 
-※ 依存関係がない同一モジュールが複数バージョンある場合、そのコードが使用実績のあるバージョン・default・最新版などを優先的に試すこと
+Not: Bağımlılıkları olmayan aynı modülün birden fazla sürümü varsa, o kod için kullanım geçmişi olan sürümü, default’u veya en son sürümü öncelikle dene.
 
 
 ### Faz 3: 📁 hiyerarşi tasarımı
-Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_dir.md`）を参考にして、ユーザの要件に合致する📁の階層設計を行うこと。
+Agent-shared içindeki dosyalara (özellikle `typical_hpc_code.md`, `evolutional_flat_dir.md`) başvurarak, kullanıcının gereksinimlerine uygun klasör hiyerarşisini tasarla.
 
 #### Özellikle önemli tasarım belgeleri
 - **`evolutional_flat_dir.md`**: Evrimsel keşif yaklaşımının ayrıntıları
@@ -120,24 +120,24 @@ Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_
 `directory_pane_map.md` (proje kökünde) dosyasında 📁 hiyerarşisini ve tmux panel yerleşimini göster. Kullanıcı ve tüm aracılar bunu sık kullanacağı için oluşturmayı ve güncellemeyi ihmal etme. Uçta yalnızca işçi bulunan 📁’lere kadar yaz; işçilerin daha sonra serbestçe oluşturacağı 📁’ler dahil edilmez.
 
 
-### フェーズ4: プロジェクト初期化
-1. `/Agent-shared/max_agent_number.txt`を確認し、利用可能なワーカー数を把握
-2. `/Agent-shared/agent_and_pane_id_table.jsonl`を確認し、既存のセッション構成を把握
-   - `working_dir`フィールドでエージェントの作業ディレクトリを管理
-   - `claude_session_id`フィールドでClaude Codeのセッション識別
-3. ディレクトリ階層を適切に構成
-4. **予算管理の初期化**：
-   - `pjstat`等で開始時点の予算残額を確認（前日までの集計）
-   - `/Agent-shared/project_start_time.txt`にプロジェクト開始時刻を記録
-   - 予算閾値（最低/想定/デッドライン）を設定
-   - PGにChangeLog.mdへのジョブ情報記録を徹底させる
-5. **ChangeLogフォーマット定義**：
-   - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`を参考に
-   - プロジェクト固有の`ChangeLog_format_PM_override.md`を生成
-   - 性能指標、ログパス規則、その他プロジェクト固有ルールを定義
-6. **重要**: setup.shで作成されたセッション（デフォルト：Team1_Workers1）を使用する
-   - setup.sh実行時はワーカー数を直接指定（例: `./setup.sh 12` で12ワーカー）
-   - IDエージェントは廃止され、全ペインがワーカー用となる
+### Faz 4: Proje başlatma
+1. `/Agent-shared/max_agent_number.txt` dosyasını kontrol ederek kullanılabilir işçi sayısını belirle
+2. `/Agent-shared/agent_and_pane_id_table.jsonl` dosyasını kontrol ederek mevcut oturum yapısını anla
+   - `working_dir` alanı ile ajanın çalışma dizinini yönet
+   - `claude_session_id` alanı ile Claude Code oturum kimliğini yönet
+3. Dizin hiyerarşisini uygun şekilde yapılandır
+4. **Bütçe yönetimi başlangıcı**:
+   - Başlangıçtaki bütçe kalanını `pjstat` vb. ile kontrol et (önceki güne kadar olan toplam)
+   - `/Agent-shared/project_start_time.txt` dosyasına proje başlangıç zamanını kaydet
+   - Bütçe eşiklerini ayarla (minimum/beklenen/son tarih)
+   - PG’nin iş bilgilerini ChangeLog.md’ye kaydetmesini sağla
+5. **ChangeLog biçimi tanımı**:
+   - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md` dosyasını referans al
+   - Projeye özgü `ChangeLog_format_PM_override.md` dosyasını oluştur
+   - Performans metrikleri, günlük yolu kuralları ve diğer proje kurallarını tanımla
+6. **Önemli**: setup.sh ile oluşturulan oturumu kullan (varsayılan: Team1_Workers1)
+   - setup.sh çalıştırılırken işçi sayısını doğrudan belirt (örn: `./setup.sh 12` ile 12 işçi)
+   - ID ajanları kaldırılmıştır; tüm paneller işçiler içindir
 7. **エージェント配置可視化**：
    - `/directory_pane_map.md`を作成（`/Agent-shared/directory_pane_map_example.md`を参考）
    - tmuxペイン配置を色分けされた絵文字で視覚的に管理
