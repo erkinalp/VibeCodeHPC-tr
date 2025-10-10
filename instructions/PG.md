@@ -203,13 +203,13 @@ ChangeLog.md’ye ek olarak /results içinde jobID.out, jobID.err gibi dosyalar�
 ### Doğru biçim örneği
 ```markdown
 ### v1.1.0
-**変更点**: "ブロッキング最適化とスレッド数調整"  
-**結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
-**コメント**: "ブロックサイズを64から128に変更、キャッシュ効率が大幅改善"  
+**Değişiklikler**:**変更点**: "ブロッキング最適化とスレッド数調整"  
+**Sonuç**:**結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
+**Yorum**:**コメント**: "ブロックサイズを64から128に変更、キャッシュ効率が大幅改善"  
 
 <details>
 
-- **生成時刻**: `2025-08-20T10:30:00Z`
+- **Oluşturma zamanı**: `2025-08-20T10:30:00Z`
 - [x] **compile**
     - status: `success`
     - warnings: `none`
@@ -228,8 +228,8 @@ ChangeLog.md’ye ek olarak /results içinde jobID.out, jobID.err gibi dosyalar�
 </details>
 ```
 
-### PMオーバーライドの例
-PMが区切り文字を「|」に変更した場合でも、`<details>`構造は変更しない：
+### PM override örneği
+PM ayraç karakterini “|” yapsa bile `<details>` yapısı değiştirilmez:
 ```markdown
 <details>
 

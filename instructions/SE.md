@@ -154,14 +154,14 @@ Proje istikrar evresine girdiğinde veya diğer PM’lere kıyasla daha az arac�
 ```bash
 # ✅ Doğru yöntem (proje kökünden mutlak yol veya göreli yol ayarı)
 # SE örneğin Flow/TypeII/single-node/ içindeyse
-claude -p "このSOTAグラフから読み取れる性能値を列挙" < ../../../User-shared/visualizations/sota/sota_project_time_linear.png
+claude -p "Bu SOTA grafiğinden okunabilen performans değerlerini listele" < ../../../User-shared/visualizations/sota/sota_project_time_linear.png
 
 # Veya mutlak yol ile belirt
 PROJECT_ROOT=$(pwd | sed 's|\(/VibeCodeHPC[^/]*\).*|\1|')
 claude -p "Grafikteki performans değerlerini yaz" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png
 
 # ❌ Kesinlikle kaçın (auto-compact tetikler)
-Read file_path="/path/to/graph.png"  # メインコンテキストで直接読み込み
+Read file_path="/path/to/graph.png"  # Ana bağlamda doğrudan okuma, kaçınılmalı
 ```
 
 2. **SOTA görselleştirme tutarlılığını doğrula (SE çekirdek işi)**
@@ -184,7 +184,7 @@ cat OpenMP/sota_local.txt  # 一致するか確認
 - **Orta ve sonrası**: Deney raporları için yüksek çözünürlüğe (DPI 150-200) geç
   ```bash
   # PM’e öner
-  agent_send.sh PM "[SE] 60分経過したので実験報告用に高解像度グラフを生成します"
+  agent_send.sh PM "[SE] 60 dakika geçti, deney raporu için yüksek çözünürlüklü grafikleri üreteceğim"
   ```
 - **Dikkat**: Kilometre taşları (30/60/90 dk) her zaman yüksek çözünürlükte tutulur
 
