@@ -1,4 +1,4 @@
-# VibeCodeHPC Claude Code Hooks 配置ガイド（PM向け）
+# VibeCodeHPC Claude Code Hooks Yerleştirme Kılavuzu (PM için)
 
 ## 概要
 Claude Code hooksは、エージェントの挙動を制御する仕組みです。特に：
@@ -135,7 +135,7 @@ export VIBECODE_ENABLE_HOOKS=false
 
 **推奨**: hooks機能は常に有効のまま使用してください。
 
-## 参考資料
-- Claude Code hooks公式ドキュメント
-- `hooks/templates/` 内の各スクリプト
-- `telemetry/README.md`（telemetryとの連携）
+## Başvuru Kaynakları
+- Claude Code hooks resmi dokümantasyonu
+- `hooks/templates/` içindeki betikler
+- `telemetry/README.md` (telemetry ile entegrasyon)

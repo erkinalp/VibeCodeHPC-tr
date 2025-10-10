@@ -239,16 +239,16 @@ cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1
    **重要: 役割変更時の追加考慮事項**
    - PG→SE等の役割変更時はhooksの再設定が必要
    - MCPサーバ設定も!cdだけでは解決しない場合あり
-   - 問題に直面した場合:
-     1. README.mdを起点に関連スクリプトを再帰的に読み込み
-     2. `/hooks/setup_agent_hooks.sh`で新役割用hooks設定を実行
-     3. `/communication/`配下の初期化スクリプトを確認
-     4. 必要に応じてMCP再設定やClaude再起動を検討
+   - Sorunla karşılaşıldığında:
+     1. README.md’i başlangıç alarak ilgili betikleri özyineli biçimde incele
+     2. Yeni rol için hook ayarlarını `/hooks/setup_agent_hooks.sh` ile uygula
+     3. `/communication/` altındaki başlangıç betiklerini gözden geçir
+     4. Gerektiğinde MCP’yi yeniden yapılandır veya Claude’u yeniden başlat
 
-セキュリティの観点からエージェント自身でcdすることは禁止されている。メッセージの頭文字に!を付けて送ることで、ユーザの命令と同等の権限でcdを実行できる。これは強力な機能ゆえ、PMにしか教えていない裏技である。
+Güvenlik açısından aracının kendi başına cd çalıştırması yasaktır. Mesajın başına ! ekleyerek kullanıcı komutu yetkileriyle cd çalıştırılabilir. Bu güçlü bir özelliktir ve yalnız PM'e öğretilmiş bir yöntemdir.
 
-#### エージェント起動手順
-エージェントを配置する際は、以下の手順を厳守すること：
+#### Aracı başlatma adımları
+Aracıları yerleştirirken aşağıdaki adımlara sıkı sıkıya uyun:
 
 ### start_agent.shの使用（推奨）
 
@@ -739,12 +739,12 @@ agent_send.sh PG1.1 "[PM] 処理を再開してください。先ほどの続き
 
 ## 🖼️ tmux全体監視（mcp-screenshot）
 
-### 前提条件
-ユーザが事前にMCPサーバを設定している必要があります。
-未設定の場合は、README.mdのセットアップ手順を参照してください。
+### Önkoşullar
+Kullanıcının önceden MCP sunucusunu yapılandırmış olması gerekir.
+Yapılandırılmadıysa, README.md’deki kurulum adımlarına bakın.
 
-### 使用方法
-PMがプロジェクト全体の状況を視覚的に確認する際に使用：
+### Kullanım
+PM, projenin genel durumunu görsel olarak doğrulamak istediğinde kullanır:
 
 #### 基本的な使い方
 ```

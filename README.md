@@ -674,11 +674,11 @@ export CLI_HOOKS_MODE=custom
 ```
 あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
 
-まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
+Önce aşağıdaki dosyaları okuyarak projenin genel resmini anlayın:
 - CLAUDE.md (tüm aracılar için ortak kurallar)
-- instructions/PM.md（あなたの役割詳細）
-- requirement_definition.md（プロジェクト要件）※存在する場合
-- Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイルを除く）
+- instructions/PM.md (rolünüzün ayrıntıları)
+- requirement_definition.md (proje gereksinimleri) — varsa
+- Agent-shared/ altındaki tüm .md ve .txt dosyaları (.py dosyaları hariç)
 
 特に重要：
 - max_agent_number.txt（利用可能なワーカー数）
@@ -830,9 +830,9 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 
 エージェントごとのコンテキスト使用量を自動追跡し、auto-compact（メモリリセット）の発生を予測・検知する監視機能を標準搭載。各エージェントの消費量を可視化し、効率的なリソース管理を支援します。
 
-### OpenTelemetry監視（オプション）
+### OpenTelemetry izleme (opsiyonel)
 
-より詳細なトークン使用量やコスト、ツール実行状況の分析が必要な場合は、組み込みのOpenTelemetryによる監視が可能です。ただし、スパコン環境への導入が困難な場合があるため、オプション機能として提供しています。
+Daha ayrıntılı token kullanımı, maliyet ve araç yürütme durumlarının analizi gerektiğinde, yerleşik OpenTelemetry ile izleme mümkündür. Ancak süperbilgisayar ortamlarına kurulumu zor olabileceği için opsiyonel bir özellik olarak sunulur.
 
 İzleme ayarları için [“2. Ortam Kurulumu”](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) bölümündeki izleme seçeneklerine bakın.
 
@@ -840,11 +840,11 @@ Ayrıntılı ayarlar: [telemetry/README.md](telemetry/README.md)
 
 ## 🔒 Güvenlik
 
-- [x] **機密情報保護**: `_remote_info/`はGit管理外
-- [x] **自動匿名化**: GitHub公開時にユーザID等を匿名化
-- [x] **SOTA達成コードのみ公開**: 性能向上を実現したコードのみ
-- [x] **階層別アクセス制御**: Agent役割に応じた読み書き権限
+- [x] **Gizli bilgi koruması**: `_remote_info/` Git takibi dışında
+- [x] **Otomatik anonimleştirme**: GitHub'da yayımlarken kullanıcı kimliği vb. anonimleştirilir
+- [x] **Yalnız SOTA başarısı sağlayan kod yayımlanır**: Performans artışı sağlayan kodlar
+- [x] **Hiyerarşik erişim kontrolü**: Aracı rolüne göre okuma/yazma yetkileri
 
-## 📄 ライセンス
+## 📄 Lisans
 
-このプロジェクトは[Apache License 2.0](LICENSE)の下で公開されています。自由にご利用いただけますが、使用に関する責任は負いかねます。
+Bu proje [Apache License 2.0](LICENSE) altında yayımlanmıştır. Özgürce kullanabilirsiniz ancak kullanım sorumluluğu kullanıcıya aittir.

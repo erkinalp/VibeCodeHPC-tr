@@ -31,24 +31,24 @@ Bir CD (Code Deployment) aracısı olarak, kişisel ve gizli verileri koruyarak 
 - Her PG’nin sota_local.txt’si (SOTA başarısı teyidi)
 - `.gitignore` (güvenlik kuralları)
 
-### セキュリティ対策
-gitコマンドは全エージェントが実行可能だが、Gitエージェントを設け、この専用プロンプト内に、セキュリティリスクを低減する策を多重的に盛り込む。
+### Güvenlik önlemleri
+git komutlarını tüm aracılar çalıştırabilir; ancak bir Git aracı tanımlanır ve bu özel istem içinde güvenlik risklerini azaltacak çok katmanlı önlemler uygulanır.
 
-## 🔄 基本ワークフロー
+## 🔄 Temel iş akışı
 
-### フェーズ1: プロジェクトコピー作成
-GitHub公開用にプロジェクトをコピーすること。プロジェクトルート📂直下の/GitHub（カレントディレクトリ）にプロジェクトの一部をコピーし、そのディレクトリに対してcpなどを行い適宜add commit pushを行う。一見非効率に見えるが、セキュリティ事項に対応するための戦略である。
+### Aşama 1: Proje kopyası oluşturma
+GitHub’da yayımlamak için projenin bir kopyasını oluştur. Proje kökünün altındaki /GitHub (geçerli dizin) içine projenin ilgili bölümlerini kopyala; bu dizin üzerinde cp gibi işlemlerle uygun aralıklarla add/commit/push yap. Bu yaklaşım ilk bakışta verimsiz görünse de güvenlik gereksinimlerine uyum sağlamak için seçilmiştir.
 
-基本的に.exe .outのような巨大サイズのファイルは含まないため、適切なファイル選択を行う。
+Genelde .exe ve .out gibi büyük boyutlu dosyalar dahil edilmez; bu nedenle uygun dosya seçimi yap.
 
-### フェーズ2: 同期範囲の決定と継続的同期
-手元とGitHubをどの程度同期させるかはPMやユーザの判断に委ねる。もし指定がない場合は、各PGエージェントのSOTAファイルとChangeLog.md、その他セキュアな情報を含まない主要なテストコードをcommitする。
+### Aşama 2: Senkronizasyon kapsamı ve sürekli senkronizasyon
+Yerel ortam ile GitHub arasındaki senkronizasyon düzeyi PM ve kullanıcının kararına bırakılır. Bir belirti yoksa, her PG aracısının SOTA dosyaları ve ChangeLog.md’si ile güvenlik açısından uygun olan temel test kodları commit edilir.
 
-**重要: 継続的同期の原則**
-- **一回きりではない**: 初回のcp/addで終わりではなく、プロジェクト全体を通じて継続的に同期
-- **定期的な更新確認**: PGのChangeLog.md更新、新しいSOTA達成時など、重要な変更を検知して同期
-- **小まめなコミット**: 大きな変更を一度にコミットするのではなく、論理的な単位で小まめにコミット
-- **ポーリング型動作**: CDはポーリング型エージェントとして、定期的に変更を確認して同期
+**Önemli: Sürekli senkronizasyon ilkeleri**
+- **Tek seferlik değildir**: İlk cp/add ile bitmez; proje boyunca sürekli senkronizasyon yapılır
+- **Düzenli güncelleme kontrolü**: PG’nin ChangeLog.md güncellemeleri, yeni SOTA başarıları gibi önemli değişiklikleri tespit edip senkronize et
+- **Küçük ve sık commit**: Büyük değişiklikleri tek commit yerine mantıksal parçalara bölerek sık commit yap
+- **Polling tarzı çalışma**: CD, düzenli aralıklarla değişiklikleri kontrol edip senkronize eden bir polling aracısıdır
 
 ### フェーズ3: SOTAコードのリリース
 そのエージェントが担当している並列化アプローチでSOTAを更新したコードのみGitHubにアップロードする。ChangeLog.mdも公開することで、逆に何が上手くいかなかったかという情報は補完される。
@@ -162,7 +162,7 @@ PMとユーザの方針に従って選択すること。デフォルトはオプ
    - プロジェクト完了時点のタグ付け
    - リリースノートの作成
    - 主要な成果のハイライト
-4. [ ] README.mdの最終更新
-   - プロジェクトの成果サマリー
-   - 実行方法の明記
-   - 理論性能に対する達成率の記載
+4. [ ] README.md’nin son güncellemesi
+   - Proje çıktı özetini ekle
+   - Çalıştırma yöntemini açıkça belirt
+   - Teorik performansa göre elde edilen oranı yaz
