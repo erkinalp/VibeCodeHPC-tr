@@ -46,30 +46,30 @@ todos = [
 
 ## ⏰ Zaman ve bütçe yönetimi
 
-### 時間管理
-- `Agent-shared/project_start_time.txt`に開始時刻が記録される
-- 定期的に経過時間を確認（現在時刻 - 開始時刻）
-- requirement_definition.mdに時間制限がある場合は厳守
+### Zaman yönetimi
+- Başlangıç zamanı `Agent-shared/project_start_time.txt` dosyasına kaydedilir
+- Geçen süreyi düzenli kontrol edin (şimdi - başlangıç zamanı)
+- requirement_definition.md’de zaman sınırı varsa mutlaka uyun
 
-### 予算管理
-- **予算確認コマンド**: 
-  - 不老: `charge`, `charge2`
-  - その他: `_remote_info/`を確認、不明ならユーザに確認
-- **ジョブ確認**: `pjstat`, `pjstat2`
-- 定期的に`Agent-shared/budget/budget_history.md`に記録
+### Bütçe yönetimi
+- **Bütçe doğrulama komutları**:
+  - Furo: `charge`, `charge2`
+  - Diğer: `_remote_info/` klasörünü inceleyin; belirsizse kullanıcıya sorun
+- **İş durumu**: `pjstat`, `pjstat2`
+- Düzenli olarak `Agent-shared/budget/budget_history.md` dosyasına not edin
 
-## 📁 ファイル管理とディレクトリ構造
+## 📁 Dosya yönetimi ve dizin yapısı
 
-### 作業の基本原則
-- **カレントディレクトリ**: 常にプロジェクトルート（cdコマンドは使用不可）
-- **ファイル配置**: 
-  - コード: `Flow/TypeII/single-node/gcc/OpenMP/`等の適切な階層
+### Çalışmanın temel ilkeleri
+- **Geçerli dizin**: Her zaman proje kökü (cd komutu kullanılamaz)
+- **Dosya yerleşimi**:
+  - Kod: `Flow/TypeII/single-node/gcc/OpenMP/` gibi uygun hiyerarşi
   - ChangeLog.md: 各最適化ディレクトリに配置
-  - レポート: `User-shared/reports/`
-  - 可視化: `User-shared/visualizations/`
+  - Raporlar: `User-shared/reports/`
+  - Görselleştirme: `User-shared/visualizations/`
 
-### ChangeLog.mdとSOTA管理
-マルチエージェントと同じ仕組みを使用：
+### ChangeLog.md ve SOTA yönetimi
+Çoklu aracı ile aynı mekanizma kullanılır:
 - `Agent-shared/change_log/ChangeLog_format.md`に従って記録
 - `Agent-shared/sota/sota_management.md`の基準でSOTA判定
 - `Agent-shared/sota/sota_checker_usage.md`でSOTA判定・txtファイル更新
@@ -77,23 +77,23 @@ todos = [
 
 ## 🔄 実装サイクル
 
-### フェーズ1: プロジェクト初期化（PM役割）
-1. **_remote_info/確認**
-   - command.md（ジョブ投入方法）
-   - user_id.txt（セキュリティ確認）
-   - 予算確認コマンドが不明なら早めにユーザに質問
+### Faz 1: Proje başlatma (PM rolü)
+1. **_remote_info/ kontrolü**
+   - command.md (iş gönderme yöntemi)
+   - user_id.txt (güvenlik doğrulaması)
+   - Bütçe komutları belirsizse kullanıcıya erken aşamada sorun
 
-2. **BaseCode/確認**
-   - 既存コードの理解
-   - makefileの確認
+2. **BaseCode/ kontrolü**
+   - Mevcut kodu anlama
+   - makefile kontrolü
 
-3. **要件定義**
-   - requirement_definition.md確認または対話的に作成
+3. **Gereksinim tanımı**
+   - requirement_definition.md’yi doğrulayın veya etkileşimli oluşturun
 
-### フェーズ2: 環境構築（SE役割）
+### Faz 2: Ortam kurulumu (SE rolü)
 - `Agent-shared/ssh_sftp_guide.md`
 - `/Agent-shared/hardware_info_guide.md`
-上記２ファイルを必ずREADしてからSSH等を行うこと
+SSH vb. işlemlerden önce mutlaka yukarıdaki iki dosyayı okuyun
 ```bash
 # SSH接続とmodule確認
 mcp__desktop-commander__start_process(command="ssh user@host")
