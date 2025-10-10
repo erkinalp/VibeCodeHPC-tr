@@ -5,45 +5,45 @@ Claude Code hooks, aracının davranışlarını kontrol eden bir mekanizmadır.
 - **Polling türü aracı (PM, SE, PG, CD)**: Bekleme durumunu engeller, sürekli aktif kalır
 - **Tüm aracılar**: auto-compact sonrası gerekli dosyaların yeniden okunmasını teşvik eder
 
-## Hooksバージョン
-v0.6.3以降、プロジェクト特性に応じて2つのバージョンから選択可能：
+## Hooks sürümleri
+v0.6.3 ve sonrasında, proje özelliklerine göre iki sürümden biri seçilebilir:
 
-### v3（デフォルト・推奨）
-- **特徴**: ファイル内容を確率的に埋め込み、エージェントの自律性を重視
-- **設定**: `Agent-shared/strategies/auto_tuning/auto_tuning_config.json`でカスタマイズ可能
-- **用途**: 長期プロジェクト、auto-compact対策、大規模マルチエージェント
+### v3 (varsayılan, önerilen)
+- **Özellikler**: Dosya içeriğini olasılıksal olarak gömer, aracının özerkliğini vurgular
+- **Ayar**: `Agent-shared/strategies/auto_tuning/auto_tuning_config.json` ile özelleştirilebilir
+- **Kullanım**: Uzun soluklu projeler, auto-compact önlemleri, büyük ölçekli çoklu aracı
 
 ### v2
-- **特徴**: ファイルパスのみ提供、軽量動作
-- **用途**: 短期プロジェクト、実験評価、小規模プロジェクト
+- **Özellikler**: Yalnızca dosya yollarını sağlar, hafif çalışır
+- **Kullanım**: Kısa süreli projeler, deneysel değerlendirme, küçük projeler
 
-### バージョン選択方法
+### Sürüm seçimi
 ```bash
-# v3を使用（デフォルト）
+# v3 kullan (varsayılan)
 ./communication/setup.sh 12
 
-# v2を使用
+# v2 kullan
 ./communication/setup.sh 12 --hooks v2
 ```
 
-## 自動配置（推奨）
+## Otomatik yerleştirme (önerilen)
 
-### start_agent.shを使用した配置
+### start_agent.sh ile yerleştirme
 ```bash
-# デフォルト（hooksとtelemetry両方有効）
+# Varsayılan (hooks ve telemetry her ikisi de etkin)
 ./communication/start_agent.sh PG1.1.1 /Flow/TypeII/single-node/intel2024/OpenMP
 
-# hooksのみ無効化
+# Yalnızca hooks devre dışı
 VIBECODE_ENABLE_HOOKS=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
 
-# telemetryのみ無効化
+# Yalnızca telemetry devre dışı
 VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
 
-# 両方無効化（軽量モード）
+# Her ikisi de devre dışı (hafif mod)
 VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1.1 /path/to/dir
 ```
 
-## 手動配置（トラブルシューティング用）
+## Manuel yerleştirme (sorun giderme)
 
 ### 1. 個別エージェントへの配置
 ```bash

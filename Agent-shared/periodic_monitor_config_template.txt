@@ -1,34 +1,34 @@
-# periodic_monitor.sh 設定ファイルテンプレート
-# このファイルをAgent-shared/periodic_monitor_config.txtとしてコピーして使用
-# PM/SOLOエージェントが必要に応じて値を調整可能
+# periodic_monitor.sh yapılandırma dosyası şablonu
+# Bu dosyayı Agent-shared/periodic_monitor_config.txt olarak kopyalayıp kullanın
+# PM/SOLO aracıları gerekirse değerleri ayarlayabilir
 
-# 上書き更新の頻度（秒）
-# デフォルト: 30秒
-# 推奨範囲: 10-300秒
+# Üstüne yazma güncelleme sıklığı (saniye)
+# Varsayılan: 30 saniye
+# Önerilen aralık: 10-300 saniye
 UPDATE_INTERVAL_SEC=30
 
-# マイルストーン確認間隔（分）
-# デフォルト: 30分
-# この間隔でマイルストーン（30,60,90,120,180分）をチェック
+# Kilometre taşı kontrol aralığı (dakika)
+# Varsayılan: 30 dakika
+# Bu aralıkta kilometre taşlarını (30,60,90,120,180 dk) kontrol eder
 MILESTONE_INTERVAL_MIN=30
 
-# 最大実行時間（分）
-# デフォルト: 4320分（3日）
-# プロジェクトの予想時間に応じて調整
+# Azami çalışma süresi (dakika)
+# Varsayılan: 4320 dakika (3 gün)
+# Projenin öngörülen süresine göre ayarlayın
 MAX_RUNTIME_MIN=4320
 
-# 予算集計の実行間隔（分）
-# デフォルト: 3分
-# 推奨範囲: 1-10分
+# Bütçe toplamı yürütme aralığı (dakika)
+# Varsayılan: 3 dakika
+# Önerilen aralık: 1-10 dakika
 BUDGET_INTERVAL_MIN=3
 
-# 使用例:
-# 短時間テスト用:
+# Kullanım örneği:
+# Kısa süreli test için:
 # UPDATE_INTERVAL_SEC=10
 # MILESTONE_INTERVAL_MIN=5
 # MAX_RUNTIME_MIN=60
 #
-# 長時間プロジェクト用:
+# Uzun süreli proje için:
 # UPDATE_INTERVAL_SEC=60
 # MILESTONE_INTERVAL_MIN=60
 # MAX_RUNTIME_MIN=1440  # 24時間

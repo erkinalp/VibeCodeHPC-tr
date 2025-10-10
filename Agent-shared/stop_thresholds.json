@@ -1,5 +1,5 @@
 {
-  "_comment": "各エージェントのSTOP回数閾値設定（PMが編集可能）",
+  "_comment": "Her aracı için STOP sayısı eşik ayarları (PM düzenleyebilir)",
   "thresholds": {
     "PM": 50,
     "CD": 40,
@@ -7,5 +7,5 @@
     "PG": 20,
     "SOLO": 100
   },
-  "_override_instructions": "requirement_definition.mdまたは本ファイルで個別に閾値を変更可能"
+  "_override_instructions": "Eşikler requirement_definition.md veya bu dosyada ayrı ayrı değiştirilebilir"
 }

@@ -17,7 +17,7 @@ Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çokl
 
 ### Faz 1: Gereksinim tanımı
 
-#### 必須確認項目（順序厳守）
+#### Zorunlu kontrol maddeleri (sıra korunmalıdır)
 1. **_remote_info/の確認**
    - 既存の情報があればまず確認
    - command.mdのバッチジョブ実行方法を確認

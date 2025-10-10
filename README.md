@@ -53,32 +53,32 @@ graph TD
 
 ```
 VibeCodeHPC/🤖PM
-├── 📄 CLAUDE.md                     # 全エージェント# Tüm aracılar için ortak kurallar
-├── 📄 requirement_definition.md     # 要件定義書# Gereksinim tanımı belgesi
-├── 📄 directory_pane_map.md         # エージェント配# Aracı yerleşimi ve tmux pane bütünleşik yönetimi
-├── 📄 sota_project.txt              # プロジェクト全# Proje genel SOTA bilgisi
+├── 📄 CLAUDE.md                     # Tüm aracılar için ortak kurallar
+├── 📄 requirement_definition.md     # Gereksinim tanımı belgesi
+├── 📄 directory_pane_map.md         # Aracı yerleşimi ve tmux pane bütünleşik yönetimi
+├── 📄 sota_project.txt              # Proje genel SOTA bilgisi
 │
-├── 📁 Agent-shared/                 # エージェント共# Aracı paylaşım talimatları
+├── 📁 Agent-shared/                 # Aracı paylaşım talimatları
 │
-├── 📁 User-shared/                  # ユーザ向け成果# Kullanıcıya yönelik çıktı dosyaları
-│   ├── 📄 final_report.md           # 最終報告書# Nihai rapor
-│   ├── 📁 reports/                  # 統合レポート# Birleşik raporlar
-│   └── 📁 visualizations/           # グラフ・図表# Grafikler ve çizimler
+├── 📁 User-shared/                  # Kullanıcıya yönelik çıktı dosyaları
+│   ├── 📄 final_report.md           # Nihai rapor
+│   ├── 📁 reports/                  # Birleşik raporlar
+│   └── 📁 visualizations/           # Grafikler ve çizimler
 │
-├── 📁 BaseCode/                     # 既存のオリジナ# Mevcut özgün kodlar
+├── 📁 BaseCode/                     # Mevcut özgün kodlar
 │
-├── 📁 communication/                # エージェント起# Aracı başlatma ve tmux iletişim sistemi
+├── 📁 communication/                # Aracı başlatma ve tmux iletişim sistemi
 │
 ├── 📁 GitHub/🤖CD
 │
-└── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層# Donanım katmanı
-    ├── 📄 hardware_info.md          # 計算ノードのス# Hesaplama düğümü özellik bilgileri
-    ├── 📄 sota_hardware.txt         # 指定ハード内の# Belirli donanım için SOTA
-    ├── 📁 intel2024/                 # コンパイラ環境# Derleyici ortamı                       
-    │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール# Paralelleştirme modülü
-    │        ├── 📄 ChangeLog.md      # 進捗記録# İlerleme kaydı
+└── 📁 Flow/TypeII/single-node/🤖SE1 # Donanım katmanı
+    ├── 📄 hardware_info.md          # Hesaplama düğümü özellik bilgileri
+    ├── 📄 sota_hardware.txt         # Belirli donanım için SOTA
+    ├── 📁 intel2024/                # Derleyici ortamı
+    │   └── 📁 OpenMP/🤖PG1.1.1      # Paralelleştirme modülü
+    │        ├── 📄 ChangeLog.md     # İlerleme kaydı
     │        └── 📄 sota_local.txt
-    └── 📁 gcc11.3.0/                 # 別コンパイラ# Alternatif derleyici
+    └── 📁 gcc11.3.0/                # Alternatif derleyici
         └── 📁 CUDA/🤖PG1.2.1
 ```
 
@@ -457,40 +457,40 @@ Giriş bilgileri:
 ![Grafana başarıyla başlatıldığında örnek ekran](_images/Grafana.png)
 
 
-Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
+Grafana’da metrikleri görüntüleme (yalnız OpenTelemetry etkinse)
 
-#### 基本的な使い方
-1. **Drilldown → Metrics** を選択
-   - ログイン後、特に事前準備なしで利用可能
-   - Cost（コスト）やToken数が自動的に可視化される
-   - エージェント別・時系列でのトークン消費を確認
+#### Temel kullanım
+1. **Drilldown → Metrics** öğesini seçin
+   - Girişten sonra, ön hazırlık olmadan kullanılabilir
+   - Maliyet (Cost) ve Token sayıları otomatik olarak görselleştirilir
+   - Aracı bazında ve zaman serisinde token tüketimini görüntüleyin
 
-![GrafanaでのMetrics可視化](_images/GrafanaMetrics.png)
+![Grafana’da Metrics görselleştirme](_images/GrafanaMetrics.png)
 
-2. **注意事項**
-   - Claude CodeのOpenTelemetryメトリクスはOTLP経由で送信
-   - デフォルトではローカルのCollector（4317ポート）に接続
-   - 詳細な設定は`telemetry/otel_config.env`で調整可能
+2. **Dikkat**
+   - Claude Code’un OpenTelemetry metrikleri OTLP üzerinden gönderilir
+   - Varsayılan olarak yerel Collector’a (4317 portu) bağlanır
+   - Ayrıntılı ayarlar `telemetry/otel_config.env` içinde düzenlenebilir
 
 </details>
 
 ### 🤖 Tek Aracı Modu (v0.5.3+)
 
 <details>
-<summary>実験評価用シングルエージェントモード（クリックで展開）</summary>
+<summary>Deneysel değerlendirme için tek aracı modu (genişletmek için tıklayın)</summary>
 
-実験評価用のシングルエージェントモードを追加しました。1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を担当します。
+Deneysel değerlendirme için tek aracı modu eklendi. Tek bir Claude Code örneği tüm rolleri (PM/SE/PG/CD) üstlenir.
 
-使用方法
+Kullanım
 ```bash
-# セットアップ（0ワーカー = シングルモード）
+# Kurulum (0 işçi = tek mod)
 ./communication/setup.sh 0 --project GEMM
 
-# エージェント起動
+# Aracıyı başlatma
 ./start_solo.sh
 ```
 
-起動後、以下のプロンプトが表示されるのでコピーして貼り付けてください：
+Başlatıldıktan sonra aşağıdaki istem görüntülenir; kopyalayıp yapıştırın:
 ```
 VibeCodeHPC tek aracı modunda çalışacaksınız.
 Tüm rolleri (PM/SE/PG/CD) tek başınıza üstlenip projeyi verimli şekilde ilerleteceksiniz.
