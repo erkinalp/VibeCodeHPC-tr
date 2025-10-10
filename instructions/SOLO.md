@@ -70,12 +70,12 @@ todos = [
 
 ### ChangeLog.md ve SOTA yönetimi
 Çoklu aracı ile aynı mekanizma kullanılır:
-- `Agent-shared/change_log/ChangeLog_format.md`に従って記録
-- `Agent-shared/sota/sota_management.md`の基準でSOTA判定
-- `Agent-shared/sota/sota_checker_usage.md`でSOTA判定・txtファイル更新
-- 各ディレクトリにsota_local.txt配置
+- `Agent-shared/change_log/ChangeLog_format.md`’e göre kayıt tut
+- `Agent-shared/sota/sota_management.md` ölçütlerine göre SOTA değerlendirmesi yap
+- `Agent-shared/sota/sota_checker_usage.md` ile SOTA değerlendirmesi ve txt dosyası güncellemesi yap
+- Her dizine sota_local.txt yerleştir
 
-## 🔄 実装サイクル
+## 🔄 Uygulama döngüsü
 
 ### Faz 1: Proje başlatma (PM rolü)
 1. **_remote_info/ kontrolü**
@@ -95,71 +95,71 @@ todos = [
 - `/Agent-shared/hardware_info_guide.md`
 SSH vb. işlemlerden önce mutlaka yukarıdaki iki dosyayı okuyun
 ```bash
-# SSH接続とmodule確認
+# SSH bağlantısı ve module doğrulama
 mcp__desktop-commander__start_process(command="ssh user@host")
 mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module avail")
 ```
 
-### フェーズ3: 実装（PG役割）
-1. **コード生成**
-   - `Flow/TypeII/single-node/gcc/OpenMP/mat-mat_v1.0.0.c`等
-   - 即座にChangeLog.md更新
+### Faz 3: Uygulama (PG rolü)
+1. **Kod üretimi**
+   - `Flow/TypeII/single-node/gcc/OpenMP/mat-mat_v1.0.0.c` vb.
+   - ChangeLog.md’yi anında güncelle
 
-2. **実行と測定**
-   **重要**: requirement_definition.mdで許可されていない限り、コンパイル・実行はすべてSSH経由でスパコン上で行うこと。
+2. **Çalıştırma ve ölçüm**
+   **Önemli**: requirement_definition.md izin vermedikçe derleme ve çalıştırma işlemleri SSH üzerinden süperbilgisayar üzerinde yapılmalıdır.
    ```bash
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="sbatch job.sh")
-   # ポーリングで結果確認
+   # Polling ile sonucu kontrol et
    ```
 
-### フェーズ4: 分析と戦略（SE/PM役割）
-- SOTA判定と記録
-- 次の最適化戦略決定
-- 必要に応じて可視化
+### Faz 4: Analiz ve strateji (SE/PM rolü)
+- SOTA değerlendirmesi ve kayıt
+- Bir sonraki optimizasyon stratejisinin belirlenmesi
+- Gerektiğinde görselleştirme
 
-### フェーズ5: GitHub同期（CD役割・オプション）
-- 時間に余裕がある場合のみ
-- GitHub/ディレクトリにコピー後、git操作
+### Faz 5: GitHub senkronizasyonu (CD rolü, opsiyonel)
+- Yalnızca zaman elverdiğinde
+- GitHub/ dizinine kopyaladıktan sonra git işlemleri
 
-## 🚫 制約事項
+## 🚫 Kısıtlar
 
-### Claude Code制約
-- **cd不可**: 常にプロジェクトルートで作業
-- **agent_send.sh不要**: 通信相手がいない
+### Claude Code kısıtları
+- **cd kullanımı yok**: Daima proje kökünde çalış
+- **agent_send.sh gerekmez**: İletişim kurulacak başka aracı yok
 
-### シングルモード特有
-- コンテキスト管理が重要（全情報を1セッションで管理）
-- 役割切り替えを明示的に（ToDoリストで管理）
+### Tekil mod’a özgü
+- Bağlam yönetimi kritik (tüm bilgi tek oturumda yönetilir)
+- Rol geçişlerini açıkça yap (ToDo listesi ile yönet)
 
-## 🏁 プロジェクト終了時
+## 🏁 Proje bitişinde
 
-### 必須タスク
-1. [ ] ChangeLog.mdの最終確認
-2. [ ] 理論性能に対する達成率の記録
-3. [ ] requirement_definition.mdの要件充足確認
-4. [ ] 予算使用量の最終記録
+### Zorunlu görevler
+1. [ ] ChangeLog.md’nin son kontrolü
+2. [ ] Teorik performansa göre erişim oranının kaydı
+3. [ ] requirement_definition.md gereksinimlerinin sağlandığını doğrula
+4. [ ] Bütçe kullanımının son kaydı
 
-### データ収集（実験評価用）
-マルチエージェントと同じ形式でデータを記録：
-- ChangeLog.mdから生成回数と性能推移
-- sota_local.txtからSOTA達成状況
-- budget_history.mdから予算消費
-- project_start_time.txtから経過時間
+### Veri toplama (deneysel değerlendirme için)
+Çoklu aracı ile aynı biçimde veri kaydet:
+- ChangeLog.md’den üretim sayısı ve performans eğrisi
+- sota_local.txt’den SOTA erişim durumu
+- budget_history.md’den bütçe tüketimi
+- project_start_time.txt’den geçen süre
 
-## 🔧 トラブルシューティング
+## 🔧 Sorun giderme
 
-### auto-compact発生時
-以下を即座に再読み込み：
+### auto-compact oluştuğunda
+Aşağıdakileri derhal yeniden yükle:
 - CLAUDE.md
-- instructions/SOLO.md（このファイル）
-- 各役割のinstructions/*.md（概要のみ）
+- instructions/SOLO.md (bu dosya)
+- Her rolün instructions/*.md dosyaları (özetleri)
 - Agent-shared/project_start_time.txt
 
-### 予算確認コマンド不明時
-1. `_remote_info/`を確認
-2. スパコンのマニュアル（PDF等）を探す
-3. ユーザに直接確認：「予算確認コマンドを教えてください」
+### Bütçe doğrulama komutu bilinmiyorsa
+1. `_remote_info/`’u kontrol et
+2. Süperbilgisayarın kılavuzunu (PDF vb.) bul
+3. Kullanıcıya doğrudan sor: “Bütçe doğrulama komutu nedir?”
 
-### SSH/SFTP接続エラー
-- Desktop Commander MCPの設定確認
-- 2段階認証の場合は手動対応をユーザに依頼
+### SSH/SFTP bağlantı hatası
+- Desktop Commander MCP ayarlarını kontrol et
+- İki aşamalı kimlik doğrulama varsa kullanıcıdan manuel işlem yapmasını iste

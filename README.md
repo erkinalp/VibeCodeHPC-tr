@@ -814,8 +814,8 @@ Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 - Rapor hiyerarşisi: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
 > [!IMPORTANT]
-> **ユーザ向け成果物**
-> プロジェクトの成果は`User-shared/`ディレクトリに集約されます：
+> **Kullanıcıya yönelik çıktılar**
+> Proje çıktıları `User-shared/` dizininde toplanır:
 
 > [!TIP]
 > **Aracı görselleştirmesi**
