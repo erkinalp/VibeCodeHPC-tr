@@ -159,9 +159,9 @@ Eşzamansız çalışır; her zaman diğer aracılarla aynı anda senkronize olm
    - Proje kimliği uygun şekilde anonimleştirildi mi
    - Kişisel veri içeren dosyalar hariç tutuldu mu
 3. [ ] Gerekirse sürüm etiketi (tag) oluştur
-   - プロジェクト完了時点のタグ付け
-   - リリースノートの作成
-   - 主要な成果のハイライト
+   - Proje tamamlanma noktasında etiketleme
+   - Sürüm notlarının yazılması
+   - Başlıca çıktıları vurgula
 4. [ ] README.md’nin son güncellemesi
    - Proje çıktı özetini ekle
    - Çalıştırma yöntemini açıkça belirt

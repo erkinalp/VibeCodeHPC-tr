@@ -91,37 +91,37 @@ Proje istikrar evresine girdiğinde veya diğer PM’lere kıyasla daha az arac�
    - Uygunsuz sözdizimi tespit edilirse PM’den derhal düzeltmesini iste
    - `agent_send.sh PM "[SE] directory_pane_map.md doğru Markdown sözdiziminde değil. Lütfen düzeltin."`
 
-#### 主要タスク（必須・非同期）
-**優先順位（MUST順）**:
-1. **最優先: hardware_info.md作成**（プロジェクト開始直後）
-   - **SE主導で実施**（PGは最適化作業に専念させるため）
-   - **Agent-shared/hardware_info_guide.md**の手順に従い実施
-   - **実機でのコマンド実行が必須**（推測や仮定値は厳禁）
-   - バッチジョブまたはインタラクティブジョブでSSH接続して実行：
+#### Ana görevler (zorunlu, eşzamansız)
+**Öncelik sırası (MUST):**
+1. **En öncelik: hardware_info.md oluşturma** (proje başında)
+   - **SE liderliğinde** (PG’ler optimizasyona odaklansın diye)
+   - **Agent-shared/hardware_info_guide.md** adımlarına uy
+   - **Gerçek makinede komut çalıştırmak şart** (tahmin/değer uydurma yok)
+   - Batch veya etkileşimli iş ile SSH üzerinden yürüt:
      ```bash
-     # CPU情報取得
+     # CPU bilgisi alımı
      lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|Socket|MHz"
-     # GPU情報取得（存在する場合）  
+     # GPU bilgisi alımı (varsa)  
      nvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv
      ```
-   - **理論演算性能の計算と記載**（SOTA判定の基準となるため必須）：
+   - **Teorik hesaplama performansını hesapla ve yaz** (SOTA değerlendirme ölçütü):
      - FP64: `XXX.X GFLOPS`
      - FP32: `XXX.X GFLOPS`
-   - **配置場所**: 各ハードウェア階層（例: `/Flow/TypeII/single-node/hardware_info.md`）
-   - **PGと協力**: 複数PGがいる場合は情報を統合（文殊の知恵）
+   - **Konum**: İlgili donanım katmanı (örn: `/Flow/TypeII/single-node/hardware_info.md`)
+   - **PG ile işbirliği**: Birden çok PG varsa bilgileri birleştir
    
-2. **最優先: 予算閾値の設定**（プロジェクト開始時）
-   - `requirement_definition.md`から予算制約（最低/想定/デッドライン）を確認
-   - `Agent-shared/budget/budget_tracker.py`の`budget_limits`辞書を更新：
+2. **Öncelik: Bütçe eşiklerini belirle** (proje başlangıcında)
+   - `requirement_definition.md` içinden bütçe kısıtlarını (minimum/beklenen/üst sınır) kontrol et
+   - `Agent-shared/budget/budget_tracker.py` içindeki `budget_limits` sözlüğünü güncelle:
      ```python
      budget_limits = {
-         'Minimum (XXXpt)': XXX,  # 要件定義の最低値
-         'Expected (XXXpt)': XXX,  # 要件定義の想定値
-         'Deadline (XXXpt)': XXX   # 要件定義の上限値
+         'Minimum (XXXpt)': XXX,  # gereksinim tanımındaki en düşük değer
+         'Expected (XXXpt)': XXX,  # gereksinim tanımındaki beklenen değer
+         'Deadline (XXXpt)': XXX   # gereksinim tanımındaki üst sınır
      }
      ```
-   - **リソースグループ設定**: `_remote_info/`の情報に基づき`load_rates()`も修正
-     - 正しいリソースグループ名（例: cx-share→実際の名前）とGPU数、レートに修正
+   - **Kaynak grubu ayarı**: `_remote_info/` bilgilerine göre `load_rates()` fonksiyonunu da düzelt
+     - Doğru kaynak grup adı (örn: cx-share → gerçek ad), GPU sayısı ve oranları gir
    
 2. **優先: SOTA可視化の確認とカスタマイズ**
    - **基本グラフは自動生成済み**（PMのhooksでperiodic_monitor.shが起動、30分ごとに生成）
