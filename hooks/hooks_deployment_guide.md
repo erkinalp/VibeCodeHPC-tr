@@ -50,7 +50,7 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
 # Aracı tipini kontrol et
 # PM, SE, PG, CD → polling
 
-# hooksを配置
+# kancaları yerleştir
 ./hooks/setup_agent_hooks.sh SE1 /path/to/SE1/workdir polling
 ./hooks/setup_agent_hooks.sh PG1.1.1 /path/to/PG1.1.1/workdir polling
 ```
@@ -69,13 +69,13 @@ Her aracının çalışma dizinine aşağıdakiler yerleştirilir:
 ## Aracı türüne göre davranış
 
 ### Yoklama tipi (PM, SE, PG, CD)
-- **Stop hook**: 待機を阻止し、定期タスクリストを提示
-- **SessionStart hook**: 新規起動時に必須ファイルリスト提示
-- **推奨巡回間隔**:
-  - PM: 2-5分（全体監視）
-  - SE: 3-10分（進捗監視、ジョブ時間に応じて調整）
-  - PG: 1-3分（ジョブ実行結果確認）
-  - CD: 非同期（GitHub同期）
+- **Stop hook**: beklemeyi engeller, periyodik görev listesini sunar
+- **SessionStart hook**: yeni başlatmada gerekli dosyalar listesini sunar
+- **Önerilen dolaşım aralığı**:
+  - PM: 2-5 dk (genel izleme)
+  - SE: 3-10 dk (ilerleme izleme, iş süresine göre ayarla)
+  - PG: 1-3 dk (iş yürütme sonucu kontrolü)
+  - CD: eşzamansız (GitHub senkronizasyonu)
 
 ## session_id takibi
 
@@ -89,51 +89,51 @@ Claude başladıktan sonra, SessionStart kancası otomatik olarak şunları yapa
 {"agent_id": "PG1.1.1", "tmux_session": "Team1_Workers1", "tmux_window": 0, "tmux_pane": 3, "claude_session_id": "abc123...", "status": "running", "cwd": "/VibeCodeHPC-jp/Flow/...", "last_updated": "2025-08-02T12:34:56Z"}
 ```
 
-## トラブルシューティング
+## Sorun giderme
 
-### hooks が動作しない場合
-1. `.claude/hooks/` ディレクトリの存在確認
-2. Pythonスクリプトの実行権限確認
-3. `settings.local.json`のhooks有効化確認
-4. Python3の利用可能性確認
+### hooks çalışmıyorsa
+1. `.claude/hooks/` dizininin varlığını kontrol et
+2. Python betiklerinin çalıştırma iznini kontrol et
+3. `settings.local.json` içinde kancaların etkinleştirildiğini kontrol et
+4. Python3’ün kullanılabilirliğini kontrol et
 
-### エージェントが頻繁に停止する場合
-1. stop hookの`stop_hook_active`チェックが正常か確認
-2. エージェントタイプの判定が正しいか確認
-3. 必要に応じて`VIBECODE_ENABLE_HOOKS=false`で一時無効化
+### Aracı sık sık duruyorsa
+1. stop hook içindeki `stop_hook_active` kontrolünün düzgün çalıştığını doğrula
+2. Aracı türü tespitinin doğru olduğunu doğrula
+3. Gerekirse geçici olarak `VIBECODE_ENABLE_HOOKS=false` ile devre dışı bırak
 
-### session_idが記録されない場合
-1. `TMUX_PANE`環境変数の存在確認
-2. agent_and_pane_id_table.jsonlの書き込み権限確認
-3. tmuxペイン番号とテーブルの整合性確認
+### session_id kaydedilmiyorsa
+1. `TMUX_PANE` ortam değişkeninin varlığını kontrol et
+2. agent_and_pane_id_table.jsonl için yazma iznini kontrol et
+3. tmux pane numarası ile tablonun tutarlılığını kontrol et
 
-## 注意事項
+## Dikkat
 
-1. **hook配置タイミング**: Claude起動前に配置する必要があります
-2. **既存hooks**: 既にhooksがある場合は上書きされます
-3. **プロジェクト固有設定**: 各エージェントは独立したhooks設定を持ちます
-4. **auto-compact対策**: コンテキスト使用率95%付近では特に重要
+1. **Kanca yerleştirme zamanlaması**: Claude başlatılmadan önce yerleştirilmelidir
+2. **Mevcut kancalar**: Zaten varsa üzerine yazılır
+3. **Projeye özgü ayarlar**: Her aracı bağımsız kanca ayarlarına sahiptir
+4. **auto-compact önlemi**: Bağlam kullanım oranı %95 civarında özellikle önemlidir
 
-## 高度な設定
+## Gelişmiş ayarlar
 
-### カスタムhooksの追加
-`hooks/templates/`にカスタムhookを追加して、setup_agent_hooks.shを修正することで、プロジェクト固有のhooksを配置できます。
+### Özel kancalar ekleme
+`hooks/templates/` içine özel kancalar ekleyip setup_agent_hooks.sh’i düzenleyerek projeye özgü kancalar yerleştirebilirsiniz.
 
-### ⚠️ hooks無効化について（非推奨）
+### ⚠️ kancaları devre dışı bırakma (önerilmez)
 
-**重要**: hooksの無効化は強く非推奨です。ポーリング型エージェント（PM, SE, PG, CD）が待機状態に入り、プロジェクトが停止します。
+**Önemli**: Kancaları devre dışı bırakmak kesinlikle önerilmez. Yoklama tipi aracılar (PM, SE, PG, CD) bekleme durumuna geçer ve proje durur.
 
-どうしても無効化が必要な場合：
-1. **プロジェクト開始前**に環境変数を設定
-2. 全エージェントに影響することを理解する
-3. MCPサーバ設定と`.claude/settings.local.json`の手動管理が必要
+Mutlaka devre dışı bırakmak gerekiyorsa:
+1. **Proje başlamadan önce** ortam değişkenini ayarla
+2. Tüm aracılara etki edeceğini anla
+3. MCP sunucu ayarı ve `.claude/settings.local.json` dosyasının manuel yönetimi gerekir
 
 ```bash
-# プロジェクト開始前のみ（非推奨）
+# Yalnızca proje başlamadan önce (önerilmez)
 export VIBECODE_ENABLE_HOOKS=false
 ```
 
-**推奨**: hooks機能は常に有効のまま使用してください。
+**Öneri**: Kanca işlevini her zaman etkin kullanın.
 
 ## Başvuru Kaynakları
 - Claude Code hooks resmi dokümantasyonu
