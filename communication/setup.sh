@@ -367,7 +367,7 @@ create_single_worker_session() {
         local pane_target="${session_name}:hpc-agents.${pane_index}"
         
         tmux send-keys -t "$pane_target" "cd $PROJECT_ROOT" C-m
-        
+
         # OpenTelemetry環境変数を設定（全ペイン共通）
         tmux send-keys -t "$pane_target" "export CLAUDE_CODE_ENABLE_TELEMETRY=1" C-m
         tmux send-keys -t "$pane_target" "export OTEL_METRICS_EXPORTER=otlp" C-m
@@ -376,7 +376,10 @@ create_single_worker_session() {
         tmux send-keys -t "$pane_target" "export OTEL_LOG_USER_PROMPTS=0" C-m
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc" C-m
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" C-m
-        
+
+        # CLI_HOOKS_MODE環境変数を設定（親シェルから継承または auto）
+        tmux send-keys -t "$pane_target" "export CLI_HOOKS_MODE='${CLI_HOOKS_MODE:-auto}'" C-m
+
         # 全ペインをワーカー用に設定
         local global_pane_num=$((start_pane + i))
         if false; then  # 旧コード（保守用）
