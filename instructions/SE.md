@@ -462,26 +462,26 @@ def calculate_efficiency(performance_gain, points_used):
 - Aşama 5 (95-100%): Derhal durdurma, çıktıların kaydı
 
 #### STOP sayısına göre kapanış (yardımcı ölçüt)
-- ポーリング型エージェントのため、STOP回数が閾値に達すると終了通知をPMに送信
-- 閾値は`/Agent-shared/stop_thresholds.json`で管理される
-- ただし、**予算ベースの終了条件が優先**される
+- Anket (polling) tipi aracılarda, STOP sayısı eşik değere ulaşınca PM’e kapanış bildirimi gönderilir
+- Eşik değerler `/Agent-shared/stop_thresholds.json` içinde yönetilir
+- Ancak, **bütçe tabanlı bitiş koşulları önceliklidir**
 
 ## 🏁 Proje kapanış görevleri
 
 ### SE kapanış kontrol listesi
-1. [ ] 最終的な統計グラフ生成
-   - 全PGの性能推移を統合したグラフ
-   - SOTA達成履歴の時系列グラフ
-   - `/User-shared/visualizations/*.png`として保存
-2. [ ] ChangeLog.mdの統合レポート作成
-   - 全PGのChangeLog.mdを解析
-   - 成功率、試行回数、性能向上率を集計
-   - `/User-shared/reports/final_changelog_report.md`として保存
-3. [ ] 性能推移の最終分析
-   - 各並列化技術の効果を定量的に評価
-   - ボトルネックとなった要因の分析
-   - 今後の改善提案を含める
-4. [ ] 未完了タスクのリスト化
-   - 各エージェントから報告された未実装機能
-   - 時間切れで試せなかった最適化手法
-   - 優先度付きでドキュメント化
+1. [ ] Nihai istatistik grafiklerinin üretilmesi
+   - Tüm PG’lerin performans eğrilerini birleştiren grafik
+   - SOTA başarı geçmişinin zaman serisi grafiği
+   - `/User-shared/visualizations/*.png` olarak kaydet
+2. [ ] ChangeLog.md’lerin bütünleşik raporunun oluşturulması
+   - Tüm PG’lerin ChangeLog.md dosyalarını analiz et
+   - Başarı oranı, deneme sayısı ve performans artış oranını topla
+   - `/User-shared/reports/final_changelog_report.md` olarak kaydet
+3. [ ] Performans eğiliminin nihai analizi
+   - Her paralelleştirme tekniğinin etkisini nicel olarak değerlendir
+   - Darboğaza yol açan etmenlerin analizi
+   - Geleceğe dönük iyileştirme önerilerini ekle
+4. [ ] Tamamlanmamış görevlerin listelenmesi
+   - Aracılarca raporlanan henüz uygulanmamış işlevler
+   - Zaman yetersizliğinden denenemeyen optimizasyon yöntemleri
+   - Önceliklendirilmiş biçimde belgelendir
