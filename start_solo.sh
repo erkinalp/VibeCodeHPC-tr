@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
-echo "🚀 VibeCodeHPC シングルエージェントモード起動"
+echo "🚀 VibeCodeHPC Tek Aracı Modu Başlatılıyor"
 echo "============================================"
 
 # tmuxの確認（オプション）
@@ -16,14 +16,14 @@ TMUX_AVAILABLE=false
 if command -v tmux &>/dev/null; then
     TMUX_AVAILABLE=true
     if [ -n "$TMUX_PANE" ]; then
-        echo "✅ tmux環境で実行中: $TMUX_PANE"
+        echo "✅ tmux ortamında çalışıyor: $TMUX_PANE"
     else
-        echo "⚠️  tmux内で実行されていません。"
-        echo "   推奨: tmux attach-session -t Team1_PM"
+        echo "⚠️  tmux içinde çalışmıyor."
+        echo "   Öneri: tmux attach-session -t Team1_PM"
     fi
 else
-    echo "⚠️  tmuxが未インストール。非tmuxモードで動作します。"
-    echo "   tmuxのインストールを推奨します。詳細はREADME.mdを参照。"
+    echo "⚠️  tmux kurulu değil. tmux olmadan çalışacak."
+    echo "   tmux kurulumu önerilir. Ayrıntılar için README.md."
 fi
 
 # 1. SOLO用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
@@ -90,42 +90,42 @@ fi
 # 5. MCP（Desktop Commander）を設定
 echo "🔧 Setting up MCP for SOLO agent..."
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander 2>/dev/null || {
-    echo "⚠️  MCP設定をスキップ（既に設定済みまたはエラー）"
+    echo "⚠️  MCP yapılandırması atlandı (zaten ayarlı veya hata)"
 }
 
 # 6. Claude起動
 echo ""
-echo "起動後、以下のプロンプトをコピーして貼り付けてください："
+echo "Başladıktan sonra, aşağıdaki istemi kopyalayıp yapıştırın:"
 echo "================================================================"
 cat << 'EOF'
-あなたはVibeCodeHPCのシングルエージェントモードで動作します。
-全ての役割（PM/SE/PG/CD）を1人で担当し、効率的にプロジェクトを進めます。
+VibeCodeHPC tek aracı modunda çalışacaksınız.
+Tüm rolleri (PM/SE/PG/CD) tek başınıza üstlenip projeyi verimli şekilde ilerleteceksiniz.
 
-【初期設定】
-まず以下のファイルを読み込んでください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/SOLO.md（シングルモード専用の統合プロンプト）
-- requirement_definition.md（存在する場合）
-- Agent-shared/project_start_time.txt（プロジェクト開始時刻）
+[İlk Ayar]
+Önce aşağıdaki dosyaları okuyun:
+- CLAUDE.md (tüm aracılar için ortak kurallar)
+- instructions/SOLO.md (tek mod için birleşik istem)
+- requirement_definition.md (varsa)
+- Agent-shared/project_start_time.txt (proje başlangıç zamanı)
 
-【ToDoリストによる役割管理】
-TodoWriteツールを積極的に使用し、各タスクに役割タグ（[PM], [SE], [PG], [CD]）を付けて管理してください。
+[ToDo listesi ile rol yönetimi]
+TodoWrite aracını etkin kullanın, her görevi rol etiketleriyle ([PM], [SE], [PG], [CD]) yönetin.
 
-【時間管理】
-- プロジェクト開始時刻から経過時間を定期的に確認
-- requirement_definition.mdに時間制限がある場合は厳守
-- 予算管理と並行して時間効率も意識
+[Zaman yönetimi]
+- Proje başlangıcından geçen süreyi düzenli kontrol edin
+- requirement_definition.md’de süre sınırı varsa kesinlikle uyun
+- Bütçe yönetimiyle birlikte zaman verimliliğine de odaklanın
 
-【効率的な実行順序】
-1. [PM] 要件定義と環境調査
-2. [SE] 環境構築
-3. [PG] 実装とテスト（ループ）
-4. [SE] 統計・可視化
-5. [CD] GitHub同期（必要時）
-6. [PM] 最終報告
+[Verimli yürütme sırası]
+1. [PM] Gereksinim tanımı ve ortam araştırması
+2. [SE] Ortam kurulumu
+3. [PG] Uygulama ve test (döngü)
+4. [SE] İstatistik ve görselleştirme
+5. [CD] GitHub senkronizasyonu (gerekirse)
+6. [PM] Son rapor
 
-agent_send.shは使用不要です（通信相手がいないため）。
-全ての処理を内部で完結させてください。
+agent_send.sh gerekli değil (iletişim hedefi yok).
+Tüm işlemleri dahili olarak tamamlayın.
 
 プロジェクトを開始してください。
 EOF
