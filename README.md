@@ -264,7 +264,7 @@ sudo apt-get update && sudo apt-get install tmux
 
 CentOS/RHEL/Fedora:
 ```bash
-sudo yum install tmux  # または sudo dnf install tmux
+sudo yum install tmux  # veya sudo dnf install tmux
 ```
 
 macOS:
@@ -320,43 +320,43 @@ Gerekli paketler:
 ### ☑️ GitHub kimlik doğrulaması (CD aracısı kullanılmıyorsa gerekmez)
 GitHub arayüzünden bir depo oluşturun (özel olabilir)
 
-GitHub/📁に移動
+GitHub/📁 dizinine geçin
 ```bash
 cd GitHub
 ```
-Gitの設定済み情報が表示するコマンド
+Git yapılandırmasını gösteren komut
 ```bash
 git config -l
 ```
 
-もしuser.emailとuser.nameが設定されていない場合：
+Eğer user.email ve user.name ayarlı değilse:
 ```bash
 git config --global user.email xxx@yyy.zzz
 git config --global user.name YOUR_GITHUB_NAME
 ```
 
-GitHubディレクトリの初期設定
+GitHub dizininde ilk yapılandırma
 ```bash
 git init
 ```
 
-リモートリポジトリの設定
+Uzak depo ayarı
 ```bash
 git remote add origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
-# 既に origin がある場合は:
+# Halihazırda origin varsa:
 git remote set-url origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 ```
-#### GitのHTTPS(２段階)認証の方法
-➡以下のように選択肢は様々
+#### Git HTTPS (iki aşamalı) kimlik doğrulama yöntemleri
+➡ Birden fazla seçenek mevcuttur
 https://zenn.dev/miya789/articles/manager-core-for-two-factor-authentication
 
 <details>
-<summary>選択肢１：GCM</summary>
+<summary>Seçenek 1: GCM</summary>
 
-Git Credential Manager (GCM)が推奨。
+Git Credential Manager (GCM) önerilir.
 https://github.com/git-ecosystem/git-credential-manager/releases
 
-WSLで使用する際の注意
+WSL’de kullanım notları
 https://zenn.dev/jeffi7/articles/dccb6f29fbb640
 </details>
 
