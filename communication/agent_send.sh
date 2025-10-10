@@ -79,7 +79,7 @@ get_agent_color() {
             elif [[ "$agent_name" =~ PG2\. ]]; then
                 echo "1;33"  # Sarı
             else
-                echo "1;32"  # デフォルト緑
+                echo "1;32"  # Varsayılan yeşil
             fi
             ;;
         "CD") echo "1;31" ;;  # Kırmızı
@@ -110,10 +110,10 @@ Temel komutlar:
   --help        : Bu yardım ekranını gösterir
 
 Mesaj türleri (önerilen format):
-  [İstek]  [依頼] コンパイルDerlemeyi çalıştırın lütfen
-  [Rapor]  [報告] SOTA更新: 285.7 GFLOPS達成elde edildi
-  [Soru]  [質問] visible_paths.txtの更新方 nasıl güncellenir?
-  [Tamamlandı]  [完了] プロジェクProje başlatma tamamlandı
+  [İstek] Derlemeyi çalıştırın lütfen
+  [Rapor] SOTA güncellemesi: 285.7 GFLOPS elde edildi
+  [Soru] visible_paths.txt nasıl güncellenir?
+  [Tamamlandı] Proje başlatma tamamlandı
 
 Özel komutlar (PM yönetimi için):
   "!cd /path/to/directory"              # Aracıyı yeniden konumlandırma (durum korunur)
@@ -121,24 +121,21 @@ Mesaj türleri (önerilen format):
 Not: Yeniden konumlandırma, her aracının mevcut konumundan yapılır
 
 Örnekler:
-  $0 SE1 "[İstek]  $0 SE1 "[依頼] PG1.1.1にOpenMP最OpenMP optimizasyon görevini dağıtın lütfen"
-  $0 PG1.1.1 "[Soru]  $0 PG1.1.1 "[質問] OpenACCの並列化警告がparalelleştirme uyarısı var. Nasıl ilerleyelim?"
-  $0 PG1.1 "[Rapor]  $0 PG1.1 "[報告] job_12345 実行完了çalışma tamamlandı, performans verisi能データ 285.7 GFLOPS達成"
+  $0 SE1 "[İstek] PG1.1.1’e OpenMP optimizasyon görevini dağıtın lütfen"
+  $0 PG1.1.1 "[Soru] OpenACC paralelleştirme uyarısı var. Nasıl ilerleyelim?"
+  $0 PG1.1 "[Rapor] job_12345 tamamlandı, performans verisi: 285.7 GFLOPS"
   
-  # 再配置例（絶対パス）
   $0 PG1.1.1 "!cd /absolute/path/to/VibeCodeHPC/Flow/TypeII/single-node/gcc/OpenMP_MPI"
   
-  # 再配置例（相対パス - エージェントの現在位置から）
-  $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
-  $0 SE1 "!cd ../multi-node"                  # 上位階層へ移動
+  $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # Aynı hiyerarşide başka stratejiye geç
+  $0 SE1 "!cd ../multi-node"                  # Üst hiyerarşiye geç
   
-  $0 --broadcast "[緊急] 全エージェント状況報告してください"Rapor 全エージェント状況報告してください"
+  $0 --broadcast "[Acil] Tüm aracıların durum raporunu iletin"
 EOF
 }
 
-# エージェント一覧表示
 show_agents() {
-    echo "📋 VibeCodeHPC エージェント一覧:"
+    echo "📋 VibeCodeHPC Aracı Listesi:"
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
@@ -147,12 +144,11 @@ show_agents() {
         return 1
     fi
     
-    # エージェント種別ごとに表示
     local agent_types=("PM" "SE" "PG" "CD")
     
     for type in "${agent_types[@]}"; do
         echo ""
-        echo "📍 ${type} エージェント:"
+        echo "📍 ${type} Aracılar:"
         local found=false
         
         for agent in "${!AGENT_MAP[@]}"; do
@@ -166,7 +162,7 @@ show_agents() {
                 if tmux has-session -t "$session" 2>/dev/null; then
                     echo -e "  \033[${color}m$agent\033[0m → $target ($role)"
                 else
-                    echo -e "  \033[${color}m$agent\033[0m → [未起動] ($role)"
+                    echo -e "  \033[${color}m$agent\033[0m → [başlatılmadı] ($role)"
                 fi
                 found=true
             fi
@@ -178,12 +174,11 @@ show_agents() {
     done
     
     echo ""
-    echo "総エージェント数: ${#AGENT_MAP[@]}"
+    echo "Toplam aracı sayısı: ${#AGENT_MAP[@]}"
 }
 
-# エージェント状態確認
 show_status() {
-    echo "📊 VibeCodeHPC エージェント状態:"
+    echo "📊 VibeCodeHPC Aracı Durumu:"
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
@@ -201,7 +196,6 @@ show_status() {
         local window="${window_pane%%.*}"
         local pane="${window_pane##*.}"
         
-        # セッション・ペイン存在確認
         if tmux has-session -t "$session" 2>/dev/null; then
             if tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
                 echo "✅ $agent : アクティブ"
