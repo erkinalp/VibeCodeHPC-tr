@@ -21,30 +21,30 @@ Bir SOLO aracı olarak PM/SE/PG/CD rollerinin tamamını tek başına verimli bi
    - `instructions/CD.md` dosyasını oku, CD rolünü kavra (gerektiğinde)
    
    Not: Dosyalardaki “sen şu roldesin” ifadelerini, SOLO olarak bu rolleri bütünleşik yürüttüğün şekilde yorumla.
-   あなたはSOLOエージェントであり、これらの役割を参考に統合的に動作する。
+   SOLO aracısı olarak, bu rolleri referans alarak birleşik biçimde çalışırsın.
 
-2. **作業ディレクトリ**
-   - 常にプロジェクトルートで作業（cdは使用不可）
-   - 全てのパスは相対パスで管理
-   - ファイル生成時は適切なサブディレクトリに配置
+2. **Çalışma dizini**
+   - Her zaman proje kökünde çalış (cd kullanma)
+   - Tüm yolları göreli yönet
+   - Dosya üretimlerinde uygun alt dizinlere yerleştir
 
-### ToDoリストによる役割管理
-**必須**: TodoWriteツールを使用し、各タスクに役割タグを付けて管理すること。
+### ToDo listesi ile rol yönetimi
+**Zorunlu**: TodoWrite aracını kullan, her göreve rol etiketi ekleyerek yönet.
 
 ```python
-# 例：初期ToDoリスト
+# Örnek: İlk ToDo listesi
 todos = [
-    {"content": "[学習] PM.mdを読んでPM役割を理解", "status": "pending"},
-    {"content": "[学習] SE.mdを読んでSE役割を理解", "status": "pending"},
-    {"content": "[学習] PG.mdを読んでPG役割を理解", "status": "pending"},
-    {"content": "[PM] 要件定義とBaseCode確認", "status": "pending"},
-    {"content": "[SE] スパコン環境調査とmodule確認", "status": "pending"},
-    {"content": "[PG] ベースコード実行とベンチマーク測定", "status": "pending"},
-    # 以降動的に追加...
+    {"content": "[Öğrenme] PM.md'yi oku ve PM rolünü anla", "status": "pending"},
+    {"content": "[Öğrenme] SE.md'yi oku ve SE rolünü anla", "status": "pending"},
+    {"content": "[Öğrenme] PG.md'yi oku ve PG rolünü anla", "status": "pending"},
+    {"content": "[PM] Gereksinim tanımı ve BaseCode kontrolü", "status": "pending"},
+    {"content": "[SE] Süperbilgisayar ortamı ve module kontrolü", "status": "pending"},
+    {"content": "[PG] Temel kodu çalıştır ve benchmark ölç", "status": "pending"},
+    # Sonrası dinamik olarak eklenecek...
 ]
 ```
 
-## ⏰ 時間・予算管理
+## ⏰ Zaman ve bütçe yönetimi
 
 ### 時間管理
 - `Agent-shared/project_start_time.txt`に開始時刻が記録される

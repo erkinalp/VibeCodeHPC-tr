@@ -492,18 +492,18 @@ Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
 
 起動後、以下のプロンプトが表示されるのでコピーして貼り付けてください：
 ```
-あなたはVibeCodeHPCのシングルエージェントモードで動作します。
-全ての役割（PM/SE/PG/CD）を1人で担当し、効率的にプロジェクトを進めます。
+VibeCodeHPC tek aracı modunda çalışacaksınız.
+Tüm rolleri (PM/SE/PG/CD) tek başınıza üstlenip projeyi verimli şekilde ilerleteceksiniz.
 
-【初期設定】
-まず以下のファイルを読み込んでください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/SOLO.md（シングルモード専用の統合プロンプト）
-- requirement_definition.md（存在する場合）
-- Agent-shared/project_start_time.txt（プロジェクト開始時刻）
+[İlk Ayar]
+Önce aşağıdaki dosyaları okuyun:
+- CLAUDE.md (tüm aracılar için ortak kurallar)
+- instructions/SOLO.md (tek mod için birleşik istem)
+- requirement_definition.md (varsa)
+- Agent-shared/project_start_time.txt (proje başlangıç zamanı)
 
-【ToDoリストによる役割管理】
-TodoWriteツールを積極的に使用し、各タスクに役割タグ（[PM], [SE], [PG], [CD]）を付けて管理してください。
+[ToDo listesi ile rol yönetimi]
+TodoWrite aracını etkin kullanın, her görevi rol etiketleri ([PM], [SE], [PG], [CD]) ile yönetin.
 
 【時間管理】
 - プロジェクト開始時刻から経過時間を定期的に確認
@@ -525,12 +525,12 @@ agent_send.shは使用不要です（通信相手がいないため）。
 ```
 
 #### Özellikler
-- **統合実行**: 1つのインスタンスで全役割を実行
-- **ToDoリスト管理**: 役割切り替えを明示的に管理
-- **時間管理**: project_start_time.txtで経過時間を追跡
-- **マルチモードと同じ仕組み**: ChangeLog.md、SOTA管理等は共通
+- Birleşik yürütme: Tüm rolleri tek bir örnek üzerinde yürütür
+- ToDo listesi yönetimi: Rol geçişlerini açıkça yönetir
+- Zaman yönetimi: project_start_time.txt ile geçen süreyi takip edin
+- Çoklu mod ile aynı mekanizmalar: ChangeLog.md ve SOTA yönetimi ortaktır
 
-詳細は `instructions/SOLO.md` を参照してください。
+Ayrıntılar için `instructions/SOLO.md` dosyasına bakın.
 
 </details>
 
@@ -675,7 +675,7 @@ export CLI_HOOKS_MODE=custom
 あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
 
 まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
-- CLAUDE.md（全エージェント共通ルール）
+- CLAUDE.md (tüm aracılar için ortak kurallar)
 - instructions/PM.md（あなたの役割詳細）
 - requirement_definition.md（プロジェクト要件）※存在する場合
 - Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイルを除く）
@@ -834,11 +834,11 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 
 より詳細なトークン使用量やコスト、ツール実行状況の分析が必要な場合は、組み込みのOpenTelemetryによる監視が可能です。ただし、スパコン環境への導入が困難な場合があるため、オプション機能として提供しています。
 
-監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
+İzleme ayarları için [“2. Ortam Kurulumu”](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) bölümündeki izleme seçeneklerine bakın.
 
-詳細設定: [telemetry/README.md](telemetry/README.md)
+Ayrıntılı ayarlar: [telemetry/README.md](telemetry/README.md)
 
-## 🔒 セキュリティ
+## 🔒 Güvenlik
 
 - [x] **機密情報保護**: `_remote_info/`はGit管理外
 - [x] **自動匿名化**: GitHub公開時にユーザID等を匿名化
