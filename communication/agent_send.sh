@@ -210,17 +210,14 @@ show_status() {
     echo ""
     echo "Aktif: $active_count / $total_count"
     
-    # tmuxセッション情報
     echo ""
     echo "📺 tmux oturum bilgileri:"
-    # アクティブなセッションをすべて表示
     tmux list-sessions 2>/dev/null | while IFS=: read -r session rest; do
         local pane_count=$(tmux list-panes -t "$session" 2>/dev/null | wc -l)
         echo "$session: $pane_count panes"
     done
 }
 
-# ブロードキャスト送信
 broadcast_message() {
     local message="$1"
     local sent_count=0
@@ -257,18 +254,18 @@ send_message() {
     local pane="${window_pane##*.}"
     
     if ! tmux has-session -t "$session" 2>/dev/null; then
-        echo "❌ $agent_name: セッOturum '$session' bulunamadı"
+        echo "❌ $agent_name: Oturum '$session' bulunamadı"
         return 1
     fi
     
     if ! tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
-        echo "❌ $agent_name: ペイPencere/pane '$pane' bulunamadı"
+        echo "❌ $agent_name: Pencere/pane '$pane' bulunamadı"
         return 1
     fi
     
     echo "📤 $agent_name ← '$message'"
     
-    # Mesaj gönderimi    # メッセージ送信（クリア不要 - 新しい入力は自動的に置き換わる）
+    # Mesaj gönderimi     # Mesaj gönderimi (temizleme gerekmez - yeni giriş otomatik olarak değiştirilir)
     tmux send-keys -t "$session:$window.$pane" "$message"
     sleep 0.1
     
@@ -287,20 +284,17 @@ log_message() {
     echo "[$timestamp] $agent: \"$message\"" >> ./communication/logs/send_log.txt
 }
 
-# メイン処理
 main() {
     # agent_and_pane_id_table.jsonl yükleme
     if ! load_agent_map; then
         exit 1
     fi
     
-    # 引数チェック
     if [[ $# -eq 0 ]]; then
         show_usage
         exit 1
     fi
     
-    # オプション処理
     case "$1" in
         --help|-h)
             show_usage
@@ -316,7 +310,7 @@ main() {
             ;;
         --broadcast|-b)
             if [[ $# -lt 2 ]]; then
-                echo "❌ ブロードキャスト用のメッセージが必要です"
+                echo "❌ Yayın için bir mesaj gereklidir"
                 exit 1
             fi
             broadcast_message "$2"
@@ -324,7 +318,7 @@ main() {
             ;;
         *)
             if [[ $# -lt 2 ]]; then
-                echo "❌ エージェント名とメッセージが必要です"
+                echo "❌ Aracı adı ve mesaj gereklidir"
                 show_usage
                 exit 1
             fi
@@ -334,23 +328,21 @@ main() {
     local agent_name="$1"
     local message="$2"
     
-    # エージェント名を大文字に統一
     agent_name=$(echo "$agent_name" | tr '[:lower:]' '[:upper:]')
     
-    # エージェントターゲット取得
     local target=$(get_agent_target "$agent_name")
     
     if [[ -z "$target" ]]; then
-        echo "❌ エラー: 不明なエージェント '$agent_name'"
-        echo "利用可能エージェント: $0 --list"
+        echo "❌ Hata: Bilinmeyen aracı '$agent_name'"
+        echo "Kullanılabilir aracılar: $0 --list"
         exit 1
     fi
     
     if send_message "$target" "$message" "$agent_name"; then
         log_message "$agent_name" "$message"
-        echo "✅ 送信完了: $aTamamlandı: $agent_name"
+        echo "✅ Gönderim tamamlandı: $agent_name"
     else
-        echo "❌ 送信失敗: $agent_name"
+        echo "❌ Gönderim başarısız: $agent_name"
         exit 1
     fi
 }
