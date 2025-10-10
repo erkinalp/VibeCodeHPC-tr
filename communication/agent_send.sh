@@ -1,28 +1,23 @@
 #!/bin/bash
 
-# 🧬 VibeCodeHPC Agent間メッセージ送信システム
-# HPC最適化用マルチエージェント通信
+# 🧬 VibeCodeHPC Aracılar arası mesaj gönderim sistemi
 
-# agent_and_pane_id_table.jsonl読み込み
+# agent_and_pane_id_table.jsonl yükleme
 load_agent_map() {
     local table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
     
     if [[ ! -f "$table_file" ]]; then
-        echo "❌ エラー: agent_and_pane_id_table.jsonl が見つかりません"
-        echo "先に ./communication/setup.sh を実行してください"
+        echo "❌ Hata: agent_and_pane_id_table.jsonl bulunamadı"
+        echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın"
         return 1
     fi
     
-    # associative array宣言
     declare -gA AGENT_MAP
     
-    # JSONL形式の解析
     while IFS= read -r line; do
-        # コメントと空行をスキップ
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${line// }" ]] && continue
         
-        # JSON解析（jqが使えない環境でも動作するよう簡易解析）
         if [[ "$line" =~ \"agent_id\":[[:space:]]*\"([^\"]+)\" ]]; then
             local agent_name="${BASH_REMATCH[1]}"
             
@@ -45,14 +40,12 @@ load_agent_map() {
     done < "$table_file"
 }
 
-# エージェント→tmuxターゲット変換
 get_agent_target() {
     local agent_name="$1"
     
-    # 大文字小文字を統一
     agent_name=$(echo "$agent_name" | tr '[:lower:]' '[:upper:]')
     
-    # AGENT_MAPから取得
+    # AGENT_MAP içinden al
     if [[ -n "${AGENT_MAP[$agent_name]}" ]]; then
         echo "${AGENT_MAP[$agent_name]}"
     else
@@ -60,81 +53,77 @@ get_agent_target() {
     fi
 }
 
-# エージェント役割取得
 get_agent_role() {
     local agent_name="$1"
     
     case "${agent_name:0:2}" in
-        "PM") echo "プロジェクト管理・要件定義" ;;
-        "SE") echo "システム設計・監視" ;;
-        "PG") echo "コード生成・最適化" ;;
-        "CD") echo "GitHub・デプロイ管理" ;;
-        *) echo "専門エージェント" ;;
+        "PM") echo "Proje yönetimi ve gereksinim tanımı" ;;
+        "SE") echo "Sistem tasarımı ve izleme" ;;
+        "PG") echo "Kod üretimi ve optimizasyon" ;;
+        "CD") echo "GitHub ve dağıtım yönetimi" ;;
+        *) echo "Uzman aracı" ;;
     esac
 }
 
-# エージェント色コード取得（グループ対応）
 get_agent_color() {
     local agent_name="$1"
     
     case "${agent_name:0:2}" in
-        "PM") echo "1;35" ;;  # マゼンタ
-        "SE") echo "1;36" ;;  # シアン
+        "PM") echo "1;35" ;;  # Macenta
+        "SE") echo "1;36" ;;  # Camgöbeği
         "PG") 
-            # グループごとに色を変える
             if [[ "$agent_name" =~ PG1\.1 ]]; then
-                echo "1;32"  # 緑
+                echo "1;32"  # Yeşil
             elif [[ "$agent_name" =~ PG1\.2 ]]; then
-                echo "1;92"  # 明るい緑
+                echo "1;92"  # Açık yeşil
             elif [[ "$agent_name" =~ PG2\. ]]; then
-                echo "1;33"  # 黄
+                echo "1;33"  # Sarı
             else
                 echo "1;32"  # デフォルト緑
             fi
             ;;
-        "CD") echo "1;31" ;;  # 赤
-        *) echo "1;37" ;;     # 白
+        "CD") echo "1;31" ;;  # Kırmızı
+        *) echo "1;37" ;;     # Beyaz
     esac
 }
 
-# 使用方法表示
 show_usage() {
     cat << EOF
-🧬 VibeCodeHPC Agent間メッセージ送信システム
+🧬 VibeCodeHPC Aracılar arası mesaj gönderim sistemi
 
-使用方法:
-  $0 [エージェント名] [メッセージ]
+Kullanım:
+  $0 [aracı_adı] [mesaj]
   $0 --list
   $0 --status
-  $0 --broadcast [メッセージ]
+  $0 --broadcast [mesaj]
 
-基本コマンド:
-  PM "requirement_definition.mdを確認してください"
-  SE1 "監視状況を報告してください"
-  PG1.1.1 "コード最適化を開始してください"
-  CD "GitHub同期を実行してください"
+Temel komutlar:
+  PM "requirement_definition.md dosyasını lütfen kontrol edin"
+  SE1 "İzleme durumunu lütfen rapor edin"
+  PG1.1.1 "Lütfen kod optimizasyonuna başlayın"
+  CD "Lütfen GitHub senkronizasyonunu çalıştırın"
 
-特殊コマンド:
-  --list        : 利用可能エージェント一覧表示
-  --status      : 全エージェント状態確認
-  --broadcast   : 全エージェントにメッセージ送信
-  --help        : このヘルプを表示
+Özel komutlar:
+  --list        : Kullanılabilir aracılar listesini gösterir
+  --status      : Tüm aracıların durumunu gösterir
+  --broadcast   : Tüm aracılara mesaj gönderir
+  --help        : Bu yardım ekranını gösterir
 
-メッセージ種別 (推奨フォーマット):
-  [依頼] コンパイル実行お願いします
-  [報告] SOTA更新: 285.7 GFLOPS達成
-  [質問] visible_paths.txtの更新方法は？
-  [完了] プロジェクト初期化完了しました
+Mesaj türleri (önerilen format):
+  [İstek]  [依頼] コンパイルDerlemeyi çalıştırın lütfen
+  [Rapor]  [報告] SOTA更新: 285.7 GFLOPS達成elde edildi
+  [Soru]  [質問] visible_paths.txtの更新方 nasıl güncellenir?
+  [Tamamlandı]  [完了] プロジェクProje başlatma tamamlandı
 
-特殊コマンド (PMの管理用):
-  "!cd /path/to/directory"              # エージェント再配置（記憶維持）
+Özel komutlar (PM yönetimi için):
+  "!cd /path/to/directory"              # Aracıyı yeniden konumlandırma (durum korunur)
   
-注意: 再配置は各エージェントの現在位置からの移動
+Not: Yeniden konumlandırma, her aracının mevcut konumundan yapılır
 
-例:
-  $0 SE1 "[依頼] PG1.1.1にOpenMP最適化タスクを配布してください"
-  $0 PG1.1.1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
-  $0 PG1.1 "[報告] job_12345 実行完了、性能データ 285.7 GFLOPS達成"
+Örnekler:
+  $0 SE1 "[İstek]  $0 SE1 "[依頼] PG1.1.1にOpenMP最OpenMP optimizasyon görevini dağıtın lütfen"
+  $0 PG1.1.1 "[Soru]  $0 PG1.1.1 "[質問] OpenACCの並列化警告がparalelleştirme uyarısı var. Nasıl ilerleyelim?"
+  $0 PG1.1 "[Rapor]  $0 PG1.1 "[報告] job_12345 実行完了çalışma tamamlandı, performans verisi能データ 285.7 GFLOPS達成"
   
   # 再配置例（絶対パス）
   $0 PG1.1.1 "!cd /absolute/path/to/VibeCodeHPC/Flow/TypeII/single-node/gcc/OpenMP_MPI"
@@ -143,7 +132,7 @@ show_usage() {
   $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
   $0 SE1 "!cd ../multi-node"                  # 上位階層へ移動
   
-  $0 --broadcast "[緊急] 全エージェント状況報告してください"
+  $0 --broadcast "[緊急] 全エージェント状況報告してください"Rapor 全エージェント状況報告してください"
 EOF
 }
 
@@ -154,7 +143,7 @@ show_agents() {
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
         echo "❌ エージェントが見つかりません"
-        echo "先に ./communication/setup.sh を実行してください"
+        echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın"
         return 1
     fi
     
@@ -313,7 +302,7 @@ log_message() {
 
 # メイン処理
 main() {
-    # agent_and_pane_id_table.jsonl読み込み
+    # agent_and_pane_id_table.jsonl yükleme
     if ! load_agent_map; then
         exit 1
     fi
@@ -374,7 +363,7 @@ main() {
     if send_message "$target" "$message" "$agent_name"; then
         # ログ記録
         log_message "$agent_name" "$message"
-        echo "✅ 送信完了: $agent_name"
+        echo "✅ 送信完了: $aTamamlandı: $agent_name"
     else
         echo "❌ 送信失敗: $agent_name"
         exit 1
