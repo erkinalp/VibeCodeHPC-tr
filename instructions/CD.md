@@ -50,68 +50,68 @@ Yerel ortam ile GitHub arasındaki senkronizasyon düzeyi PM ve kullanıcının 
 - **Küçük ve sık commit**: Büyük değişiklikleri tek commit yerine mantıksal parçalara bölerek sık commit yap
 - **Polling tarzı çalışma**: CD, düzenli aralıklarla değişiklikleri kontrol edip senkronize eden bir polling aracısıdır
 
-### フェーズ3: SOTAコードのリリース
-そのエージェントが担当している並列化アプローチでSOTAを更新したコードのみGitHubにアップロードする。ChangeLog.mdも公開することで、逆に何が上手くいかなかったかという情報は補完される。
+### Faz 3: SOTA kodunun yayımlanması
+Yalnızca ilgili aracının sorumlu olduğu paralelleştirme yaklaşımında SOTA’yı güncelleyen kodu GitHub’a yükleyin. ChangeLog.md’yi de paylaşarak nelerin işe yaramadığını gösteren bilgiler tamamlanır.
 
-### フェーズ4: 既存リポジトリの取り扱い（該当する場合）
+### Faz 4: Mevcut depoların ele alınması (varsa)
 
-#### VibeCodeHPCベースのプロジェクト
-- 既存のVibeCodeHPC型プロジェクトの場合：fork→作業継続→プルリクエスト
-- 中断された作業の再開に適している
+#### VibeCodeHPC tabanlı projeler
+- VibeCodeHPC tipi mevcut projelerde: fork → çalışmaya devam → pull request
+- Yarıda kalmış çalışmaların yeniden başlatılması için uygundur
 
-#### 通常のGitHubリポジトリ（BaseCode用）
-- VibeCodeHPC型でない既存コードが指定された場合：
+#### Normal GitHub deposu (BaseCode için)
+- VibeCodeHPC tipi olmayan bir mevcut kod verildiyse:
   ```bash
-  # wgetでzipをダウンロード
+  # wget ile zip indirme
   wget https://github.com/user/repo/archive/refs/heads/main.zip
-  # BaseCodeディレクトリに展開
+  # BaseCode dizinine açma
   unzip main.zip -d BaseCode/
   ```
-- git cloneではなくwget使用（CDエージェントは基本1つのため）
-- 複数リポジトリ管理が必要な場合はPMと相談
+- git clone yerine wget kullanın (CD aracı genelde tektir)
+- Birden fazla deponun yönetimi gerekiyorsa PM ile değerlendirin
 
-## 🔒 最重要セキュリティ事項
+## 🔒 En önemli güvenlik hususları
 
-### 個人情報の自動匿名化
-ユーザのアカウントに関わる情報をGitHubに公開する際の処理：
+### Kişisel bilgilerin otomatik anonimleştirilmesi
+Kullanıcı hesabına ilişkin bilgileri GitHub’da yayımlarken izlenecek süreç:
 
-#### スパコン情報の匿名化
-- **ユーザid**: 実際のID 英数字xXXXXXXx（手元のコード）→ FLOW_USER_ID（/GitHub以下のコード）
-- **プロジェクトid**: 同様に匿名化処理を行う
+#### Süperbilgisayar bilgilerinin anonimleştirilmesi
+- **Kullanıcı id**: Gerçek ID alfasayısal xXXXXXXx (yerel kod) → FLOW_USER_ID (GitHub altındaki kod)
+- **Proje id**: Benzer şekilde anonimleştirilir
 
-#### 処理フロー
+#### İşlem akışı
 ```
-実際のID → 匿名化ID
+Gerçek ID → Anonim ID
   ↓           ↓
-手元のコード → /GitHub以下のコード
+Yerel kod → /GitHub altındaki kod
   ↓           ↓
-  → git add (commit, push)前にユーザidを匿名化
-  ← git clone (pull)後に、設定したユーザidに置換
+  → git add (commit, push) öncesi kullanıcı id anonimleştirilir
+  ← git clone (pull) sonrası, yapılandırılan kullanıcı id ile değiştirilir
 ```
 
-### セキュリティ管理ファイル
-- .gitignoreに.envなどを追加しておくこと
-- **重要**: _remote_infoはユーザ固有の情報なので、絶対にGitの管理対象に含めないこと
+### Güvenlik yönetimi dosyaları
+- .gitignore’a .env vb. dosyaları ekleyin
+- **Önemli**: _remote_info kullanıcıya özgü bilgiler içerir; kesinlikle git takibine dahil etmeyin
 
-### .gitignoreの管理方針
-GitHub公開用の/GitHub📁での.gitignore管理：
+### .gitignore yönetim ilkesi
+GitHub’da paylaşılacak /GitHub📁 altında .gitignore yönetimi:
 
-#### オプション1: 共通化（推奨）
-- ランタイムでプロジェクトルートの.gitignoreを/GitHub以下にコピー
-- 管理コストが低く、セキュリティルールの一元管理が可能
+#### Seçenek 1: Ortaklaştırma (önerilir)
+- Çalışma anında proje kökündeki .gitignore’u /GitHub altına kopyalayın
+- Yönetim maliyeti düşüktür, güvenlik kuralları merkezi yönetilir
 ```bash
 cp ../.gitignore ./GitHub/.gitignore
 ```
 
-#### オプション2: 別管理
-- /GitHub専用の.gitignoreを作成・管理
-- プロジェクト固有のルールを追加可能
+#### Seçenek 2: Ayrı yönetim
+- /GitHub’a özel .gitignore oluşturun ve yönetin
+- Projeye özgü kurallar eklenebilir
 
-#### オプション3: 動的生成
-- CDエージェントが必要に応じて.gitignoreを生成
-- 最も柔軟だが実装が複雑
+#### Seçenek 3: Dinamik üretim
+- CD aracı gerekirse .gitignore dosyasını üretir
+- En esnek yöntemdir ancak uygulaması karmaşıktır
 
-PMとユーザの方針に従って選択すること。デフォルトはオプション1を推奨。
+PM ve kullanıcı politikasına göre seçim yapın. Varsayılan öneri Seçenek 1’dir.
 
 ## 🤝 他エージェントとの連携
 

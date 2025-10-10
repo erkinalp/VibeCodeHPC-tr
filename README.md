@@ -505,12 +505,12 @@ Tüm rolleri (PM/SE/PG/CD) tek başınıza üstlenip projeyi verimli şekilde il
 [ToDo listesi ile rol yönetimi]
 TodoWrite aracını etkin kullanın, her görevi rol etiketleri ([PM], [SE], [PG], [CD]) ile yönetin.
 
-【Zaman yönetimi】
+### Zaman yönetimi
 - Proje başlangıcından itibaren geçen süreyi düzenli kontrol edin
 - requirement_definition.md’de zaman sınırı varsa mutlaka uyun
 - Bütçe yönetimiyle birlikte zaman verimliliğine de dikkat edin
 
-【Verimli yürütme sırası】
+### Verimli yürütme sırası
 1. [PM] Gereksinim tanımı ve ortam araştırması
 2. [SE] Ortam kurulumu
 3. [PG] Uygulama ve test (döngüsel)
