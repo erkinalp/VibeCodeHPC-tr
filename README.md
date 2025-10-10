@@ -82,57 +82,57 @@ VibeCodeHPC/🤖PM
         └── 📁 CUDA/🤖PG1.2.1
 ```
 
-## 🔄 ワークフロー
+## 🔄 İş Akışı
 
-### エージェント動作パターン
+### Aracı Çalışma Desenleri
 
-#### **⏳ ポーリング型** (PM, SE, PG, CD)
-- **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
-- **例**: PMが全エージェントを巡回監視→リソース再配分
-- **例**: PGがコード生成→自律的に実行→結果確認→次の最適化
+#### **⏳ Yoklama (Polling) tipi** (PM, SE, PG, CD)
+- **Özellik**: Dosya ve durumları sürekli kontrol eder; otonom, asenkron hareket eder
+- **Örnek**: PM tüm aracıları dolaşarak izler → kaynakları yeniden tahsis eder
+- **Örnek**: PG kod üretir → otonom çalıştırır → sonucu inceler → bir sonraki optimizasyon
 
-#### **➡️ フロー駆動型** (PM初期のみ)
-- **特徴**: 一連のタスクを順次実行し、各ステップで判断
-- **例**: 要件定義→環境調査→階層設計→エージェント配置
+#### **➡️ Akış (Flow) güdümlü** (yalnızca PM başlangıçta)
+- **Özellik**: Görevleri sırayla yürütür ve her adımda karar verir
+- **Örnek**: Gereksinim tanımı → ortam araştırması → hiyerarşik tasarım → aracı yerleşimi
 
-### 1. エージェント起動時のhooksセットアップ
+### 1. Aracı başlatılırken hooks kurulumu
 
 ```mermaid
 flowchart TB
-      %% 起動スクリプトの包含関係
-      subgraph StartScripts["🚀 起動スクリプト"]
-      User[👤 ユーザー] 
+      %% Başlatma betiklerinin kapsama ilişkisi
+      subgraph StartScripts["🚀 Başlatma Betikleri"]
+      User[👤 Kullanıcı] 
       PM[🤖 PM]
-      User -->StartPM[start_PM.sh<br/>PMプロセス専用]
-      PM -->StartAgent[start_agent.sh<br/>他エージェント用]
+      User -->StartPM[start_PM.sh<br/>Sadece PM süreci için]
+      PM -->StartAgent[start_agent.sh<br/>Diğer aracıları başlatır]
 
-          StartPM -->|直接実行| LaunchClaude
-          StartAgent -->|生成| LocalScript[start_agent_local.sh]
-          LocalScript -->|実行| LaunchClaude
+          StartPM -->|Doğrudan çalıştır| LaunchClaude
+          StartAgent -->|Oluştur| LocalScript[start_agent_local.sh]
+          LocalScript -->|Çalıştır| LaunchClaude
       end
 
       %% 共通処理の流れ
-      subgraph CommonFlow["🔄 共通処理フロー"]
+      subgraph CommonFlow["🔄 Ortak işlem akışı"]
           LaunchClaude[launch_claude_with_env.sh]
-          LaunchClaude -->|1.hooks設定判定| SetupHooks[setup_agent_hooks.sh]
-          LaunchClaude -->|2.telemetry設定判定| EnvSetup[環境変数設定<br/>.env読み込み]
+          LaunchClaude -->|1.hooks ayar kontrolü| SetupHooks[setup_agent_hooks.sh]
+          LaunchClaude -->|2.telemetry ayar kontrolü| EnvSetup[Ortam değişkenleri ayarı<br/>.env yükleme]
           LaunchClaude -->|3.claude --dangerously-skip-permissions| Claude[claude --dangerously-skip-permissions]
       end
 
       %% データフロー
-      subgraph DataFlow["💾 データ管理"]
-          SetupHooks -->|配置| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt ]
+      subgraph DataFlow["💾 Veri yönetimi"]
+          SetupHooks -->|Yerleştir| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt ]
 
-          LocalScript -->|working_dir記録| JSONL
-          Claude -->|SessionStartイベント| SessionHook[session_start.py]
-          SessionHook -->|agent_id.txt参照<br/>claude_session_id記録| JSONL
+          LocalScript -->|working_dir kaydı| JSONL
+          Claude -->|SessionStart olayı| SessionHook[session_start.py]
+          SessionHook -->|agent_id.txt başvurusu<br/>claude_session_id kaydı| JSONL
 
           JSONL[(agent_and_pane_id_table.jsonl)]
       end
 
-      %% Stop hookの動作フロー
-      Claude[claude起動] -->|Stopイベント| StopHook[stop.py実行]
-      StopHook -->|polling型| PreventWait[待機防止タスク提示]
+      %% Stop hook’un işlem akışı
+      Claude[claude başlatıldı] -->|Stop olayı| StopHook[stop.py çalıştır]
+      StopHook -->|polling tipi| PreventWait[Bekleme önleme görevi sun]
 
       %% スタイリング
       style StartScripts fill:#fff8fc,stroke:#c2185b,stroke-width:2px
@@ -151,37 +151,37 @@ flowchart TB
       style SessionHook fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
 ```
 
-詳細は [Issue #23: エージェント起動とhooksのセットアップの流れ](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/23) を参照。
+Ayrıntılar için bkz. [Issue #23: Aracı başlatma ve hooks kurulum akışı](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/23).
 
-### 2. コード最適化サイクル
+### 2. Kod optimizasyon döngüsü
 
 ```mermaid
 sequenceDiagram
     participant PM as PM
     participant SE as SE
     participant PG as PG
-    participant HPC as スパコン
+    participant HPC as Süperbilgisayar
     
-    PM->>PG: 最適化タスク割り当て
-    PG->>HPC: SSH/SFTP接続確立
+    PM->>PG: Optimizasyon görevlerinin atanması
+    PG->>HPC: SSH/SFTP bağlantısının kurulması
     
-    loop 最適化ループ
-        PG->>PG: コード生成・修正・ChangeLog.md記録
-        PG->>HPC: コード転送・コンパイル・ジョブ投入
-        HPC-->>PG: 実行結果・性能データ
-        PG->>SE: SOTA達成報告
+    loop Optimizasyon döngüsü
+        PG->>PG: Kod üretimi/düzeltme ve ChangeLog.md kaydı
+        PG->>HPC: Kod transferi, derleme ve iş gönderimi
+        HPC-->>PG: Çalıştırma çıktıları ve performans verisi
+        PG->>SE: SOTA başarı raporu
     end
     
-    SE->>SE: 統計分析・可視化（非同期）
+    SE->>SE: İstatistik analiz ve görselleştirme (asenkron)
 ```
 
-### 3. プロジェクト終了管理
+### 3. Proje kapanış yönetimi
 
-プロジェクトの終了条件とフローチャートは [Issue #33: プロジェクト終了条件と手順](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/33) を参照してください。
+Proje kapanış koşulları ve akış şeması için bkz. [Issue #33: Proje kapanış koşulları ve adımlar](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/33).
 
-# 🚀 クイックスタート
+# 🚀 Hızlı Başlangıç
 
-## 1. 事前セットアップ
+## 1. Ön hazırlık
 本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
 
 ### ☑️ VibeCodeHPCリポジトリのコードをダウンロード
