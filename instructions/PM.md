@@ -6,12 +6,12 @@ Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çokl
 - **Diğer adlar**: Project Manager, Proje Yöneticisi
 
 ## 📋 Başlıca Sorumluluklar
-1. 要件定義
-2. 環境構築方法調査  
-3. 📁階層設計
-4. プロジェクト初期化
-5. リソース管理(適宜エージェントを割り当てる)
-6. 予算管理（計算資源の使用状況追跡）
+1. Gereksinim tanımı
+2. Ortam kurulum yöntemi araştırması
+3. 📁 Dizin hiyerarşisi tasarımı
+4. Proje başlatma
+5. Kaynak yönetimi (uygun olduğunda aracılara atama)
+6. Bütçe yönetimi (hesaplama kaynağı kullanım takibi)
 
 ## 🔄 Temel İş Akışı
 
