@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🧬 VibeCodeHPC Agent間メッセージ送信システム
-# HPC最適化用マルチエージェント通信
+# 🧬 VibeCodeHPC Agent間MesajGöndermeシステム
+# HPC最適化用マルチAjanİletişim
 
 # agent_and_pane_id_table.jsonl読み込み
 load_agent_map() {
@@ -45,7 +45,7 @@ load_agent_map() {
     done < "$table_file"
 }
 
-# エージェント→tmuxターゲット変換
+# Ajan→tmuxターゲット変換
 get_agent_target() {
     local agent_name="$1"
     
@@ -60,7 +60,7 @@ get_agent_target() {
     fi
 }
 
-# エージェント役割取得
+# Ajan役割取得
 get_agent_role() {
     local agent_name="$1"
     
@@ -73,7 +73,7 @@ get_agent_role() {
     esac
 }
 
-# エージェント色コード取得（グループ対応）
+# Ajan色コード取得（グループ対応）
 get_agent_color() {
     local agent_name="$1"
     
@@ -97,7 +97,7 @@ get_agent_color() {
     esac
 }
 
-# 使用方法表示
+# Kullanım方法表示
 show_usage() {
     cat << EOF
 🧬 VibeCodeHPC Agent間メッセージ送信システム
@@ -136,10 +136,10 @@ show_usage() {
   $0 PG1.1.1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
   $0 PG1.1 "[報告] job_12345 実行完了、性能データ 285.7 GFLOPS達成"
   
-  # 再配置例（絶対パス）
+  # 再配置Örnek（絶対Yol）
   $0 PG1.1.1 "!cd /absolute/path/to/VibeCodeHPC/Flow/TypeII/single-node/gcc/OpenMP_MPI"
   
-  # 再配置例（相対パス - エージェントの現在位置から）
+  # 再配置Örnek（相対Yol - Ajanの現在位置から）
   $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
   $0 SE1 "!cd ../multi-node"                  # 上位階層へ移動
   
@@ -147,7 +147,7 @@ show_usage() {
 EOF
 }
 
-# エージェント一覧表示
+# Ajan一覧表示
 show_agents() {
     echo "📋 VibeCodeHPC エージェント一覧:"
     echo "================================"
@@ -158,7 +158,7 @@ show_agents() {
         return 1
     fi
     
-    # エージェント種別ごとに表示
+    # Ajan種別ごとに表示
     local agent_types=("PM" "SE" "PG" "CD")
     
     for type in "${agent_types[@]}"; do
@@ -172,7 +172,7 @@ show_agents() {
                 local role=$(get_agent_role "$agent")
                 local color=$(get_agent_color "$agent")
                 
-                # セッション存在確認
+                # セッション存在Kontrol
                 local session="${target%%:*}"
                 if tmux has-session -t "$session" 2>/dev/null; then
                     echo -e "  \033[${color}m$agent\033[0m → $target ($role)"
@@ -192,7 +192,7 @@ show_agents() {
     echo "総エージェント数: ${#AGENT_MAP[@]}"
 }
 
-# エージェント状態確認
+# Ajan状態Kontrol
 show_status() {
     echo "📊 VibeCodeHPC エージェント状態:"
     echo "================================"
@@ -212,7 +212,7 @@ show_status() {
         local window="${window_pane%%.*}"
         local pane="${window_pane##*.}"
         
-        # セッション・ペイン存在確認
+        # セッション・ペイン存在Kontrol
         if tmux has-session -t "$session" 2>/dev/null; then
             if tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
                 echo "✅ $agent : アクティブ"
@@ -238,7 +238,7 @@ show_status() {
     done
 }
 
-# ブロードキャスト送信
+# ブロードキャストGönderme
 broadcast_message() {
     local message="$1"
     local sent_count=0
@@ -264,7 +264,7 @@ broadcast_message() {
     echo "  総計: $((sent_count + failed_count))"
 }
 
-# メッセージ送信
+# MesajGönderme
 send_message() {
     local target="$1"
     local message="$2"
@@ -275,22 +275,22 @@ send_message() {
     local window="${window_pane%%.*}"
     local pane="${window_pane##*.}"
     
-    # セッション存在確認
+    # セッション存在Kontrol
     if ! tmux has-session -t "$session" 2>/dev/null; then
         echo "❌ $agent_name: セッション '$session' が見つかりません"
         return 1
     fi
     
-    # ペイン存在確認
+    # ペイン存在Kontrol
     if ! tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
         echo "❌ $agent_name: ペイン '$pane' が見つかりません"
         return 1
     fi
     
-    # メッセージ送信
+    # MesajGönderme
     echo "📤 $agent_name ← '$message'"
     
-    # メッセージ送信（クリア不要 - 新しい入力は自動的に置き換わる）
+    # MesajGönderme（クリア不要 - 新しい入力はOtomatik的に置き換わる）
     tmux send-keys -t "$session:$window.$pane" "$message"
     sleep 0.1
     
@@ -301,7 +301,7 @@ send_message() {
     return 0
 }
 
-# ログ記録
+# GünlükKayıt
 log_message() {
     local agent="$1"
     local message="$2"
@@ -311,20 +311,20 @@ log_message() {
     echo "[$timestamp] $agent: \"$message\"" >> ./communication/logs/send_log.txt
 }
 
-# メイン処理
+# メインİşleme
 main() {
     # agent_and_pane_id_table.jsonl読み込み
     if ! load_agent_map; then
         exit 1
     fi
     
-    # 引数チェック
+    # Argümanチェック
     if [[ $# -eq 0 ]]; then
         show_usage
         exit 1
     fi
     
-    # オプション処理
+    # Seçenekİşleme
     case "$1" in
         --help|-h)
             show_usage
@@ -358,10 +358,10 @@ main() {
     local agent_name="$1"
     local message="$2"
     
-    # エージェント名を大文字に統一
+    # Ajan名を大文字に統一
     agent_name=$(echo "$agent_name" | tr '[:lower:]' '[:upper:]')
     
-    # エージェントターゲット取得
+    # Ajanターゲット取得
     local target=$(get_agent_target "$agent_name")
     
     if [[ -z "$target" ]]; then
@@ -370,9 +370,9 @@ main() {
         exit 1
     fi
     
-    # メッセージ送信
+    # MesajGönderme
     if send_message "$target" "$message" "$agent_name"; then
-        # ログ記録
+        # GünlükKayıt
         log_message "$agent_name" "$message"
         echo "✅ 送信完了: $agent_name"
     else

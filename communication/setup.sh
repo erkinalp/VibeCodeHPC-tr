@@ -5,7 +5,7 @@
 
 set -e  # エラー時に停止
 
-# プロジェクトルートの取得（setup.shの親ディレクトリ）
+# Projeルートの取得（setup.shの親Dizin）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
@@ -21,12 +21,12 @@ DEFAULT_PM_SESSION="Team1_PM"
 DEFAULT_WORKER_SESSION="Team1_Workers1"
 DEFAULT_WORKER_SESSION_PREFIX="Team1_Workers"  # 13体以上の場合用
 
-# 実際に使用するセッション名（determine_session_namesで設定）
+# 実際にKullanımするセッション名（determine_session_namesでAyar）
 PM_SESSION=""
 WORKER_SESSION=""
 WORKER_SESSION_PREFIX=""
 
-# 色付きログ関数
+# 色付きGünlükFonksiyon
 log_info() {
     echo -e "\033[1;32m[INFO]\033[0m $1"
 }
@@ -39,7 +39,7 @@ log_error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1"
 }
 
-# 使用方法表示
+# Kullanım方法表示
 show_usage() {
     cat << EOF
 🧬 VibeCodeHPC Multi-Agent HPC Environment Setup
@@ -78,7 +78,7 @@ show_usage() {
 EOF
 }
 
-# エージェント構成計算
+# Ajan構成計算
 calculate_agent_distribution() {
     local total=$1  # PMを除いた数
     
@@ -111,7 +111,7 @@ calculate_agent_distribution() {
     echo "$se_count $pg_count $cd_count"
 }
 
-# エージェント名生成（グループ化対応）
+# Ajan名生成（グループ化対応）
 generate_agent_names() {
     local se_count=$1
     local pg_count=$2
@@ -201,7 +201,7 @@ check_session_conflicts() {
 handle_existing_sessions() {
     log_info "🔍 既存セッションの確認と処理..."
     
-    # ディレクトリ準備
+    # Dizin準備
     mkdir -p ./Agent-shared
     mkdir -p ./communication/logs
     mkdir -p ./tmp
@@ -218,7 +218,7 @@ create_pm_session() {
     # 新しいPMセッション作成
     tmux new-session -d -s "$PM_SESSION" -n "project-manager"
     
-    # セッションが作成されたか確認
+    # セッションが作成されたかKontrol
     if ! tmux has-session -t "$PM_SESSION" 2>/dev/null; then
         log_error "${PM_SESSION}の作成に失敗しました"
         log_info "既存のセッション一覧:"
@@ -228,10 +228,10 @@ create_pm_session() {
     
     tmux send-keys -t "${PM_SESSION}:project-manager" "cd $PROJECT_ROOT" C-m
 
-    # CLI_HOOKS_MODE環境変数を設定（親シェルから継承または auto）
+    # CLI_HOOKS_MODEOrtam değişkeniをAyar（親シェルから継承または auto）
     tmux send-keys -t "${PM_SESSION}:project-manager" "export CLI_HOOKS_MODE='${CLI_HOOKS_MODE:-auto}'" C-m
 
-    # bash/zsh対応プロンプト設定
+    # bash/zsh対応プロンプトAyar
     tmux send-keys -t "${PM_SESSION}:project-manager" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "  export PROMPT=$'%{\033[1;35m%}(PM)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
@@ -251,21 +251,21 @@ create_pm_session() {
     log_success "✅ PMセッション作成完了"
 }
 
-# 状態表示pane更新関数生成
+# 状態表示pane更新Fonksiyon生成
 generate_status_display_script() {
     local agents=($1)
     local script_file="./tmp/update_status_display.sh"
     
     cat > "$script_file" << 'EOF'
 #!/bin/bash
-# 状態表示更新スクリプト
+# 状態表示更新Script
 
 while true; do
     clear
     echo "[VibeCodeHPC エージェント配置図]"
     echo "================================"
     
-    # エージェント配置を表示
+    # Ajan配置を表示
     # TODO: 実際の配置に基づいて動的に生成
     
     sleep 5
@@ -303,7 +303,7 @@ create_single_worker_session() {
     # セッションを作成
     tmux new-session -d -s "$session_name" -n "hpc-agents"
     
-    # セッションが作成されたか確認
+    # セッションが作成されたかKontrol
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
         log_error "${session_name}セッションの作成に失敗しました"
         return 1
@@ -311,7 +311,7 @@ create_single_worker_session() {
     
     sleep 1
     
-    # グリッド作成（エラーハンドリング付き）
+    # グリッド作成（Hataハンドリング付き）
     local pane_count=1
     local creation_failed=false
     
@@ -326,7 +326,7 @@ create_single_worker_session() {
         fi
     done
     
-    # 残りの列を作成（最初の列で失敗していない場合のみ）
+    # 残りの列を作成（最初の列でBaşarısızしていない場合のみ）
     if [ "$creation_failed" = false ]; then
         for ((i=1; i < cols && pane_count < panes_in_session; i++)); do
             tmux select-pane -t "${session_name}:hpc-agents.0"
@@ -352,10 +352,10 @@ create_single_worker_session() {
         done
     fi
     
-    # ペイン作成が失敗した場合、作成できたペイン数を返す
+    # ペイン作成がBaşarısızした場合、作成できたペイン数を返す
     if [ "$creation_failed" = true ]; then
         log_error "❌ 要求された ${panes_in_session} ペインのうち、${pane_count} ペインのみ作成可能"
-        # セッションを削除して失敗を返す
+        # セッションを削除してBaşarısızを返す
         tmux kill-session -t "$session_name" 2>/dev/null
         return 1
     fi
@@ -363,7 +363,7 @@ create_single_worker_session() {
     # レイアウト調整
     tmux select-layout -t "${session_name}:hpc-agents" tiled
     
-    # 全ペインの初期化
+    # 全ペインのBaşlatma
     local pane_indices=($(tmux list-panes -t "${session_name}:hpc-agents" -F "#{pane_index}"))
     
     for i in "${!pane_indices[@]}"; do
@@ -372,7 +372,7 @@ create_single_worker_session() {
         
         tmux send-keys -t "$pane_target" "cd $PROJECT_ROOT" C-m
 
-        # OpenTelemetry環境変数を設定（全ペイン共通）
+        # OpenTelemetryOrtam değişkeniをAyar（全ペイン共通）
         tmux send-keys -t "$pane_target" "export CLAUDE_CODE_ENABLE_TELEMETRY=1" C-m
         tmux send-keys -t "$pane_target" "export OTEL_METRICS_EXPORTER=otlp" C-m
         tmux send-keys -t "$pane_target" "export OTEL_METRIC_EXPORT_INTERVAL=10000" C-m
@@ -381,15 +381,15 @@ create_single_worker_session() {
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc" C-m
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" C-m
 
-        # CLI_HOOKS_MODE環境変数を設定（親シェルから継承または auto）
+        # CLI_HOOKS_MODEOrtam değişkeniをAyar（親シェルから継承または auto）
         tmux send-keys -t "$pane_target" "export CLI_HOOKS_MODE='${CLI_HOOKS_MODE:-auto}'" C-m
 
-        # 全ペインをワーカー用に設定
+        # 全ペインをワーカー用にAyar
         local global_pane_num=$((start_pane + i))
         if false; then  # 旧コード（保守用）
             # 旧コード
             tmux select-pane -t "$pane_target" -T "STATUS"
-            # bash/zsh対応プロンプト設定
+            # bash/zsh対応プロンプトAyar
             tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
             tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;37m%}(STATUS)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
             tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
@@ -400,19 +400,19 @@ create_single_worker_session() {
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
             tmux send-keys -t "$pane_target" "echo 'PMがエージェントを配置中...'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
-            # グローバル変数を参照（create_worker_sessionsで設定）
+            # グローバル変数を参照（create_worker_sessionsでAyar）
             tmux send-keys -t "$pane_target" "echo 'ワーカー数: $GLOBAL_TOTAL_WORKERS'" C-m
             tmux send-keys -t "$pane_target" "echo 'directory_pane_map.md を参照してください'" C-m
         else
-            # その他のペインはエージェント配置待ち
+            # その他のペインはAjan配置待ち
             local pane_number=$global_pane_num
             tmux select-pane -t "$pane_target" -T "Pane${pane_number}"
             
-            # エージェント用のOTEL_RESOURCE_ATTRIBUTES準備（後でagent_idが決まったら更新）
+            # Ajan用のOTEL_RESOURCE_ATTRIBUTES準備（後でagent_idが決まったら更新）
             tmux send-keys -t "$pane_target" "export TMUX_PANE_ID='${pane_index}'" C-m
             tmux send-keys -t "$pane_target" "export OTEL_RESOURCE_ATTRIBUTES=\"tmux_pane=\${TMUX_PANE},pane_index=${pane_index}\"" C-m
             
-            # bash/zsh対応プロンプト設定
+            # bash/zsh対応プロンプトAyar
             tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
             tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;90m%}(待機中${pane_number})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
             tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
@@ -433,11 +433,11 @@ create_single_worker_session() {
     return 0
 }
 
-# 複数ワーカーセッション作成（メイン関数）
+# 複数ワーカーセッション作成（メインFonksiyon）
 create_worker_sessions() {
     local total_panes=$1  # ユーザ入力数 + 1 (STATUS用)
     
-    # グローバル変数として総ワーカー数を記録
+    # グローバル変数として総ワーカー数をKayıt
     GLOBAL_TOTAL_WORKERS=$((total_panes - 1))
     
     # まず単一セッションで試行
@@ -447,7 +447,7 @@ create_worker_sessions() {
         return 0
     fi
     
-    # 単一セッションで失敗した場合、自動的に複数セッションに分割
+    # 単一セッションでBaşarısızした場合、Otomatik的に複数セッションに分割
     log_info "📦 'no space for new pane'エラーを検出。複数セッションに自動分割します"
     
     # より小さいペイン数で再試行
@@ -565,10 +565,10 @@ generate_agent_pane_table() {
     
     mkdir -p ./Agent-shared
     
-    # JSONL形式のファイル（コメントなしのピュアなJSONL）
+    # JSONL形式のDosya（コメントなしのピュアなJSONL）
     > "$jsonl_table_file"
     
-    # PMエントリ（working_dirは空文字列で初期化）
+    # PMエントリ（working_dirは空文字列でBaşlatma）
     echo '{"agent_id": "PM", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
     
     # 複数のワーカーセッションのペイン（初期状態）
@@ -599,7 +599,7 @@ generate_agent_pane_table() {
             
             local session_name="${WORKER_SESSION_PREFIX}${session_num}"
             
-            # セッションが存在する場合のみ処理
+            # セッションが存在する場合のみİşleme
             if tmux has-session -t "$session_name" 2>/dev/null; then
                 local pane_indices=($(tmux list-panes -t "${session_name}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
                 
@@ -620,7 +620,7 @@ generate_agent_pane_table() {
     log_success "✅ agent_and_pane_id_table.jsonl 生成完了"
 }
 
-# 実行計画表示（シンプル版）
+# Yürütme計画表示（シンプル版）
 show_execution_plan() {
     local worker_count=$1
     
@@ -641,19 +641,19 @@ show_execution_plan() {
     echo ""
 }
 
-# メイン処理
+# メインİşleme
 main() {
     echo "🧬 VibeCodeHPC Multi-Agent HPC Environment Setup"
     echo "==============================================="
     echo ""
     
-    # 引数チェック
+    # Argümanチェック
     if [[ $# -eq 0 ]]; then
         show_usage
         exit 1
     fi
     
-    # オプション処理
+    # Seçenekİşleme
     local worker_count=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -727,7 +727,7 @@ main() {
         exit 1
     fi
     
-    # エージェント数チェック（PMを除く、0はシングルエージェントモード）
+    # Ajan数チェック（PMを除く、0はシングルAjanモード）
     if [[ $worker_count -eq 0 ]]; then
         log_info "シングルエージェントモード: PMペインのみ作成"
     elif [[ $worker_count -eq 1 ]]; then
@@ -741,7 +741,7 @@ main() {
     # セッション名を決定
     determine_session_names
     
-    # 実行計画表示（シンプル版）
+    # Yürütme計画表示（シンプル版）
     show_execution_plan $worker_count
     if [ "$USE_DEFAULT_NAMES" = false ]; then
         echo "プロジェクト名: ${PROJECT_NAME}"
@@ -753,7 +753,7 @@ main() {
     fi
     echo ""
     
-    # dry-runの場合はここで終了
+    # dry-runの場合はここでSonlandırma
     if [ "$DRY_RUN" = true ]; then
         log_info "dry-runモード: 実際のセットアップは行いません"
         exit 0
@@ -765,14 +765,14 @@ main() {
         exit 1
     fi
     
-    # 既存セッションの処理
+    # 既存セッションのİşleme
     handle_existing_sessions
     
-    # エージェント数をファイルに記録（PMがリソース配分計画に使用）
+    # Ajan数をDosyaにKayıt（PMがリソース配分計画にKullanım）
     echo "$worker_count" > ./Agent-shared/max_agent_number.txt
     log_info "エージェント数を記録: $worker_count (PM除く)"
     
-    # hooksバージョンを記録
+    # hooksバージョンをKayıt
     echo "$HOOKS_VERSION" > ./hooks/.hooks_version
     log_info "🎣 hooksバージョンを設定: $HOOKS_VERSION"
     
@@ -798,7 +798,7 @@ main() {
         generate_agent_pane_table $total_panes
     fi
     
-    # 完了メッセージ
+    # 完了Mesaj
     echo ""
     log_success "🎉 VibeCodeHPC環境セットアップ完了！"
     echo ""
@@ -842,7 +842,7 @@ main() {
     echo "     cat ./Agent-shared/max_agent_number.txt          # ワーカー数: $worker_count"
     echo ""
     
-    # セッション作成確認
+    # セッション作成Kontrol
     echo "🔍 セッション作成確認:"
     if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
         echo "  ✅ $PM_SESSION: 作成成功"
@@ -850,7 +850,7 @@ main() {
         echo "  ❌ $PM_SESSION: 作成失敗"
     fi
     
-    # 複数ワーカーセッションの確認
+    # 複数ワーカーセッションのKontrol
     if [ $total_panes -le 12 ]; then
         if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
             echo "  ✅ $WORKER_SESSION: 作成成功"

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 ChangeLog.md解析テンプレート
-SEエージェントが必要に応じてカスタマイズして使用する汎用的な解析ツール
+SEAjanが必要に応じてカスタマイズして使用する汎用的な解析ツール
 
 配置場所: Agent-shared/tools/changelog_analyzer.py
 出力先: Agent-shared/reports/ (技術的な解析結果)
 
-注意: これは一次レポート(ChangeLog.md)を解析するツールです。
-二次レポート(User-shared/reports/)はSEが手動で作成します。
+Dikkat: これは一次レポート(ChangeLog.md)を解析するツールです。
+二次レポート(User-shared/reports/)はSEが手動でOluşturmaします。
 """
 
 import os
@@ -21,10 +21,10 @@ from typing import Dict, List, Tuple, Optional, Any
 class ChangeLogAnalysisTemplate:
     """
     汎用的なChangeLog.md解析クラス
-    SEエージェントが継承・カスタマイズして使用することを想定
+    SEAjanが継承・カスタマイズして使用することを想定
     
     このクラスは技術的な解析を行うためのもので、
-    人間向けの二次レポート作成は別途手動で行います。
+    人間向けの二次レポートOluşturmaは別途手動で行います。
     """
     
     def __init__(self, project_root: str = "."):
@@ -35,15 +35,15 @@ class ChangeLogAnalysisTemplate:
     def find_target_files(self, filename: str = "ChangeLog.md", 
                          exclude_dirs: List[str] = ["Agent-shared", "GitHub", "BaseCode"]) -> List[Path]:
         """
-        プロジェクト内の対象ファイルを検索
+        Proje内の対象Dosyaを検索
         
         Args:
-            filename: 検索するファイル名
-            exclude_dirs: 除外するディレクトリのリスト
+            filename: 検索するDosya名
+            exclude_dirs: 除外するDizinのリスト
         """
         target_files = []
         for root, dirs, files in os.walk(self.project_root):
-            # 除外ディレクトリをスキップ
+            # 除外Dizinをスキップ
             if any(skip in root for skip in exclude_dirs):
                 continue
             if filename in files:
@@ -52,7 +52,7 @@ class ChangeLogAnalysisTemplate:
     
     def parse_entry(self, content: str) -> List[Dict[str, Any]]:
         """
-        ファイル内容をパース（カスタマイズ可能）
+        Dosya内容をパース（カスタマイズ可能）
         ChangeLog.mdの新フォーマットをパース
         """
         entries = []
@@ -72,7 +72,7 @@ class ChangeLogAnalysisTemplate:
             entry = {"version": version}
             
             # 新フォーマットのフィールドを抽出
-            # 変更点、結果、コメント
+            # Değişiklik点、結果、コメント
             change_match = re.search(r'\*\*変更点\*\*:\s*"([^"]+)"', entry_content)
             if change_match:
                 entry["change_summary"] = change_match.group(1)
@@ -125,10 +125,10 @@ class ChangeLogAnalysisTemplate:
     
     def extract_metadata(self, file_path: Path) -> Dict[str, Any]:
         """
-        ファイルパスからメタデータを抽出（カスタマイズ推奨）
+        DosyaYolからメタVeriを抽出（カスタマイズÖnerilen）
         
         Returns:
-            抽出したメタデータの辞書
+            抽出したメタVeriの辞書
         """
         parts = file_path.parts
         metadata = {
@@ -137,23 +137,23 @@ class ChangeLogAnalysisTemplate:
             "path_components": list(parts),
         }
         
-        # エージェント名の抽出（PG, SE等）
+        # Ajan名の抽出（PG, SE等）
         for part in parts:
             if re.match(r'(PG|SE|CD|PM)\d*(\.\d+)*', part):
                 metadata["agent"] = part
                 break
         
-        # ディレクトリ構造から追加情報を抽出
-        # SEエージェントがプロジェクトに応じてカスタマイズ
+        # Dizin構造からEkleme情報を抽出
+        # SEAjanがProjeに応じてカスタマイズ
         
         return metadata
     
     def aggregate_data(self, all_data: Dict[str, List[Dict]]) -> Dict[str, Any]:
         """
-        データを集計（カスタマイズ推奨）
+        Veriを集計（カスタマイズÖnerilen）
         
         Args:
-            all_data: ファイルパスをキー、エントリリストを値とする辞書
+            all_data: DosyaYolをキー、エントリリストを値とする辞書
             
         Returns:
             集計結果の辞書
@@ -174,12 +174,12 @@ class ChangeLogAnalysisTemplate:
                 compile_status = entry.get("compile_status", "unknown")
                 stats["by_status"][compile_status] += 1
                 
-                # SOTA更新の集計
+                # SOTAGüncellemeの集計
                 sota_scope = entry.get("sota_scope")
                 if sota_scope:
                     stats["sota_updates"][sota_scope] += 1
                 
-                # タイムライン用データ
+                # タイムライン用Veri
                 if "timestamp" in entry:
                     stats["timeline"].append({
                         "timestamp": entry["timestamp"],
@@ -195,17 +195,17 @@ class ChangeLogAnalysisTemplate:
     
     def generate_report(self, stats: Dict[str, Any], report_type: str = "summary") -> str:
         """
-        レポートを生成（カスタマイズ推奨）
+        レポートをÜretim（カスタマイズÖnerilen）
         
         Args:
-            stats: 集計データ
+            stats: 集計Veri
             report_type: レポートの種類
         """
         now = datetime.now(timezone.utc)
         report = f"# ChangeLog Report - {report_type.title()}\n\n"
         report += f"Generated at: {now.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
         
-        # 基本統計
+        # 基本İstatistik
         report += "## 📊 Summary\n\n"
         report += f"- Total entries: {stats['total_entries']}\n"
         
@@ -215,7 +215,7 @@ class ChangeLogAnalysisTemplate:
             percentage = (count / stats['total_entries'] * 100) if stats['total_entries'] > 0 else 0
             report += f"- {status}: {count} ({percentage:.1f}%)\n"
         
-        # SOTA更新
+        # SOTAGüncelleme
         if stats['sota_updates']:
             report += "\n### SOTA Updates\n"
             for level, count in stats['sota_updates'].items():
@@ -225,14 +225,14 @@ class ChangeLogAnalysisTemplate:
     
     def run(self, custom_params: Dict[str, Any] = None):
         """
-        レポート生成を実行
+        レポートÜretimをYürütme
         
         Args:
             custom_params: カスタムパラメータ
         """
         params = custom_params or {}
         
-        # ファイル検索
+        # Dosya検索
         target_files = self.find_target_files(
             filename=params.get("filename", "ChangeLog.md"),
             exclude_dirs=params.get("exclude_dirs", ["Agent-shared", "GitHub", "BaseCode"])
@@ -240,7 +240,7 @@ class ChangeLogAnalysisTemplate:
         
         print(f"Found {len(target_files)} target files")
         
-        # データ収集
+        # Veri収集
         all_data = {}
         for file_path in target_files:
             try:
@@ -258,10 +258,10 @@ class ChangeLogAnalysisTemplate:
         # 集計
         stats = self.aggregate_data(all_data)
         
-        # レポート生成
+        # レポートÜretim
         report = self.generate_report(stats)
         
-        # ファイル保存
+        # DosyaKaydetme
         now = datetime.now(timezone.utc)
         report_path = self.reports_dir / f"report_{now.strftime('%Y%m%d_%H%M%S')}.md"
         with open(report_path, 'w', encoding='utf-8') as f:
@@ -272,15 +272,15 @@ class ChangeLogAnalysisTemplate:
         return report_path
 
 
-# 使用例（SEエージェントがカスタマイズして使用）
+# 使用Örnek（SEAjanがカスタマイズして使用）
 class HPCOptimizationAnalysis(ChangeLogAnalysisTemplate):
-    """HPC最適化プロジェクト用の解析カスタマイズ例"""
+    """HPCOptimizasyonProje用の解析カスタマイズÖrnek"""
     
     def extract_metadata(self, file_path: Path) -> Dict[str, Any]:
-        """プロジェクト固有のメタデータ抽出"""
+        """Proje固有のメタVeri抽出"""
         metadata = super().extract_metadata(file_path)
         
-        # ディレクトリ名から技術を動的に抽出
+        # Dizin名から技術を動的に抽出
         parts = file_path.parts
         technologies = []
         
@@ -292,7 +292,7 @@ class HPCOptimizationAnalysis(ChangeLogAnalysisTemplate):
             else:
                 technologies.append(part)
         
-        # よく知られた技術名をフィルタ（必要に応じて追加）
+        # よく知られた技術名をフィルタ（必要に応じてEkleme）
         known_techs = ["OpenMP", "MPI", "CUDA", "OpenACC", "AVX", "AVX2", "AVX512"]
         found_techs = [t for t in technologies if any(k in t for k in known_techs)]
         
@@ -311,4 +311,4 @@ if __name__ == "__main__":
     # hpc_analyzer = HPCOptimizationReport()
     # hpc_analyzer.run()
     
-    # 注: このスクリプトはAgent-shared/tools/に配置することを推奨
+    # 注: このScriptはAgent-shared/tools/に配置することをÖnerilen

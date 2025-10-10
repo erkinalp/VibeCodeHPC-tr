@@ -1,140 +1,140 @@
-# VibeCodeHPC - Multi Agentic Vibe Coding for HPC
+# VibeCodeHPC - HPC için Çoklu Ajanlı Vibe Kodlama
 
-VibeCodeHPCは、HPC向けの全自動で環境構築・コード最適化を行うマルチエージェントシステムです。
-Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエージェントが協調します。
+VibeCodeHPC, HPC için tam otomatik ortam kurulumu ve kod optimizasyonu gerçekleştiren bir çoklu ajan sistemidir.
+Claude Code gibi CLI ortamlarında tmux kullanılarak iletişim sağlanır ve birden fazla AI ajanı işbirliği yapar.
 
-![マルチエージェント実行時のスクショ](_images/MultiAgentUI.png)
+![Çoklu ajan çalışma ekran görüntüsü](_images/MultiAgentUI.png)
 
-## Paper
+## Makale
 - [📝arXiv (2025/10/02)](https://arxiv.org/abs/2510.00031)
-- [🎞️Googleスライド（実験編）](https://docs.google.com/presentation/d/1u9aK52nouAgjFTTchJAiZm5HglynGwl-Hwi97EK2Gis/edit?usp=sharing)
-- [Multiエージェントの実験結果](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
-- [Soloエージェントの実験結果](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-solo-ex1/blob/solo_commited_push_later/User-shared/reports/final_report.md)
+- [🎞️Google Slaytları (Deney Bölümü)](https://docs.google.com/presentation/d/1u9aK52nouAgjFTTchJAiZm5HglynGwl-Hwi97EK2Gis/edit?usp=sharing)
+- [Çoklu Ajan Deney Sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
+- [Tekli Ajan Deney Sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-solo-ex1/blob/solo_commited_push_later/User-shared/reports/final_report.md)
 
-## システム概要
+## Sistem Özeti
 
-### 特徴
-- **階層型マルチエージェント**: PM → SE ↔ PG の企業的分業体制
-- **プロジェクト地図**: 組織をリアルタイムに視覚化する`directory_pane_map`
-- **進化的探索**: ボトムアップ型の`Flat`📁構造による効率的探索
-- **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
-- **予算管理**: 計算資源💰の効率的配分と追跡
-- **統一ログ**: `ChangeLog.md`による一元的な進捗管理
+### Özellikler
+- **Hiyerarşik Çoklu Ajan**: PM → SE ↔ PG kurumsal iş bölümü yapısı
+- **Proje Haritası**: Organizasyonu gerçek zamanlı görselleştiren `directory_pane_map`
+- **Evrimsel Keşif**: Aşağıdan yukarıya `Flat`📁 yapısı ile verimli keşif
+- **Otomatik Optimizasyon**: OpenMP, MPI, OpenACC, CUDA... gibi aşamalı paralelleştirme ve teknoloji entegrasyonu
+- **Bütçe Yönetimi**: Hesaplama kaynaklarının💰 verimli dağıtımı ve takibi
+- **Birleşik Günlük**: `ChangeLog.md` ile merkezi ilerleme yönetimi
 
-### 対応環境
-- **スパコン**: 不老、富岳等のHPCシステム
-- **コンパイラ**: Intel OneAPI、GCC、NVIDIA HPC SDK...
+### Desteklenen Ortamlar
+- **Süperbilgisayar**: Furo, Fugaku gibi HPC sistemleri
+- **Derleyici**: Intel OneAPI, GCC, NVIDIA HPC SDK...
 
-## 🏗️ エージェント構成
+## 🏗️ Ajan Yapısı
 
 ```mermaid
 graph TD
-    User[👤 User] --> PM[🤖 PM<br/>Project Manager]
-    PM --> SE1[🤖 SE1<br/>System Engineer]
-    PM --> CD[🤖 CD<br/>Continuous Delivery]
+    User[👤 Kullanıcı] --> PM[🤖 PM<br/>Proje Yöneticisi]
+    PM --> SE1[🤖 SE1<br/>Sistem Mühendisi]
+    PM --> CD[🤖 CD<br/>Sürekli Teslimat]
     
     SE1 <--> PG1[🤖 PG1.1<br/>OpenMP]
     SE1 <--> PG2[🤖 PG1.2<br/>MPI]
     SE1 <--> PG3[🤖 PG1.3<br/>CUDA]
     
-    CD --> GitHub[📦 GitHub Repository]
+    CD --> GitHub[📦 GitHub Deposu]
 ```
 
-### 🤖 エージェント役割
+### 🤖 Ajan Rolleri
 
-| Agent | 役割 | 主要成果物 | 責任範囲 |
+| Ajan | Rol | Ana Çıktılar | Sorumluluk Alanı |
 |-------|------|------------|----------|
-| **PM** | プロジェクト統括 | directory_pane_map.md<br/>User-shared/final_report.md | 要件定義・リソース配分・予算管理 |
-| **SE** | システム設計 | User-shared/の画像とレポート | エージェント監視・統計分析・レポート生成 |
-| **PG** | コード生成・実行 | ChangeLog.md<br/>sota_local.txt | 並列化実装・SSH/SFTP接続・ジョブ実行・性能測定 |
-| **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
+| **PM** | Proje Koordinasyonu | directory_pane_map.md<br/>User-shared/final_report.md | Gereksinim tanımı · Kaynak dağıtımı · Bütçe yönetimi |
+| **SE** | Sistem Tasarımı | User-shared/ içindeki görseller ve raporlar | Ajan izleme · İstatistiksel analiz · Rapor oluşturma |
+| **PG** | Kod Üretimi · Çalıştırma | ChangeLog.md<br/>sota_local.txt | Paralelleştirme uygulaması · SSH/SFTP bağlantısı · İş yürütme · Performans ölçümü |
+| **CD** | Dağıtım Yönetimi | GitHub/ altındaki proje kopyası | SOTA başarı kodu yayınlama · Anonimleştirme |
 
-## 📁 ディレクトリ構造
+## 📁 Dizin Yapısı
 
 ```
 VibeCodeHPC/🤖PM
-├── 📄 CLAUDE.md                     # 全エージェント共通ルール
-├── 📄 requirement_definition.md     # 要件定義書
-├── 📄 directory_pane_map.md         # エージェント配置とtmuxペイン統合管理
-├── 📄 sota_project.txt              # プロジェクト全体SOTA
+├── 📄 CLAUDE.md                     # Tüm ajanlar için ortak kurallar
+├── 📄 requirement_definition.md     # Gereksinim tanım belgesi
+├── 📄 directory_pane_map.md         # Ajan yerleşimi ve tmux bölme entegre yönetimi
+├── 📄 sota_project.txt              # Proje genelinde SOTA
 │
-├── 📁 Agent-shared/                 # エージェント共有指示書
+├── 📁 Agent-shared/                 # Ajanlar arası paylaşılan talimatlar
 │
-├── 📁 User-shared/                  # ユーザ向け成果物
-│   ├── 📄 final_report.md           # 最終報告書
-│   ├── 📁 reports/                  # 統合レポート
-│   └── 📁 visualizations/           # グラフ・図表
+├── 📁 User-shared/                  # Kullanıcıya yönelik çıktılar
+│   ├── 📄 final_report.md           # Nihai rapor
+│   ├── 📁 reports/                  # Entegre raporlar
+│   └── 📁 visualizations/           # Grafikler · Şekiller
 │
-├── 📁 BaseCode/                     # 既存のオリジナルコード
+├── 📁 BaseCode/                     # Mevcut orijinal kod
 │
-├── 📁 communication/                # エージェント起動・tmux通信システム
+├── 📁 communication/                # Ajan başlatma · tmux iletişim sistemi
 │
 ├── 📁 GitHub/🤖CD
 │
-└── 📁 Flow/TypeII/single-node/🤖SE1 # ハードウェア階層
-    ├── 📄 hardware_info.md          # 計算ノードのスペック情報
-    ├── 📄 sota_hardware.txt         # 指定ハード内のSOTA
-    ├── 📁 intel2024/                 # コンパイラ環境                       
-    │   └── 📁 OpenMP/🤖PG1.1.1      # 並列化モジュール
-    │        ├── 📄 ChangeLog.md      # 進捗記録
+└── 📁 Flow/TypeII/single-node/🤖SE1 # Donanım katmanı
+    ├── 📄 hardware_info.md          # Hesaplama düğümü spesifikasyon bilgileri
+    ├── 📄 sota_hardware.txt         # Belirtilen donanımdaki SOTA
+    ├── 📁 intel2024/                 # Derleyici ortamı                       
+    │   └── 📁 OpenMP/🤖PG1.1.1      # Paralelleştirme modülü
+    │        ├── 📄 ChangeLog.md      # İlerleme kaydı
     │        └── 📄 sota_local.txt
-    └── 📁 gcc11.3.0/                 # 別コンパイラ
+    └── 📁 gcc11.3.0/                 # Alternatif derleyici
         └── 📁 CUDA/🤖PG1.2.1
 ```
 
-## 🔄 ワークフロー
+## 🔄 İş Akışı
 
-### エージェント動作パターン
+### Ajan Çalışma Modelleri
 
-#### **⏳ ポーリング型** (PM, SE, PG, CD)
-- **特徴**: 常にファイルやステータスを確認し、自律的に非同期で行動
-- **例**: PMが全エージェントを巡回監視→リソース再配分
-- **例**: PGがコード生成→自律的に実行→結果確認→次の最適化
+#### **⏳ Yoklama Tipi** (PM, SE, PG, CD)
+- **Özellik**: Sürekli olarak dosyaları ve durumu kontrol eder, özerk olarak asenkron hareket eder
+- **Örnek**: PM tüm ajanları sırayla izler → Kaynakları yeniden dağıtır
+- **Örnek**: PG kod üretir → Özerk olarak çalıştırır → Sonuçları kontrol eder → Sonraki optimizasyon
 
-#### **➡️ フロー駆動型** (PM初期のみ)
-- **特徴**: 一連のタスクを順次実行し、各ステップで判断
-- **例**: 要件定義→環境調査→階層設計→エージェント配置
+#### **➡️ Akış Güdümlü Tip** (Yalnızca PM başlangıcı)
+- **Özellik**: Bir dizi görevi sırayla yürütür, her adımda karar verir
+- **Örnek**: Gereksinim tanımı → Ortam araştırması → Katman tasarımı → Ajan yerleşimi
 
-### 1. エージェント起動時のhooksセットアップ
+### 1. Ajan başlatmada hooks kurulumu
 
 ```mermaid
 flowchart TB
-      %% 起動スクリプトの包含関係
-      subgraph StartScripts["🚀 起動スクリプト"]
-      User[👤 ユーザー] 
+      %% Başlatma scriptlerinin içerme ilişkileri
+      subgraph StartScripts["🚀 Başlatma Scriptleri"]
+      User[👤 Kullanıcı] 
       PM[🤖 PM]
-      User -->StartPM[start_PM.sh<br/>PMプロセス専用]
-      PM -->StartAgent[start_agent.sh<br/>他エージェント用]
+      User -->StartPM[start_PM.sh<br/>PM süreci özel]
+      PM -->StartAgent[start_agent.sh<br/>Diğer ajanlar için]
 
-          StartPM -->|直接実行| LaunchClaude
-          StartAgent -->|生成| LocalScript[start_agent_local.sh]
-          LocalScript -->|実行| LaunchClaude
+          StartPM -->|Doğrudan çalıştırma| LaunchClaude
+          StartAgent -->|Üretim| LocalScript[start_agent_local.sh]
+          LocalScript -->|Çalıştırma| LaunchClaude
       end
 
-      %% 共通処理の流れ
-      subgraph CommonFlow["🔄 共通処理フロー"]
+      %% Ortak işleme akışı
+      subgraph CommonFlow["🔄 Ortak İşleme Akışı"]
           LaunchClaude[launch_claude_with_env.sh]
-          LaunchClaude -->|1.hooks設定判定| SetupHooks[setup_agent_hooks.sh]
-          LaunchClaude -->|2.telemetry設定判定| EnvSetup[環境変数設定<br/>.env読み込み]
+          LaunchClaude -->|1.hooks ayar tespiti| SetupHooks[setup_agent_hooks.sh]
+          LaunchClaude -->|2.telemetry ayar tespiti| EnvSetup[Ortam değişkeni ayarı<br/>.env okuma]
           LaunchClaude -->|3.claude --dangerously-skip-permissions| Claude[claude --dangerously-skip-permissions]
       end
 
-      %% データフロー
-      subgraph DataFlow["💾 データ管理"]
-          SetupHooks -->|配置| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt ]
+      %% Veri akışı
+      subgraph DataFlow["💾 Veri Yönetimi"]
+          SetupHooks -->|Yerleştirme| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt ]
 
-          LocalScript -->|working_dir記録| JSONL
-          Claude -->|SessionStartイベント| SessionHook[session_start.py]
-          SessionHook -->|agent_id.txt参照<br/>claude_session_id記録| JSONL
+          LocalScript -->|working_dir kaydı| JSONL
+          Claude -->|SessionStart olayı| SessionHook[session_start.py]
+          SessionHook -->|agent_id.txt referansı<br/>claude_session_id kaydı| JSONL
 
           JSONL[(agent_and_pane_id_table.jsonl)]
       end
 
-      %% Stop hookの動作フロー
-      Claude[claude起動] -->|Stopイベント| StopHook[stop.py実行]
-      StopHook -->|polling型| PreventWait[待機防止タスク提示]
+      %% Stop hook'un çalışma akışı
+      Claude[claude başlatma] -->|Stop olayı| StopHook[stop.py çalıştırma]
+      StopHook -->|polling tipi| PreventWait[Bekleme önleme görevi sunma]
 
-      %% スタイリング
+      %% Stillendirme
       style StartScripts fill:#fff8fc,stroke:#c2185b,stroke-width:2px
 
       style CommonFlow fill:#e3f2fd,stroke:#0288d1,stroke-width:3px
@@ -151,111 +151,111 @@ flowchart TB
       style SessionHook fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
 ```
 
-詳細は [Issue #23: エージェント起動とhooksのセットアップの流れ](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/23) を参照。
+Ayrıntılar için [Issue #23: Ajan başlatma ve hooks kurulum akışı](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/23) bölümüne bakınız.
 
-### 2. コード最適化サイクル
+### 2. Kod Optimizasyon Döngüsü
 
 ```mermaid
 sequenceDiagram
     participant PM as PM
     participant SE as SE
     participant PG as PG
-    participant HPC as スパコン
+    participant HPC as Süperbilgisayar
     
-    PM->>PG: 最適化タスク割り当て
-    PG->>HPC: SSH/SFTP接続確立
+    PM->>PG: Optimizasyon görevi atama
+    PG->>HPC: SSH/SFTP bağlantısı kurma
     
-    loop 最適化ループ
-        PG->>PG: コード生成・修正・ChangeLog.md記録
-        PG->>HPC: コード転送・コンパイル・ジョブ投入
-        HPC-->>PG: 実行結果・性能データ
-        PG->>SE: SOTA達成報告
+    loop Optimizasyon döngüsü
+        PG->>PG: Kod üretimi · Düzeltme · ChangeLog.md kaydı
+        PG->>HPC: Kod transferi · Derleme · İş gönderimi
+        HPC-->>PG: Çalıştırma sonuçları · Performans verileri
+        PG->>SE: SOTA başarı raporu
     end
     
-    SE->>SE: 統計分析・可視化（非同期）
+    SE->>SE: İstatistiksel analiz · Görselleştirme (asenkron)
 ```
 
-### 3. プロジェクト終了管理
+### 3. Proje Sonlandırma Yönetimi
 
-プロジェクトの終了条件とフローチャートは [Issue #33: プロジェクト終了条件と手順](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/33) を参照してください。
+Proje sonlandırma koşulları ve akış şeması için [Issue #33: Proje sonlandırma koşulları ve prosedürleri](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/33) bölümüne bakınız.
 
-# 🚀 クイックスタート
+# 🚀 Hızlı Başlangıç
 
-## 1. 事前セットアップ
-本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
+## 1. Ön Kurulum
+Bu sistemi kullanmadan önce, aşağıdaki ortamların kurulu olduğundan emin olun.
 
-### ☑️ VibeCodeHPCリポジトリのコードをダウンロード
+### ☑️ VibeCodeHPC deposu kodunu indirin
 
 > [!NOTE]
-> 以下の理由から VibeCodeHPC は git clone を用いずzipでダウンロードし展開することを推奨
+> Aşağıdaki nedenlerden dolayı VibeCodeHPC'yi git clone kullanmadan zip ile indirip açmanız önerilir
 > 
-> GitHub/📁でプロジェクトの匿名版コピーを管理するCDエージェントのGit認証との混同を避ける
+> GitHub/📁 içinde projenin anonim kopyasını yöneten CD ajanının Git kimlik doğrulamasıyla karışıklığı önlemek için
 
-#### GUIの場合
-[release](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/releases)から(mainからでもOK) ダウンロードした.zipを展開
+#### GUI durumunda
+[release](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/releases) sayfasından (main'den de olur) indirilen .zip dosyasını açın
 
-#### CLIの場合
+#### CLI durumunda
 <details>
-<summary>コマンドラインでダウンロードする場合（クリックで展開）</summary>
+<summary>Komut satırıyla indirme durumu (Tıklayarak genişletin)</summary>
 
-VibeCodeHPCをダウンロード
+VibeCodeHPC'yi indirin
 ```bash
-wget https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/archive/refs/tags/v{バージョン}.zip
+wget https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/archive/refs/tags/v{sürüm}.zip
 ```
 
-zip解凍
+zip'i açın
 ```bash
-unzip VibeCodeHPC-jp-{バージョン}.zip
+unzip VibeCodeHPC-jp-{sürüm}.zip
 ```
 
-展開後、VibeCodeHPCのルートへ移動
+Açtıktan sonra, VibeCodeHPC'nin kök dizinine gidin
 ```bash
-cd VibeCodeHPC-jp-{バージョン}
+cd VibeCodeHPC-jp-{sürüm}
 ```
 </details>
 
 ---
 
-### ☑️ **SSHエージェントの設定 (ssh-agent)**
-- スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
-- ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
+### ☑️ **SSH ajanı ayarı (ssh-agent)**
+- Süperbilgisayara şifresiz SSH bağlantısını etkinleştirmek için, `ssh-agent`'a özel anahtarı kaydedin.
+- ssh-agent'ı etkinleştirme adımları için [bu Google Slaytlarına bakınız](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
   
-  ssh-agentを起動：
+  ssh-agent'ı başlatın:
   ```bash
   eval "$(ssh-agent -s)"
   ```
   
-  秘密鍵を追加：
+  Özel anahtarı ekleyin:
   ```bash
   ssh-add ~/.ssh/your_private_key
   ```
-- 確認コマンド
+- Doğrulama komutu
   ```bash
   ssh-add -l
   ```
 > [!NOTE]
-> このターミナルを閉じるまでは有効で、tmuxのターミナル分割でも引き継がれます。
+> Bu terminal kapatılana kadar geçerlidir ve tmux terminal bölünmesinde de devralınır.
 
 
 ---
 
-### ☑️ **Claude Codeのインストールと認証**
-- Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
-- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
-- 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
+### ☑️ **Claude Code kurulumu ve kimlik doğrulama**
+- Windows durumunda, WSL (Ubuntu 22.04) kurun.
+- `nvm` üzerinden Node.js (v18 ve üzeri) kurulumu önerilir [Referans: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
+- Aşağıdaki komutla Claude Code'u kurun ve ilk başlatmada hesap kimlik doğrulamasını tamamlayın.
   ```bash
   npm install -g @anthropic-ai/claude-code
   claude
   ```
 
 
-### ☑️ **推奨ツールのインストール**
+### ☑️ **Önerilen araçların kurulumu**
 <details>
-<summary>tmux, jq, Python環境のインストール方法（クリックで展開）</summary>
+<summary>tmux, jq, Python ortamı kurulum yöntemi (Tıklayarak genişletin)</summary>
 
-VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
+VibeCodeHPC'nin tüm özelliklerini kullanmak için aşağıdaki araçların kurulumu önerilir:
 
-#### **tmux** - ターミナルマルチプレクサ（マルチエージェント通信基盤）
+#### **tmux** - Terminal çoklayıcı (Çoklu ajan iletişim altyapısı)
 
 Ubuntu/WSL:
 ```bash
@@ -264,7 +264,7 @@ sudo apt-get update && sudo apt-get install tmux
 
 CentOS/RHEL/Fedora:
 ```bash
-sudo yum install tmux  # または sudo dnf install tmux
+sudo yum install tmux  # veya sudo dnf install tmux
 ```
 
 macOS:
@@ -272,18 +272,18 @@ macOS:
 brew install tmux
 ```
 
-ユーザ権限でのインストール（sudo不可の環境）:
+Kullanıcı yetkisiyle kurulum (sudo kullanılamayan ortamlar):
 ```bash
 wget https://github.com/tmux/tmux/releases/download/3.4/tmux-3.4.tar.gz
 tar xzf tmux-3.4.tar.gz
 cd tmux-3.4
 ./configure --prefix=$HOME/.local
 make && make install
-export PATH=$HOME/.local/bin:$PATH  # .bashrcに追加推奨
+export PATH=$HOME/.local/bin:$PATH  # .bashrc'ye eklenmesi önerilir
 ```
-> シングルエージェントモード（`./start_solo.sh`）はtmuxなしでも動作しますが、セッション管理の観点からtmuxの使用を推奨
+> Tekli ajan modu (`./start_solo.sh`) tmux olmadan da çalışır, ancak oturum yönetimi açısından tmux kullanımı önerilir
 
-#### **jq** - JSONLファイル解析用
+#### **jq** - JSONL dosya ayrıştırma için
 
 Ubuntu/WSL:
 ```bash
@@ -294,445 +294,445 @@ macOS:
 ```bash
 brew install jq
 ```
-> エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
+> Ajanlar arası iletişimde (agent_send.sh) JSONL formatındaki tabloları verimli bir şekilde ayrıştırır
 
 
-#### **Pythonパッケージ** - 可視化とデータ分析用
+#### **Python paketleri** - Görselleştirme ve veri analizi için
 
-通常のインストール:
+Normal kurulum:
 ```bash
 pip3 install -r requirements.txt
 ```
 
-必要なパッケージ:
-- **matplotlib** - グラフ生成（SOTA推移、予算消費、コンテキスト使用率）
-- **numpy** - 数値計算（線形回帰、統計処理）
-- **pandas** - データ分析（ChangeLog.md解析、集計）
-- **scipy** - 統計分析（予算予測の線形回帰）
+Gerekli paketler:
+- **matplotlib** - Grafik oluşturma (SOTA geçişi, bütçe tüketimi, bağlam kullanım oranı)
+- **numpy** - Sayısal hesaplama (doğrusal regresyon, istatistiksel işleme)
+- **pandas** - Veri analizi (ChangeLog.md ayrıştırma, toplama)
+- **scipy** - İstatistiksel analiz (bütçe tahmini için doğrusal regresyon)
 
-> これらのパッケージは主に可視化スクリプトで使用されます。バージョンは厳密に指定していないため、最新版で問題ありません
+> Bu paketler esas olarak görselleştirme scriptlerinde kullanılır. Sürüm kesin olarak belirtilmediğinden, en son sürüm sorun çıkarmaz
 
-> 可視化スクリプトは `python3 script.py` で実行されます
+> Görselleştirme scriptleri `python3 script.py` ile çalıştırılır
 </details>
 
 ---
 
-### ☑️ **GitHubの認証（CDエージェントを使わない場合は不要）**
-GitHubのGUIでリポジトリ作成（Privateも可）
+### ☑️ **GitHub kimlik doğrulama (CD ajanı kullanılmıyorsa gerekli değildir)**
+GitHub GUI'de depo oluşturun (Private de olabilir)
 
-GitHub/📁に移動
+GitHub/📁 dizinine gidin
 ```bash
 cd GitHub
 ```
-Gitの設定済み情報が表示するコマンド
+Git'in yapılandırılmış bilgilerini görüntüleyen komut
 ```bash
 git config -l
 ```
 
-もしuser.emailとuser.nameが設定されていない場合：
+Eğer user.email ve user.name ayarlanmamışsa:
 ```bash
 git config --global user.email xxx@yyy.zzz
 git config --global user.name YOUR_GITHUB_NAME
 ```
 
-GitHubディレクトリの初期設定
+GitHub dizini başlangıç ayarı
 ```bash
 git init
 ```
 
-リモートリポジトリの設定
+Uzak depo ayarı
 ```bash
 git remote add origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
-# 既に origin がある場合は:
+# Zaten origin varsa:
 git remote set-url origin https://github.com/YOUR_NAME/YOUR_REPOSITORY.git
 ```
-#### GitのHTTPS(２段階)認証の方法
-➡以下のように選択肢は様々
+#### Git HTTPS (2 aşamalı) kimlik doğrulama yöntemi
+➡Aşağıdaki gibi çeşitli seçenekler var
 https://zenn.dev/miya789/articles/manager-core-for-two-factor-authentication
 
 <details>
-<summary>選択肢１：GCM</summary>
+<summary>Seçenek 1: GCM</summary>
 
-Git Credential Manager (GCM)が推奨。
+Git Credential Manager (GCM) önerilir.
 https://github.com/git-ecosystem/git-credential-manager/releases
 
-WSLで使用する際の注意
+WSL'de kullanırken dikkat edilmesi gerekenler
 https://zenn.dev/jeffi7/articles/dccb6f29fbb640
 </details>
 
 
 <details>
-<summary>選択肢２：gh</summary>
+<summary>Seçenek 2: gh</summary>
 
-gh (GitHub CLIツール)ダウンロード
+gh (GitHub CLI aracı) indirin
 ```bash
 sudo apt update
 sudo apt install gh
 ```
-ghでの認証
+gh ile kimlik doğrulama
 ```bash
 gh auth login
 ```
-ブラウザ経由でログイン
+Tarayıcı üzerinden giriş yapın
 </details>
 
 ---
 
-### ☑️ **MCPサーバのセットアップ**
+### ☑️ **MCP sunucu kurulumu**
 
-開始直前に以下のMCPサーバを設定することを推奨します：
+Başlamadan hemen önce aşağıdaki MCP sunucularını ayarlamanız önerilir:
 
-プロジェクトルート📂で起動するPM🤖にMCPサーバを与えます。
-**重要**: Claude Code起動前にMCPを設定してください。
+Proje kök dizininde📂 başlatılan PM🤖'ye MCP sunucularını verin.
+**Önemli**: Claude Code başlatılmadan önce MCP'yi ayarlayın.
 
 ```bash
 cd VibeCodeHPC-main
 ```
 
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
-PM、SE、PGがHPC環境へのSSH/SFTP接続を管理に活用
+PM, SE, PG'nin HPC ortamına SSH/SFTP bağlantı yönetiminde kullanması için
 ```bash
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
 
 [mcp-screenshot](https://github.com/kazuph/mcp-screenshot)
-PMが障害対応等でtmux全体の状況を視覚的な確認に活用
+PM'nin hata giderme vb. için tmux genel durumunu görsel olarak kontrol etmesinde kullanması için
 ```bash
 claude mcp add mcp-screenshot -- npx -y @kazuph/mcp-screenshot
 ```
 
 > [!WARNING]
-> **mcp-screenshotはWSLでは機能しません**
-> WSL環境ではスクリーンショット機能が動作しないため、OSネイティブなコマンドプロンプトでの使用を推奨します。
+> **mcp-screenshot WSL'de çalışmaz**
+> WSL ortamında ekran görüntüsü özelliği çalışmadığından, OS yerel komut isteminde kullanımı önerilir.
 
 
 
-![SSHで遠隔のコマンドも全自動で行うためのシステム構成](_images/safety_ssh.png)
+![SSH ile uzak komutların da tam otomatik olarak yürütülmesi için sistem yapısı](_images/safety_ssh_tr.png)
 ---
 
-## 2. 環境セットアップ
+## 2. Ortam Kurulumu
 
 ```bash
-# プロジェクトディレクトリに移動
+# Proje dizinine gidin
 cd VibeCodeHPC-jp-main
 ```
-#### OpenTelemetryの無効化（軽量動作）
+#### OpenTelemetry'yi devre dışı bırakma (hafif çalışma)
 
-環境変数で無効化:
+Ortam değişkeniyle devre dışı bırakın:
 ```bash
 export VIBECODE_ENABLE_TELEMETRY=false
 ```
 
-### 🔭 監視オプション
+### 🔭 İzleme Seçenekleri
 
-#### ccusage（簡易確認）
+#### ccusage (Basit kontrol)
 
 ```bash
-# セットアップ不要でトークン使用量を確認
+# Kurulum gerektirmeden token kullanımını kontrol edin
 npx ccusage@latest
 ```
 
 
-#### 📊 Grafana + Prometheus + Loki環境（非推奨のオプション）
+#### 📊 Grafana + Prometheus + Loki ortamı (Önerilmeyen seçenek)
 
 <details>
 
-監視環境の自動セットアップ:
+İzleme ortamının otomatik kurulumu:
 ```bash
 ./telemetry/setup_grafana.sh
 ```
 
-ブラウザでアクセス:
+Tarayıcıdan erişim:
 ```
 http://localhost:3000
 ```
 
-ログイン情報:
-- ユーザー名: `admin`
-- パスワード: `admin`
+Giriş bilgileri:
+- Kullanıcı adı: `admin`
+- Şifre: `admin`
 
 
-[ccusage](https://github.com/ryoppippi/ccusage)は、JSONLログからトークン使用量を分析するCLIツールです。
+[ccusage](https://github.com/ryoppippi/ccusage), JSONL günlüklerinden token kullanımını analiz eden bir CLI aracıdır.
 
-![Grafana起動成功時の画面表示例](_images/Grafana.png)
+![Grafana başarılı başlatma ekran görüntüsü örneği](_images/Grafana.png)
 
 
-Grafanaでメトリクスを確認する方法（OpenTelemetry有効時のみ）
+Grafana'da metrikleri kontrol etme yöntemi (Yalnızca OpenTelemetry etkin olduğunda)
 
-#### 基本的な使い方
-1. **Drilldown → Metrics** を選択
-   - ログイン後、特に事前準備なしで利用可能
-   - Cost（コスト）やToken数が自動的に可視化される
-   - エージェント別・時系列でのトークン消費を確認
+#### Temel kullanım
+1. **Drilldown → Metrics** seçin
+   - Giriş yaptıktan sonra, özellikle ön hazırlık olmadan kullanılabilir
+   - Maliyet (Cost) ve Token sayısı otomatik olarak görselleştirilir
+   - Ajan bazında · Zaman serisiyle token tüketimini kontrol edin
 
-![GrafanaでのMetrics可視化](_images/GrafanaMetrics.png)
+![Grafana'da Metrik görselleştirme](_images/GrafanaMetrics.png)
 
-2. **注意事項**
-   - Claude CodeのOpenTelemetryメトリクスはOTLP経由で送信
-   - デフォルトではローカルのCollector（4317ポート）に接続
-   - 詳細な設定は`telemetry/otel_config.env`で調整可能
+2. **Dikkat edilmesi gerekenler**
+   - Claude Code'un OpenTelemetry metrikleri OTLP üzerinden gönderilir
+   - Varsayılan olarak yerel Collector'a (4317 portu) bağlanır
+   - Ayrıntılı ayarlar `telemetry/otel_config.env`'de yapılabilir
 
 </details>
 
-### 🤖シングルエージェントモード (v0.5.3+)
+### 🤖Tekli Ajan Modu (v0.5.3+)
 
 <details>
-<summary>実験評価用シングルエージェントモード（クリックで展開）</summary>
+<summary>Deney değerlendirmesi için tekli ajan modu (Tıklayarak genişletin)</summary>
 
-実験評価用のシングルエージェントモードを追加しました。1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を担当します。
+Deney değerlendirmesi için tekli ajan modu eklendi. Tek bir Claude Code örneği tüm rolleri (PM/SE/PG/CD) üstlenir.
 
-使用方法
+Kullanım yöntemi
 ```bash
-# セットアップ（0ワーカー = シングルモード）
+# Kurulum (0 worker = tekli mod)
 ./communication/setup.sh 0 --project GEMM
 
-# エージェント起動
+# Ajan başlatma
 ./start_solo.sh
 ```
 
-起動後、以下のプロンプトが表示されるのでコピーして貼り付けてください：
+Başlatma sonrası, aşağıdaki prompt görüntülenir, kopyalayıp yapıştırın:
 ```
-あなたはVibeCodeHPCのシングルエージェントモードで動作します。
-全ての役割（PM/SE/PG/CD）を1人で担当し、効率的にプロジェクトを進めます。
+VibeCodeHPC'nin tekli ajan modunda çalışıyorsunuz.
+Tüm rolleri (PM/SE/PG/CD) tek başına üstlenip, projeyi verimli bir şekilde ilerletiyorsunuz.
 
-【初期設定】
-まず以下のファイルを読み込んでください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/SOLO.md（シングルモード専用の統合プロンプト）
-- requirement_definition.md（存在する場合）
-- Agent-shared/project_start_time.txt（プロジェクト開始時刻）
+【Başlangıç Ayarı】
+Önce aşağıdaki dosyaları okuyun:
+- CLAUDE.md (Tüm ajanlar için ortak kurallar)
+- instructions/SOLO.md (Tekli mod özel entegre prompt)
+- requirement_definition.md (Varsa)
+- Agent-shared/project_start_time.txt (Proje başlangıç zamanı)
 
-【ToDoリストによる役割管理】
-TodoWriteツールを積極的に使用し、各タスクに役割タグ（[PM], [SE], [PG], [CD]）を付けて管理してください。
+【ToDoList ile Rol Yönetimi】
+TodoWrite aracını aktif olarak kullanın ve her göreve rol etiketi ([PM], [SE], [PG], [CD]) ekleyerek yönetin.
 
-【時間管理】
-- プロジェクト開始時刻から経過時間を定期的に確認
-- requirement_definition.mdに時間制限がある場合は厳守
-- 予算管理と並行して時間効率も意識
+【Zaman Yönetimi】
+- Proje başlangıç zamanından geçen süreyi düzenli olarak kontrol edin
+- requirement_definition.md'de zaman sınırı varsa kesinlikle uyun
+- Bütçe yönetimiyle paralel olarak zaman verimliliğini de göz önünde bulundurun
 
-【効率的な実行順序】
-1. [PM] 要件定義と環境調査
-2. [SE] 環境構築
-3. [PG] 実装とテスト（ループ）
-4. [SE] 統計・可視化
-5. [CD] GitHub同期（必要時）
-6. [PM] 最終報告
+【Verimli Yürütme Sırası】
+1. [PM] Gereksinim tanımı ve ortam araştırması
+2. [SE] Ortam kurulumu
+3. [PG] Uygulama ve test (döngü)
+4. [SE] İstatistik · Görselleştirme
+5. [CD] GitHub senkronizasyonu (gerektiğinde)
+6. [PM] Nihai rapor
 
-agent_send.shは使用不要です（通信相手がいないため）。
-全ての処理を内部で完結させてください。
+agent_send.sh kullanılmasına gerek yoktur (iletişim karşı tarafı olmadığı için).
+Tüm işlemleri dahili olarak tamamlayın.
 
-プロジェクトを開始してください。
+Projeyi başlatın.
 ```
 
-#### 特徴
-- **統合実行**: 1つのインスタンスで全役割を実行
-- **ToDoリスト管理**: 役割切り替えを明示的に管理
-- **時間管理**: project_start_time.txtで経過時間を追跡
-- **マルチモードと同じ仕組み**: ChangeLog.md、SOTA管理等は共通
+#### Özellikler
+- **Entegre Yürütme**: Tek bir örnekte tüm rolleri yürütme
+- **ToDoList Yönetimi**: Rol değişimini açıkça yönetme
+- **Zaman Yönetimi**: project_start_time.txt ile geçen süreyi takip etme
+- **Çoklu mod ile aynı mekanizma**: ChangeLog.md, SOTA yönetimi vb. ortaktır
 
-詳細は `instructions/SOLO.md` を参照してください。
+Ayrıntılar için `instructions/SOLO.md` dosyasına bakınız.
 
 </details>
 
 
-### マルチエージェント:tmuxセッション作成
+### Çoklu Ajan: tmux Oturumu Oluşturma
 
 > [!IMPORTANT]
-> VibeCodeHPCは複数のtmuxセッションを使用します：
-> - **PMセッション**: PMエージェント専用（ユーザとの対話用）
->   - デフォルト: `Team1_PM`
->   - プロジェクト指定時: `{ProjectName}_PM`
-> - **ワーカーセッション**: その他のエージェント（SE, PG, CD）
->   - デフォルト: `Team1_Workers1`
->   - プロジェクト指定時: `{ProjectName}_Workers1`
+> VibeCodeHPC birden fazla tmux oturumu kullanır:
+> - **PM Oturumu**: PM ajanı özel (Kullanıcı ile etkileşim için)
+>   - Varsayılan: `Team1_PM`
+>   - Proje belirtildiğinde: `{ProjeAdı}_PM`
+> - **Worker Oturumu**: Diğer ajanlar (SE, PG, CD)
+>   - Varsayılan: `Team1_Workers1`
+>   - Proje belirtildiğinde: `{ProjeAdı}_Workers1`
 > 
-> 最小エージェント数は2です（SE + PG）
+> Minimum ajan sayısı 2'dir (SE + PG)
 
 ```bash
 cd VibeCodeHPC-jp-main
-./communication/setup.sh [ワーカー数]  # 例: ./communication/setup.sh 12
+./communication/setup.sh [Worker sayısı]  # Örnek: ./communication/setup.sh 12
 ```
 
 
-コマンドラインオプション:
+Komut satırı seçenekleri:
 <details>
-#   [ワーカー数]     : PM以外のエージェント総数 (最小: 2)
-#   --project <名前> : プロジェクト名を指定（例: GEMM, MatMul）
-#   --clean-only     : 既存セッションのクリーンアップのみ実行
-#   --dry-run        : 実際のセットアップを行わずに計画を表示
-#   --help           : ヘルプメッセージを表示
+#   [Worker sayısı]  : PM dışındaki toplam ajan sayısı (minimum: 2)
+#   --project <isim> : Proje adını belirtin (Örnek: GEMM, MatMul)
+#   --clean-only     : Yalnızca mevcut oturumları temizle
+#   --dry-run        : Gerçek kurulum yapmadan planı göster
+#   --help           : Yardım mesajını göster
 </details>
 
-#### プロジェクト名指定例:
+#### Proje adı belirtme örneği:
 ```bash
-./communication/setup.sh 12 --project GEMM  # デフォルト60秒間隔で定期Enter送信
-./communication/setup.sh 12 --project GEMM --periodic-enter 30  # 30秒間隔
-./communication/setup.sh 12 --project GEMM --periodic-enter 0  # 定期Enter無効
+./communication/setup.sh 12 --project GEMM  # Varsayılan 60 saniye aralıklarla periyodik Enter gönderimi
+./communication/setup.sh 12 --project GEMM --periodic-enter 30  # 30 saniye aralıklarla
+./communication/setup.sh 12 --project GEMM --periodic-enter 0  # Periyodik Enter devre dışı
 ```
-上記コマンドで `GEMM_PM`, `GEMM_Workers1` セッションを作成、残留メッセージ強制送信機能も起動
+Yukarıdaki komutla `GEMM_PM`, `GEMM_Workers1` oturumlarını oluşturur, kalan mesaj zorla gönderme özelliğini de başlatır
 
 
-#### 参考構成例（実際の配置はPMが決定）
+#### Referans yapılandırma örnekleri (Gerçek yerleşim PM tarafından belirlenir)
 
-| Workers | SE | PG | CD | 備考 |
+| Workers | SE | PG | CD | Not |
 |---------|----|----|-----|------|
-| 2 | 1 | 1 | 0 | 最小構成 |
-| 4 | 1 | 3 | 0 | 小規模 |
-| 8 | 2 | 5 | 1 | SE≧2で安定 |
-| 12 | 2 | 9 | 1 | 推奨構成 |
-| 16 | 3 | 12 | 1 | 大規模 |
+| 2 | 1 | 1 | 0 | Minimum yapılandırma |
+| 4 | 1 | 3 | 0 | Küçük ölçekli |
+| 8 | 2 | 5 | 1 | SE≧2 ile kararlı |
+| 12 | 2 | 9 | 1 | Önerilen yapılandırma |
+| 16 | 3 | 12 | 1 | Büyük ölçekli |
 
-#### 2つのターミナルタブでそれぞれアタッチ
-プロジェクト名を`GEMM`に指定した場合の例
+#### 2 terminal sekmesinde ayrı ayrı bağlanma
+Proje adını `GEMM` olarak belirtme durumu örneği
 
-タブ1（PMエージェント用）:
+Sekme 1 (PM ajanı için):
 ```bash
 tmux attach-session -t GEMM_PM
 ```
-タブ2（その他のエージェント用）:
+Sekme 2 (Diğer ajanlar için):
 ```bash
 tmux attach-session -t GEMM_Workers1
 ```
 
 > [!TIP]
-> setup.shの出力に表示される実際のセッション名を使用してください。
+> setup.sh çıktısında görüntülenen gerçek oturum adını kullanın.
 
-### 3. プロジェクト開始
-要件定義（skipした場合は、PMと対話的に作成）
+### 3. Proje Başlatma
+Gereksinim tanımı (skip edilmişse, PM ile etkileşimli olarak oluşturun)
 ```bash
 cp requirement_definition_template.md requirement_definition.md
-# requirement_definition.mdを編集
+# requirement_definition.md'yi düzenleyin
 ```
 
-PMを起動
+PM'yi başlatın
 ```bash
 ./start_PM.sh
 ```
 
 <details>
-<summary>その他の起動オプション（クリックで展開）</summary>
+<summary>Diğer başlatma seçenekleri (Tıklayarak genişletin)</summary>
 
 ```bash
-# telemetryのみ（hooksなし、待機防止が無効）
+# Yalnızca telemetry (hooks yok, bekleme önleme devre dışı)
 ./telemetry/launch_claude_with_env.sh PM
 
-# 最小構成（hooks・telemetryなし）
+# Minimum yapılandırma (hooks · telemetry yok)
 claude --dangerously-skip-permissions
 
-# telemetryのみ無効化（PM起動時）
+# Yalnızca telemetry devre dışı (PM başlatma sırasında)
 VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
-# ⚠️ hooksの無効化は非推奨（ポーリング型エージェントが待機してしまう）
-# どうしても無効化したい場合は、プロジェクト開始前に以下を実行：
+# ⚠️ hooks'ları devre dışı bırakmak önerilmez (Yoklama tipi ajanlar beklemede kalır)
+# Yine de devre dışı bırakmak isterseniz, proje başlamadan önce aşağıdakini çalıştırın:
 # export VIBECODE_ENABLE_HOOKS=false
 ```
 
-**注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
+**Dikkat**: PM yoklama tipi bir ajan olduğundan, hooks'ları devre dışı bırakırsanız bekleme durumuna girer.
 </details>
 
-### 🪝 Claude Code Hooks機能
+### 🪝 Claude Code Hooks Özelliği
 
-エージェントの挙動を制御するhooks機能により、以下が実現されます：
+Ajan davranışını kontrol eden hooks özelliği ile aşağıdakiler gerçekleştirilir:
 
-#### 主な機能
-- [x] **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
-- [x] **SSH/SFTP接続支援**: PostToolUseフックがSSH接続を検出し、Desktop Commander MCPでのセッション管理方法を自動案内
-- [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
+#### Ana Özellikler
+- [x] **Yoklama Tipi Ajanların (PM, SE, PG, CD) Bekleme Önleme**: Periyodik görevleri otomatik sunar
+- [x] **SSH/SFTP Bağlantı Desteği**: PostToolUse hook'u SSH bağlantısını tespit eder ve Desktop Commander MCP ile oturum yönetim yöntemini otomatik olarak gösterir
+- [x] **session_id Takibi**: Her ajanın Claude session_id'sini kaydeder · yönetir
 
-#### STOP Hooksバージョンの選択
+#### STOP Hooks Sürüm Seçimi
 ```bash
-# v3（デフォルト）確率的に生のドキュメントを提供
+# v3 (Varsayılan) Olasılıklı olarak ham belge sağlar
 ./communication/setup.sh 12
 
-# v2: ファイルパスのみ提供（レガシー）
+# v2: Yalnızca dosya yolu sağlar (Eski)
 ./communication/setup.sh 12 --hooks v2
 ```
 
-- **v3**: 全モード推奨。`auto_tuning_config.json`で役割別の確率カスタマイズ可能
-- **v2**: 旧バージョン。固定ファイルリストのみ提供
-- **SOLO**: 常にv3を使用（v2指定は無視される）
+- **v3**: Tüm modlar için önerilir. `auto_tuning_config.json` ile rol bazında olasılık özelleştirmesi yapılabilir
+- **v2**: Eski sürüm. Yalnızca sabit dosya listesi sağlar
+- **SOLO**: Her zaman v3 kullanır (v2 belirtimi göz ardı edilir)
 
-⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機状態に入りプロジェクト未達成のまま終了するリスク大
+⚠️ hooks devre dışı bırakma önerilmez - Yoklama tipi ajanlar bekleme durumuna girer ve proje başarısız olarak sona erer riski büyük
 
-#### カスタム監視モード（v0.7+）
+#### Özel İzleme Modu (v0.7+)
 
-公式hooks不安定時の代替として、tmux監視による状態検出を提供します。
+Resmi hooks kararsız olduğunda alternatif olarak, tmux izleme ile durum tespiti sağlar.
 
-**有効化方法**:
+**Etkinleştirme yöntemi**:
 ```bash
 export CLI_HOOKS_MODE=custom
 ./communication/setup.sh 12
 ```
 
-- **機能**: Stop/SessionStart/PostToolUse hooksをtmux capture-pane経由で実現
-- **詳細**: [Issue #45](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/45)
+- **Özellik**: Stop/SessionStart/PostToolUse hooks'larını tmux capture-pane üzerinden gerçekleştirir
+- **Ayrıntılar**: [Issue #45](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/45)
 
-詳細は `hooks/hooks_deployment_guide.md` を参照してください。
+Ayrıntılar için `hooks/hooks_deployment_guide.md` dosyasına bakınız.
 
 
-起動後、以下のプロンプトをコピーして貼り付け：
+Başlatma sonrası, aşağıdaki prompt'u kopyalayıp yapıştırın:
 ```
-あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
+Siz PM (Proje Yöneticisi)'siniz. VibeCodeHPC projesini başlatıyorsunuz.
 
-まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/PM.md（あなたの役割詳細）
-- requirement_definition.md（プロジェクト要件）※存在する場合
-- Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイルを除く）
+Öncelikle aşağıdaki dosyaları okuyarak projenin genel resmini kavrayın:
+- CLAUDE.md (Tüm ajanlar için ortak kurallar)
+- instructions/PM.md (Sizin rol detaylarınız)
+- requirement_definition.md (Proje gereksinimleri) ※Varsa
+- Agent-shared/ altındaki tüm .md ve .txt dosyaları (ancak .py dosyaları hariç)
 
-特に重要：
-- max_agent_number.txt（利用可能なワーカー数）
-- agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
-- directory_pane_map_example.md（エージェント配置とペイン管理）
-- sota_management.md（SOTA管理方法とfamilyの重要性）
+Özellikle önemli:
+- max_agent_number.txt (Kullanılabilir worker sayısı)
+- agent_and_pane_id_table.jsonl (Oturum yapılandırması ve ajan yönetimi)
+- directory_pane_map_example.md (Ajan yerleşimi ve bölme yönetimi)
+- sota_management.md (SOTA yönetim yöntemi ve family'nin önemi)
 
-全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
+Tümünü okuduktan sonra, ilgili mevcut tmux oturumunu kullanarak projeyi başlatın. Yeni oturum oluşturmayın.
 ```
 
 ---
 
-## 📈 SOTA管理システム
+## 📈 SOTA Yönetim Sistemi
 
-### 4階層SOTA追跡
+### 4 Katmanlı SOTA Takibi
 
-| 名称 | 最高性能のスコープ |
+| İsim | En Yüksek Performans Kapsamı |
 |---------|------------------------|
-| **Local** | PG自身のディレクトリ内 |
-| **Family** | 技術系統（親子世代の関係） |
-| **Hardware** | 同一ハードウェア構成内（single-node/multi-node等） |
-| **Project** | プロジェクト全体 |
+| **Local** | PG'nin kendi dizini içinde |
+| **Family** | Teknoloji soy ağacı (ebeveyn-çocuk nesil ilişkisi) |
+| **Hardware** | Aynı donanım yapılandırması içinde (single-node/multi-node vb.) |
+| **Project** | Proje genelinde |
 
-各階層でのSOTA判定により、効率的なベンチマーク比較と最適化方針決定を自動化。
+Her katmandaki SOTA tespiti ile, verimli kıyaslama karşılaştırması ve optimizasyon politikası kararını otomatikleştirir.
 
-### SOTA性能推移の可視化
+### SOTA Performans Geçişinin Görselleştirilmesi
 
-![Hardware Level SOTA Performance](_images/generation_hardware_count.png)
+![Donanım Seviyesi SOTA Performansı](_images/generation_hardware_count.png)
 
-異なるミドルウェア（gcc, intel等）のデータを統合し、ハードウェア（single-node）構成全体での性能変遷が自動プロットされる。
-特にその時点での最高性能：SOTA（State-of-the-Art）を可視化する。
+Farklı ara yazılım (gcc, intel vb.) verilerini entegre eder ve donanım (single-node) yapılandırması genelinde performans değişimi otomatik olarak çizdirilir.
+Özellikle o andaki en yüksek performans: SOTA (State-of-the-Art) görselleştirilir.
 
-### 予算消費のリアルタイム追跡
+### Bütçe Tüketiminin Gerçek Zamanlı Takibi
 
-![Budget Usage Timeline](_images/budget_usage.png)
+![Bütçe Kullanım Zaman Çizelgesi](_images/budget_usage.png)
 
-HPC予算の消費をリアルタイムで追跡し、線形回帰による予測と閾値到達時刻（ETA）を表示。多くのスパコンでは前日までの集計しか確認できませんが、ChangeLog.mdから即座に推定値を算出します。
+HPC bütçesinin tüketimini gerçek zamanlı olarak takip eder, doğrusal regresyonla tahmin ve eşik ulaşma zamanını (ETA) gösterir. Çoğu süperbilgisayarda yalnızca önceki güne kadarki toplam kontrol edilebilir, ancak ChangeLog.md'den anında tahmin değeri hesaplanır.
 
-### ChangeLog.md統一フォーマット
+### ChangeLog.md Birleşik Formatı
 
-エージェント間の情報共有を実現する統一ログシステム。
+Ajanlar arası bilgi paylaşımını gerçekleştiren birleşik günlük sistemi.
 
-実際の`ChangeLog.md`例：
+Gerçek `ChangeLog.md` örneği:
 
 ---
 
 ### v1.1.0
-**変更点**: "ブロッキング最適化とスレッド数調整"  
-**結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
-**コメント**: "ブロックサイズを64から128に変更、キャッシュ効率が大幅改善"  
+**Değişiklik**: "Blok optimizasyonu ve iş parçacığı sayısı ayarlaması"  
+**Sonuç**: Teorik performansın %65.1'ine ulaşıldı `312.4 GFLOPS`  
+**Yorum**: "Blok boyutu 64'ten 128'e değiştirildi, önbellek verimliliği büyük ölçüde iyileşti"  
 
 <details>
 
-- **生成時刻**: `2025-08-20T10:30:00Z`
+- **Oluşturma zamanı**: `2025-08-20T10:30:00Z`
 - [x] **compile**
     - status: `success`
     - warnings: `none`
@@ -760,13 +760,13 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 ---
 
 ### v1.0.0
-**変更点**: "初期OpenMP実装"  
-**結果**: ベースライン確立 `248.3 GFLOPS`  
-**コメント**: "基本的なOpenMP並列化を外側ループに適用"  
+**Değişiklik**: "İlk OpenMP uygulaması"  
+**Sonuç**: Temel çizgi oluşturuldu `248.3 GFLOPS`  
+**Yorum**: "Temel OpenMP paralelleştirmesi dış döngüye uygulandı"  
 
 <details>
 
-- **生成時刻**: `2025-08-20T10:15:00Z`
+- **Oluşturma zamanı**: `2025-08-20T10:15:00Z`
 - [x] **compile**
     - status: `success`
     - warnings: `none`
@@ -789,62 +789,62 @@ HPC予算の消費をリアルタイムで追跡し、線形回帰による予�
 
 ---
 
-- 詳細：[Agent-shared/change_log/ChangeLog_format.md](Agent-shared/change_log/ChangeLog_format.md)
-- PMオーバーライド：[Agent-shared/change_log/ChangeLog_format_PM_override_template.md](Agent-shared/change_log/ChangeLog_format_PM_override_template.md)
+- Ayrıntılar: [Agent-shared/change_log/ChangeLog_format.md](Agent-shared/change_log/ChangeLog_format.md)
+- PM Geçersiz Kılma: [Agent-shared/change_log/ChangeLog_format_PM_override_template.md](Agent-shared/change_log/ChangeLog_format_PM_override_template.md)
 
-## 🧬 進化的最適化アプローチ
+## 🧬 Evrimsel Optimizasyon Yaklaşımı
 
-### 段階的進化プロセス
-1.  **🌱 種子期**: 単一技術の個別最適化 (`/OpenMP/`, `/MPI/`, `/AVX512/`, `/CUDA/`)
-2.  **🌿 交配期**: 有望技術の融合 (`/OpenMP_MPI/`, `/MPI_CUDA/`)
-3.  **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
+### Aşamalı Evrim Süreci
+1.  **🌱 Tohum Dönemi**: Tek teknolojinin bireysel optimizasyonu (`/OpenMP/`, `/MPI/`, `/AVX512/`, `/CUDA/`)
+2.  **🌿 Çaprazlama Dönemi**: Umut verici teknolojilerin füzyonu (`/OpenMP_MPI/`, `/MPI_CUDA/`)
+3.  **🌳 Islah Dönemi**: Gelişmiş kombinasyonlar (`/OpenMP_MPI_AVX512/`)
 
-### 📁Flat Directory の利点
-- **階層の曖昧性解消**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` の重複排除
-- **並列探索効率化**: 複数エージェントによる同時最適化
-- **技術継承**: 上位世代が下位世代の成果を参照可能
+### 📁Flat Directory Avantajları
+- **Katman Belirsizliğinin Giderilmesi**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` tekrarını önleme
+- **Paralel Keşif Verimliliği**: Birden fazla ajan tarafından eşzamanlı optimizasyon
+- **Teknoloji Mirası**: Üst neslin alt neslin başarılarına başvurabilmesi
 
-- [ ] 詳細: [Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md](Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md)
+- [ ] Ayrıntılar: [Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md](Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md)
 
-## 🔍 ファイルベースの情報共有
+## 🔍 Dosya Tabanlı Bilgi Paylaşımı
 
-### 成果物の管理
-- 成果物配置: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
-- SOTA管理: [Agent-shared/sota/sota_management.md](Agent-shared/sota/sota_management.md)
-- レポート階層: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
+### Çıktıların Yönetimi
+- Çıktı yerleşimi: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
+- SOTA yönetimi: [Agent-shared/sota/sota_management.md](Agent-shared/sota/sota_management.md)
+- Rapor katmanları: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
 > [!IMPORTANT]
-> **ユーザ向け成果物**
-> プロジェクトの成果は`User-shared/`ディレクトリに集約されます：
+> **Kullanıcıya Yönelik Çıktılar**
+> Projenin çıktıları `User-shared/` dizininde toplanır:
 
 > [!TIP]
-> **エージェント可視化**
-> 各エージェントのコンテキスト推移を可視化
-> SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
+> **Ajan Görselleştirmesi**
+> Her ajanın bağlam geçişini görselleştirin
+> SE sorumluluğundaki istatistiksel analiz ile, performans geçişini ve SOTA güncelleme geçmişini gerçek zamanlı izleme.
 
-## 🔭 監視とメトリクス
+## 🔭 İzleme ve Metrikler
 
-### 組み込みコンテキスト監視
+### Yerleşik Bağlam İzleme
 
-![Context Usage by Agents](_images/context_usage_agents.png)
+![Ajanlara Göre Bağlam Kullanımı](_images/context_usage_agents.png)
 
-エージェントごとのコンテキスト使用量を自動追跡し、auto-compact（メモリリセット）の発生を予測・検知する監視機能を標準搭載。各エージェントの消費量を可視化し、効率的なリソース管理を支援します。
+Ajan bazında bağlam kullanım miktarını otomatik olarak takip eder, auto-compact (bellek sıfırlama) oluşumunu tahmin eder ve tespit eden izleme özelliği standart olarak yerleşiktir. Her ajanın tüketim miktarını görselleştirir ve verimli kaynak yönetimini destekler.
 
-### OpenTelemetry監視（オプション）
+### OpenTelemetry İzleme (İsteğe Bağlı)
 
-より詳細なトークン使用量やコスト、ツール実行状況の分析が必要な場合は、組み込みのOpenTelemetryによる監視が可能です。ただし、スパコン環境への導入が困難な場合があるため、オプション機能として提供しています。
+Daha ayrıntılı token kullanım miktarı, maliyet, araç yürütme durumu analizi gerekiyorsa, yerleşik OpenTelemetry ile izleme mümkündür. Ancak süperbilgisayar ortamına kurulumun zor olabileceği için, isteğe bağlı özellik olarak sunulmaktadır.
 
-監視設定は[「2. 環境セットアップ」](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) の監視オプションを参照してください。
+İzleme ayarları için [「2. Ortam Kurulumu」](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp#-%E7%9B%A3%E8%A6%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3) bölümündeki izleme seçeneklerine bakınız.
 
-詳細設定: [telemetry/README.md](telemetry/README.md)
+Ayrıntılı ayarlar: [telemetry/README.md](telemetry/README.md)
 
-## 🔒 セキュリティ
+## 🔒 Güvenlik
 
-- [x] **機密情報保護**: `_remote_info/`はGit管理外
-- [x] **自動匿名化**: GitHub公開時にユーザID等を匿名化
-- [x] **SOTA達成コードのみ公開**: 性能向上を実現したコードのみ
-- [x] **階層別アクセス制御**: Agent役割に応じた読み書き権限
+- [x] **Gizli Bilgi Koruması**: `_remote_info/` Git yönetimi dışında
+- [x] **Otomatik Anonimleştirme**: GitHub'da yayınlarken kullanıcı ID'si vb. anonimleştirilir
+- [x] **Yalnızca SOTA Başarı Kodu Yayınlanır**: Performans artışı sağlayan kod yalnızca
+- [x] **Katman Bazlı Erişim Kontrolü**: Ajan rolüne göre okuma yazma yetkileri
 
-## 📄 ライセンス
+## 📄 Lisans
 
-このプロジェクトは[Apache License 2.0](LICENSE)の下で公開されています。自由にご利用いただけますが、使用に関する責任は負いかねます。
+Bu proje [Apache License 2.0](LICENSE) altında yayınlanmıştır. Özgürce kullanabilirsiniz, ancak kullanımdan doğan sorumluluk kabul edilmez.

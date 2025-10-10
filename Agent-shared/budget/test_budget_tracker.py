@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 budget_tracker.pyのテスト用デバッグコード
-ダミーのChangeLog.mdを作成して予算集計の動作を確認
+ダミーのChangeLog.mdをOluşturmaしてBütçe集計の動作をKontrol
 """
 
 import os
@@ -12,9 +12,9 @@ from datetime import datetime, timedelta
 import tempfile
 import shutil
 
-# プロジェクトルートを探してbudget_trackerをインポート
+# Projeルートを探してbudget_trackerをインポート
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Projeルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -34,7 +34,7 @@ sys.path.insert(0, str(project_root / "Agent-shared" / "budget"))
 from budget_tracker import BudgetTracker
 
 def create_test_changelog(temp_dir, pg_name, jobs):
-    """テスト用のChangeLog.mdを作成"""
+    """テスト用のChangeLog.mdをOluşturma"""
     changelog_path = temp_dir / pg_name / "ChangeLog.md"
     changelog_path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -69,20 +69,20 @@ def create_test_changelog(temp_dir, pg_name, jobs):
     return changelog_path
 
 def run_test():
-    """テスト実行"""
+    """テストYürütme"""
     print("=" * 60)
     print("budget_tracker.py テスト開始")
     print("=" * 60)
     
-    # 一時ディレクトリ作成
+    # 一時DizinOluşturma
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         
-        # プロジェクト構造を模倣
+        # Proje構造を模倣
         (temp_path / "Agent-shared").mkdir()
         (temp_path / "CLAUDE.md").touch()
         
-        # プロジェクト開始時刻
+        # Proje開始時刻
         start_time = datetime.utcnow() - timedelta(hours=2)
         (temp_path / "Agent-shared" / "project_start_time.txt").write_text(
             start_time.isoformat() + "Z"
@@ -143,13 +143,13 @@ def run_test():
             total_points = timeline[-1][1]
             print(f"総消費ポイント: {total_points:.2f}")
             
-            # 期待値計算（手動）
+            # 期待値Hesaplama（手動）
             # job1: 0.028 * 1800 = 50.4
             # job2: 0.028 * 1500 = 42.0  (cx-middleも4GPU x 0.007)
             # 合計: 92.4
             print(f"期待値: 92.4 (job1: 50.4 + job2: 42.0)")
         
-        # テストシナリオ3: 実行中のジョブ
+        # テストシナリオ3: Yürütme中のジョブ
         print("\n[テスト3] 実行中ジョブの計算")
         print("-" * 40)
         
@@ -160,7 +160,7 @@ def run_test():
             'job_id': 'job_003',
             'resource_group': 'cx-share',  # 1GPU
             'start_time': job3_start.isoformat() + 'Z',
-            # end_timeなし - 実行中
+            # end_timeなし - Yürütme中
             'status': 'running'
         }])
         
@@ -177,11 +177,11 @@ def run_test():
             print(f"総消費ポイント（実行中含む）: {total_points:.2f}")
             print("※実行中ジョブは現在時刻まで計算")
         
-        # テストシナリオ4: レポート生成
+        # テストシナリオ4: レポートÜretim
         print("\n[テスト4] レポート生成")
         print("-" * 40)
         
-        # snapshotsディレクトリ作成
+        # snapshotsDizinOluşturma
         snapshot_dir = temp_path / "Agent-shared" / "budget" / "snapshots"
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
@@ -193,7 +193,7 @@ def run_test():
         print(f"  - 実行中: {report['running_jobs']}")
         print(f"  - タイムライン点数: {report['timeline_points']}")
         
-        # ファイル確認
+        # DosyaKontrol
         latest_file = snapshot_dir / "latest.json"
         if latest_file.exists():
             print(f"  - latest.json作成: ✅")
@@ -205,7 +205,7 @@ def run_test():
         print("-" * 40)
         tracker.print_summary()
         
-        # テストシナリオ6: グラフ生成
+        # テストシナリオ6: GrafikÜretim
         print("\n[テスト6] グラフ生成")
         print("-" * 40)
         

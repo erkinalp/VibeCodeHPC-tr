@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ChangeLog.mdへの新エントリ追加を支援するヘルパースクリプト
-PGエージェントがコード生成時に使用
+ChangeLog.mdへの新エントリEklemeを支援するヘルパーScript
+PGAjanがコードÜretim時に使用
 """
 
 import sys
@@ -11,21 +11,21 @@ from pathlib import Path
 
 
 def get_current_utc():
-    """現在のUTC時刻を取得（秒単位）"""
+    """現在のUTC時刻をAlma（秒単位）"""
     return datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def create_changelog_entry(version, changes, result="未実行", comment=""):
-    """ChangeLogエントリのテンプレートを生成"""
+    """ChangeLogエントリのテンプレートをÜretim"""
     
     template = f"""### v{version}
-**変更点**: "{changes}"  
+**Değişiklik点**: "{changes}"  
 **結果**: {result}  
 **コメント**: "{comment}"  
 
 <details>
 
-- **生成時刻**: `{get_current_utc()}`
+- **Üretim時刻**: `{get_current_utc()}`
 - [ ] **compile**
     - status: `pending`
 - [ ] **job**
@@ -42,19 +42,19 @@ def create_changelog_entry(version, changes, result="未実行", comment=""):
 
 
 def append_to_changelog(changelog_path, entry):
-    """ChangeLog.mdにエントリを追加（新しいエントリが上）"""
+    """ChangeLog.mdにエントリをEkleme（新しいエントリが上）"""
     
     if not changelog_path.exists():
-        # 新規作成の場合
+        # 新規Oluşturmaの場合
         header = f"""# ChangeLog.md
-生成開始: {get_current_utc()}
+Üretim開始: {get_current_utc()}
 
 ## Change Log
 
 """
         changelog_path.write_text(header + entry, encoding='utf-8')
     else:
-        # 既存ファイルに追記
+        # 既存Dosyaに追記
         content = changelog_path.read_text(encoding='utf-8')
         
         # "## Change Log" の後に挿入
@@ -64,7 +64,7 @@ def append_to_changelog(changelog_path, entry):
             new_content = parts[0] + marker + "\n\n" + entry + "\n" + parts[1].lstrip()
             changelog_path.write_text(new_content, encoding='utf-8')
         else:
-            # マーカーがない場合は末尾に追加
+            # マーカーがない場合は末尾にEkleme
             changelog_path.write_text(content + "\n" + entry, encoding='utf-8')
 
 
@@ -79,14 +79,14 @@ def main():
     
     args = parser.parse_args()
     
-    # エントリ生成
+    # エントリÜretim
     entry = create_changelog_entry(args.version, args.changes, args.result, args.comment)
     
     if args.dry_run:
         print("=== 生成されるエントリ ===")
         print(entry)
     else:
-        # ファイルに追記
+        # Dosyaに追記
         changelog_path = Path(args.file)
         append_to_changelog(changelog_path, entry)
         print(f"✅ ChangeLog.mdにv{args.version}を追加しました")

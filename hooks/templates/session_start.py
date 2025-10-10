@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC SessionStart Hook
-各エージェントの.claude/hooks/に配置してsession_idを記録
+各Ajanの.claude/hooks/に配置してsession_idをKayıt
 """
 
 import json
@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Projeルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -27,11 +27,11 @@ def find_project_root(start_path):
 
 
 def update_agent_table(session_id, source):
-    """agent_and_pane_id_table.jsonlを更新"""
+    """agent_and_pane_id_table.jsonlをGüncelleme"""
     cwd = Path.cwd()
     
-    # hooksディレクトリから実際の作業ディレクトリを取得
-    # .claude/hooks/ から2階層上がエージェントの作業ディレクトリ
+    # hooksDizinから実際の作業DizinをAlma
+    # .claude/hooks/ から2階層上がAjanの作業Dizin
     if cwd.name == "hooks" and cwd.parent.name == ".claude":
         agent_working_dir = cwd.parent.parent
     else:
@@ -51,7 +51,7 @@ def update_agent_table(session_id, source):
     
     table_file = project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
     
-    # プロジェクトルートからの相対パス（OS固有の形式を保持）
+    # Projeルートからの相対Yol（OS固有の形式を保持）
     try:
         relative_path = agent_working_dir.relative_to(project_root)
         relative_dir = str(relative_path)
@@ -60,7 +60,7 @@ def update_agent_table(session_id, source):
     except ValueError:
         relative_dir = str(agent_working_dir)
     
-    # デバッグ: 環境変数の状態を記録
+    # デバッグ: 環境変数の状態をKayıt
     debug_file = project_root / "Agent-shared" / "session_start_debug.log"
     with open(debug_file, 'a') as f:
         f.write(f"\n[{datetime.utcnow()}] SessionStart hook called\n")
@@ -71,13 +71,13 @@ def update_agent_table(session_id, source):
         f.write(f"project_root: {project_root}\n")
         f.write(f"target_agent_id: {target_agent_id}\n")
     
-    # ファイルを読み込んで更新
+    # Dosyaを読み込んでGüncelleme
     updated_lines = []
     agent_id = None
     agent_type = None
     
     if not table_file.exists():
-        # ファイルが存在しない場合のデバッグ情報
+        # Dosyaが存在しない場合のデバッグ情報
         with open(debug_file, 'a') as f:
             f.write(f"WARNING: {table_file} does not exist\n")
         return None, None
@@ -100,7 +100,7 @@ def update_agent_table(session_id, source):
                 # agent_idでマッチング
                 match_found = False
                 
-                # target_agent_idが取得できている場合はagent_idで比較
+                # target_agent_idがAlmaできている場合はagent_idで比較
                 if target_agent_id and entry.get('agent_id') == target_agent_id:
                     match_found = True
                     with open(debug_file, 'a') as f:
@@ -116,23 +116,23 @@ def update_agent_table(session_id, source):
                     entry['cwd'] = str(cwd)
                     agent_id = entry['agent_id']
                     
-                    # エージェントタイプを判定
-                    # v0.5: 全エージェントがポーリング型
-                    # v0.6以降: テスト検証エージェントの追加を検討
+                    # Ajanタイプを判定
+                    # v0.5: 全Ajanがポーリング型
+                    # v0.6以降: テスト検証AjanのEklemeを検討
                     agent_type = 'polling'
                     
-                    # PMまたはSOLOが初回起動時にプロジェクト開始時刻を記録と定期実行開始
+                    # PMまたはSOLOが初回Başlatma時にProje開始時刻をKayıtと定期Yürütme開始
                     if (agent_id == 'PM' or agent_id == 'SOLO') and source == 'startup':
                         start_time_file = project_root / "Agent-shared" / "project_start_time.txt"
                         if not start_time_file.exists() or start_time_file.stat().st_size == 0:
                             start_time_file.write_text(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ\n'))
                         
-                        # 定期実行をバックグラウンドで開始
+                        # 定期Yürütmeをバックグラウンドで開始
                         periodic_script = project_root / "telemetry" / "periodic_monitor.sh"
                         if periodic_script.exists():
                             import subprocess
                             try:
-                                # nohupでバックグラウンド実行、tmux解除でも継続しない
+                                # nohupでバックグラウンドYürütme、tmux解除でも継続しない
                                 subprocess.Popen(
                                     ['bash', str(periodic_script)],
                                     stdout=subprocess.DEVNULL,
@@ -147,16 +147,16 @@ def update_agent_table(session_id, source):
                 
                 updated_lines.append(json.dumps(entry, ensure_ascii=False))
         
-        # ファイルを書き戻す
+        # Dosyaを書き戻す
         try:
             with open(table_file, 'w') as f:
                 f.write('\n'.join(updated_lines) + '\n')
             
-            # デバッグ: 書き込み成功を記録
+            # デバッグ: YazmaBaşarıをKayıt
             with open(debug_file, 'a') as f:
                 f.write(f"Successfully wrote {len(updated_lines)} lines to {table_file}\n")
         except Exception as e:
-            # デバッグ: 書き込みエラーを記録
+            # デバッグ: YazmaHataをKayıt
             with open(debug_file, 'a') as f:
                 f.write(f"ERROR writing to {table_file}: {str(e)}\n")
     
@@ -164,14 +164,14 @@ def update_agent_table(session_id, source):
 
 
 def get_required_files(agent_id):
-    """エージェントに応じた必須ファイルリストを返す"""
-    # 共通ファイル
+    """Ajanに応じた必須Dosyaリストを返す"""
+    # 共通Dosya
     common_files = [
         "CLAUDE.md",
         "Agent-shared/directory_pane_map.txt"
     ]
     
-    # 役割を抽出（例: PG1.1.1 -> PG）
+    # 役割を抽出（Örnek: PG1.1.1 -> PG）
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
@@ -209,7 +209,7 @@ def get_required_files(agent_id):
 
 
 def generate_context(source, agent_id, agent_type):
-    """セッション開始時のコンテキストを生成"""
+    """セッション開始時のコンテキストをÜretim"""
     context_parts = []
     
     if source in ['startup', 'clear']:
@@ -219,7 +219,7 @@ def generate_context(source, agent_id, agent_type):
         context_parts.append("以下の手順で必須ファイルを読み込んでください：")
         context_parts.append("")
         
-        # 必須ファイルリスト
+        # 必須Dosyaリスト
         files = get_required_files(agent_id)
         context_parts.append("### 1. 必須ファイルの再読み込み")
         for file in files:
@@ -239,7 +239,7 @@ def generate_context(source, agent_id, agent_type):
             context_parts.append("あなたはポーリング型エージェントです。")
             context_parts.append("待機状態に入らず、定期的にタスクを確認してください。")
         
-        # CDまたはSOLOエージェントへのgit push推奨
+        # CDまたはSOLOAjanへのgit pushÖnerilen
         if agent_id == 'CD' or agent_id == 'SOLO':
             context_parts.append("")
             context_parts.append("### 📌 Git管理の推奨事項")
@@ -252,19 +252,19 @@ def generate_context(source, agent_id, agent_type):
 
 def main():
     try:
-        # 入力を読み込み
+        # 入力をOkuma
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
         source = input_data.get('source', 'startup')  # startup(新規起動), resume(--continue), clear(/clear)
         
-        # テーブルを更新してエージェント情報を取得
+        # テーブルをGüncellemeしてAjan情報をAlma
         agent_id, agent_type = update_agent_table(session_id, source)
         
-        # コンテキストを生成
+        # コンテキストをÜretim
         context = generate_context(source, agent_id, agent_type)
         
         if context:
-            # コンテキストを追加
+            # コンテキストをEkleme
             output = {
                 "hookSpecificOutput": {
                     "hookEventName": "SessionStart",
@@ -276,7 +276,7 @@ def main():
         sys.exit(0)
         
     except Exception as e:
-        # エラーをデバッグログに記録
+        # HataをデバッグGünlükにKayıt
         try:
             from pathlib import Path
             cwd = Path.cwd()

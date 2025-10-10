@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-VibeCodeHPC Stop Hook v2 (ポーリング型エージェント用)
+VibeCodeHPC Stop Hook v2 (ポーリング型Ajan用)
 PM, SE, PG, CDの待機状態を防ぐ - STOP回数制御版
 """
 
@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Projeルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """現在のDizinのstop_count.txtから回数をAlma"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -51,7 +51,7 @@ def increment_stop_count():
 
 
 def get_agent_info_from_cwd():
-    """現在のディレクトリから自分のエージェント情報を取得"""
+    """現在のDizinから自分のAjan情報をAlma"""
     cwd = Path.cwd()
     project_root = find_project_root(cwd)
     
@@ -88,11 +88,11 @@ def get_agent_info_from_cwd():
 
 
 def get_stop_threshold(agent_id):
-    """エージェント種別ごとのSTOP回数閾値を返す"""
+    """Ajan種別ごとのSTOP回数閾値を返す"""
     if not agent_id:
         return 30
     
-    # プロジェクトルートを探す
+    # Projeルートを探す
     project_root = find_project_root(Path.cwd())
     if project_root:
         threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
@@ -128,7 +128,7 @@ def get_stop_threshold(agent_id):
 
 
 def get_required_files(agent_id):
-    """エージェントIDから必須ファイルリストを生成"""
+    """AjanIDから必須DosyaリストをÜretim"""
     common_files = [
         "CLAUDE.md",
         "requirement_definition.md（ユーザの意図を理解）",
@@ -187,7 +187,7 @@ def get_required_files(agent_id):
 
 
 def generate_block_reason(agent_info, stop_count):
-    """ポーリング型エージェント用のブロック理由を生成"""
+    """ポーリング型Ajan用のブロック理由をÜretim"""
     agent_id = agent_info.get('agent_id', 'unknown')
     threshold = get_stop_threshold(agent_id)
     
@@ -196,115 +196,115 @@ def generate_block_reason(agent_info, stop_count):
         reason = f"""
 ⚠️ STOP回数が上限（{threshold}回）に達しました。
 
-📝 **重要**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
-   全ての要件を満たしているか項目ごとに ☑ 確認すること。
+📝 **Önemli**: Projeを終了する場合、requirement_definition.mdを再Okumaし、
+   全ての要件を満たしているか項目ごとに ☑ Kontrolすること。
 
-エージェント {agent_id} として以下の終了前タスクを実行してください：
+Ajan {agent_id} として以下の終了前タスクをYürütmeしてください：
 
 1. PMへの終了通知:
-   agent_send.sh PM "[{agent_id}] STOP回数が上限に達しました。終了前の最終タスクを実行中です。"
+   agent_send.sh PM "[{agent_id}] STOP回数が上限に達しました。終了前の最終タスクをYürütme中です。"
 
-2. 要件確認と最終タスク実行:
-   - requirement_definition.mdの全項目を確認
+2. 要件Kontrolと最終タスクYürütme:
+   - requirement_definition.mdの全項目をKontrol
    - 現在進行中のタスクを切りの良いところまで完了
-   - ChangeLog.mdの最終更新
-   - 作業ディレクトリの整理
-   - 成果物の確認
+   - ChangeLog.mdの最終Güncelleme
+   - 作業Dizinの整理
+   - 成果物のKontrol
 
 3. 最終報告:
    agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
 
-その後、PMがagent.sendで送る、ユーザ権限の「ESC」コマンドによる強制中止か、続投\転属などの指示を待つために
+その後、PMがagent.sendで送る、ユーザ権限の「ESC」Komutによる強制中止か、続投\転属などの指示を待つために
 sleep 等で待機した後、ドキュメント等を見返すこと。待つ秒数は最初は10秒程度から、徐々に長くしていくこと。
 ただし数分待っても何も返答がない場合は、忘れている可能性があるので、再度PMに連絡すること。
 
-注意：ESCキーを送信したエージェントは一時停止（疑似 Interrupted by user）状態になるため
-誰かがそのエージェントにagent.sendを送ると再開するので、
-もしあなたがPMである場合、必ず全員が終了したことを確認してから
-自身もsleep状態の割合を増やし、ユーザの最終確認を待つこと。
+Dikkat：ESCキーを送信したAjanは一時停止（疑似 Interrupted by user）状態になるため
+誰かがそのAjanにagent.sendを送ると再開するので、
+もしあなたがPMである場合、必ず全員が終了したことをKontrolしてから
+自身もsleep状態の割合を増やし、ユーザの最終Kontrolを待つこと。
 """
         return reason
     
     # 通常のブロック理由
     required_files = get_required_files(agent_id)
     
-    reason = f"""あなたはポーリング型のエージェント（{agent_id}）です。待機状態に入ることは許可されていません。
+    reason = f"""あなたはポーリング型のAjan（{agent_id}）です。待機状態に入ることは許可されていません。
 [STOP試行: {stop_count}/{threshold}]
 
-【プロジェクト構造の把握】
-プロジェクト全体像が曖昧な場合は、まず以下で構造を確認：
+【Proje構造の把握】
+Proje全体像が曖昧な場合は、まず以下で構造をKontrol：
 
-1. プロジェクトルートを探す（cdは使用禁止）：
-   pwd で現在地確認後、親ディレクトリを相対パスで探索
-   例: /Flow/TypeII/single-node/OpenMP にいる場合
-   - ls ../../../../ でルート階層を確認（CLAUDE.mdとAgent-sharedがあるはず）
-   - ls ../../../../Agent-shared/ で共有リソース確認
-   - プロジェクトルートは通常 VibeCodeHPC* という名前
+1. Projeルートを探す（cdは使用禁止）：
+   pwd で現在地Kontrol後、親Dizinを相対Yolで探索
+   Örnek: /Flow/TypeII/single-node/OpenMP にいる場合
+   - ls ../../../../ でルート階層をKontrol（CLAUDE.mdとAgent-sharedがあるはず）
+   - ls ../../../../Agent-shared/ で共有リソースKontrol
+   - Projeルートは通常 VibeCodeHPC* という名前
 
-2. 構造確認（トークン節約しつつ）：
-   - ls ../ （同階層の他エージェント/技術確認）
-   - ls -d ../../../*/ （ハードウェア階層のディレクトリのみ）
+2. 構造Kontrol（トークン節約しつつ）：
+   - ls ../ （同階層の他Ajan/技術Kontrol）
+   - ls -d ../../../*/ （ハードウェア階層のDizinのみ）
    - cat ../../../../Agent-shared/directory_pane_map.txt （配置図）
-   - find . -name "*.md" -o -name "ChangeLog.md" | head -20 （重要ファイル）
+   - find . -name "*.md" -o -name "ChangeLog.md" | head -20 （ÖnemliDosya）
 
-3. 自分の位置と状況確認：
-   - pwd （現在のフルパス）
-   - ls -t . | head -10 （最近更新されたファイル）
-   - ls -a . （隠しファイル含む、ただし-laは避ける）
+3. 自分の位置と状況Kontrol：
+   - pwd （現在のフルYol）
+   - ls -t . | head -10 （最近GüncellemeされたDosya）
+   - ls -a . （隠しDosya含む、ただし-laは避ける）
 
-【必須ファイルの再読み込み】
+【必須Dosyaの再Okuma】
 以下の基準で優先順位を決定：
 1. 未読または「曖昧に読んだ」（10行のみ等）＝実質未読として扱う
-2. .md/.txt/.py（主要ドキュメント・スクリプト）を優先
-3. ../../../../ で始まる相対パスはプロジェクトルート基準
+2. .md/.txt/.py（主要ドキュメント・Script）を優先
+3. ../../../../ で始まる相対YolはProjeルート基準
 
-読むべきファイル：
+読むべきDosya：
 {chr(10).join(f'- {file}' for file in required_files)}
 
-確認後、以下の並行タスクを進めてください：
+Kontrol後、以下の並行タスクを進めてください：
 
 """
     
     # 役割別の並行タスク（既存のコードから）
     if "PM" in agent_id:
         reason += """【PMの並行タスク】
-1. 全エージェントの進捗確認（SE、PG、CDの巡回）
-2. directory_pane_map.txtの更新確認
-3. 予算管理（pjstatでポイント確認）
-4. 停滞エージェントへの介入
+1. 全Ajanの進捗Kontrol（SE、PG、CDの巡回）
+2. directory_pane_map.txtのGüncellemeKontrol
+3. BütçeYönetim（pjstatでポイントKontrol）
+4. 停滞Ajanへの介入
 5. リソース再配分の検討
 
-特に最近、進捗確認を行っていないエージェントを優先すること。
+特に最近、進捗Kontrolを行っていないAjanを優先すること。
 """
     
     elif agent_id.startswith("SE"):
         reason += """【SEの並行タスク】
-1. 各PGのChangeLog.md更新状況の監視
-2. telemetry/context_usage_monitor.pyでコンテキスト使用状況確認
-3. SOTA更新履歴のグラフ生成（Agent-shared/log_analyzer.py）
-4. ジョブ実行結果待ち状態の確認
-5. visible_path_PG*.txtの更新
+1. 各PGのChangeLog.mdGüncelleme状況のİzleme
+2. telemetry/context_usage_monitor.pyでコンテキスト使用状況Kontrol
+3. SOTAGüncelleme履歴のGrafikÜretim（Agent-shared/log_analyzer.py）
+4. ジョブYürütme結果待ち状態のKontrol
+5. visible_path_PG*.txtのGüncelleme
 """
     
     elif agent_id.startswith("PG"):
         reason += """【PGの並行タスク】
-1. ChangeLog.mdの更新とSOTA管理
-2. SSH/SFTPセッションの状態確認（Desktop Commander利用）
-3. ジョブキューの状態確認（squeue等）
-4. コンパイル警告の解析と修正
-5. /resultsディレクトリの整理
-6. 新しい最適化手法の実装
+1. ChangeLog.mdのGüncellemeとSOTAYönetim
+2. SSH/SFTPセッションの状態Kontrol（Desktop Commander利用）
+3. ジョブキューの状態Kontrol（squeue等）
+4. コンパイルUyarıの解析と修正
+5. /resultsDizinの整理
+6. 新しいOptimizasyon手法の実装
 
-性能向上の余地がある限り、継続的に最適化を進めてください。
+Performans向上の余地がある限り、継続的にOptimizasyonを進めてください。
 """
     
     elif agent_id.startswith("CD"):
         reason += """【CDの並行タスク】
-1. 各PGのSOTA達成コードの確認
-2. GitHub/ディレクトリへのコピーと匿名化処理
-3. .gitignoreの更新確認
-4. git statusでの変更確認
-5. コミットメッセージの準備
+1. 各PGのSOTA達成コードのKontrol
+2. GitHub/Dizinへのコピーと匿名化İşleme
+3. .gitignoreのGüncellemeKontrol
+4. git statusでのDeğişiklikKontrol
+5. コミットMesajの準備
 
 非同期でGitHub同期を進めてください。
 """
@@ -319,24 +319,24 @@ sleep 等で待機した後、ドキュメント等を見返すこと。待つ�
 
 def main():
     try:
-        # JSONを読み込み
+        # JSONをOkuma
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
         
-        # 自分のエージェント情報を取得
+        # 自分のAjan情報をAlma
         agent_info = get_agent_info_from_cwd()
         
         if agent_info:
             # STOP回数をインクリメント
             stop_count = increment_stop_count()
             
-            # デバッグログ（必要に応じて有効化）
+            # デバッグGünlük（必要に応じて有効化）
             # debug_log = Path.cwd() / ".claude" / "hooks" / "stop_debug.log"
             # with open(debug_log, 'a') as f:
             #     f.write(f"[{datetime.now()}] Stop #{stop_count}, agent={agent_info.get('agent_id')}\n")
             
-            # ポーリング型エージェントの場合は停止をブロック
+            # ポーリング型Ajanの場合は停止をブロック
             reason = generate_block_reason(agent_info, stop_count)
             
             if reason:
@@ -348,7 +348,7 @@ def main():
         sys.exit(0)
         
     except Exception:
-        # エラーは静かに処理
+        # Hataは静かにİşleme
         sys.exit(0)
 
 

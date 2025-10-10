@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-バージョンファイル作成時のChangeLog.md整合性チェック
-_v*.* パターンのファイル作成を検知してサブエージェントでチェック
+バージョンDosyaOluşturma時のChangeLog.md整合性チェック
+_v*.* パターンのDosyaOluşturmaを検知してサブAjanでチェック
 """
 
 import json
@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Projeルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -25,15 +25,15 @@ def find_project_root(start_path):
 
 
 def check_changelog_with_subagent(version, cwd):
-    """サブエージェントを使ってChangeLog.mdをチェック"""
+    """サブAjanを使ってChangeLog.mdをチェック"""
     changelog_path = Path(cwd) / "ChangeLog.md"
     
     if not changelog_path.exists():
         return False, "ChangeLog.md not found"
     
-    # サブエージェントでチェック（トークン節約）
+    # サブAjanでチェック（トークン節約）
     query = f"""
-以下を確認してYES/NOで答えてください：
+以下をKontrolしてYES/NOで答えてください：
 1. v{version}のエントリが存在するか
 2. jobセクションにresource_groupが記載されているか
 3. start_timeまたはend_timeが記載されているか
@@ -81,12 +81,12 @@ def main():
         version = version_match.group(1)
         cwd = Path(input_data.get('cwd', '.'))
         
-        # プロジェクトルートを探す
+        # Projeルートを探す
         project_root = find_project_root(cwd)
         if not project_root:
             sys.exit(0)
         
-        # デバッグログ
+        # デバッグGünlük
         debug_file = project_root / "Agent-shared" / "ci_check_debug.log"
         with open(debug_file, 'a') as f:
             from datetime import datetime
@@ -98,18 +98,18 @@ def main():
         is_valid, error_msg = check_changelog_with_subagent(version, cwd)
         
         if not is_valid:
-            # エラーメッセージをClaudeに返す（ブロッキング）
+            # HataMesajをClaudeに返す（ブロッキング）
             print(f"""
 ⚠️ ChangeLog.mdにv{version}の必要情報が不足しています
 
 {error_msg}
 
-以下の形式で追加してください：
+以下の形式でEklemeしてください：
 
 ### v{version}
-**生成時刻**: `YYYY-MM-DDTHH:MM:SSZ`
-**変更点**: "変更内容"
-**結果**: 性能値 `XXX GFLOPS`
+**Üretim時刻**: `YYYY-MM-DDTHH:MM:SSZ`
+**Değişiklik点**: "Değişiklik内容"
+**結果**: Performans値 `XXX GFLOPS`
 
 <details>
 
@@ -117,20 +117,20 @@ def main():
     - id: `ジョブID`
     - resource_group: `cx-small等`  # 必須
     - start_time: `開始時刻`  # 必須
-    - end_time: `終了時刻`  # 必須（実行後）
-    - runtime_sec: `実行秒数`  # 必須（実行後）
+    - end_time: `終了時刻`  # 必須（Yürütme後）
+    - runtime_sec: `Yürütme秒数`  # 必須（Yürütme後）
     - status: `pending/running/completed/cancelled`
 
 </details>
 """, file=sys.stderr)
             sys.exit(2)  # ブロッキングエラー
         
-        # 成功メッセージ（トランスクリプトモードで表示）
+        # BaşarıMesaj（トランScriptモードで表示）
         print(f"✅ v{version} entry validated in ChangeLog.md")
         sys.exit(0)
         
     except Exception as e:
-        # エラーはデバッグログに記録
+        # HataはデバッグGünlükにKayıt
         try:
             debug_file = Path.cwd() / ".." / ".." / "Agent-shared" / "ci_check_debug.log"
             with open(debug_file, 'a') as f:

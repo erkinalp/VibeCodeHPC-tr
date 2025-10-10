@@ -1,12 +1,12 @@
 #!/bin/bash
-# Grafanaローカル環境セットアップスクリプト
+# Grafanaローカル環境KurulumScript
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# 色付きログ関数
+# 色付きGünlükFonksiyon
 log_info() {
     echo -e "\033[1;32m[INFO]\033[0m $1"
 }
@@ -19,7 +19,7 @@ log_error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1"
 }
 
-# 使用方法表示
+# Kullanım方法表示
 show_usage() {
     cat << EOF
 📊 VibeCodeHPC Grafana環境セットアップ
@@ -41,7 +41,7 @@ show_usage() {
 EOF
 }
 
-# .env設定確認・作成
+# .envAyarKontrol・作成
 setup_env() {
     log_info "📝 OpenTelemetry設定を確認中..."
     
@@ -57,7 +57,7 @@ setup_env() {
         exit 1
     fi
     
-    # デフォルト設定の確認
+    # デフォルトAyarのKontrol
     if grep -q "OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" otel_config.env; then
         log_info "✅ デフォルトのローカルエンドポイント設定を確認"
     else
@@ -66,7 +66,7 @@ setup_env() {
     fi
 }
 
-# Docker環境確認
+# Docker環境Kontrol
 check_docker() {
     log_info "🐳 Docker環境を確認中..."
     
@@ -90,7 +90,7 @@ check_docker() {
     log_success "Docker環境の確認完了"
 }
 
-# Grafana環境起動
+# Grafana環境Başlatma
 start_grafana() {
     log_info "🚀 Grafana環境を起動中..."
     
@@ -106,7 +106,7 @@ start_grafana() {
         docker-compose up -d
     fi
     
-    # 起動確認
+    # BaşlatmaKontrol
     sleep 5
     
     if docker ps | grep -q "grafana"; then
@@ -116,7 +116,7 @@ start_grafana() {
         docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -E "(grafana|prometheus|otel)"
     else
         log_error "Grafana環境の起動に失敗しました"
-        # コンテナ名は docker compose のプロジェクト名に依存
+        # コンテナ名は docker compose のProje名に依存
         GRAFANA_CONTAINER=$(docker ps -a --format "{{.Names}}" | grep grafana | head -1)
         if [ -n "$GRAFANA_CONTAINER" ]; then
             docker logs "$GRAFANA_CONTAINER" 2>&1 | tail -20
@@ -167,7 +167,7 @@ show_connection_info() {
     echo ""
 }
 
-# リセット処理
+# リセットİşleme
 reset_containers() {
     log_info "🔄 既存のコンテナを削除中..."
     
@@ -182,7 +182,7 @@ reset_containers() {
     log_success "既存のコンテナを削除しました"
 }
 
-# メイン処理
+# メインİşleme
 main() {
     case "${1:-}" in
         --help|-h)

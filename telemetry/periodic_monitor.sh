@@ -1,19 +1,19 @@
 #!/bin/bash
-# 定期的にcontext_usage_monitor.pyを実行するバックグラウンドスクリプト
-# SessionStartフックから起動され、tmux解除で自動終了
+# 定期的にcontext_usage_monitor.pyをYürütmeするバックグラウンドScript
+# SessionStartフックからBaşlatmaされ、tmux解除でOtomatikSonlandırma
 
 set -e
 
-# プロジェクトルートを取得
+# Projeルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# TMUXセッションから自動的にプロジェクト名を検出
+# TMUXセッションからOtomatik的にProje名を検出
 if [ -n "$TMUX" ]; then
     # 現在のtmuxセッション名を取得
     CURRENT_SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "")
     
-    # プロジェクト名を抽出（最後の_PMまたは_Workersを削除）
+    # Proje名を抽出（最後の_PMまたは_Workersを削除）
     if [[ "$CURRENT_SESSION" =~ ^(.*)_PM$ ]]; then
         PROJECT_NAME="${BASH_REMATCH[1]}"
     elif [[ "$CURRENT_SESSION" =~ ^(.*)_Workers[0-9]*$ ]]; then
@@ -23,20 +23,20 @@ if [ -n "$TMUX" ]; then
         PROJECT_NAME="Team1"
     fi
 else
-    # TMUX外から起動された場合のフォールバック
+    # TMUX外からBaşlatmaされた場合のフォールバック
     PROJECT_NAME="Team1"
 fi
 
-# 検出されたプロジェクト名でセッション名を構築
+# 検出されたProje名でセッション名を構築
 PM_SESSION="${PROJECT_NAME}_PM"
 WORKER_SESSION="${PROJECT_NAME}_Workers1"
 
-# ログファイル
+# GünlükDosya
 LOG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor.log"
 PID_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor.pid"
 CHILD_PID_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_child.pid"
 
-# 設定ファイル（ユーザがオーバライド可能）
+# AyarDosya（ユーザがオーバライド可能）
 CONFIG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_config.txt"
 
 # デフォルト値
@@ -46,19 +46,19 @@ DEFAULT_MAX_RUNTIME_MIN=1440  # 1440分（1日）= 24 * 60
 DEFAULT_BUDGET_INTERVAL_MIN=3  # 3分（予算集計間隔）
 DEFAULT_SOTA_INTERVAL_MIN=15  # 15分（SOTA可視化間隔）
 
-# 設定読み込み（存在すれば）
+# Ayar読み込み（存在すれば）
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi
 
-# 変数初期化（オーバライド可能）
+# 変数Başlatma（オーバライド可能）
 UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC:-$DEFAULT_UPDATE_INTERVAL_SEC}
 MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN:-$DEFAULT_MILESTONE_INTERVAL_MIN}
 MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN:-$DEFAULT_MAX_RUNTIME_MIN}
 BUDGET_INTERVAL_MIN=${BUDGET_INTERVAL_MIN:-$DEFAULT_BUDGET_INTERVAL_MIN}
 SOTA_INTERVAL_MIN=${SOTA_INTERVAL_MIN:-$DEFAULT_SOTA_INTERVAL_MIN}
 
-# 既存のプロセスがあれば終了
+# 既存のプロセスがあればSonlandırma
 cleanup_existing_processes() {
     if [ -f "$PID_FILE" ]; then
         OLD_PID=$(cat "$PID_FILE")
@@ -79,14 +79,14 @@ cleanup_existing_processes() {
 
 cleanup_existing_processes
 
-# 新しいPIDを記録
+# 新しいPIDをKayıt
 echo $$ > "$PID_FILE"
 
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Periodic monitor started (PID: $$, Project: ${PROJECT_NAME})" >> "$LOG_FILE"
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Monitoring sessions: ${PM_SESSION}, ${WORKER_SESSION}" >> "$LOG_FILE"
 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Config: UPDATE_INTERVAL_SEC=${UPDATE_INTERVAL_SEC}s, MILESTONE_INTERVAL_MIN=${MILESTONE_INTERVAL_MIN}min, MAX_RUNTIME_MIN=${MAX_RUNTIME_MIN}min" >> "$LOG_FILE"
 
-# Python実行コマンドを決定
+# PythonYürütmeKomutを決定
 get_python_cmd() {
     if command -v python3 >/dev/null 2>&1; then
         echo "python3"
@@ -104,13 +104,13 @@ echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Using Python command: $PYTHON_CMD" >> "
 MILESTONES=(30 60 90 120 180)
 LAST_MILESTONE=0
 
-# プロジェクト開始時刻を読み取り
+# ProjeBaşlangıç時刻を読み取り
 PROJECT_START_TIME=""
 if [ -f "$PROJECT_ROOT/Agent-shared/project_start_time.txt" ]; then
     PROJECT_START_TIME=$(head -n 1 "$PROJECT_ROOT/Agent-shared/project_start_time.txt" 2>/dev/null || echo "")
 fi
 
-# プロジェクト開始からの経過分数を計算
+# ProjeBaşlangıçからの経過分数を計算
 get_elapsed_minutes() {
     if [ -n "$PROJECT_START_TIME" ]; then
         START_EPOCH=$(date -d "$PROJECT_START_TIME" +%s 2>/dev/null || echo "0")
@@ -125,7 +125,7 @@ get_elapsed_minutes() {
     fi
 }
 
-# tmuxセッションが終了したら自動終了
+# tmuxセッションがSonlandırmaしたらOtomatikSonlandırma
 cleanup_and_exit() {
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Monitor terminated" >> "$LOG_FILE"
     if [ -f "$CHILD_PID_FILE" ]; then
@@ -138,7 +138,7 @@ cleanup_and_exit() {
 }
 trap cleanup_and_exit TERM INT
 
-# プロジェクト開始時刻を取得
+# ProjeBaşlangıç時刻を取得
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ]; then
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] project_start_time.txt not found, creating..." >> "$LOG_FILE"
@@ -153,14 +153,14 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
     echo $BASHPID > "$CHILD_PID_FILE"
     
     while true; do
-        # プロジェクト名を含むセッションの存在確認（動的に検出）
+        # Proje名を含むセッションの存在Kontrol（動的に検出）
         if ! tmux list-panes -t "$PM_SESSION" 2>/dev/null | grep -q . && \
            ! tmux list-panes -t "$WORKER_SESSION" 2>/dev/null | grep -q .; then
-            # 該当プロジェクトのセッションが存在しない場合のみ終了
+            # 該当Projeのセッションが存在しない場合のみSonlandırma
             exit 0
         fi
         
-        # 最大実行時間チェック
+        # 最大Yürütme時間チェック
         CURRENT_EPOCH=$(date -u +%s)
         ELAPSED_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
         if [ $ELAPSED_MINUTES -gt $MAX_RUNTIME_MIN ]; then
@@ -168,10 +168,10 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             exit 0
         fi
         
-        # 上書き版のグラフ生成（簡潔なログ）
+        # 上書き版のグラフ生成（簡潔なGünlük）
         $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" --graph-type overview 2>&1 | tail -2 >> "$LOG_FILE"
         
-        # 予算集計とSOTA可視化を時間差実行（負荷分散）
+        # 予算集計とSOTA可視化を時間差Yürütme（負荷分散）
         CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
         
         # 予算集計: 3分間隔（元のまま）
@@ -179,8 +179,8 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
-        # SOTA可視化: パイプライン版で効率的に実行
-        # プロジェクト開始5分後から定期実行
+        # SOTA可視化: パイプライン版で効率的にYürütme
+        # ProjeBaşlangıç5分後から定期Yürütme
         PROJECT_ELAPSED=$(get_elapsed_minutes)
         
         # 初回は5分後、その後SOTA_INTERVAL_MIN分ごと
@@ -188,7 +188,7 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
                 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA pipeline starting (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
                 
-                # パイプラインモードで実行（タイムアウトはSOTA間隔と同じ）
+                # パイプラインモードでYürütme（タイムアウトはSOTA間隔と同じ）
                 SOTA_TIMEOUT=${SOTA_INTERVAL_MIN}m
                 timeout $SOTA_TIMEOUT $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" \
                     --no-delay 2>&1 | tail -5 >> "$LOG_FILE" &
@@ -206,7 +206,7 @@ LAST_MILESTONE=0
 MILESTONE_CHECK_INTERVAL=$((MILESTONE_INTERVAL_MIN * 60))  # 分を秒に変換
 
 while true; do
-    # プロジェクト名を含むセッションの存在確認（動的に検出）
+    # Proje名を含むセッションの存在Kontrol（動的に検出）
     if ! tmux list-panes -t "$PM_SESSION" 2>/dev/null | grep -q . && \
        ! tmux list-panes -t "$WORKER_SESSION" 2>/dev/null | grep -q .; then
         echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] No project tmux sessions found (${PROJECT_NAME}), exiting" >> "$LOG_FILE"
@@ -217,7 +217,7 @@ while true; do
     CURRENT_EPOCH=$(date -u +%s)
     ELAPSED_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
     
-    # 最大実行時間チェック
+    # 最大Yürütme時間チェック
     if [ $ELAPSED_MINUTES -gt $MAX_RUNTIME_MIN ]; then
         echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Max runtime reached (${MAX_RUNTIME_MIN}min), terminating" >> "$LOG_FILE"
         cleanup_and_exit
@@ -230,8 +230,8 @@ while true; do
         if [ $ELAPSED_MINUTES -ge $MILESTONE ] && [ $LAST_MILESTONE -lt $MILESTONE ]; then
             echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Milestone $MILESTONE minutes reached, saving..." >> "$LOG_FILE"
             
-            # コンテキスト使用率のマイルストーン保存（visualizations直下のみ）
-            # 注: context_usage_monitor.pyは自動的にvisualizations/context_usage_${MILESTONE}min.pngを生成
+            # コンテキストKullanım率のマイルストーン保存（visualizations直下のみ）
+            # 注: context_usage_monitor.pyはOtomatik的にvisualizations/context_usage_${MILESTONE}min.pngを生成
             $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" \
                 --graph-type overview --max-minutes $MILESTONE 2>&1 | tail -5 >> "$LOG_FILE"
             
@@ -265,6 +265,6 @@ while true; do
         fi
     done
     
-    # マイルストーン確認間隔で待機
+    # マイルストーンKontrol間隔で待機
     sleep $MILESTONE_CHECK_INTERVAL
 done

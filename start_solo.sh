@@ -1,17 +1,17 @@
 #!/bin/bash
-# シングルエージェント起動用統合スクリプト
-# 1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を実行
+# シングルAjanBaşlatma用統合Script
+# 1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）をYürütme
 
 set -e
 
-# スクリプトのディレクトリからプロジェクトルートを取得
+# ScriptのDizinからProjeルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
 echo "🚀 VibeCodeHPC シングルエージェントモード起動"
 echo "============================================"
 
-# tmuxの確認（オプション）
+# tmuxのKontrol（Seçenek）
 TMUX_AVAILABLE=false
 if command -v tmux &>/dev/null; then
     TMUX_AVAILABLE=true
@@ -26,14 +26,14 @@ else
     echo "   tmuxのインストールを推奨します。詳細はREADME.mdを参照。"
 fi
 
-# 1. SOLO用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
+# 1. SOLO用のhooksAyar（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
     # CLI_HOOKS_MODEを取得（デフォルト: auto）
     CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     echo "🔧 Setting up hooks for SOLO agent..."
     echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
     if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
-        # SOLOはポーリング型として設定
+        # SOLOはポーリング型としてAyar
         "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" SOLO "$PROJECT_ROOT" polling "$CLI_HOOKS_MODE"
     else
         echo "⚠️  Warning: hooks setup script not found"
@@ -42,7 +42,7 @@ else
     echo "⚠️  Hooks disabled by VIBECODE_ENABLE_HOOKS=false"
 fi
 
-# 2. プロジェクト開始時刻を記録
+# 2. ProjeBaşlangıç時刻をKayıt
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     echo "📅 Recording project start time..."
@@ -75,7 +75,7 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# 4. stop_thresholds.jsonにSOLO用設定を追加（存在しない場合）
+# 4. stop_thresholds.jsonにSOLO用Ayarを追加（存在しない場合）
 THRESHOLDS_FILE="$PROJECT_ROOT/Agent-shared/stop_thresholds.json"
 if [ -f "$THRESHOLDS_FILE" ] && command -v jq &> /dev/null; then
     if ! jq '.thresholds | has("SOLO")' "$THRESHOLDS_FILE" | grep -q true; then
@@ -87,13 +87,13 @@ if [ -f "$THRESHOLDS_FILE" ] && command -v jq &> /dev/null; then
     fi
 fi
 
-# 5. MCP（Desktop Commander）を設定
+# 5. MCP（Desktop Commander）をAyar
 echo "🔧 Setting up MCP for SOLO agent..."
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander 2>/dev/null || {
     echo "⚠️  MCP設定をスキップ（既に設定済みまたはエラー）"
 }
 
-# 6. Claude起動
+# 6. ClaudeBaşlatma
 echo ""
 echo "起動後、以下のプロンプトをコピーして貼り付けてください："
 echo "================================================================"
@@ -132,7 +132,7 @@ EOF
 echo "================================================================"
 echo ""
 
-# テレメトリ設定に基づいてClaude起動
+# テレメトリAyarに基づいてClaudeBaşlatma
 if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting SOLO without telemetry"
     exec claude --dangerously-skip-permissions "$@"

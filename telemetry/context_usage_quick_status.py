@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 VibeCodeHPC コンテキスト使用率クイックステータス
-リアルタイムのトークン使用状況を高速で確認するツール
+リアルタイムのトークン使用状況を高速でKontrolするツール
 
 将来的にはOpenTelemetryメトリクスとして送信予定
 """
@@ -13,7 +13,7 @@ import argparse
 from typing import Dict, List, Tuple, Optional
 
 class ContextQuickStatus:
-    """コンテキスト使用率の高速確認クラス"""
+    """コンテキスト使用率の高速Kontrolクラス"""
     
     # Claude Codeのコンテキスト制限
     AUTO_COMPACT_THRESHOLD = 160000  # 実際のauto-compact発生点（推定）
@@ -24,9 +24,9 @@ class ContextQuickStatus:
         self.claude_projects_dir = Path.home() / ".claude" / "projects"
     
     def get_latest_usage(self, agent_id: Optional[str] = None) -> Dict[str, Dict]:
-        """最新のトークン使用状況を取得（高速版）"""
+        """最新のトークン使用状況をAlma（高速版）"""
         
-        # プロジェクトディレクトリ名を生成
+        # ProjeDizin名をÜretim
         # Claude Codeの変換ルール: 英数字以外のすべての文字を'-'に置換
         import re
         project_dir_name = re.sub(r'[^a-zA-Z0-9]', '-', str(self.project_root))
@@ -38,21 +38,21 @@ class ContextQuickStatus:
         if not project_claude_dir.exists():
             return {}
             
-        # session_idとエージェントの対応を取得
+        # session_idとAjanの対応をAlma
         agent_sessions = self._get_agent_sessions()
         
-        # 各JSONLファイルの最新エントリのみを取得
+        # 各JSONLDosyaの最新エントリのみをAlma
         agent_status = {}
         
         for jsonl_file in project_claude_dir.glob("*.jsonl"):
             session_id = jsonl_file.stem
             current_agent_id = agent_sessions.get(session_id, f"Unknown_{session_id[:8]}")
             
-            # 特定エージェントの指定がある場合はフィルタ
+            # 特定Ajanの指定がある場合はフィルタ
             if agent_id and agent_id.upper() not in current_agent_id.upper():
                 continue
             
-            # ファイルの最後から逆順に読んで最新のusageを探す
+            # Dosyaの最後から逆順に読んで最新のusageを探す
             latest_usage = self._get_latest_usage_from_file(jsonl_file)
             
             if latest_usage:
@@ -61,7 +61,7 @@ class ContextQuickStatus:
         return agent_status
     
     def _get_agent_sessions(self) -> Dict[str, str]:
-        """agent_and_pane_id_table.jsonlからsession_idとagent_idの対応を取得"""
+        """agent_and_pane_id_table.jsonlからsession_idとagent_idの対応をAlma"""
         sessions = {}
         
         agent_table_path = self.project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
@@ -81,11 +81,11 @@ class ContextQuickStatus:
         return sessions
     
     def _get_latest_usage_from_file(self, jsonl_file: Path) -> Optional[Dict]:
-        """JSONLファイルから最新のusage情報を取得（最後から探索）"""
+        """JSONLDosyaから最新のusage情報をAlma（最後から探索）"""
         
-        # ファイルを逆順で読む（効率的）
+        # Dosyaを逆順で読む（効率的）
         with open(jsonl_file, 'rb') as f:
-            # ファイルの終端から読む
+            # Dosyaの終端から読む
             f.seek(0, 2)  # ファイル終端へ
             file_size = f.tell()
             
@@ -93,11 +93,11 @@ class ContextQuickStatus:
             search_size = min(file_size, 10 * 1024 * 1024)
             f.seek(max(0, file_size - search_size))
             
-            # 残りを読み込み
+            # 残りをOkuma
             content = f.read().decode('utf-8', errors='ignore')
             lines = content.strip().split('\n')
             
-            # 逆順で処理
+            # 逆順でİşleme
             for line in reversed(lines):
                 if line.strip():
                     try:
@@ -105,7 +105,7 @@ class ContextQuickStatus:
                         if 'message' in entry and isinstance(entry['message'], dict):
                             msg = entry['message']
                             if 'usage' in msg and isinstance(msg['usage'], dict):
-                                # 累積計算
+                                # 累積Hesaplama
                                 usage = msg['usage']
                                 total = (usage.get('input_tokens', 0) + 
                                        usage.get('cache_creation_input_tokens', 0) +
@@ -138,7 +138,7 @@ class ContextQuickStatus:
         print(f"{'Agent':<10} {'Total':>10} {'%':>6} {'Status':<10} {'Last Update'}")
         print("-"*70)
         
-        # ソート用データ準備
+        # ソート用Veri準備
         sorted_agents = []
         for agent_id, usage in agent_status.items():
             total = usage['total']
@@ -152,7 +152,7 @@ class ContextQuickStatus:
             else:
                 status = "🟢 OK"
             
-            # タイムスタンプ処理
+            # タイムスタンプİşleme
             timestamp = usage.get('timestamp', 'N/A')
             if timestamp != 'N/A':
                 try:
@@ -211,7 +211,7 @@ class ContextQuickStatus:
         return metrics
 
 def main():
-    """メイン処理"""
+    """メインİşleme"""
     parser = argparse.ArgumentParser(description='Quick context usage status check')
     parser.add_argument('--agent', type=str, default=None,
                        help='Show status for specific agent only')
@@ -222,11 +222,11 @@ def main():
     
     args = parser.parse_args()
     
-    # プロジェクトルートを取得
+    # ProjeルートをAlma
     project_root = Path.cwd()
     status_checker = ContextQuickStatus(project_root)
     
-    # 最新状態を取得
+    # 最新状態をAlma
     agent_status = status_checker.get_latest_usage(args.agent)
     
     if args.json:

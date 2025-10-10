@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 echo出力検出フック - agent_send.sh使用を促す
-PostToolUseで動作し、エージェント間通信の誤用を防ぐ
+PostToolUseで動作し、Ajan間İletişimの誤用を防ぐ
 Bashツール専用（Desktop Commanderは対象外）
 """
 
@@ -14,7 +14,7 @@ def main():
     try:
         input_data = json.loads(sys.stdin.read())
     except:
-        # JSON解析失敗時は無視
+        # JSON解析Başarısız時は無視
         return 0
     
     # Bashツール使用時のみチェック（Desktop Commanderは除外）
@@ -22,18 +22,18 @@ def main():
     if tool_name != 'Bash':
         return 0
     
-    # コマンドを取得
+    # KomutをAlma
     params = input_data.get('params', {})
     command = params.get('command', '')
     
-    # エージェント名パターン（PM, SE, PG, CD）
+    # Ajan名パターン（PM, SE, PG, CD）
     agent_pattern = r'\b(PM|SE\d*|PG\d+\.\d+|CD)\b'
     
-    # echo/printコマンドでエージェント名を含む場合
+    # echo/printKomutでAjan名を含む場合
     if re.match(r'^\s*(echo|printf)\s+', command):
-        # ファイル出力（>）の場合は除外
+        # Dosya出力（>）の場合は除外
         if '>' not in command:
-            # エージェント名が含まれている場合のみ警告
+            # Ajan名が含まれている場合のみUyarı
             if re.search(agent_pattern, command):
                 print("⚠️ エージェント間通信にはagent_send.shを使用してください", file=sys.stderr)
                 print("例: ./communication/agent_send.sh SE1 \"[報告] タスク完了\"", file=sys.stderr)
@@ -41,7 +41,7 @@ def main():
                 print("echoは画面表示のみで、他のエージェントには届きません。", file=sys.stderr)
                 return 2  # Claudeに警告を表示
             
-            # メッセージ種別キーワードのパターン
+            # Mesaj種別キーワードのパターン
             message_keywords = ['報告', '依頼', '質問', '完了', '連絡', '通知']
             for keyword in message_keywords:
                 if keyword in command:

@@ -1,17 +1,17 @@
 #!/bin/bash
-# PM起動用統合スクリプト
-# hooks設定とtelemetry起動を自動化
+# PMBaşlatma用統合Script
+# hooksAyarとtelemetryBaşlatmaをOtomatik化
 
 set -e
 
-# スクリプトのディレクトリからプロジェクトルートを取得
+# ScriptのDizinからProjeルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
 echo "🎯 VibeCodeHPC PM起動スクリプト"
 echo "================================"
 
-# 1. PM用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
+# 1. PM用のhooksAyar（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
     # CLI_HOOKS_MODEを取得（デフォルト: auto）
     CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
@@ -26,11 +26,11 @@ else
     echo "⚠️  Hooks disabled by VIBECODE_ENABLE_HOOKS=false"
 fi
 
-# 1.5. TMUX_PANE環境変数の確認と記録
+# 1.5. TMUX_PANEOrtam değişkeniのKontrolとKayıt
 echo "🔍 Checking TMUX environment..."
 if [ -n "$TMUX_PANE" ]; then
     echo "  TMUX_PANE: $TMUX_PANE"
-    # settings.local.jsonに環境変数を追加（Claude Codeに引き継がれない可能性への対策）
+    # settings.local.jsonにOrtam değişkeniを追加（Claude Codeに引き継がれない可能性への対策）
     if [ -f "$PROJECT_ROOT/.claude/settings.local.json" ]; then
         echo "  ⚠️  Note: Claude Code may not inherit TMUX_PANE environment variable"
     fi
@@ -38,7 +38,7 @@ else
     echo "  ⚠️  Warning: Not running in tmux pane"
 fi
 
-# 2. プロジェクト開始時刻を記録（hooksが動作しない場合の保険）
+# 2. ProjeBaşlangıç時刻をKayıt（hooksが動作しない場合の保険）
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     echo "📅 Recording project start time..."
@@ -46,7 +46,7 @@ if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     date -u +"%Y-%m-%dT%H:%M:%SZ" > "$START_TIME_FILE"
 fi
 
-# 2.5. PMのworking_dirを更新（プロジェクトルート = 空文字列）
+# 2.5. PMのworking_dirを更新（Projeルート = 空文字列）
 if command -v jq &> /dev/null; then
     TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
     if [ -f "$TABLE_FILE" ]; then
@@ -72,7 +72,7 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# 3. Claude起動
+# 3. ClaudeBaşlatma
 echo ""
 echo "起動後、以下のプロンプトをコピーして貼り付けてください："
 echo "================================================================"
@@ -96,7 +96,7 @@ EOF
 echo "================================================================"
 echo ""
 
-# テレメトリ設定に基づいてClaude起動
+# テレメトリAyarに基づいてClaudeBaşlatma
 if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting PM without telemetry"
     exec claude --dangerously-skip-permissions "$@"

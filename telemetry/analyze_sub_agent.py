@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-サブエージェント（claude -p）使用統計の分析
-情報圧縮率とコンテキスト節約効果を可視化
+サブAjan（claude -p）使用İstatistikのAnaliz
+情報圧縮率とコンテキスト節約効果をGörselleştirme
 """
 
 import json
@@ -13,7 +13,7 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 class SubAgentAnalyzer:
-    """サブエージェント使用統計の分析"""
+    """サブAjan使用İstatistikのAnaliz"""
     
     def __init__(self, project_root: Path = Path(".")):
         self.project_root = project_root
@@ -24,7 +24,7 @@ class SubAgentAnalyzer:
         self.visualization_dir.mkdir(parents=True, exist_ok=True)
     
     def load_data(self) -> List[Dict]:
-        """ログファイルからデータを読み込み"""
+        """GünlükDosyaからVeriをOkuma"""
         if not self.log_file.exists():
             print(f"No log file found at {self.log_file}")
             return []
@@ -44,11 +44,11 @@ class SubAgentAnalyzer:
         return records
     
     def calculate_statistics(self, records: List[Dict]) -> Dict:
-        """統計情報を計算"""
+        """İstatistik情報をHesaplama"""
         if not records:
             return {}
         
-        # エージェント別の集計
+        # Ajan別の集計
         by_agent = defaultdict(lambda: {
             'calls': 0,
             'total_input_tokens': 0,
@@ -77,7 +77,7 @@ class SubAgentAnalyzer:
             if record.get('success', False):
                 by_agent[agent]['success_count'] += 1
             
-            # ファイル参照を記録
+            # Dosya参照をKayıt
             files = record.get('files_referenced', '')
             if files:
                 for f in files.split(','):
@@ -87,7 +87,7 @@ class SubAgentAnalyzer:
             total_input += input_tokens
             total_output += output_tokens
         
-        # 平均値を計算
+        # 平均値をHesaplama
         for agent_data in by_agent.values():
             if agent_data['compression_ratios']:
                 agent_data['avg_compression_ratio'] = sum(agent_data['compression_ratios']) / len(agent_data['compression_ratios'])
@@ -102,9 +102,9 @@ class SubAgentAnalyzer:
             agent_data['success_rate'] = agent_data['success_count'] / agent_data['calls'] if agent_data['calls'] > 0 else 0
             agent_data['files_accessed'] = list(agent_data['files_accessed'])
         
-        # コンテキスト節約量を計算
-        # メインエージェントで実行した場合：入力＋出力の両方がコンテキストに追加される
-        # サブエージェントを使用した場合：出力のみがコンテキストに追加される
+        # コンテキスト節約量をHesaplama
+        # メインAjanでYürütmeした場合：入力＋出力の両方がコンテキストにEklemeされる
+        # サブAjanを使用した場合：出力のみがコンテキストにEklemeされる
         tokens_if_main = total_input + total_output
         tokens_actual = total_output
         tokens_saved = tokens_if_main - tokens_actual
@@ -120,23 +120,23 @@ class SubAgentAnalyzer:
         }
     
     def plot_compression_ratios(self, records: List[Dict]) -> Path:
-        """エージェント別の圧縮率をプロット"""
+        """Ajan別の圧縮率をプロット"""
         fig, ax = plt.subplots(figsize=(12, 8))
         
-        # エージェント別にデータを集計
+        # Ajan別にVeriを集計
         agent_ratios = defaultdict(list)
         for record in records:
             agent = record.get('calling_agent', 'unknown')
             ratio = float(record.get('compression_ratio', 1.0))
             agent_ratios[agent].append(ratio)
         
-        # 箱ひげ図を作成
+        # 箱ひげ図をOluşturma
         agents = list(agent_ratios.keys())
         data = [agent_ratios[agent] for agent in agents]
         
         bp = ax.boxplot(data, labels=agents, patch_artist=True)
         
-        # 色分け（エージェントタイプ別）
+        # 色分け（Ajanタイプ別）
         colors = {
             'SE': '#4ECDC4',
             'PG': '#96CEB4',
@@ -151,7 +151,7 @@ class SubAgentAnalyzer:
             patch.set_facecolor(color)
             patch.set_alpha(0.7)
         
-        # 1.0のラインを追加（圧縮なし）
+        # 1.0のラインをEkleme（圧縮なし）
         ax.axhline(y=1.0, color='red', linestyle='--', alpha=0.5, label='No compression')
         
         ax.set_xlabel('Agent ID', fontsize=12)
@@ -181,7 +181,7 @@ class SubAgentAnalyzer:
         df['datetime'] = pd.to_datetime(df['timestamp'])
         df = df.sort_values('datetime')
         
-        # エージェント別に集計
+        # Ajan別に集計
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
         
         # 上段：累積トークン節約量
@@ -224,7 +224,7 @@ class SubAgentAnalyzer:
         return output_file
     
     def generate_report(self, stats: Dict) -> Path:
-        """統計レポートを生成"""
+        """İstatistikレポートをÜretim"""
         report_file = self.visualization_dir / f"sub_agent_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         
         with open(report_file, 'w', encoding='utf-8') as f:
@@ -235,7 +235,7 @@ class SubAgentAnalyzer:
                 f.write("No data available.\n")
                 return report_file
             
-            # 全体統計
+            # 全体İstatistik
             f.write("## Overall Statistics\n\n")
             f.write(f"- Total sub-agent calls: {stats['total_calls']}\n")
             f.write(f"- Total input tokens (estimated): {stats['total_input_tokens']:,}\n")
@@ -243,7 +243,7 @@ class SubAgentAnalyzer:
             f.write(f"- **Tokens saved: {stats['tokens_saved']:,} ({stats['savings_percentage']:.1f}%)**\n")
             f.write(f"- Overall compression ratio: {stats['overall_compression_ratio']:.2f}\n\n")
             
-            # エージェント別統計
+            # Ajan別İstatistik
             f.write("## By Agent\n\n")
             f.write("| Agent | Calls | Success Rate | Avg Compression | Tokens Saved | Files Accessed |\n")
             f.write("|-------|-------|--------------|-----------------|--------------|----------------|\n")
@@ -256,10 +256,10 @@ class SubAgentAnalyzer:
                        f"{tokens_saved:,} | "
                        f"{len(data['files_accessed'])} |\n")
             
-            # 効果的な使用例
+            # 効果的な使用Örnek
             f.write("\n## Effective Usage Patterns\n\n")
             
-            # 高圧縮率のエージェント
+            # 高圧縮率のAjan
             high_compression = [(agent, data) for agent, data in stats['by_agent'].items() 
                               if data['avg_compression_ratio'] < 0.5 and data['calls'] > 0]
             if high_compression:
@@ -269,7 +269,7 @@ class SubAgentAnalyzer:
                            f"(saved ~{data['total_input_tokens']:,} tokens)\n")
                 f.write("\n")
             
-            # ファイルアクセスパターン
+            # Dosyaアクセスパターン
             all_files = set()
             for data in stats['by_agent'].values():
                 all_files.update(data['files_accessed'])
@@ -299,7 +299,7 @@ class SubAgentAnalyzer:
 
 
 def main():
-    """メイン処理"""
+    """メインİşleme"""
     analyzer = SubAgentAnalyzer()
     
     print("Loading sub-agent usage data...")
@@ -313,7 +313,7 @@ def main():
     
     print(f"Found {len(records)} sub-agent calls")
     
-    # 統計を計算
+    # İstatistikをHesaplama
     stats = analyzer.calculate_statistics(records)
     
     print("\n📊 Summary:")
@@ -321,7 +321,7 @@ def main():
     print(f"Tokens saved: {stats['tokens_saved']:,} ({stats['savings_percentage']:.1f}%)")
     print(f"Overall compression: {stats['overall_compression_ratio']:.2f}")
     
-    # 可視化
+    # Görselleştirme
     print("\nGenerating visualizations...")
     
     compression_plot = analyzer.plot_compression_ratios(records)
@@ -332,7 +332,7 @@ def main():
     if timeline_plot:
         print(f"✓ Timeline saved to: {timeline_plot}")
     
-    # レポート生成
+    # レポートÜretim
     report_file = analyzer.generate_report(stats)
     print(f"✓ Report saved to: {report_file}")
     

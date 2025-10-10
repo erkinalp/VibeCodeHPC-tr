@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC Stop Hook v3 for Polling Agents
-ファイル内容の直接埋め込みとインテリジェントな選択
+Dosya内容の直接埋め込みとインテリジェントな選択
 """
 
 import json
@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Projeルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """現在のDizinのstop_count.txtから回数をAlma"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -51,7 +51,7 @@ def increment_stop_count():
 
 
 def get_agent_info_from_cwd():
-    """現在のディレクトリから自分のエージェント情報を取得"""
+    """現在のDizinから自分のAjan情報をAlma"""
     # agent_id.txtから直接読み取り
     agent_id_file = Path.cwd() / ".claude" / "hooks" / "agent_id.txt"
     if agent_id_file.exists():
@@ -88,7 +88,7 @@ def get_agent_info_from_cwd():
 
 
 def get_stop_threshold(agent_id):
-    """エージェント種別ごとのSTOP回数閾値を返す"""
+    """Ajan種別ごとのSTOP回数閾値を返す"""
     if not agent_id:
         return 30
     
@@ -128,7 +128,7 @@ def get_stop_threshold(agent_id):
 
 
 def load_config(project_root):
-    """auto_tuning_config.jsonを読み込み"""
+    """auto_tuning_config.jsonをOkuma"""
     config_file = project_root / "Agent-shared" / "strategies" / "auto_tuning" / "auto_tuning_config.json"
     
     if config_file.exists():
@@ -138,7 +138,7 @@ def load_config(project_root):
         except:
             pass
     
-    # フォールバック設定
+    # フォールバックAyar
     return {
         "file_provision": {
             "always_full": [
@@ -157,7 +157,7 @@ def load_config(project_root):
 
 
 def should_provide_file(file_config, stop_count):
-    """確率的にファイル提供を決定（決定論的実装）"""
+    """確率的にDosya提供を決定（決定論的実装）"""
     if isinstance(file_config, str):
         # always_fullの場合
         return True
@@ -169,14 +169,14 @@ def should_provide_file(file_config, stop_count):
     numerator = int(probability * 100)
     denominator = 100
     
-    # ファイルパスのハッシュ値で分散
+    # DosyaYolのハッシュ値で分散
     hash_offset = hash(file_path) % denominator
     
     return ((stop_count + hash_offset) % denominator) < numerator
 
 
 def read_file_content(file_path, project_root, latest_entries=None):
-    """ファイル内容を読み込み（ファイルタイプに応じた抽出）"""
+    """Dosya内容をOkuma（Dosyaタイプに応じた抽出）"""
     full_path = project_root / file_path
     
     if not full_path.exists():
@@ -185,15 +185,15 @@ def read_file_content(file_path, project_root, latest_entries=None):
     try:
         content = full_path.read_text(encoding='utf-8')
         
-        # ChangeLog.mdの特別処理（最新エントリのみ）
+        # ChangeLog.mdの特別İşleme（最新エントリのみ）
         if file_path.endswith('ChangeLog.md') and latest_entries:
             entries = content.split('### v')
             if len(entries) > 1:
-                # 指定された数の最新エントリを取得
+                # 指定された数の最新エントリをAlma
                 recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
                 return recent[:10000]  # ChangeLogの制限を緩和
         
-        # サイズ制限（全文提供だが巨大すぎるファイルは制限）
+        # サイズ制限（全文提供だが巨大すぎるDosyaは制限）
         if len(content) > 10000:
             return content[:10000] + "\n\n...[ファイルサイズが大きいため以下省略]"
         
@@ -203,16 +203,16 @@ def read_file_content(file_path, project_root, latest_entries=None):
 
 
 def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths=None):
-    """エージェントの位置に応じてファイルパスを解決"""
-    # ./から始まる相対パス
+    """Ajanの位置に応じてDosyaYolを解決"""
+    # ./から始まる相対Yol
     if file_path.startswith("./"):
         resolved = agent_working_dir / file_path[2:]
         if resolved.exists():
             return resolved
-        # フォールバック: プロジェクトルートから
+        # フォールバック: Projeルートから
         return project_root / file_path[2:]
     
-    # ../から始まる相対パス
+    # ../から始まる相対Yol
     if file_path.startswith("../"):
         resolved = agent_working_dir / file_path
         if resolved.exists():
@@ -228,18 +228,18 @@ def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths
             if candidate.exists():
                 return candidate
     
-    # それ以外はプロジェクトルートからの相対パス
+    # それ以外はProjeルートからの相対Yol
     return project_root / file_path
 
 
 def generate_embedded_content(stop_count, threshold, agent_id, project_root):
-    """埋め込みコンテンツを生成"""
+    """埋め込みコンテンツをÜretim"""
     config = load_config(project_root)
     
-    # エージェントロールを取得（SOLOはそのまま）
+    # AjanロールをAlma（SOLOはそのまま）
     role = agent_id if agent_id == "SOLO" else (agent_id.split('.')[0] if '.' in agent_id else agent_id)
     
-    # 現在の作業ディレクトリを取得
+    # 現在の作業DizinをAlma
     agent_working_dir = Path.cwd()
     
     embedded_parts = []
@@ -272,29 +272,29 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                 embedded_parts.append(content)
                 embedded_parts.append("```\n")
     
-    # 3. periodic_full（新構造: ファイル中心）
+    # 3. periodic_full（新構造: Dosya中心）
     periodic_full = config["file_provision"].get("periodic_full", {})
     
     for file_path, file_config in periodic_full.items():
-        # このロールの確率を取得
+        # このロールの確率をAlma
         probabilities = file_config.get("probabilities", {})
         if role not in probabilities:
             continue
         
         probability = probabilities[role]
         
-        # 確率判定用のconfigオブジェクトを作成
+        # 確率判定用のconfigオブジェクトをOluşturma
         check_config = {"file": file_path, "probability": probability}
         
         if should_provide_file(check_config, stop_count):
-            # パスを解決
+            # Yolを解決
             formatted_path = file_path.replace("{role}", role)
             fallback_paths = file_config.get("fallback_paths")
             resolved_path = resolve_file_path(formatted_path, project_root, agent_working_dir, fallback_paths)
             
-            # ワイルドカード処理
+            # ワイルドカードİşleme
             if file_config.get("type") == "wildcard":
-                # ワイルドカードパターンをglobで処理
+                # ワイルドカードパターンをglobでİşleme
                 import glob
                 pattern_path = str(project_root / formatted_path.lstrip('/'))
                 matched_files = glob.glob(pattern_path)
@@ -311,7 +311,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                                         if not provided_any:
                                             embedded_parts.append("\n## 📋 追加提供ファイル\n")
                                             provided_any = True
-                                        # プロジェクトルートからの相対パス表示
+                                        # Projeルートからの相対Yol表示
                                         rel_path = file_path_obj.relative_to(project_root)
                                         embedded_parts.append(f"### {rel_path}")
                                         embedded_parts.append("```")
@@ -319,7 +319,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                                         embedded_parts.append("```\n")
                             except Exception:
                                 pass
-            # ディレクトリリスティングの特別処理
+            # Dizinリスティングの特別İşleme
             elif file_config.get("type") == "directory_listing":
                 if resolved_path and resolved_path.exists() and resolved_path.is_dir():
                     if not provided_any:
@@ -339,15 +339,15 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                         embedded_parts.append(f"[エラー: {str(e)}]")
                     embedded_parts.append("```\n")
             else:
-                # 通常ファイルの処理
+                # 通常Dosyaのİşleme
                 latest_entries = file_config.get("latest_entries")
-                # read_file_contentは内部でresolve済みのパスを期待
+                # read_file_contentは内部でresolve済みのYolを期待
                 if resolved_path and resolved_path.exists():
                     try:
                         with open(resolved_path, 'r', encoding='utf-8') as f:
                             content = f.read()
                             
-                            # ChangeLog.mdの特別処理
+                            # ChangeLog.mdの特別İşleme
                             if formatted_path.endswith('ChangeLog.md') and latest_entries:
                                 entries = content.split('### v')
                                 if len(entries) > 1:
@@ -365,7 +365,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                     except Exception:
                         pass  # ファイルが存在しない場合は静かにスキップ
         else:
-            # 提供しない場合はパス参照
+            # 提供しない場合はYol参照
             reference_parts.append(file_path.replace("{role}", role))
     
     # 4. rare_full（低頻度）
@@ -406,7 +406,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
 
 
 def get_agent_tasks(agent_id, config):
-    """エージェント別のタスクリストを取得"""
+    """Ajan別のタスクリストをAlma"""
     role = agent_id.split('.')[0] if '.' in agent_id else agent_id
     tasks = config.get("agent_tasks", {}).get(role, [])
     
@@ -421,7 +421,7 @@ def get_agent_tasks(agent_id, config):
 
 
 def generate_block_reason(stop_count, agent_info):
-    """ブロック理由を生成"""
+    """ブロック理由をÜretim"""
     agent_id = agent_info.get('agent_id', 'unknown')
     threshold = get_stop_threshold(agent_id)
     project_root = find_project_root(Path.cwd())
@@ -431,7 +431,7 @@ def generate_block_reason(stop_count, agent_info):
     
     config = load_config(project_root)
     
-    # 閾値到達時の処理
+    # 閾値到達時のİşleme
     if stop_count >= threshold:
         # ロールに応じた終了準備タスク
         role_specific_tasks = {
@@ -455,69 +455,69 @@ def generate_block_reason(stop_count, agent_info):
 最終報告:
 agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
 
-PMへの重要な依頼:
-agent_send.sh PM "[{agent_id}] 処理を停止する場合は、tmux send-keys -t [該当ペイン] Escape でESCキーを送信してください"
+PMへのÖnemliな依頼:
+agent_send.sh PM "[{agent_id}] İşlemeを停止する場合は、tmux send-keys -t [該当ペイン] Escape でESCキーを送信してください"
 
 その後、PMからの指示（ESC強制中止/続投/転属）を待ってください。
-sleep 20等を実行 → そのまま止まらずに追加で仕事がないかチェック → 定期的にPMに状況確認 … を繰り返して下さい。
+sleep 20等をYürütme → そのまま止まらずにEklemeで仕事がないかチェック → 定期的にPMに状況Kontrol … を繰り返して下さい。
 """
     
     # 通常のブロック
-    reason = f"""あなたはポーリング型のエージェント（{agent_id}）です。待機状態に入ることは許可されていません。
+    reason = f"""あなたはポーリング型のAjan（{agent_id}）です。待機状態に入ることは許可されていません。
 [STOP試行: {stop_count}/{threshold}]
 
 ## 停止方法の案内（毎回表示）
 自分で完全停止することはできません。必要な場合は以下の手順で対処してください：
 
-1. **PMへの停止依頼（推奨）**:
+1. **PMへの停止依頼（Önerilen）**:
    agent_send.sh PM "[{agent_id}] 一時停止が必要です。tmux send-keys -t [該当ペイン] Escape でESCキーを送信してください"
    
 2. **PMが応答しない場合の最終手段**:
    - 上記を3回以上試行してもPMから応答がない場合（PMが先に終了した可能性）
    - 自己解決手順:
-     1. カレントディレクトリの`.claude/settings.local.json`を確認
-     2. "hooks"セクションからstop関連の設定を削除またはコメントアウト
-     3. 詳細なパスと設定方法は `/hooks/setup_agent_hooks.sh` を参照
+     1. カレントDizinの`.claude/settings.local.json`をKontrol
+     2. "hooks"セクションからstop関連のAyarをSilmeまたはコメントアウト
+     3. 詳細なYolとAyar方法は `/hooks/setup_agent_hooks.sh` を参照
    
-   ※注意: 自己解決は最終手段です。まずはPMへの連絡を3回以上試みてください。
+   ※Dikkat: 自己解決は最終手段です。まずはPMへの連絡を3回以上試みてください。
 
 """
     
-    # 埋め込みコンテンツを追加
+    # 埋め込みコンテンツをEkleme
     reason += generate_embedded_content(stop_count, threshold, agent_id, project_root)
     
-    # エージェントタスクを追加
+    # AjanタスクをEkleme
     reason += get_agent_tasks(agent_id, config)
     
-    # 通信方法のリマインダー
+    # İletişim方法のリマインダー
     reason += f"""
 
 ## 🔄 次のアクション
-1. 上記ファイル内容を確認
-  1.1. ファイルパスを提供されたものは、積極的に参照せよ
+1. 上記Dosya内容をKontrol
+  1.1. DosyaYolを提供されたものは、積極的に参照せよ
   1.2. 生のテキストプロンプトのほとんどが確率的に提供されるため、リマインダーとして有効活用せよ
-  1.3. ファイルに書かれたパスは再帰的に参照せよ
+  1.3. Dosyaに書かれたYolは再帰的に参照せよ
 
-ただしカレントディレクトリに注意。
-VibeCodeHPC-xxxのようなプロジェクトルートを相対パスで把握せよ
+ただしカレントDizinにDikkat。
+VibeCodeHPC-xxxのようなProjeルートを相対Yolで把握せよ
 
-2. それらの内容を踏まえて、ToDoを更新する
+2. それらの内容を踏まえて、ToDoをGüncellemeする
   2.1. 現在取り組んでいるタスクを整理
   2.2. 今のタスクに直結していなくても「後で行うべきタスク」を忘れないよう追記
-  2.3. ｛アクション1で得たパス｝をREADする…等をToDoに追加することも有効
+  2.3. ｛アクション1で得たYol｝をREADする…等をToDoにEklemeすることも有効
 
 3. 優先度の高いタスクを選択
-4. 実行開始
+4. Yürütme開始
 5. 進捗があればagent_send.shで報告
 
 1~5を繰り返す
 
-【重要】agent_send.shの使用方法：
-プロジェクトルートからの相対パスまたは絶対パスで指定
-例: ../../communication/agent_send.sh PM "[{agent_id}] タスク完了"
+【Önemli】agent_send.shの使用方法：
+Projeルートからの相対Yolまたは絶対Yolで指定
+Örnek: ../../communication/agent_send.sh PM "[{agent_id}] タスク完了"
 
-ポーリング型エージェントは待機状態（入力待ち）になるのは禁止です。
-どうしても待機したい場合はsleep 10等を実行 → そのまま止まらずに進展や別の仕事を探す… を繰り返せ。
+ポーリング型Ajanは待機状態（入力待ち）になるのは禁止です。
+どうしても待機したい場合はsleep 10等をYürütme → そのまま止まらずに進展や別の仕事を探す… を繰り返せ。
 さもなければ、このSTOP hooksにより 約10K tokenが再入力される。
 
 （残りSTOP試行可能回数: {threshold - stop_count}回）
@@ -528,11 +528,11 @@ VibeCodeHPC-xxxのようなプロジェクトルートを相対パスで把握�
 
 def main():
     try:
-        # JSONを読み込み
+        # JSONをOkuma
         input_data = json.load(sys.stdin)
         stop_hook_active = input_data.get('stop_hook_active', False)
         
-        # エージェント情報を取得
+        # Ajan情報をAlma
         agent_info = get_agent_info_from_cwd()
         if not agent_info:
             agent_info = {'agent_id': 'unknown'}
@@ -540,7 +540,7 @@ def main():
         # STOP回数をインクリメント
         stop_count = increment_stop_count()
         
-        # ブロック理由を生成
+        # ブロック理由をÜretim
         reason = generate_block_reason(stop_count, agent_info)
         
         # 終了コード2でstderrに出力（Stopイベントをブロック）
@@ -548,7 +548,7 @@ def main():
         sys.exit(2)
         
     except Exception as e:
-        # エラーは静かに処理
+        # Hataは静かにİşleme
         sys.exit(0)
 
 

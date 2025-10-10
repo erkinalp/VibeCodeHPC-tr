@@ -1,10 +1,10 @@
 #!/bin/bash
-# マイルストーンスナップショット生成スクリプト
+# マイルストーンスナップショット生成Script
 
 PROJECT_ROOT=$(pwd)
 PYTHON_CMD="${PYTHON_CMD:-python3}"
 
-# プロジェクト開始時刻を取得
+# ProjeBaşlangıç時刻を取得
 if [ -f "$PROJECT_ROOT/Agent-shared/project_start_time.txt" ]; then
     START_TIME=$(cat "$PROJECT_ROOT/Agent-shared/project_start_time.txt")
 else
@@ -34,7 +34,7 @@ for MINUTES in "${MILESTONES[@]}"; do
     echo "=== ${MINUTES}分マイルストーン ==="
     echo "時刻: $MILESTONE_TIME"
     
-    # 出力ファイル名
+    # 出力Dosya名
     OUTPUT_PATH="$PROJECT_ROOT/User-shared/visualizations/budget_usage_${MINUTES}min.png"
     
     # グラフ生成

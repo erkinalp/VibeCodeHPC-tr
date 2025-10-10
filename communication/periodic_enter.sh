@@ -1,7 +1,7 @@
 #!/bin/bash
-# 定期的にEnterを送信して入力欄に残留したメッセージを強制送信
+# 定期的にEnterをGöndermeして入力欄に残留したMesajを強制Gönderme
 
-# プロジェクト名（必須引数）
+# Proje名（ZorunluArgüman）
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <PROJECT_NAME>"
     echo "Example: $0 Team1"
@@ -14,10 +14,10 @@ PROJECT_NAME=$1
 # デフォルト60秒
 INTERVAL=${ENTER_INTERVAL:-60}
 
-# 実行フラグファイル（プロジェクトごと）
+# YürütmeフラグDosya（Projeごと）
 FLAG_FILE="/tmp/vibecode_periodic_enter_${PROJECT_NAME}.pid"
 
-# 既に実行中なら終了
+# 既にYürütme中ならSonlandırma
 if [ -f "$FLAG_FILE" ]; then
     OLD_PID=$(cat "$FLAG_FILE")
     if ps -p "$OLD_PID" > /dev/null 2>&1; then
@@ -26,10 +26,10 @@ if [ -f "$FLAG_FILE" ]; then
     fi
 fi
 
-# PIDを記録
+# PIDをKayıt
 echo $$ > "$FLAG_FILE"
 
-# 終了時にフラグファイル削除
+# Sonlandırma時にフラグDosya削除
 trap "rm -f $FLAG_FILE; exit" INT TERM EXIT
 
 echo "定期Enter開始[${PROJECT_NAME}](${INTERVAL}秒間隔) 停止: kill $$"
@@ -37,7 +37,7 @@ echo "定期Enter開始[${PROJECT_NAME}](${INTERVAL}秒間隔) 停止: kill $$"
 while true; do
     sleep "$INTERVAL"
     
-    # プロジェクトのセッションのみ対象（PM, Workers1, Workers2など）
+    # Projeのセッションのみ対象（PM, Workers1, Workers2など）
     for session in "${PROJECT_NAME}_PM" "${PROJECT_NAME}_Workers1" "${PROJECT_NAME}_Workers2"; do
         if tmux has-session -t "$session" 2>/dev/null; then
             for pane in $(tmux list-panes -t "$session" -a -F "#{session_name}:#{window_index}.#{pane_index}" 2>/dev/null); do

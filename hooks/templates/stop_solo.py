@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC Stop Hook for SOLO Agent
-シングルエージェント用 - 時間管理と継続タスク提示
+シングルAjan用 - 時間Yönetimと継続タスク提示
 """
 
 import json
@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Projeルート（VibeCodeHPC-jp）を探す"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """現在のDizinのstop_count.txtから回数をAlma"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -51,7 +51,7 @@ def increment_stop_count():
 
 
 def get_elapsed_time():
-    """プロジェクト開始からの経過時間を取得"""
+    """Proje開始からの経過時間をAlma"""
     project_root = find_project_root(Path.cwd())
     if not project_root:
         return None
@@ -71,7 +71,7 @@ def get_elapsed_time():
 
 
 def get_stop_threshold():
-    """SOLOエージェントのSTOP回数閾値を返す"""
+    """SOLOAjanのSTOP回数閾値を返す"""
     project_root = find_project_root(Path.cwd())
     if project_root:
         threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
@@ -86,7 +86,7 @@ def get_stop_threshold():
             except:
                 pass
     
-    # デフォルト値（シングルエージェントは長めに設定）
+    # デフォルト値（シングルAjanは長めにAyar）
     return 100
 
 
@@ -106,7 +106,7 @@ def format_elapsed_time(elapsed):
 
 
 def generate_block_reason(stop_count):
-    """SOLOエージェント用のブロック理由を生成"""
+    """SOLOAjan用のブロック理由をÜretim"""
     threshold = get_stop_threshold()
     elapsed = get_elapsed_time()
     elapsed_str = format_elapsed_time(elapsed)
@@ -117,76 +117,76 @@ def generate_block_reason(stop_count):
 ⚠️ STOP回数が上限（{threshold}回）に達しました。
 経過時間: {elapsed_str}
 
-📝 **重要**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
-   全ての要件を満たしているか項目ごとに ☑ 確認すること。
+📝 **Önemli**: Projeを終了する場合、requirement_definition.mdを再Okumaし、
+   全ての要件を満たしているか項目ごとに ☑ Kontrolすること。
 
-SOLOエージェントとして以下の終了前タスクを実行してください：
+SOLOAjanとして以下の終了前タスクをYürütmeしてください：
 
-1. [PM] 要件確認と最終評価:
-   - requirement_definition.mdの全項目を確認
-   - 達成した性能と理論性能の比較
-   - 予算使用状況の最終確認
+1. [PM] 要件Kontrolと最終評価:
+   - requirement_definition.mdの全項目をKontrol
+   - 達成したPerformansと理論Performansの比較
+   - Bütçe使用状況の最終Kontrol
 
 2. [PG] 成果物の整理:
-   - ChangeLog.mdの最終更新
-   - SOTA達成コードの確認
-   - 作業ディレクトリの整理
+   - ChangeLog.mdの最終Güncelleme
+   - SOTA達成コードのKontrol
+   - 作業Dizinの整理
 
-3. [SE] 統計と可視化（可能な範囲で）:
-   - SOTA推移グラフの生成
-   - 最終レポートの作成
+3. [SE] İstatistikとGörselleştirme（可能な範囲で）:
+   - SOTA推移GrafikのÜretim
+   - 最終レポートのOluşturma
 
 4. [CD] GitHub同期（必要な場合）:
-   - GitHub/ディレクトリへのコピー
+   - GitHub/Dizinへのコピー
    - git commit
 
-その後、exitコマンドで終了してください。
+その後、exitKomutで終了してください。
 """
         return reason
     
     # 通常のブロック理由
-    reason = f"""あなたはSOLOエージェント（シングルモード）です。待機状態に入ることは許可されていません。
+    reason = f"""あなたはSOLOAjan（シングルモード）です。待機状態に入ることは許可されていません。
 [STOP試行: {stop_count}/{threshold}] [経過時間: {elapsed_str}]
 
-【必須ファイルの再読み込み】
-以下のファイルから最新状態を確認してください（未読または10行のみ読んだものを優先）：
+【必須Dosyaの再Okuma】
+以下のDosyaから最新状態をKontrolしてください（未読または10行のみ読んだものを優先）：
 - CLAUDE.md
 - instructions/SOLO.md
 - requirement_definition.md
 - Agent-shared/directory_pane_map.txt
 - Agent-shared/strategies/auto_tuning/typical_hpc_code.md
 - Agent-shared/budget/budget_history.md
-- Agent-shared/sota/sota_visualizer.py（SOTA可視化必須タスク）
-- telemetry/context_usage_monitor.py（コンテキスト監視必須タスク）
-- Agent-shared/ssh_sftp_guide.md（SSH/SFTP接続・実行ガイド）
-- hardware_info.md（理論性能目標）
-- 現在のディレクトリのChangeLog.md
+- Agent-shared/sota/sota_visualizer.py（SOTAGörselleştirme必須タスク）
+- telemetry/context_usage_monitor.py（コンテキストİzleme必須タスク）
+- Agent-shared/ssh_sftp_guide.md（SSH/SFTP接続・Yürütmeガイド）
+- hardware_info.md（理論Performans目標）
+- 現在のDizinのChangeLog.md
 
 【必須の非同期タスク（優先順）】
-1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
+1. **最優先: コンテキスト使用率Görselleştirme**（auto-compact防止）
    python3 telemetry/context_usage_monitor.py --graph-type overview
-   （30分ごと、30/60/90/120/180分でマイルストーン保存）
+   （30分ごと、30/60/90/120/180分でマイルストーンKaydetme）
 
-2. **優先: SOTA性能グラフ**（成果可視化）
+2. **優先: SOTAPerformansGrafik**（成果Görselleştirme）
    for level in project family hardware local; do
        python3 Agent-shared/sota/sota_visualizer.py --level $level
    done
 
-3. **通常: 予算推移**（可能な場合）
+3. **通常: Bütçe推移**（可能な場合）
    python3 Agent-shared/budget/budget_tracker.py --graph
 
 【役割別の継続タスク】
 
 [PG] コード実装:
-- 次バージョンの最適化実装
-- ジョブ結果の確認（pjstat/pjstat2）
+- 次バージョンのOptimizasyon実装
+- ジョブ結果のKontrol（pjstat/pjstat2）
 - パラメータチューニング
 
 [CD] GitHub継続的同期:
 - SOTA達成コードの定期commit（一回きりではない）
-- ChangeLog.md更新の同期
+- ChangeLog.mdGüncellemeの同期
 
-現在最も優先すべきタスクをToDoリストで管理し、実行してください。
+現在最も優先すべきタスクをToDoリストでYönetimし、Yürütmeしてください。
 （残りSTOP試行可能回数: {threshold - stop_count}回）
 """
     
@@ -195,7 +195,7 @@ SOLOエージェントとして以下の終了前タスクを実行してくだ�
 
 def main():
     try:
-        # JSONを読み込み
+        # JSONをOkuma
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
@@ -203,7 +203,7 @@ def main():
         # STOP回数をインクリメント
         stop_count = increment_stop_count()
         
-        # SOLOエージェント用のブロック理由を生成
+        # SOLOAjan用のブロック理由をÜretim
         reason = generate_block_reason(stop_count)
         
         if reason:
@@ -215,7 +215,7 @@ def main():
         sys.exit(0)
         
     except Exception:
-        # エラーは静かに処理
+        # Hataは静かにİşleme
         sys.exit(0)
 
 

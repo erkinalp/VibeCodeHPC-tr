@@ -1,5 +1,5 @@
 #!/bin/bash
-# tmuxベースの状態監視スクリプト（公式hooks代替）
+# tmuxベースの状態İzlemeScript（公式hooks代替）
 
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <AGENT_ID> <PANE_ID>"
@@ -9,7 +9,7 @@ fi
 AGENT_ID=$1
 PANE_ID=$2
 
-# プロジェクトルート
+# Projeルート
 if [ -n "$VIBECODE_ROOT" ]; then
     PROJECT_ROOT="$VIBECODE_ROOT"
 else
@@ -51,7 +51,7 @@ detect_state() {
     echo "idle"
 }
 
-# 状態変化時の処理
+# 状態変化時のİşleme
 on_state_changed() {
     local old_state="$1"
     local new_state="$2"
@@ -67,16 +67,16 @@ on_state_changed() {
 
 echo "[state_monitor] Starting for $AGENT_ID (pane: $PANE_ID)"
 
-# SessionStart hook実行（起動時1回のみ）
+# SessionStart hookYürütme（Başlatma時1回のみ）
 if [ -f ".claude/hooks/session_start.py" ]; then
     echo "[state_monitor] Calling SessionStart hook"
     echo '{}' | python3 ".claude/hooks/session_start.py" 2>/dev/null || true
 fi
 
-# PostToolUse監視用の最終チェック時刻
+# PostToolUseİzleme用の最終チェック時刻
 LAST_TOOL_CHECK=0
 
-# JSONL監視用の関数
+# JSONLİzleme用のFonksiyon
 check_post_tool_use() {
     # session_idを取得
     local session_id=$(get_session_id)
@@ -84,7 +84,7 @@ check_post_tool_use() {
         return
     fi
 
-    # JSONLパスを構築（~/.claude/projects/プロジェクトスラグ/session_id.jsonl）
+    # JSONLYolを構築（~/.claude/projects/Projeスラグ/session_id.jsonl）
     local home_dir=$(eval echo ~$(whoami))
     local jsonl_pattern="$home_dir/.claude/projects/*/${session_id}.jsonl"
     local jsonl_file=$(ls $jsonl_pattern 2>/dev/null | head -1)
@@ -108,7 +108,7 @@ check_post_tool_use() {
 
 # メインループ
 while true; do
-    # tmux pane存在確認
+    # tmux pane存在Kontrol
     if ! tmux list-panes -t "$PANE_ID" >/dev/null 2>&1; then
         echo "[state_monitor] Pane $PANE_ID not found, exiting"
         break
@@ -122,7 +122,7 @@ while true; do
         DETECTED=$(detect_state "$OUTPUT")
         NOW=$(date +%s%3N 2>/dev/null || echo "0")
 
-        # PostToolUse監視（5秒ごとにチェック）
+        # PostToolUseİzleme（5秒ごとにチェック）
         if [ "$NOW" != "0" ]; then
             if [ $((NOW - LAST_TOOL_CHECK)) -ge 5000 ]; then
                 check_post_tool_use
@@ -130,7 +130,7 @@ while true; do
             fi
         fi
 
-        # デバウンス処理
+        # デバウンスİşleme
         if [ "$DETECTED" != "$PENDING_STATE" ]; then
             PENDING_STATE="$DETECTED"
             PENDING_START=$NOW
