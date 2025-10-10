@@ -127,7 +127,7 @@ TodoWrite aracını etkin kullanın, her görevi rol etiketleriyle ([PM], [SE], 
 agent_send.sh gerekli değil (iletişim hedefi yok).
 Tüm işlemleri dahili olarak tamamlayın.
 
-プロジェクトを開始してください。
+Projeyi başlatın.
 EOF
 echo "================================================================"
 echo ""

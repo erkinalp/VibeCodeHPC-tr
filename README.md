@@ -1,31 +1,31 @@
 # VibeCodeHPC - Multi Agentic Vibe Coding for HPC
 
-VibeCodeHPCは、HPC向けの全自動で環境構築・コード最適化を行うマルチエージェントシステムです。
-Claude Code等のCLI環境でtmuxを用いた通信により、複数のAIエージェントが協調します。
+VibeCodeHPC, HPC için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çoklu aracı bir sistemdir.
+Claude Code gibi CLI ortamlarında tmux tabanlı iletişimle birden fazla yapay zekâ aracısı birlikte çalışır.
 
-![マルチエージェント実行時のスクショ](_images/MultiAgentUI.png)
+![Çoklu aracı çalışması ekran görüntüsü](_images/MultiAgentUI.png)
 
-## Paper
+## Makale
 - [📝arXiv (2025/10/02)](https://arxiv.org/abs/2510.00031)
-- [🎞️Googleスライド（実験編）](https://docs.google.com/presentation/d/1u9aK52nouAgjFTTchJAiZm5HglynGwl-Hwi97EK2Gis/edit?usp=sharing)
-- [Multiエージェントの実験結果](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
-- [Soloエージェントの実験結果](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-solo-ex1/blob/solo_commited_push_later/User-shared/reports/final_report.md)
+- [🎞️Google Slaytlar (Deneyler)](https://docs.google.com/presentation/d/1u9aK52nouAgjFTTchJAiZm5HglynGwl-Hwi97EK2Gis/edit?usp=sharing)
+- [Çoklu aracı deney sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
+- [Tek aracı deney sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-solo-ex1/blob/solo_commited_push_later/User-shared/reports/final_report.md)
 
-## システム概要
+## Sistem Özeti
 
-### 特徴
-- **階層型マルチエージェント**: PM → SE ↔ PG の企業的分業体制
-- **プロジェクト地図**: 組織をリアルタイムに視覚化する`directory_pane_map`
-- **進化的探索**: ボトムアップ型の`Flat`📁構造による効率的探索
-- **自動最適化**: OpenMP、MPI、OpenACC、CUDA...等の段階的並列化と技術融合
-- **予算管理**: 計算資源💰の効率的配分と追跡
-- **統一ログ**: `ChangeLog.md`による一元的な進捗管理
+### Özellikler
+- **Hiyerarşik çoklu aracı**: PM → SE ↔ PG kurumsal iş bölümü
+- **Proje haritası**: Organizasyonu gerçek zamanlı görselleştiren `directory_pane_map`
+- **Evrimsel arama**: Alttan-üstte `Flat`📁 yapı ile verimli keşif
+- **Otomatik optimizasyon**: OpenMP, MPI, OpenACC, CUDA... ile kademeli paralelleştirme ve teknoloji bileşimi
+- **Bütçe yönetimi**: Hesaplama kaynaklarının 💰 verimli tahsisi ve takibi
+- **Birleşik günlük**: `ChangeLog.md` ile merkezi ilerleme yönetimi
 
-### 対応環境
-- **スパコン**: 不老、富岳等のHPCシステム
-- **コンパイラ**: Intel OneAPI、GCC、NVIDIA HPC SDK...
+### Desteklenen Ortamlar
+- **Süper bilgisayarlar**: Furo, Fugaku gibi HPC sistemleri
+- **Derleyiciler**: Intel OneAPI, GCC, NVIDIA HPC SDK...
 
-## 🏗️ エージェント構成
+## 🏗️ Aracı Yapısı
 
 ```mermaid
 graph TD
@@ -40,16 +40,16 @@ graph TD
     CD --> GitHub[📦 GitHub Repository]
 ```
 
-### 🤖 エージェント役割
+### 🤖 Aracı Rolleri
 
-| Agent | 役割 | 主要成果物 | 責任範囲 |
+| Aracı | Rol | Ana çıktılar | Sorumluluk alanı |
 |-------|------|------------|----------|
-| **PM** | プロジェクト統括 | directory_pane_map.md<br/>User-shared/final_report.md | 要件定義・リソース配分・予算管理 |
-| **SE** | システム設計 | User-shared/の画像とレポート | エージェント監視・統計分析・レポート生成 |
-| **PG** | コード生成・実行 | ChangeLog.md<br/>sota_local.txt | 並列化実装・SSH/SFTP接続・ジョブ実行・性能測定 |
-| **CD** | デプロイ管理 | GitHub/以下のprojectコピー | SOTA達成コード公開・匿名化 |
+| **PM** | Proje koordinasyonu | directory_pane_map.md<br/>User-shared/final_report.md | Gereksinim tanımı, kaynak tahsisi, bütçe yönetimi |
+| **SE** | Sistem tasarımı | User-shared/ içindeki görseller ve raporlar | Aracı izleme, istatistik analiz, raporlama |
+| **PG** | Kod üretimi/çalıştırma | ChangeLog.md<br/>sota_local.txt | Paralelleştirme, SSH/SFTP, iş çalıştırma, performans ölçümü |
+| **CD** | Dağıtım yönetimi | GitHub/ altındaki proje kopyaları | SOTA kod yayımlama ve anonimleştirme |
 
-## 📁 ディレクトリ構造
+## 📁 Dizin Yapısı
 
 ```
 VibeCodeHPC/🤖PM
@@ -524,7 +524,7 @@ agent_send.shは使用不要です（通信相手がいないため）。
 プロジェクトを開始してください。
 ```
 
-#### 特徴
+#### Özellikler
 - **統合実行**: 1つのインスタンスで全役割を実行
 - **ToDoリスト管理**: 役割切り替えを明示的に管理
 - **時間管理**: project_start_time.txtで経過時間を追跡
