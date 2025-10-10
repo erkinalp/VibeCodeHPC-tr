@@ -505,23 +505,23 @@ Tüm rolleri (PM/SE/PG/CD) tek başınıza üstlenip projeyi verimli şekilde il
 [ToDo listesi ile rol yönetimi]
 TodoWrite aracını etkin kullanın, her görevi rol etiketleri ([PM], [SE], [PG], [CD]) ile yönetin.
 
-【時間管理】
-- プロジェクト開始時刻から経過時間を定期的に確認
-- requirement_definition.mdに時間制限がある場合は厳守
-- 予算管理と並行して時間効率も意識
+【Zaman yönetimi】
+- Proje başlangıcından itibaren geçen süreyi düzenli kontrol edin
+- requirement_definition.md’de zaman sınırı varsa mutlaka uyun
+- Bütçe yönetimiyle birlikte zaman verimliliğine de dikkat edin
 
-【効率的な実行順序】
-1. [PM] 要件定義と環境調査
-2. [SE] 環境構築
-3. [PG] 実装とテスト（ループ）
-4. [SE] 統計・可視化
-5. [CD] GitHub同期（必要時）
-6. [PM] 最終報告
+【Verimli yürütme sırası】
+1. [PM] Gereksinim tanımı ve ortam araştırması
+2. [SE] Ortam kurulumu
+3. [PG] Uygulama ve test (döngüsel)
+4. [SE] İstatistik ve görselleştirme
+5. [CD] Gerekirse GitHub senkronizasyonu
+6. [PM] Son rapor
 
-agent_send.shは使用不要です（通信相手がいないため）。
-全ての処理を内部で完結させてください。
+agent_send.sh gerekli değildir (iletişim kurulacak başka aracı yoktur).
+Tüm işlemleri tek aracı içinde tamamlayın.
 
-プロジェクトを開始してください。
+Projeyi başlatın.
 ```
 
 #### Özellikler
@@ -610,64 +610,64 @@ PM’i başlatın
 ```
 
 <details>
-<summary>その他の起動オプション（クリックで展開）</summary>
+<summary>Diğer başlatma seçenekleri (genişletmek için tıklayın)</summary>
 
 ```bash
-# telemetryのみ（hooksなし、待機防止が無効）
+# yalnızca telemetry (hooks yok, bekleme önleme devre dışı)
 ./telemetry/launch_claude_with_env.sh PM
 
-# 最小構成（hooks・telemetryなし）
+# en küçük yapı (hooks ve telemetry yok)
 claude --dangerously-skip-permissions
 
-# telemetryのみ無効化（PM起動時）
+# yalnız telemetry devre dışı (PM başlatırken)
 VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
-# ⚠️ hooksの無効化は非推奨（ポーリング型エージェントが待機してしまう）
-# どうしても無効化したい場合は、プロジェクト開始前に以下を実行：
+# ⚠️ hooks’u devre dışı bırakmak önerilmez (polling tipli aracılar bekleme durumuna geçer)
+# Mutlaka devre dışı bırakmak isterseniz, proje başlamadan önce şunları çalıştırın:
 # export VIBECODE_ENABLE_HOOKS=false
 ```
 
-**注意**: PMはポーリング型エージェントのため、hooksを無効化すると待機状態に入ってしまいます。
+**Dikkat**: PM polling tipli bir aracı olduğundan, hooks devre dışı bırakılırsa bekleme durumuna girer.
 </details>
 
-### 🪝 Claude Code Hooks機能
+### 🪝 Claude Code Hooks özellikleri
 
-エージェントの挙動を制御するhooks機能により、以下が実現されます：
+Aracı davranışını kontrol eden hooks sayesinde aşağıdakiler sağlanır:
 
 #### 主な機能
-- [x] **ポーリング型エージェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
-- [x] **SSH/SFTP接続支援**: PostToolUseフックがSSH接続を検出し、Desktop Commander MCPでのセッション管理方法を自動案内
-- [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
+- [x] **Polling tipli aracılarda (PM, SE, PG, CD) beklemenin önlenmesiェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
+- [x] **SSH/SFTP bağlantı desteği- [x] **SSH/SFTP接続支援**: PostToolUseフックがSSH接続を検出し、Desktop Commander MCPでのセッション管理方法を自動案内
+- [x] **session_id takibi- [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
 
-#### STOP Hooksバージョンの選択
+#### STOP Hooks sürüm seçimi
 ```bash
-# v3（デフォルト）確率的に生のドキュメントを提供
+# v3 (varsayılan) olasılıksal olarak ham doküman sağlar
 ./communication/setup.sh 12
 
-# v2: ファイルパスのみ提供（レガシー）
+# v2: yalnızca dosya yolları (eski)
 ./communication/setup.sh 12 --hooks v2
 ```
 
-- **v3**: 全モード推奨。`auto_tuning_config.json`で役割別の確率カスタマイズ可能
-- **v2**: 旧バージョン。固定ファイルリストのみ提供
-- **SOLO**: 常にv3を使用（v2指定は無視される）
+- **v3**: Tüm modlar için önerilir. `auto_tuning_config.json` ile role göre olasılık özelleştirilebilir
+- **v2**: Eski sürüm. Sadece sabit dosya listesi sağlar
+- **SOLO**: Her zaman v3 kullanır (v2 belirtimi yok sayılır)
 
-⚠️ hooks無効化は非推奨 - ポーリング型エージェントが待機状態に入りプロジェクト未達成のまま終了するリスク大
+⚠️ hooks’u kapatmak önerilmez – polling tipli aracılar beklemede kalıp projenin tamamlanmaması riski artar
 
-#### カスタム監視モード（v0.7+）
+#### Özel izleme modu (v0.7+)
 
-公式hooks不安定時の代替として、tmux監視による状態検出を提供します。
+Resmi hooks kararsız olduğunda alternatif olarak tmux izleme ile durum tespiti sunar.
 
-**有効化方法**:
+**Etkinleştirme yöntemi**:
 ```bash
 export CLI_HOOKS_MODE=custom
 ./communication/setup.sh 12
 ```
 
-- **機能**: Stop/SessionStart/PostToolUse hooksをtmux capture-pane経由で実現
-- **詳細**: [Issue #45](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/45)
+- **İşlev**: Stop/SessionStart/PostToolUse hooks tmux capture-pane üzerinden gerçekleştirilir
+- **Ayrıntı**: [Issue #45](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/issues/45)
 
-詳細は `hooks/hooks_deployment_guide.md` を参照してください。
+Detaylar için `hooks/hooks_deployment_guide.md` dosyasına bakın.
 
 
 Başladıktan sonra aşağıdaki istemi kopyalayıp yapıştırın:
@@ -683,7 +683,7 @@ Siz bir PM’siniz (Project Manager). VibeCodeHPC projesini başlatın.
 Özellikle önemli:
 - max_agent_number.txt (kullanılabilir çalışan sayısı)
 - agent_and_pane_id_table.jsonl (oturum yapısı ve aracı yönetimi)
-- directory_pane_map_example.md（エージェント配置とペイン管理）
+- directory_pane_map_example.md (aracı yerleşimi ve pane yönetimi)
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 
 全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
