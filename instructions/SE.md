@@ -419,13 +419,13 @@ Agent-shared/change_log/changelog_analysis_template.py をベースに、プロ�
    - プロジェクト共通: `/User-shared/visualizations/`
    - SE個別の作業用: `/Agent-shared/visualizations/`
 
-2. **レポートでの画像参照**:
+2. **Raporda görsel referansı**:
    ```markdown
-   ## Performans eğilimi# 性能推移グラフ
+   ## Performans eğilimi
    ![SOTA更新履歴](../visualizations/sota_history.png)
    
-   ## エージェント別トークン使用量
-   ![トークン使用量推移](../visualizations/token_usage.png)
+   ## Aracı başına token kullanımı
+   ![Token kullanım eğilimi](../visualizations/token_usage.png)
    ```
 
 3. **画像の利点**:

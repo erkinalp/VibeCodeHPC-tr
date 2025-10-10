@@ -68,12 +68,12 @@ _remote_info içinde belirtilir
 ### Ara katman (derleyici/paralelleştirme modülleri)
 #### Derleyici seçenekleri
 - [x] GCC 10.4.0 (default)
-- [x] fjmpi-gcc ※ログインノードでは利用不可、バッチジョブまたはインタラクティブジョブから利用
+- [x] fjmpi-gcc (giriş düğümünde kullanılamaz; toplu veya etkileşimli işten kullanılmalıdır)
 
 #### Paralelleştirme kütüphaneleri
 - [x] MPI
 - [x] OpenMP
-- [x] ACLE (intrinsicなSIMD)
+- [x] ACLE (intrinsic tabanlı SIMD)
 
 ### Paralelleştirme stratejisi (uygulama sırası ve kapsam)
 #### Uygulama aşaması
@@ -84,13 +84,13 @@ Ağırlıklı olarak mat-mat(-d).c dosyasındaki My-mat-mat ve main fonksiyonu �
 
 ### Kabul edilebilir doğruluk (test kodu belirtimi/üretimi)
 #### Doğruluk gereksinimi
-- [x] 既存テストと同精度
+- [x] Mevcut testlerle aynı doğruluk
 
 ### Bütçe (iş)
 #### Hesaplama kaynağı bütçesi
-- **最低消費ライン**: 1,000ポイント
-- **目安**: 3,000ポイント
-- **上限**: 10,000ポイント
+- **Asgari tüketim çizgisi**: 1.000 puan
+- **Hedef aralık**: 3.000 puan
+- **Üst sınır**: 10.000 puan
     TypeI: Geçen her saniye için 0.0056 puan × kullanılan düğüm sayısı
 - 1 JPY başına 0.8 puan
 
@@ -100,21 +100,21 @@ Ağırlıklı olarak mat-mat(-d).c dosyasındaki My-mat-mat ve main fonksiyonu �
 
 ### CD (Git Aracısı) kullanımı
 #### GitHub entegrasyonu
-- [x] 使用する
-- [ ] 使用しない
-- [ ] 段階的導入
+- [x] Kullanılacak
+- [ ] Kullanılmayacak
+- [ ] Aşamalı devreye alma
 
 #### Bildirim ayarı
 - Gereksiz
 
 ## Ek gereksinimler ve kısıtlar
 ### Güvenlik gereksinimleri
-- **機密レベル**: BaseCodeはGitHub（Privateリポジトリ）にコピー可能
-- **データ保護**: スパコン・ユーザ情報はGitHubにpushする前に匿名化
+- **Gizlilik seviyesi**: BaseCode GitHub’da (özel depo) kopyalanabilir
+- **Veri koruma**: Süperbilgisayar ve kullanıcı bilgileri GitHub’a push etmeden önce anonimleştirilecektir
 
 ### Uyumluluk gereksinimleri
-- **他システム連携**: 特になし
-- **結果フォーマット**: CSV形式で性能データを出力
+- **Diğer sistem entegrasyonu**: Yok
+- **Çıktı formatı**: Performans verileri CSV formatında çıktı
 
 ### Diğerleri
 - Bu, VibeCodeHPC’nin tmux tabanlı paralel aracı yapısının bir testidir
@@ -129,4 +129,4 @@ Ağırlıklı olarak mat-mat(-d).c dosyasındaki My-mat-mat ve main fonksiyonu �
 ## Otomatik üretilen bilgiler (PM doldurur)
 - **Eksik kalemler**: [otomatik]
 - **Önerilen yapı**: [otomatik]
-- **初期エージェント配置**: [自動記入]
+- **Başlangıç aracı yerleşimi**: [otomatik]
