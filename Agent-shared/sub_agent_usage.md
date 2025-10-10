@@ -75,50 +75,50 @@ claude -p "Performans verilerini zaman serisi halinde JSON formatında düzenle"
 - Aracılar arası iletişim (agent_send.sh kullanın)
 - Proje düzeyinde karar gerektiren görevler
 
-## 高度な使用例
+## Gelişmiş kullanım örnekleri
 
-### ストリーミングJSON出力で進捗確認
+### Akış JSON çıktısıyla ilerleme takibi
 ```bash
-# リアルタイムで処理状況を確認
+# İşlem durumunu gerçek zamanlı kontrol et
 claude -p "Tüm hataları sınıflandır ve çözüm önerileri sun" \
   --output-format stream-json \
   < massive_error_log.txt | \
   jq -r 'select(.type == "assistant") | .message.content'
 ```
 
-### セッション管理で継続的な分析
+### Oturum yönetimiyle süreğen analiz
 ```bash
-# 初回分析でセッションIDを保存
+# İlk analizde oturum kimliğini kaydet
 result=$(claude -p "Performans verisinin ilk analizi" --output-format json < perf_data.csv)
 session_id=$(echo "$result" | jq -r '.session_id')
 
-# 追加の質問を同じコンテキストで実行
+# Ek soruları aynı bağlamla yürüt
 claude -p --resume "$session_id" "OpenMP ve MPI kombinasyonunun etkisi nedir?"
 ```
 
-### カスタムシステムプロンプトで専門的な分析
+### Özel sistem istemiyle uzman analiz
 ```bash
-# HPC専門家として分析
+# HPC uzmanı olarak analiz et
 claude -p "Bu profil sonucunu analiz et" \
   --system-prompt "Sen bir HPC performans optimizasyon uzmanısın. Önbellek verimliliği ve bellek bant genişliğine odaklanarak analiz et."
   < profile_result.txt
 ```
 
-## 実装例：SEエージェントでの活用
+## Uygulama örneği: SE aracısıyla kullanım
 
 ```bash
 #!/bin/bash
-# SE用の統計分析スクリプト例
+# SE için istatistik analiz betiği örneği
 
 analyze_all_changes() {
     local target_dirs=("$@")
-    local analysis_prompt="以下の観点で分析してJSON形式で出力:
-    1. 各並列化手法の成功率
-    2. 性能向上の平均値と分散
-    3. 最も効果的だった最適化手法TOP5
-    4. 失敗パターンの共通点"
+    local analysis_prompt="Aşağıdaki açılardan analiz et ve JSON biçiminde çıktı ver:
+    1. Her paralelleştirme yönteminin başarı oranı
+    2. Performans artışının ortalaması ve varyansı
+    3. En etkili 5 optimizasyon yöntemi
+    4. Başarısızlık kalıplarının ortak noktaları"
     
-    # 全ChangeLog.mdを結合
+    # Tüm ChangeLog.md dosyalarını birleştir
     for dir in "${target_dirs[@]}"; do
         find "$dir" -name "ChangeLog.md" -exec cat {} \;
     done | claude -p "$analysis_prompt" --output-format json
@@ -129,27 +129,27 @@ result=$(analyze_all_changes "Flow/TypeII/single-node")
 echo "$result" | jq '.result' | python3 create_performance_graph.py
 ```
 
-## コスト効率の良い使い方
+## Maliyet verimli kullanım
 
-1. **バッチ処理**: 複数の小さなクエリは1つにまとめる
-2. **前処理の活用**: grepやawkで事前にデータを絞る
-3. **キャッシュの活用**: 同じ分析は結果を保存して再利用
+1. **Toplu işlem**: Birden çok küçük sorguyu tek bir seferde birleştir
+2. **Ön işleme**: grep/awk ile veriyi önceden daralt
+3. **Önbellekten yararlan**: Aynı analizde sonuçları kaydet ve tekrar kullan
 
 ```bash
-# 効率的な例：事前にフィルタリング
+# Verimli örnek: Ön filtreleme
 grep -E "SOTA|performance" ChangeLog.md | \
-  claude -p "性能向上があった項目だけをまとめて"
+  claude -p "Yalnızca performans artışı olan öğeleri özetle"
 
-# 非効率な例：全データを渡す
-claude -p "ChangeLog.mdからSOTAに関する行だけ抽出して" < ChangeLog.md
+# Verimsiz örnek: Tüm veriyi aktarmak
+claude -p "ChangeLog.md’den yalnızca SOTA ile ilgili satırları çıkar" < ChangeLog.md
 ```
 
-## 注意事項
+## Dikkat edilecekler
 
-- サブエージェントは独立したコンテキストを持つため、メインエージェントの作業内容は引き継がれません
-- 大量のデータを扱う際は、まず必要な部分だけを抽出してから渡すことを推奨
-- `-p` オプションは非対話モードのため、確認や追加質問はできません
+- Alt aracı bağımsız bir bağlama sahiptir; ana aracının çalışması otomatik devralınmaz
+- Büyük veride önce gerekli kısımları ayıklayıp sonra aktarın
+- `-p` seçeneği etkileşimsiz moddur; onay veya ek soru sorulamaz
 
-## まとめ
+## Özet
 
-Claude Codeのサブエージェント機能は、VibeCodeHPCプロジェクトにおける大規模データ処理の強力な補助ツールです。適切に活用することで、メインエージェントのコンテキストを保護しながら、効率的な分析と処理が可能になります。
+Claude Code’un alt aracı özelliği, VibeCodeHPC projelerinde büyük veriyi işlemek için güçlü bir yardımcı araçtır. Doğru kullanıldığında, ana aracının bağlamını korurken verimli analiz ve işlemeyi mümkün kılar.
