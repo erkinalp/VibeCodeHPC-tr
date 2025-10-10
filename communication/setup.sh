@@ -227,6 +227,10 @@ create_pm_session() {
     fi
     
     tmux send-keys -t "${PM_SESSION}:project-manager" "cd $PROJECT_ROOT" C-m
+
+    # CLI_HOOKS_MODE環境変数を設定（親シェルから継承または auto）
+    tmux send-keys -t "${PM_SESSION}:project-manager" "export CLI_HOOKS_MODE='${CLI_HOOKS_MODE:-auto}'" C-m
+
     # bash/zsh対応プロンプト設定
     tmux send-keys -t "${PM_SESSION}:project-manager" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "  export PROMPT=$'%{\033[1;35m%}(PM)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
