@@ -52,63 +52,63 @@ Klasör📁 hiyerarşisini iyi anla. Alttan üste evrimsel Flat📁 yapı ile ta
 
 Örneğin `/MPI` ise keyfi olarak OpenMP uygulama; ancak aynı MPI modülü içinde algoritma optimizasyonları (döngü açma, bloklama, veri yerleşim optimizasyonu vb.) serbesttir.
 
-#### 環境構築の確認と実行
-1. **親ディレクトリ（コンパイラ環境階層）のsetup.mdを確認**
-   - 例: `../setup.md`（intel2024/setup.md や gcc11.3.0/setup.md）
-   - 存在する場合: 記載された手順に従って環境構築
-   - 存在しない場合: 自身で環境構築を実行し、setup.mdを作成
+#### Ortam kurulumunun doğrulanması ve uygulanması
+1. **Üst dizindeki (derleyici ortam katmanı) setup.md’yi kontrol et**
+   - Örn: `../setup.md` (intel2024/setup.md veya gcc11.3.0/setup.md)
+   - Varsa: Belirtilen adımlara uyarak ortamı kur
+   - Yoksa: Ortamı kendin kur ve setup.md oluştur
 
-2. **環境構築の実行（Desktop Commander MCPを使用）**
+2. **Ortam kurulumu (Desktop Commander MCP ile)**
    ```bash
-   # SSH接続してmodule確認
+   # SSH ile bağlanıp modülleri kontrol et
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module avail")
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module load intel/2024")
    
-   # makefileの確認とビルド
+   # makefile kontrolü ve derleme
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="make")
    ```
    
-3. **setup.mdの作成（最初のPGのみ）**
-   - 成功した環境構築手順を`../setup.md`に記録
-   - 他のPGが参照できるよう、明確に記述
+3. **setup.md oluştur (yalnızca ilk PG)**
+   - Başarılı kurulum adımlarını `../setup.md` içine yaz
+   - Diğer PG’lerin başvurabilmesi için net yaz
 
-**重要**: 性能向上が期待できる限り、粘り強く最適化に取り組むこと。すぐに諦めずに以下を試すこと：
-- パラメータチューニング（ブロックサイズ、スレッド数など）
-- アルゴリズムの改良（データ構造、アクセスパターン）
-- コンパイラオプションの調整
+**Önemli**: Performans artışı bekleniyorsa ısrarla optimizasyon yap. Hemen vazgeçmeden şunları dene:
+- Parametre ayarı (blok boyutu, iş parçacığı sayısı vb.)
+- Algoritma iyileştirme (veri yapıları, erişim düzenleri)
+- Derleyici seçeneklerinin ayarlanması
 
-### フェーズ2: 実装タスク
+### Faz 2: Uygulama görevleri
 
 #### 1. Kod üretimi ve düzeltme
-- PMの指示と、自身のディレクトリ名が示す並列化戦略（例: `OpenMP_MPI`）に従ってコードを修正する
-- SEから提供される再利用可能コードを積極的に活用する
-- コードはバージョン管理し、ファイル名を `元の名前_vX.Y.Z.c` のように変更して保存する
+- PM talimatlarına ve dizin adının belirttiği paralelleştirme stratejisine (örn: `OpenMP_MPI`) göre kodu düzenle
+- SE’nin sağladığı yeniden kullanılabilir kodları etkin biçimde kullan
+- Kodu sürümleyerek `orijinal_ad_vX.Y.Z.c` gibi dosya adlarıyla kaydet
 
-#### 2. 記録
-コードを1回生成・修正するごとに、即座に自身の `ChangeLog.md` に規定のフォーマットで追記する。
+#### 2. Kayıt
+Her üretim/düzeltme sonrasında kendi `ChangeLog.md` dosyana belirlenen biçimde hemen ekleme yap.
 
-**追記フォーマット:**
-`ChangeLog_format.md`および`ChangeLog_format_PM_override.md`に従う。
-新しいバージョンが上に来るように追記し、`<details>`タグで詳細を折り畳む。
+**Ekleme biçimi:**
+`ChangeLog_format.md` ve `ChangeLog_format_PM_override.md` belgelerine uy.
+Yeni sürüm en üstte olacak şekilde ekle ve ayrıntıları `<details>` etiketiyle katla.
 
-**重要**: 生成時刻（UTC）を必ず記録すること。以下の方法のいずれかを使用：
+**Önemli**: Oluşturma zamanını (UTC) mutlaka kaydet. Şu yöntemlerden birini kullan:
 ```bash
-# 方法1: ヘルパースクリプトを使用（推奨）
+# Yöntem 1: Yardımcı betiği kullan (önerilir)
 python3 /Agent-shared/change_log/changelog_helper.py -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
 
-# 方法2: 手動で現在のUTC時刻を取得
+# Yöntem 2: Geçerli UTC zamanını elle al
 date -u +"%Y-%m-%dT%H:%M:%SZ"
 ```
 
-### フェーズ3: コンパイルと実行
+### Faz 3: Derleme ve yürütme
 
-#### SSH/SFTP実行管理
+#### SSH/SFTP yürütme yönetimi
 
-Desktop Commander MCPを使用してSSH/SFTP接続を管理します。
-詳細な実装方法とベストプラクティスは `/Agent-shared/ssh_sftp_guide.md` を参照してください。
+SSH/SFTP bağlantılarını Desktop Commander MCP ile yönet.
+Ayrıntılı uygulama ve en iyi pratikler için `/Agent-shared/ssh_sftp_guide.md` belgesine bak.
 
-**重要**: requirement_definition.mdで許可されていない限り、コンパイル・実行はすべてSSH経由でスパコン上で行うこと。
-ローカルPCでの実行は禁止。ローカルで許可されるのは集計・可視化・ChangeLog.md編集のみ。
+**Önemli**: requirement_definition.md izin vermedikçe tüm derleme/yürütmeyi süperbilgisayarda SSH üzerinden yap.
+Yerel PC’de yürütme yasaktır. Yerelde sadece toplama, görselleştirme ve ChangeLog.md düzenleme serbesttir.
 
 **重要なポイント**:
 - セッション作成時は必ずPIDを記録し、`ssh_sftp_sessions.json`で管理
@@ -172,7 +172,7 @@ makefileの修正はせず、ファイルは上書きせず手元に実行ファ
 #### パッチバージョン （v1.0.1）
 - 後方互換性を伴うバグ修正
 - **パラメータの微調整**（ブロックサイズ、スレッド数の変更など）
-- コンパイラオプションの調整
+- Derleyici seçeneklerinin ayarlanması
 - 小さな性能改善
 
 ## 🔍 実行結果の参照について
