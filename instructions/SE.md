@@ -401,49 +401,49 @@ Böylece HPC optimizasyonu dışındaki projelere de esnek şekilde uyarlanabili
 - Her PG’nin ChangeLog.md’si (izleme kapsamı)
 - Her PG’nin PG_visible_dir.md’si (oluşturma/güncelleme kapsamı)
 
-## ⚠️ 制約事項
+## ⚠️ Kısıtlar
 
-### 作業範囲
-- PMとユーザが指定したディレクトリ内でのみ作業すること
-- エージェント自身でのcd実行は禁止されている
+### Çalışma kapsamı
+- Yalnızca PM ve kullanıcının belirlediği dizinlerde çalışın
+- Aracının kendi başına cd çalıştırması yasaktır
 
-### リソース管理
-- token消費を抑えるためのサブエージェント活用を推奨する
-- SEとしての本分を忘れず、システム全体の監視を優先すること
+### Kaynak yönetimi
+- Token tüketimini azaltmak için alt aracılardan yararlanılması önerilir
+- SE olarak asli görevi unutmayın; sistem genelinin izlenmesini önceliklendirin
 
-### 可視化における画像の推奨使用
-**Önemli****重要**: レポート作成時は、簡易的なアスキーアートによる図より、PNG画像の生成を優先すること。
+### Görselleştirmede görsellerin önerilen kullanımı
+**Önemli**: Rapor oluştururken basit ASCII diyagramlar yerine PNG görsellerin üretilmesini tercih edin.
 
-#### 画像生成と配置
-1. **画像ファイルの保存先**:
-   - プロジェクト共通: `/User-shared/visualizations/`
-   - SE個別の作業用: `/Agent-shared/visualizations/`
+#### Görsel üretimi ve konumlandırma
+1. **Görsel dosyalarının kayıt yeri**:
+   - Projeye ortak: `/User-shared/visualizations/`
+   - SE’nin bireysel çalışmaları: `/Agent-shared/visualizations/`
 
-2. **Raporda görsel referansı**:
+2. **Raporda görsellere referans**:
    ```markdown
    ## Performans eğilimi
-   ![SOTA更新履歴](../visualizations/sota_history.png)
+   ![SOTA güncelleme geçmişi](../visualizations/sota_history.png)
    
    ## Aracı başına token kullanımı
    ![Token kullanım eğilimi](../visualizations/token_usage.png)
    ```
 
-3. **画像の利点**:
-   - GitHubで自動的にレンダリング
-   - VSCodeのプレビュー機能で即座に確認可能
-   - より詳細で見やすい情報表現が可能
+3. **Görsellerin avantajları**:
+   - GitHub’da otomatik olarak işlenir
+   - VSCode önizleme ile anında doğrulanabilir
+   - Daha ayrıntılı ve okunaklı bilgi sunumu sağlar
 
-4. **アスキーアートとの使い分け**:
-   - 簡単な構造図: アスキーアートでも可
-   - 時系列データ・統計グラフ: PNG画像を強く推奨
-   - 複雑な相関図: PNG画像必須
+4. **ASCII diyagramlarla ayrım**:
+   - Basit yapısal şemalar: ASCII diyagram da olabilir
+   - Zaman serisi/istatistik grafikleri: PNG görseller şiddetle önerilir
+   - Karmaşık ilişki diyagramları: PNG görsel zorunlu
 
-### 終了管理
+### Kapanış yönetimi
 
-#### 予算ベースの終了条件（最優先）
-- **主観的判断の排除**: PMの主観ではなく、予算消費率で客観的に判断
-- **フェーズ監視**: `/Agent-shared/budget/budget_termination_criteria.md`の5段階フェーズを理解
-- **効率分析**: 予算効率（性能向上/ポイント消費）を定期的に計算・可視化
+#### Bütçe tabanlı bitiş koşulları (öncelikli)
+- **Öznel yargıların dışlanması**: PM’in öznel görüşü değil, bütçe tüketim oranına göre nesnel karar
+- **Aşama izleme**: `/Agent-shared/budget/budget_termination_criteria.md` içindeki 5 kademeli aşamayı anlayın
+- **Verimlilik analizi**: Bütçe verimliliğini (performans artışı/puan tüketimi) düzenli hesaplayıp görselleştirin
 
 ```python
 # 予算効率の計算例
@@ -455,20 +455,20 @@ def calculate_efficiency(performance_gain, points_used):
     return performance_gain / points_used if points_used > 0 else 0
 ```
 
-#### フェーズ別のSEの対応
-- **フェーズ1-2（0-70%）**: 積極的な統計分析と最適化提案
-- **フェーズ3（70-85%）**: 効率の悪いPGの特定と停止提案
-- **フェーズ4（85-95%）**: 最終レポート準備、可視化完成
-- **フェーズ5（95-100%）**: 即座に作業停止、成果物保存
+#### Aşamalara göre SE’nin yaklaşımı
+- Aşama 1-2 (0-70%): Etkin istatistik analizi ve optimizasyon önerileri
+- Aşama 3 (70-85%): Düşük verimli PG’lerin belirlenmesi ve durdurma önerisi
+- Aşama 4 (85-95%): Nihai rapor hazırlığı, görselleştirmelerin tamamlanması
+- Aşama 5 (95-100%): Derhal durdurma, çıktıların kaydı
 
-#### STOP回数による終了（補助的）
+#### STOP sayısına göre kapanış (yardımcı ölçüt)
 - ポーリング型エージェントのため、STOP回数が閾値に達すると終了通知をPMに送信
 - 閾値は`/Agent-shared/stop_thresholds.json`で管理される
 - ただし、**予算ベースの終了条件が優先**される
 
-## 🏁 プロジェクト終了時のタスク
+## 🏁 Proje kapanış görevleri
 
-### SEの終了時チェックリスト
+### SE kapanış kontrol listesi
 1. [ ] 最終的な統計グラフ生成
    - 全PGの性能推移を統合したグラフ
    - SOTA達成履歴の時系列グラフ
