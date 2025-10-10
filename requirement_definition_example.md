@@ -1,42 +1,42 @@
-# 要件定義書 
+# Gereksinim Tanımı
 (Requirement Definition)
 
-## プロジェクト情報
-- **プロジェクト名**: tmux_demo1
-- **作成日**: 2025-07-23
+## Proje Bilgileri
+- **Proje adı**: tmux_demo1
+- **Oluşturulma tarihi**: 2025-07-23
 
-## 最適化対象
-### コード取得方法
-- [x] 手元のファイル: BaseCode/以下
+## Optimizasyon Kapsamı
+### Kod edinim yöntemi
+- [x] Yerel dosyalar: BaseCode/ altı
 
-### 対象ファイル
-- **メインファイル**: mat-mat.c, mat-mat-d.c
-- **依存ファイル**: mat-mat-.bash, Makefile
+### Hedef dosyalar
+- **Ana dosyalar**: mat-mat.c, mat-mat-d.c
+- **Bağımlı dosyalar**: mat-mat-.bash, Makefile
 
-## 最適化の度合い（目標）
-### 性能目標
-- **目標性能**: 理論ピーク性能に近づける
+## Optimizasyon derecesi (hedef)
+### Performans hedefi
+- **Hedef performans**: Teorik tepe performansa yaklaşmak
 
-### 優先度
-- [x] 実行時間最小化
-- [ ] メモリ使用量最小化  
-- [ ] エネルギー効率最大化
-- [x] スケーラビリティ向上
-- [ ] その他: 
+### Öncelikler
+- [x] Çalışma süresini en aza indirme
+- [ ] Bellek kullanımını en aza indirme
+- [ ] Enerji verimliliğini en üst düzeye çıkarma
+- [x] Ölçeklenebilirliği artırma
+- [ ] Diğer:
 
-## 概要
-### アプリケーション概要
-複数の行列サイズに対して、MPIプロセス数1～576（ノード数1～12）の実行時間を測定します。
-MPIプロセス数1の時の時間を1として、576プロセスまでの速度向上（台数効果）の図を作成します。
+## Özet
+### Uygulama özeti
+Birden çok matris boyutu için, MPI süreç sayısı 1–576 (düğüm sayısı 1–12) aralığında yürütme süresi ölçülecektir.
+MPI süreç sayısı 1 için ölçülen süre 1 kabul edilerek 576 sürece kadar hızlanma (ölçek etkisi) grafiği oluşturulacaktır.
 
-### 最適化アプローチ
-以下を並列で進めます：
+### Optimizasyon yaklaşımı
+Aşağıdakiler paralel olarak ilerletilecektir:
 
-(i) Mat-Mat（通信関数が一切不要）のサンプルプログラムを並列化します。
-ここで、行列A、B、Cについての初期状態は各PEで重複したデータを持ってよいものとします。
+(i) Mat-Mat (iletişim fonksiyonu gerektirmeyen) örnek programı paralelleştirilecektir.
+Burada A, B, C matrisleri için başlangıç durumunda her PE’de kopyalı veri bulunmasına izin verilir.
 
-(ii) Mat-Mat-d（1対1通信関数が必要）
-MPIプロセス数1での実行は、(i)の逐次の行列積の時間を測定して用います。
+(ii) Mat-Mat-d (bire bir iletişim fonksiyonu gerektirir)
+MPI süreç sayısı 1’deki yürütme, (i)’deki sıralı matris çarpım süresi ölçülerek referans alınacaktır.
 
 ## 制約（指定）
 
