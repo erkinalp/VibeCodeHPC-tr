@@ -170,13 +170,13 @@ Read file_path="/path/to/graph.png"  # Ana bağlamda doğrudan okuma, kaçınıl
 PROJECT_ROOT=$(pwd | sed 's|\(/VibeCodeHPC[^/]*\).*|\1|')
 
 # Grafik ile ChangeLog.md’yi çapraz doğrula
-claude -p "グラフに表示されている全ての性能値をリストアップ" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png > graph_values.txt
+claude -p "Grafikte görünen tüm performans değerlerini listele" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png > graph_values.txt
 grep "GFLOPS" */ChangeLog.md | grep -oE "[0-9]+\.[0-9]+" > changelog_values.txt
-diff graph_values.txt changelog_values.txt  # 抜けがないか確認
+diff graph_values.txt changelog_values.txt  # Eksik olmadığını kontrol et
 
 # sota_local.txt ile karşılaştır (familyaya göre grafik)
-claude -p "このグラフの最高値を教えて" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_family_OpenMP_time_linear.png
-cat OpenMP/sota_local.txt  # 一致するか確認
+claude -p "Bu grafikteki en yüksek değeri söyle" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_family_OpenMP_time_linear.png
+cat OpenMP/sota_local.txt  # Eşleşmeyi doğrula
 ```
 
 3. **Çözünürlük yönetimi ilkesi**

@@ -203,9 +203,9 @@ ChangeLog.md’ye ek olarak /results içinde jobID.out, jobID.err gibi dosyalar�
 ### Doğru biçim örneği
 ```markdown
 ### v1.1.0
-**Değişiklikler**:**変更点**: "ブロッキング最適化とスレッド数調整"  
-**Sonuç**:**結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
-**Yorum**:**コメント**: "ブロックサイズを64から128に変更、キャッシュ効率が大幅改善"  
+**Değişiklikler**: "Bloklama optimizasyonu ve iş parçacığı sayısı ayarı"  
+**Sonuç**: Teorik performansın %65.1’i elde edildi `312.4 GFLOPS`  
+**Yorum**: "Blok boyutu 64’ten 128’e çıkarıldı, önbellek verimliliği ciddi oranda iyileşti"  
 
 <details>
 
@@ -241,44 +241,44 @@ PM ayraç karakterini “|” yapsa bile `<details>` yapısı değiştirilmez:
 </details>
 ```
 
-## ⚠️ 制約事項
+## ⚠️ Kısıtlar
 
-### 実装制約
-- 自身のディレクトリ名が示す並列化戦略に従うこと
-- 勝手に異なる戦略を実装してはならない
-- makefileの修正は禁止されている
+### Uygulama kısıtları
+- Dizin adının belirttiği paralelleştirme stratejisine uy
+- Keyfi olarak farklı strateji uygulama
+- makefile’ı değiştirmek yasaktır
 
-### バージョン管理
-- ファイルは上書きせず、必ずバージョン管理を行うこと
-- 適切なバージョン番号体系に従うこと
+### Sürüm yönetimi
+- Dosyaları ezme, mutlaka sürüm yönetimi uygula
+- Uygun sürüm numaralandırma sistemine uy
 
-### リソース管理
-- 不要になった実行結果は適宜削除すること
-- SSH/SFTPセッションは適切に管理すること
+### Kaynak yönetimi
+- Gereksiz hale gelen yürütme sonuçlarını uygun zamanda sil
+- SSH/SFTP oturumlarını uygun şekilde yönet
 
-## 🏁 プロジェクト終了時のタスク
+## 🏁 Proje bitiş görevleri
 
-### 終了条件
+### Bitiş koşulları
 
-#### 予算ベースの終了（最優先）
-- **主観的判断の排除**: PMの「そろそろ」という判断ではなく、予算消費率で客観的に判断
-- **フェーズ移行通知への対応**: PMからフェーズ移行通知を受けたら即座に対応
-- **長時間ジョブの事前相談**: 予算消費が大きいジョブはPMに事前確認
+#### Bütçe temelli bitiş (öncelikli)
+- **Öznel yargı yok**: PM’in “artık” demesi değil, bütçe tüketim oranıyla nesnel değerlendir
+- **Faz geçiş bildirimleri**: PM’den faz geçiş bildirimi gelirse derhal uyum sağla
+- **Uzun işlerde ön görüşme**: Bütçeyi tüketebilecek işlerde önceden PM onayı al
 
-### PGの終了時チェックリスト
-1. [ ] 最終コードのコミット
-   - 最新バージョンのコードが保存されているか確認
-   - SOTA達成コードに適切なコメントを追加
-   - `/archived`フォルダの整理
-2. [ ] ChangeLog.mdの最終更新
-   - 全試行の記録が正確か確認
-   - 最終的なSOTA達成状況を明記
-   - 失敗した試行の原因分析を含める
-3. [ ] SOTA判定の最終確認
-   - `sota_local.txt`の最終更新
-   - Family SOTA、Hardware SOTAへの貢献を確認
-   - 理論性能に対する達成率を明記
-4. [ ] 未実装機能のドキュメント化
-   - 時間切れで試せなかった最適化手法
-   - 検討したが実装しなかった理由
-   - 今後の改善提案
+### PG kapanış kontrol listesi
+1. [ ] Son kod commit’i
+   - En güncel sürüm kodunun kaydedildiğini doğrula
+   - SOTA’ya ulaşan koda uygun açıklamalar ekle
+   - `/archived` klasörünü düzenle
+2. [ ] ChangeLog.md’nin son güncellemesi
+   - Tüm denemelerin doğru kaydedildiğini doğrula
+   - Nihai SOTA durumunu açıkça yaz
+   - Başarısız denemeler için neden analizi ekle
+3. [ ] SOTA değerlendirmesinin son kontrolü
+   - `sota_local.txt` son güncellemesi
+   - Family SOTA ve Hardware SOTA katkılarını doğrula
+   - Teorik performansa göre erişilen oranı belirt
+4. [ ] Uygulanmamış özelliklerin belgelendirilmesi
+   - Süre nedeniyle denenemeyen optimizasyon yöntemleri
+   - Değerlendirildi ancak uygulanmadı: gerekçeler
+   - Geleceğe yönelik iyileştirme önerileri
