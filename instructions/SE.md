@@ -323,7 +323,7 @@ SE aşağıdaki görevleri düzenli olarak yürütmelidir:
   - `ChangeLog_format_PM_override.md` güncellemesini iste
 
 #### 2. SOTA değerlendirme sisteminin izlenmesi ve iyileştirilmesi
-**Önemli****重要**: SOTAの自動判定は正規表現に依存するため、継続的な調整が必要
+**Önemli**: SOTA’nın otomatik değerlendirmesi düzenli ifadelere bağlıdır; sürekli ayar gerektirir
 
 - **sota_local.txt üretimini teşvik**:
   ```bash
@@ -366,40 +366,40 @@ Böylece HPC optimizasyonu dışındaki projelere de esnek şekilde uyarlanabili
 - **Diğer SE’ler**: İstatistik bilgileri ve test kodlarını paylaşır
 - **CD**: GitHub yönetimi ve güvenlik uyumu yürütür
 
-## ⚒️ ツールと環境
+## ⚒️ Araçlar ve ortam
 
 ### Kullanılan araçlar
-- agent_send.sh(aracılar arası iletişim)
-  - **Önemli**  - **重要**: エージェント間のメッセージ送信は必ず`agent_send.sh`を使用
-  - **Yasak**  - **禁止**: `tmux send-keys`でのメッセージ送信（Enterキーが送信されず失敗する）
-  - Doğru:  - 正: `agent_send.sh PG1.1.1 "[問い合わせ] 現在の進捗は？"`
-  - Yanlış:  - 誤: `tmux send-keys -t pane.3 "[問い合わせ] 現在の進捗は？" C-m`（C-mも改行として解釈され、メッセージが届かない）
-- Python matplotlib（グラフ作成）
-- 統計解析ツール
-- telemetry/context_usage_monitor.py（コンテキスト使用率監視・可視化）
+- agent_send.sh (aracılar arası iletişim)
+  - **Önemli**: Aracılar arası mesaj gönderimi için mutlaka `agent_send.sh` kullanın
+  - **Yasak**: `tmux send-keys` ile mesaj göndermek (Enter gönderilmediği için başarısız olur)
+  - Doğru: `agent_send.sh PG1.1.1 "[Soru] Güncel ilerleme nedir?"`
+  - Yanlış: `tmux send-keys -t pane.3 "[Soru] Güncel ilerleme nedir?" C-m` (C-m yeni satır olarak yorumlanabilir ve mesaj iletilmeyebilir)
+- Python matplotlib (grafik oluşturma)
+- İstatistik analiz araçları
+- telemetry/context_usage_monitor.py (bağlam kullanım oranı izleme/görselleştirme)
 - telemetry/context_usage_quick_status.py(hızlı durum kontrolü)
 - telemetry/analyze_sub_agent.py(alt aracı kullanım istatistiği)
 
-### 必須参照ファイル
-#### 初期化時に必ず読むべきファイル
-- `/Agent-shared/change_log/ChangeLog_format.md`（統一記録フォーマット）
-- `/Agent-shared/change_log/ChangeLog_format_PM_override.md`（PMオーバーライド - 存在する場合）
-- `/Agent-shared/sota/sota_management.md`（SOTA管理システム）
-- `/Agent-shared/report_hierarchy.md`（レポート階層構成）
-- `/Agent-shared/artifacts_position.md`（成果物配置ルール）
-- `/Agent-shared/budget/budget_termination_criteria.md`（予算ベース終了条件）
+### Zorunlu başvuru dosyaları
+#### Başlatma sırasında mutlaka okunması gereken dosyalar
+- `/Agent-shared/change_log/ChangeLog_format.md` (birleşik kayıt formatı)
+- `/Agent-shared/change_log/ChangeLog_format_PM_override.md` (PM override - mevcutsa)
+- `/Agent-shared/sota/sota_management.md` (SOTA yönetim sistemi)
+- `/Agent-shared/report_hierarchy.md` (rapor hiyerarşisi)
+- `/Agent-shared/artifacts_position.md` (çıktı konumlandırma kuralları)
+- `/Agent-shared/budget/budget_termination_criteria.md` (bütçe tabanlı bitiş koşulları)
 
-#### 分析・監視用ツール
-- `/Agent-shared/change_log/changelog_analysis_template.py`（分析テンプレート）
-- `/Agent-shared/sota/sota_checker.py`（SOTA確認スクリプト）
-- `/Agent-shared/sota/sota_visualizer.py`（SOTA可視化ツール）
-- `/Agent-shared/budget/budget_tracker.py`（予算消費追跡・予測ツール）
+#### Analiz ve izleme araçları
+- `/Agent-shared/change_log/changelog_analysis_template.py` (analiz şablonu)
+- `/Agent-shared/sota/sota_checker.py` (SOTA doğrulama betiği)
+- `/Agent-shared/sota/sota_visualizer.py` (SOTA görselleştirme aracı)
+- `/Agent-shared/budget/budget_tracker.py` (bütçe tüketimi izleme/öngörü aracı)
 
-#### 運用管理用
-- `/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理 - プロジェクトルート直下）
-- `/Agent-shared/PG_visible_dir_format.md`（PG参照許可フォーマット）
-- 各PGのChangeLog.md（監視対象）
-- 各PGのPG_visible_dir.md（作成・更新対象）
+#### Operasyon yönetimi
+- `/directory_pane_map.md` (aracı konumlandırma ve tmux pane bütünleşik yönetimi - proje kökü)
+- `/Agent-shared/PG_visible_dir_format.md` (PG başvuru izni formatı)
+- Her PG’nin ChangeLog.md’si (izleme kapsamı)
+- Her PG’nin PG_visible_dir.md’si (oluşturma/güncelleme kapsamı)
 
 ## ⚠️ 制約事項
 

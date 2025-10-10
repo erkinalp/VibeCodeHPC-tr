@@ -151,7 +151,7 @@ Doğrulayan: PG1.1 (imzalı)
 ## GPU (TypeII-G için)
 - Model: NVIDIA A100 40GB
 - **GPU sayısı**: 4 adet/düğüm
-- Memory: 40 GB HBM2 (各GPU)
+- Bellek: 40 GB HBM2 (her GPU için)
 - **GPU’lar arası bağlantı**: NVLink 3.0 (600 GB/s çift yönlü)
 - **Topoloji**: Full mesh (tüm GPU’lar NVLink ile doğrudan bağlı)
 - **Teorik hesaplama performansı**: 
@@ -244,14 +244,14 @@ agent_send.sh PM "[SE] Donanım bilgisi toplama/doğrulama tamam. PG1.1 imzalad�
 
 ### 3. Rapor oluştururken kullanım
 ```python
-# SEのレポート生成コード例
+# SE rapor üretim kodu örneği
 def calculate_efficiency(actual_gflops, hardware_info_path):
     """Gerçekleşen verimliliği hesaplar"""
     with open(hardware_info_path) as f:
         content = f.read()
-        # 理論演算性能を抽出
+        # teorik işlem performansı理論演算性能を抽出
         import re
-        match = re.search(r'理論演算性能.*?(\d+\.?\d*)\s*GFLOPS', content)
+        match = re.search(r'teorik işlem performansı.*?(\d+\.?\d*)\s*GFLOPS', content)
         if match:
             theoretical = float(match.group(1))
             efficiency = (actual_gflops / theoretical) * 100
@@ -259,14 +259,14 @@ def calculate_efficiency(actual_gflops, hardware_info_path):
     return f"{actual_gflops} GFLOPS"
 ```
 
-## 重要な注意事項
+## Önemli dikkat noktaları
 
-1. **理論演算性能の明記は必須**
-   - 単なる性能向上だけでなく、理論性能比で評価
-   - 「10倍速くなった」より「理論性能の60%達成」が重要
+1. **Teorik işlem performansını açıkça belirtmek zorunludur**
+   - Sadece performans artışı değil, teorik performansa göre oranla değerlendirin
+   - “10 kat hızlandı” demekten ziyade “teorik performansın %60’ına ulaşıldı” ifadesi daha anlamlıdır
 
-2. **B/F比の考慮**
-   - Byte/FLOP比を計算し、メモリ律速かCPU律速か判断
+2. **B/F oranını dikkate alın**
+   - Byte/FLOP oranını hesaplayın ve darboğazın bellek mi CPU mu olduğunu belirleyin
 
-3. **定期的な更新**
-   - module loadで環境が変わる場合は再確認
+3. **Düzenli güncelleme**
+   - module load ile ortam değişirse yeniden doğrulayın
