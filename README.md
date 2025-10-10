@@ -448,11 +448,11 @@ http://localhost:3000
 ```
 
 Giriş bilgileri:
-- ユーザー名: `admin`
-- パスワード: `admin`
+- Kullanıcı adı: `admin`
+- Parola: `admin`
 
 
-[ccusage](https://github.com/ryoppippi/ccusage)は、JSONLログからトークン使用量を分析するCLIツールです。
+[ccusage](https://github.com/ryoppippi/ccusage), JSONL günlüklerinden token kullanımını analiz eden bir CLI aracıdır.
 
 ![Grafana başarıyla başlatıldığında örnek ekran](_images/Grafana.png)
 
@@ -538,73 +538,73 @@ Ayrıntılar için `instructions/SOLO.md` dosyasına bakın.
 ### Çoklu Aracı: tmux oturumu oluşturma
 
 > [!IMPORTANT]
-> VibeCodeHPCは複数のtmuxセッションを使用します：
-> - **PMセッション**: PMエージェント専用（ユーザとの対話用）
->   - デフォルト: `Team1_PM`
->   - プロジェクト指定時: `{ProjectName}_PM`
-> - **ワーカーセッション**: その他のエージェント（SE, PG, CD）
->   - デフォルト: `Team1_Workers1`
->   - プロジェクト指定時: `{ProjectName}_Workers1`
+> VibeCodeHPC birden çok tmux oturumu kullanır:
+> - **PM oturumu**: PM aracısına özeldir (kullanıcıyla etkileşim)
+>   - Varsayılan: `Team1_PM`
+>   - Proje verildiğinde: `{ProjectName}_PM`
+> - **Worker oturumu**: Diğer aracılar (SE, PG, CD)
+>   - Varsayılan: `Team1_Workers1`
+>   - Proje verildiğinde: `{ProjectName}_Workers1`
 > 
-> 最小エージェント数は2です（SE + PG）
+> En az aracı sayısı 2’dir (SE + PG)
 
 ```bash
 cd VibeCodeHPC-jp-main
-./communication/setup.sh [ワーカー数]  # 例: ./communication/setup.sh 12
+./communication/setup.sh [worker_sayısı]  # Ör: ./communication/setup.sh 12
 ```
 
 
-コマンドラインオプション:
+Komut satırı seçenekleri:
 <details>
-#   [ワーカー数]     : PM以外のエージェント総数 (最小: 2)
-#   --project <名前> : プロジェクト名を指定（例: GEMM, MatMul）
-#   --clean-only     : 既存セッションのクリーンアップのみ実行
-#   --dry-run        : 実際のセットアップを行わずに計画を表示
-#   --help           : ヘルプメッセージを表示
+#   [worker_sayısı]  : PM dışındaki toplam aracı sayısı (en az: 2)
+#   --project <ad>   : Proje adını belirtir (ör: GEMM, MatMul)
+#   --clean-only     : Yalnız var olan oturumları temizler
+#   --dry-run        : Gerçek kurulum yapmadan planı gösterir
+#   --help           : Yardım mesajını gösterir
 </details>
 
-#### プロジェクト名指定例:
+#### Proje adı verme örnekleri:
 ```bash
-./communication/setup.sh 12 --project GEMM  # デフォルト60秒間隔で定期Enter送信
-./communication/setup.sh 12 --project GEMM --periodic-enter 30  # 30秒間隔
-./communication/setup.sh 12 --project GEMM --periodic-enter 0  # 定期Enter無効
+./communication/setup.sh 12 --project GEMM  # Varsayılan 60 saniye aralıkla periyodik Enter gönderimi
+./communication/setup.sh 12 --project GEMM --periodic-enter 30  # 30 saniye aralık
+./communication/setup.sh 12 --project GEMM --periodic-enter 0  # Periyodik Enter devre dışı
 ```
-上記コマンドで `GEMM_PM`, `GEMM_Workers1` セッションを作成、残留メッセージ強制送信機能も起動
+Yukarıdaki komutlar `GEMM_PM` ve `GEMM_Workers1` oturumlarını oluşturur, kalmış mesajları zorla gönderme özelliğini de başlatır
 
 
-#### 参考構成例（実際の配置はPMが決定）
+#### Örnek yapılandırmalar (nihai yerleşim PM tarafından belirlenir)
 
-| Workers | SE | PG | CD | 備考 |
+| Workers | SE | PG | CD | Not |
 |---------|----|----|-----|------|
-| 2 | 1 | 1 | 0 | 最小構成 |
-| 4 | 1 | 3 | 0 | 小規模 |
-| 8 | 2 | 5 | 1 | SE≧2で安定 |
-| 12 | 2 | 9 | 1 | 推奨構成 |
-| 16 | 3 | 12 | 1 | 大規模 |
+| 2 | 1 | 1 | 0 | En küçük yapı |
+| 4 | 1 | 3 | 0 | Küçük ölçek |
+| 8 | 2 | 5 | 1 | SE≥2 ile daha stabil |
+| 12 | 2 | 9 | 1 | Önerilen yapı |
+| 16 | 3 | 12 | 1 | Büyük ölçek |
 
-#### 2つのターミナルタブでそれぞれアタッチ
-プロジェクト名を`GEMM`に指定した場合の例
+#### İki terminal sekmesinden ayrı ayrı bağlanın
+`GEMM` proje adı için örnek
 
-タブ1（PMエージェント用）:
+Sekme 1 (PM aracı için):
 ```bash
 tmux attach-session -t GEMM_PM
 ```
-タブ2（その他のエージェント用）:
+Sekme 2 (diğer aracılar için):
 ```bash
 tmux attach-session -t GEMM_Workers1
 ```
 
 > [!TIP]
-> setup.shの出力に表示される実際のセッション名を使用してください。
+> Lütfen setup.sh çıktısında görünen gerçek oturum adlarını kullanın.
 
-### 3. プロジェクト開始
-要件定義（skipした場合は、PMと対話的に作成）
+### 3. Projeyi başlatma
+Gereksinim tanımı (atlandıysa PM ile etkileşimli oluşturun)
 ```bash
 cp requirement_definition_template.md requirement_definition.md
-# requirement_definition.mdを編集
+# requirement_definition.md dosyasını düzenleyin
 ```
 
-PMを起動
+PM’i başlatın
 ```bash
 ./start_PM.sh
 ```
