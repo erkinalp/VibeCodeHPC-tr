@@ -14,7 +14,7 @@ import shutil
 
 # プロジェクトルートを探してbudget_trackerをインポート
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-jp) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 project_root = find_project_root(Path.cwd())
 if not project_root:
-    print("ERROR: プロジェクトルートが見つかりません")
+    print("ERROR: Proje kökü bulunamadı")
     sys.exit(1)
 
 # budget_trackerをインポート
@@ -34,7 +34,7 @@ sys.path.insert(0, str(project_root / "Agent-shared" / "budget"))
 from budget_tracker import BudgetTracker
 
 def create_test_changelog(temp_dir, pg_name, jobs):
-    """テスト用のChangeLog.mdを作成"""
+    """Test için ChangeLog.md oluştur"""
     changelog_path = temp_dir / pg_name / "ChangeLog.md"
     changelog_path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -74,15 +74,12 @@ def run_test():
     print("budget_tracker.py テスト開始")
     print("=" * 60)
     
-    # 一時ディレクトリ作成
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         
-        # プロジェクト構造を模倣
         (temp_path / "Agent-shared").mkdir()
         (temp_path / "CLAUDE.md").touch()
         
-        # プロジェクト開始時刻
         start_time = datetime.utcnow() - timedelta(hours=2)
         (temp_path / "Agent-shared" / "project_start_time.txt").write_text(
             start_time.isoformat() + "Z"
