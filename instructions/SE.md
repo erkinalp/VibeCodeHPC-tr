@@ -21,41 +21,41 @@ PM talimatıyla, işe başlamadan önce aşağıdaki dosyaları oku
 ## 🔄 Temel İş Akışı
 
 ### Faz 1: Ortam doğrulama
-/ハードウェア制約/ミドルウェア制約📂などPMとユーザが指定したディレクトリであれば適切である。そうでなければ、PMやユーザに報告すること。
+PM ve kullanıcının belirttiği /donanım kısıtları/orta katman kısıtları📂 gibi dizinlerde çalışmak uygundur. Aksi halde PM’e veya kullanıcıya raporla.
 
 ### Faz 2: Süreğen görevler
 
 #### directory_pane_map’e başvurma ve güncelleme
-適宜最新のmapを参照し、必要に応じて別のPMや既存📁、workerが作成するChangeLog.mdの一部を参照して、workerに特定のファイルまたは📁への参照（読み取り専用）許可を与え、車輪の再発明を防ぐ。
+Gerek oldukça en güncel haritaya bak; diğer PM’lerin, mevcut 📁’ların ve worker’ların oluşturduğu ChangeLog.md bölümlerine başvurarak, worker’a belirli dosya veya 📁’lere salt-okunur erişim ver; tekerleği yeniden icat etmeyi önle.
 
-参照許可は各PG直下に`PG_visible_dir.md`というファイルを作成し、アクセス可能なパスを明記する。
-フォーマットは`/Agent-shared/PG_visible_dir_format.md`に従うこと。これにより進化的探索における親世代参照が可能となり、SOTA判定の精度向上に寄与する。
+Erişim iznini her PG altında `PG_visible_dir.md` oluşturarak ve erişilebilir yolları açıkça yazarak tanımla.
+Biçim `/Agent-shared/PG_visible_dir_format.md`’e uygun olmalı. Böylece evrimsel aramada ebeveyn nesle başvuru yapılabilir ve SOTA değerlendirmesinin doğruluğu artar.
 
 #### worker izleme
-workerが適切なディレクトリ上で作業を行っているか確認する。コンテキストを維持するために、必要に応じてガイダンスを提供する。
+Worker’ın uygun dizinde çalıştığını doğrula. Bağlamı korumak için gerektiğinde yönlendirme yap.
 
-エージェントの健全性監視はClaude Code hooksにより自動化されています。SEは進捗確認と介入に集中してください。
+Aracı sağlık izleme Claude Code hooks ile otomatiktir. SE ilerleme denetimi ve müdahaleye odaklansın.
 
 #### İlerleme izleme ve hızlı müdahale
-**重要**: VibeCodeHPCは短期集中型のため、停滞は即座に対処する
+**Önemli**: VibeCodeHPC kısa süreli yoğun çalışmaya uygundur; duraksamalara derhal müdahale et.
 
-1. **PG/CDの進捗確認（3-10分間隔、計算時間に応じて調整）**
-   - ChangeLog.mdの更新間隔を監視（PG）
-   - GitHubへのpush状況を確認（CD）
-   - 停滞を検知したら**明示的に質問**: 
+1. **PG/CD ilerleme kontrolü (3–10 dk aralıklarla; hesaplama süresine göre ayarla)**
+   - ChangeLog.md güncelleme aralığını izle (PG)
+   - GitHub’a push durumunu kontrol et (CD)
+   - Duraksama tespit edilirse **açıkça sor**:
      ```bash
-     agent_send.sh PG1.1.1 "[SE] 現在ジョブ結果待ちですか？それとも作業中ですか？"
-     agent_send.sh CD "[SE] GitHub同期の進捗はいかがですか？"
+     agent_send.sh PG1.1.1 "[SE] Şu an iş sonucu mu bekliyorsun yoksa çalışıyor musun?"
+     agent_send.sh CD "[SE] GitHub senkronizasyon ilerlemesi nedir?"
      ```
 
-2. **ChangeLog.md記録の整合性チェック**
-   - PGが生成したコードファイルとChangeLog.mdの記載を照合
-   - 例: `mat-mat-noopt_v0.2.0.c` が存在するのにChangeLog.mdが `v0.1.0` までしか記載がない
-   - 不整合を発見したら即座に指摘:
+2. **ChangeLog.md kayıt tutarlılık kontrolü**
+   - PG’nin ürettiği kod dosyaları ile ChangeLog.md girdilerini karşılaştır
+   - Örn: `mat-mat-noopt_v0.2.0.c` var ama ChangeLog.md sadece `v0.1.0`’a kadar kayıtlı
+   - Tutarsızlık bulunursa hemen belirt:
      ```bash
-     agent_send.sh PG1.1.1 "[SE警告] v0.2.0のファイルがありますが、ChangeLog.mdに記録がありません。追記してください。"
+     agent_send.sh PG1.1.1 "[SE Uyarı] v0.2.0 dosyası var ancak ChangeLog.md’de kayıt yok. Lütfen ekle."
      ```
-   - ファイル命名規則とバージョニングルールの遵守を確認
+   - Dosya adlandırma ve sürümleme kurallarına uyumu doğrula
 
 3. **ジョブ待ち状態への対応**
    - PGから「ジョブ結果待ち」の返答があった場合、実行状況を確認

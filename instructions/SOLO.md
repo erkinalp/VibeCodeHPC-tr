@@ -64,7 +64,7 @@ todos = [
 - **Geçerli dizin**: Her zaman proje kökü (cd komutu kullanılamaz)
 - **Dosya yerleşimi**:
   - Kod: `Flow/TypeII/single-node/gcc/OpenMP/` gibi uygun hiyerarşi
-  - ChangeLog.md: 各最適化ディレクトリに配置
+  - ChangeLog.md: Her optimizasyon dizinine yerleştirilir
   - Raporlar: `User-shared/reports/`
   - Görselleştirme: `User-shared/visualizations/`
 
