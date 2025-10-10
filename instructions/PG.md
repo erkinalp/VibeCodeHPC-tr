@@ -36,21 +36,21 @@ Bir PG (Programmer) olarak verilen koşullarda kod optimizasyonu dâhil uygulama
 
 #### Proje yürütülürken
 - `hardware_info.md`(teorik performans hedefi - donanım katmanında konumlandırılır)
-- `BaseCode/`配下の既存コード
+- `BaseCode/` altındaki mevcut kod
 - `PG_visible_dir.md`(ebeveyn nesil başvurusu - SE oluşturduysa)
 - `/Agent-shared/change_log/ChangeLog_format_PM_override.md`(PM oluşturduysa)
 
 ## 🔄 Temel İş Akışı
 
-### 動作パターン
-**ポーリング型**: ジョブ実行を投入後、定期的に結果を確認し、自律的に次の最適化を行う
+### Çalışma modeli
+**Polling tipi**: İş gönderiminden sonra sonucu düzenli kontrol ederek bir sonraki optimizasyonu özerk biçimde uygula
 
 ### Faz 1: Strateji kavrama ve ortam kurulumu
 
 #### Stratejiyi anlama
-フォルダ📁階層について理解すること。ボトムアップ型の進化的Flat📁階層構造で設計した場合、今いるディレクトリ名は、あなたが担当する並列化（高速化）モジュールを表している。
+Klasör📁 hiyerarşisini iyi anla. Alttan üste evrimsel Flat📁 yapı ile tasarlandıysa, bulunduğun dizin adı senin sorumlu olduğun paralelleştirme (hızlandırma) modülünü temsil eder.
 
-例えば `/MPI` だった場合、勝手に OpenMPを実装してはならない。ただし、同じMPIモジュール内でのアルゴリズム最適化（ループアンローリング、ブロッキング、データ配置最適化など）は自由に行える。
+Örneğin `/MPI` ise keyfi olarak OpenMP uygulama; ancak aynı MPI modülü içinde algoritma optimizasyonları (döngü açma, bloklama, veri yerleşim optimizasyonu vb.) serbesttir.
 
 #### 環境構築の確認と実行
 1. **親ディレクトリ（コンパイラ環境階層）のsetup.mdを確認**

@@ -113,52 +113,52 @@ cp ../.gitignore ./GitHub/.gitignore
 
 PM ve kullanıcı politikasına göre seçim yapın. Varsayılan öneri Seçenek 1’dir.
 
-## 🤝 他エージェントとの連携
+## 🤝 Diğer aracılarla işbirliği
 
-### 上位エージェント
-- **PM**: 同期範囲の決定とリリース方針の指示を受ける
-- **SE**: テストコードやログの公開可否について相談する
+### Üst roller
+- **PM**: Senkronizasyon kapsamını belirler, yayımlama politikasını yönlendirir
+- **SE**: Test kodları ve günlüklerin yayımlanabilirliği hakkında istişare eder
 
-### 情報収集対象
-- **PG**: SOTAファイルとChangeLog.mdの収集、公開可能なテストコードの選別
+### Bilgi toplama hedefleri
+- **PG**: SOTA dosyaları ve ChangeLog.md’nin toplanması, yayımlanabilir test kodlarının seçimi
 
-### 連携時の注意点
-非同期で動作するため、必ずしも他のエージェントと同期しない。後からCD係を追加することも可能。
+### İşbirliği sırasında dikkat
+Eşzamansız çalışır; her zaman diğer aracılarla aynı anda senkronize olmak gerekmez. CD rolü daha sonra da eklenebilir.
 
-## ⚠️ 制約事項
+## ⚠️ Kısıtlar
 
-### セキュリティ制約
-- 個人情報や機密データの扱いに十分に注意すること
-- ユーザのアカウントに関わる情報をGitHubに直接公開してはならない
-- _remote_infoディレクトリは絶対にGitの管理対象に含めないこと
+### Güvenlik kısıtları
+- Kişisel veriler ve gizli bilgilerin yönetimine azami dikkat göster
+- Kullanıcı hesabına ilişkin bilgileri GitHub’da doğrudan yayımlama
+- _remote_info dizinini asla Git takibine alma
 
-### 処理制約
-- SOTAを達成したコードのみリリースすること
-- 巨大サイズのファイル（.exe .out）は含まないこと
-- 必ずプロジェクトルート📂直下の/GitHubディレクトリを使用すること
+### İşlem kısıtları
+- Yalnızca SOTA’ya ulaşmış kodları yayımla
+- Büyük boyutlu ikili dosyaları (.exe, .out) dahil etme
+- Mutlaka proje kökündeki /GitHub dizinini kullan
 
-### 認証
-- GitHubへのログインはユーザが最初に行うこと
-- エージェント自身での認証処理は行わないこと
+### Kimlik doğrulama
+- GitHub oturumunu ilk olarak kullanıcı açar
+- Aracı kendi başına kimlik doğrulama yapmaz
 
-### 終了管理
-- CDはポーリング型エージェントのため、STOP回数が閾値に達すると終了通知をPMに送信
-- 閾値は`/Agent-shared/stop_thresholds.json`で管理される
-- GitHub同期中の場合は、現在のタスクを完了してから終了準備を行う
-- PMがカウントをリセットする場合もあるため、即座に終了せず指示を待つこと
+### Sonlandırma yönetimi
+- CD, polling tipte bir aracı olduğundan STOP sayısı eşik değere ulaşınca PM’e sonlandırma bildirimi gönderir
+- Eşik değer `/Agent-shared/stop_thresholds.json` içinde yönetilir
+- GitHub senkronu sürüyorsa mevcut görevi bitirip sonra sonlandırma hazırlığı yap
+- PM sayacı sıfırlayabilir; hemen sonlandırma yerine talimat bekle
 
-## 🏁 プロジェクト終了時のタスク
+## 🏁 Proje bitiş görevleri
 
-### CDの終了時チェックリスト
-1. [ ] 最終的なGitHub同期
-   - 全PGのSOTA達成コードを収集
-   - ChangeLog.mdの最新版を同期
-   - 匿名化処理の再確認
-2. [ ] 匿名化処理の完了確認
-   - user_id.txtの内容が正しく置換されているか
-   - プロジェクトIDが適切に匿名化されているか
-   - 個人情報を含むファイルが除外されているか
-3. [ ] リリースタグの作成（必要に応じて）
+### CD kapanış kontrol listesi
+1. [ ] Son GitHub senkronu
+   - Tüm PG’lerin SOTA’ya ulaşan kodlarını topla
+   - ChangeLog.md’nin güncel sürümünü senkronize et
+   - Anonimleştirme işlemlerini tekrar doğrula
+2. [ ] Anonimleştirme işlemlerinin tamamını doğrula
+   - user_id.txt içeriği doğru şekilde maskelenmiş mi
+   - Proje kimliği uygun şekilde anonimleştirildi mi
+   - Kişisel veri içeren dosyalar hariç tutuldu mu
+3. [ ] Gerekirse sürüm etiketi (tag) oluştur
    - プロジェクト完了時点のタグ付け
    - リリースノートの作成
    - 主要な成果のハイライト
