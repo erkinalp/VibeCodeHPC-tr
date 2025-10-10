@@ -1,32 +1,32 @@
-# ChangeLog基本フォーマット
+# ChangeLog temel formatı
 
-このドキュメントは、VibeCodeHPCプロジェクトにおけるChangeLog.mdの基本的な記述形式を定義します。
+Bu belge, VibeCodeHPC projesinde ChangeLog.md için temel yazım biçimini tanımlar.
 
-## ファイル構造
+## Dosya yapısı
 
-### 1. ヘッダー部
+### 1. Üstbilgi bölümü
 ```markdown
-# [並列化モジュール名]📁 `ChangeLog.md`
-🤖PG [エージェントID]  
-- **ハードウェア**：[スパコン名] [ノードタイプ] （[ノード数範囲]）  
-- **モジュール**：[使用コンパイラ/ライブラリ] [バージョン]  
+# [Paralelleştirme modülü adı]📁 `ChangeLog.md`
+🤖PG [Aracı ID]  
+- **Donanım**: [Süperbilgisayar adı] [Düğüm tipi] ([Düğüm sayısı aralığı])  
+- **Modül**: [Kullanılan derleyici/kütüphane] [Sürüm]  
 ```
 
-### 2. 変更ログセクション
+### 2. Değişiklik günlüğü bölümü
 ```markdown
 ## Change Log
 
-- 基本の型：`ChangeLog_format.md`に記載（およびPGによる追記の作法）
-- PMオーバーライド：`ChangeLog_format_PM_override.md`に記載（PMがテンプレートから生成）
+- Temel şablon: `ChangeLog_format.md` (ve PG tarafından ekleme usulü)
+- PM üst yazımı: `ChangeLog_format_PM_override.md` (PM şablondan üretir)
 ```
 
-### 3. バージョンエントリ（新しいバージョンが上）
+### 3. Sürüm girdisi (yenisi üstte)
 
 ```markdown
-### v[メジャー].[マイナー].[パッチ]
-**変更点**: "[変更内容の簡潔な説明]"  
-**結果**: [最も重要な結果] `[値や状態]`  
-**コメント**: "[実装の詳細や注意点]"  
+### v[Majör].[Minör].[Yama]
+**Değişiklikler**: "[Değişikliğin kısa açıklaması]"  
+**Sonuç**: [En önemli sonuç] `[değer veya durum]`  
+**Yorum**: "[Uygulama ayrıntıları ve dikkat noktaları]"  
 
 <details>
 
@@ -56,25 +56,25 @@
 </details>
 ```
 
-## 記述ルール
+## Yazım kuralları
 
-### 1. 基本原則
-- **言語**: 日本語で統一
-- **順序**: 新しいバージョンが上（降順）
-- **詳細**: `<details>`タグで折り畳み、可読性を維持
+### 1. Temel ilkeler
+- **Dil**: Türkçe ile tutarlı
+- **Sıra**: Yeni sürüm üstte (azalan)
+- **Detay**: `<details>` etiketiyle katlayıp okunabilirliği koruyun
 
-### 2. チェックボックスの使用
-- `[x]` - 完了したステップ
-- `[ ]` - 未完了または失敗したステップ
+### 2. Onay kutularının kullanımı
+- `[x]` - Tamamlanan adım
+- `[ ]` - Tamamlanmamış veya başarısız adım
 
-### 3. statusの値
+### 3. status değerleri
 - **compile**: `success`, `warning`, `error`
 - **job**: `success`, `error`, `timeout`, `cancelled`, `running`
 - **test**: `pass`, `fail`, `partial`
-- **sota**: スコープは `local`（このPG内）, `family`（同一ミドルウェア内の親子世代）, `hardware`（ハードウェア構成内）, `project`（プロジェクト全体）
+- **sota**: Kapsam `local` (bu PG içinde), `family` (aynı ara katman içinde ebeveyn/çocuk nesiller), `hardware` (donanım bileşimi içinde), `project` (proje genelinde)
 
-### 4. 必須項目と任意項目
-#### 必須項目
+### 4. Zorunlu ve isteğe bağlı alanlar
+#### Zorunlu alanlar
 - version
 - 変更点
 - compile情報（status）
@@ -86,15 +86,15 @@
     - end_time（終了時刻）またはcancelled_time（キャンセル時刻）
     - runtime_sec（実行時間（秒））
 
-#### 任意項目
-- message（エラー/警告時は必須）
-- accuracy（精度が重要な場合）
-- sota（記録更新時のみ）
-- その他のparams（実装により異なる）
+#### İsteğe bağlı alanlar
+- message (hata/uyarı durumunda zorunlu)
+- accuracy (hassasiyet önemliyse)
+- sota (kayıt güncellendiğinde)
+- Diğer params (uygulamaya göre değişir)
 
-## PGによる追記の作法
+## PG tarafından ekleme usulü
 
-### PG（プログラマー）の責務
+### PG (Programcı) sorumlulukları
 1. 新バージョンエントリの作成
 2. 変更点とコメントの記述
 3. **生成時刻の記録**（details内の最初に記載）
@@ -102,13 +102,13 @@
 5. 基本的なparams設定
 6. compile結果の更新（status, log, message）
 7. job情報の追記（id, status）
-8. **予算関連情報の記録**（resource_group, start_time, end_time, runtime_sec）
-9. test結果の更新
-10. パフォーマンス値の記録
+8. **Bütçe ile ilişkili bilgilerin kaydı** (resource_group, start_time, end_time, runtime_sec)
+9. test sonuçlarının güncellenmesi
+10. Performans değerlerinin kaydı
 
-## バージョニング規則
-**重要**: 基本的に `v1.0.0` から開始。`v0.x.x` は既存コードが動作しない場合のみ使用。
+## Sürümleme kuralları
+**Önemli**: Temel olarak `v1.0.0` ile başlayın. `v0.x.x` sadece mevcut kod çalışmıyorsa kullanılır.
 
-- **メジャー**: 大きなアルゴリズム変更、非互換な変更
-- **マイナー**: 機能追加、パフォーマンス改善、新しい最適化手法
-- **パッチ**: バグ修正、パラメータ調整（ブロックサイズ、スレッド数等）、小さな調整
+- **Majör**: Büyük algoritma değişiklikleri, geriye dönük uyumsuz değişiklikler
+- **Minör**: Özellik eklemeleri, performans iyileştirmeleri, yeni optimizasyon yöntemleri
+- **Yama**: Hata düzeltmeleri, parametre ayarları (blok boyutu, iş parçacığı sayısı vb.), küçük ayarlamalar
