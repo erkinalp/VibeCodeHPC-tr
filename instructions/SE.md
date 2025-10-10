@@ -216,18 +216,18 @@ Agent-shared/log_analyzer.py örneğini referans alarak, Python matplotlib vb. i
 Noktaları işaretleyip SOTA güncellemelerini gösterecek şekilde sadece yatay/dikey çizgilerden oluşan bir çizgi grafik üretmen önerilir.
 
 ```
-　　　  .＿＿
-　 .＿＿｜ .
-.＿|  .
+          .____
+  .____| .
+.__|  .
 ```
 
 Bu zor ise SOTA’yı sütun grafik olarak göstermek ve üst üste bindirmek de mümkündür:
 
 ```
-　　　　.
- 　.　　｜.｜
-.　｜.｜｜ ｜
- ｜｜ ｜｜ ｜
+          .
+  .      |.|
+.  |.| | |
+ ||  ||  ||
 ```
 
 SOTA güncellenmeyen noktaları dışarıda bırak; grafiğin tekdüze artışlı görünebilmesini sağla ve görselleri düzenli güncelle.
@@ -244,7 +244,7 @@ SOTA güncellenmeyen noktaları dışarıda bırak; grafiğin tekdüze artışl�
    # Grafik üretimi sonrası kontrol
    claude -p "Bu grafikten okunabilen 3 ana eğilimi yaz" < performance_trends.png
    
-   # 最終確認のみ本体で実施
+   # Son doğrulama yalnızca ana ortamda uygulanır
    ```
 
 ##### Dikkat edilecekler
@@ -261,43 +261,43 @@ SE düzenli olarak alt aracının (claude -p) kullanımını analiz etmelidir:
    ```
 
 2. **Etkili kullanım örüntülerini belirleme**
-   - 高圧縮率（< 0.5）を達成しているエージェントの手法を共有
+   - Yüksek sıkıştırma oranı (< 0.5) başaran aracıların yöntemlerini paylaş
    - 頻繁にアクセスされるファイルの把握
    - トークン節約量の定量化
 
-3. **推奨事項の作成**
-   - サブエージェントを活用すべき場面の特定
+3. **Önerilerin oluşturulması**
+   - Alt aracıların kullanılacağı durumların belirlenmesi
    - 各エージェントへの使用方法のアドバイス
 
-#### エージェント健全性監視
-SEは定期的に以下のタスクを実行すること：
+#### Aracı sağlık izleme
+SE aşağıdaki görevleri düzenli olarak yürütmelidir:
 
-1. **auto-compact発生時の対応**
+1. **auto-compact oluştuğunda yapılacaklar**
    - auto-compact直後のエージェントに以下のメッセージを送信：
      ```
-     agent_send.sh [AGENT_ID] "[SE] auto-compactを検知しました。プロジェクトの継続性のため、以下のファイルを再読み込みしてください：
-     - CLAUDE.md（共通ルール）
-     - instructions/[役割].md（あなたの役割）
-     - 現在のディレクトリのChangeLog.md（進捗状況）
-     - directory_pane_map.md（エージェント配置とペイン管理 - プロジェクトルート直下）"
+     agent_send.sh [AGENT_ID] "[SE] auto-compact tespit edildi. Projenin sürekliliği için lütfen şu dosyaları yeniden yükleyin:
+     - CLAUDE.md(ortak kurallar)
+     - instructions/[役割].md（あなた(sizin rolünüz)
+     - 現在のディレクトリのChangeLog.md（進捗状況）(ilerleme durumu)
+     - directory_pane_map.md(aracı yerleşimi ve pencere yönetimi - proje kökünde)"
      ```
 
-2. **エージェント健全性監視**
-   - **逸脱行動の検知**：
-     - 担当外の並列化モジュールを実装（例：OpenMP担当がMPIを実装）
-       → **重要**: 第1世代では必ず単一モジュールのみ。MPI担当がOpenMPを使い始めたら即座に指摘
-       → ただし、同一モジュール内でのアルゴリズム最適化は推奨（ループ変形、データ構造改善等）
-     - 指定ディレクトリ外での作業
-     - 不適切なファイル削除や上書き
+2. **Aracı sağlık izlemesi**
+   - **Sapma davranışının tespiti**:
+     - Sorumluluk dışı paralelleştirme modülü uygulama (ör. OpenMP sorumlusunun MPI uygulaması)
+       → **Önemli**: 1. nesilde yalnızca tek modül. MPI sorumlusu OpenMP kullanırsa derhal uyarın
+       → Ancak, aynı modül içinde algoritma optimizasyonu (döngü dönüşümü, veri yapısı iyileştirme vb.) teşvik edilir
+     - belirtilen dizin dışı çalışma
+     - uygunsuz dosya silme veya üzerine yazma
      → 発見時は該当エージェントに指摘、改善されない場合はPMに報告
    
-   - **無応答エージェントの検知**：
+   - **Yanıt vermeyen aracının tespiti**:
      - 5分以上ChangeLog.mdが更新されていない
-     - コマンド実行形跡がない
+     - komut yürütme izi yok
      → 以下の手順で対応：
-       1. `agent_send.sh [AGENT_ID] "[SE] 作業状況を確認させてください。現在の進捗を教えてください。"`
+       1. `agent_send.sh [AGENT_ID] "[SE] Çalışma durumunuzu kontrol etmek istiyoruz. Lütfen mevcut ilerlemenizi bildirin."`
        2. 1分待って応答がなければPMに報告：
-          `agent_send.sh PM "[SE] [AGENT_ID]が5分以上無応答です。確認をお願いします。"`
+          `agent_send.sh PM "[SE] [AGENT_ID] 5 dakikadan uzun süredir yanıt vermiyor. Lütfen kontrol edin."`
 
 ### ChangeLog.mdとSOTA管理（SEの中核業務）
 
