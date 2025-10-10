@@ -1,132 +1,132 @@
-# 要件定義書 
+# Gereksinim Tanımı
 (Requirement Definition)
 
-## プロジェクト情報
-- **プロジェクト名**: [プロジェクト名を入力]
-- **作成日**: [YYYY-MM-DD形式で日付を入力]
+## Proje Bilgileri
+- **Proje adı**: [Proje adını girin]
+- **Oluşturma tarihi**: [YYYY-MM-DD biçiminde tarih girin]
 
-## 最適化対象
-### コード取得方法
-- [ ] 手元のファイル: [ディレクトリパスを指定]
-- [ ] GitHubリポジトリ: [URLを指定]
-- [ ] その他: [取得方法を記載]
+## Optimizasyon Kapsamı
+### Kodun temin yöntemi
+- [ ] Yerel dosya: [Dizin yolunu belirtin]
+- [ ] GitHub deposu: [URL belirtin]
+- [ ] Diğer: [Temin yöntemini yazın]
 
-### 対象ファイル
-- **メインファイル**: [ファイル名を記載]
-- **依存ファイル**: [依存するファイルを列挙]
+### Hedef dosyalar
+- **Ana dosya**: [Dosya adını yazın]
+- **Bağımlı dosyalar**: [Bağımlılıkları listeleyin]
 
-## 最適化の度合い（目標）
-### 性能目標
-- **目標性能**: [具体的な目標を記載。例: 現在の2倍の性能]
+## Optimizasyon hedefi
+### Performans hedefi
+- **Hedef performans**: [Somut hedef; örn: mevcut performansın 2 katı]
 
-### 優先度
-- [ ] 実行時間最小化
-- [ ] メモリ使用量最小化  
-- [ ] エネルギー効率最大化
-- [ ] スケーラビリティ向上
-- [ ] その他: [具体的に記載]
+### Öncelikler
+- [ ] Çalışma süresini en aza indirme
+- [ ] Bellek kullanımını en aza indirme
+- [ ] Enerji verimliliğini en üst düzeye çıkarma
+- [ ] Ölçeklenebilirliği artırma
+- [ ] Diğer: [Açıklayın]
 
-## 概要
-### アプリケーション概要
-[アプリケーションの概要を簡潔に記載]
+## Genel Bakış
+### Uygulama özeti
+[Uygulamanın özetini kısaca yazın]
 
-### 最適化アプローチ
-[希望する最適化のアプローチがあれば記載。なければVibeCodeHPCが自動的に判断します]
+### Optimizasyon yaklaşımı
+[Tercih edilen bir yaklaşım varsa yazın; yoksa VibeCodeHPC otomatik belirler]
 
-## 制約（指定）
+## Kısıtlar (belirtiniz)
 
-### ハードウェア（サブシステム）
-#### 選択されたスパコン
-- **システム名**: [スパコン名を記載]
+### Donanım (alt sistemler)
+#### Seçilen süperbilgisayar
+- **Sistem adı**: [Süperbilgisayar adını yazın]
 
-#### 利用可能なハードウェア
-- [ ] [利用可能なノードタイプを選択]
+#### Kullanılabilir donanım
+- [ ] [Kullanılabilir düğüm tiplerini seçin]
 
-### SSH先で使用するディレクトリ
-[リモート環境でのディレクトリパス、または _remote_info に記載]
+### SSH tarafında kullanılacak dizin
+[Uzak ortamda dizin yolu veya _remote_info içinde belirtin]
 
-### ジョブリソース（ノード数）
-#### 段階的スケールアップ
-[ノード数の使用方針を記載]
+### İş kaynakları (düğüm sayısı)
+#### Kademeli ölçekleme
+[Düğüm sayısı kullanım politikasını yazın]
 
-#### リソース制約
-- 最大実行時間: [制限時間を記載]
-- その他の制約: [あれば記載]
+#### Kaynak kısıtları
+- Azami çalışma süresi: [Süre sınırını yazın]
+- Diğer kısıtlar: [Varsa yazın]
 
-#### ジョブ実行方式
-- [ ] バッチジョブ（推奨）
-- [ ] インタラクティブジョブ
-- [ ] ログインノードでの実行（非推奨）
+#### İş çalıştırma yöntemi
+- [ ] Batch job (önerilir)
+- [ ] Etkileşimli job
+- [ ] Login düğümünde çalıştırma (önerilmez)
 
-**注意**: 特に指定がない場合、VibeCodeHPCはバッチジョブでの実行を行います。
-多くのスパコンではログインノードでの計算実行が禁止されているため、
-バッチジョブまたはインタラクティブジョブの使用を強く推奨します。
+Not: Aksi belirtilmedikçe VibeCodeHPC batch job ile çalıştırır.
+Birçok süperbilgisayarda login düğümünde hesaplama yasaktır;
+batch veya etkileşimli job kullanımını kuvvetle öneririz.
 
-### ミドルウェア（コンパイラ・並列化モジュール）
-#### コンパイラ選択肢
-- [ ] [利用可能なコンパイラを選択]
-- _remote_infoを参考に、利用可能なコンパイラを確認してください
+### Yazılım ortamı (derleyici ve paralelleştirme)
+#### Derleyici seçenekleri
+- [ ] [Kullanılabilir derleyicileri seçin]
+- _remote_info’yu referans alarak kullanılabilir derleyicileri doğrulayın
 
-#### 並列化ライブラリ
+#### Paralelleştirme kütüphaneleri
 - [ ] MPI
 - [ ] OpenMP
 - [ ] CUDA
 - [ ] OpenACC
-- [ ] AVX/AVX2/AVX512（SIMD命令）
-- [ ] その他: [記載]
+- [ ] AVX/AVX2/AVX512 (SIMD komutları)
+- [ ] Diğer: [Yazın]
 
-#### 数値計算ライブラリの使用
-- [ ] 使用しない（自作実装のみ）
-- [ ] 性能比較用に使用（MKL, cuBLAS等）
-- [ ] 積極的に使用
+#### Sayısal hesaplama kütüphaneleri
+- [ ] Kullanma (yalnız kendi uygulamamız)
+- [ ] Karşılaştırma için kullan (MKL, cuBLAS vb.)
+- [ ] Aktif olarak kullan
 
-### 並列化戦略（実装順序や適用箇所）
-[特定の戦略があれば記載。なければVibeCodeHPCが自動的に判断します]
+### Paralelleştirme stratejisi (uygulama sırası/alanı)
+[Özel bir strateji varsa yazın; yoksa VibeCodeHPC otomatik belirler]
 
-### 許容される精度（テストコード 指定/生成）
-#### 精度要件
-- [ ] 既存テストと同精度
-- [ ] 誤差許容範囲: [具体的に記載]
-- [ ] その他: [記載]
+### Kabul edilebilir doğruluk (test kodu belirt/üret)
+#### Doğruluk gereksinimleri
+- [ ] Mevcut testlerle aynı doğruluk
+- [ ] Hata toleransı: [Ayrıntılı yazın]
+- [ ] Diğer: [Yazın]
 
-### 予算（ジョブ）
-#### 計算資源予算
-- **下限**: [最低限このポイントまでは使用して最適化を継続]
-- **目安**: [通常の最適化作業で期待される予算]
-- **上限**: [これ以上使用してはいけない予算上限]
+### Bütçe (iş)
+#### Hesaplama kaynağı bütçesi
+- **Alt sınır**: [En az bu puan kadar harcanır, optimizasyon sürer]
+- **Hedef**: [Normal optimizasyon için beklenen bütçe]
+- **Üst sınır**: [Aşılamayacak bütçe tavanı]
 
-#### ポイント消費レート（参考）
-[スパコンごとのポイント消費レートを記載。例: 経過時間1秒につき0.007ポイント×GPU数]
+#### Puan tüketim oranı (referans)
+[Süperbilgisayara göre puan tüketim oranını yazın. Ör: saniye başı 0.007 × GPU sayısı]
 
-### CD(Git Agent)を使用するか
-#### GitHub連携
-- [ ] 使用する
-- [ ] 使用しない
-- [ ] 段階的導入
+### CD (Git Agent) kullanımı
+#### GitHub entegrasyonu
+- [ ] Kullan
+- [ ] Kullanma
+- [ ] Kademeli geçiş
 
-## 追加要件・制約
+## Ek gereksinimler ve kısıtlar
 
-### 制限時間
-- **下限**: [最小作業時間。例: 1時間]
-- **目安**: [標準的な作業時間]
-- **上限**: [最大作業時間。例: 3時間]
+### Zaman kısıtı
+- **Alt sınır**: [Asgari çalışma süresi; ör: 1 saat]
+- **Hedef**: [Standart çalışma süresi]
+- **Üst sınır**: [Azami çalışma süresi; ör: 3 saat]
 
-### セキュリティ要件
-- [ ] スパコン・ユーザ情報の匿名化（GitHubプッシュ前）
-- [ ] 予算情報の相対化（チーム全体の予算額は非公開）
-- [ ] 絶対パスの回避（移植性確保）
-- [ ] その他: [記載]
+### Güvenlik gereksinimleri
+- [ ] Süperbilgisayar/kullanıcı bilgilerinin anonimleştirilmesi (GitHub push öncesi)
+- [ ] Bütçe bilgisinin göreceleştirilmesi (ekip toplam bütçesi kamuya açık değil)
+- [ ] Mutlak yollardan kaçınma (taşınabilirlik)
+- [ ] Diğer: [Yazın]
 
-### エージェント構成
-- [ ] SOLOモード（単一エージェントが全役割を兼任）
-- [ ] マルチエージェント（PM, SE, PG, CD を個別配置）
+### Aracı yapısı
+- [ ] SOLO modu (tek aracı tüm rolleri üstlenir)
+- [ ] Çoklu aracı (PM, SE, PG, CD ayrı ayrı)
 
-### その他の指示
-[エージェントへの追加指示があれば記載]
+### Diğer yönergeler
+[Aracılara ek talimatlar varsa yazın]
 
 ---
 
-## 自動生成情報（PM記入）
-- **不足項目**: [PMが自動記入]
-- **推奨構成**: [PMが自動記入]
-- **初期エージェント配置**: [PMが自動記入]
+## Otomatik oluşturulan bilgiler (PM doldurur)
+- **Eksik kalemler**: [PM otomatik doldurur]
+- **Önerilen yapı**: [PM otomatik doldurur]
+- **Başlangıç aracı yerleşimi**: [PM otomatik doldurur]
