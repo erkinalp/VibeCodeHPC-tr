@@ -291,7 +291,7 @@ VIBECODE_ENABLE_TELEMETRY=false ./communication/start_agent.sh PG1.1 /path/to/wo
 
 # Adım 3: Bekleme (önemli!)
 # Claude başlatıldıktan hemen sonra girdi kabul etmeyebilir
-sleep 1  # 並行作業を行った場合は時間経過しているため省略可
+sleep 1  # Paralel işler yaptıysan zaten zaman geçmiş olabilir, atlanabilir
 
 # Adım 4: Başlatma/ilk mesajı gönder
 # Önemli: Claude girdi bekliyorsa tmux list-panes "bash" gösterir
@@ -302,60 +302,60 @@ agent_send.sh PG1.1 "Sen PG1.1’sin (kod üretimi ve SSH/SFTP yürütme aracıs
 [Önemli] Proje kökünü bulun:
 Geçerli dizinden üst dizinlere çıkarak aşağıdaki dizinlerin birlikte bulunduğu yer proje köküdür:
 - Agent-shared/, User-shared/, GitHub/, communication/
-- VibeCodeHPC*というディレクトリ名が一般的です
+- Klasör adı genelde VibeCodeHPC* şeklindedir
 
-プロジェクトルート発見後、以下のファイルを読み込んでください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/PG.md（あなたの役割詳細）  
-- directory_pane_map.md（エージェント配置とtmuxペイン統合管理 - プロジェクトルート直下）
-- 現在のディレクトリのChangeLog.md（存在する場合）
+Proje kökünü bulduktan sonra şu dosyaları oku:
+- CLAUDE.md (tüm aracılar için ortak kurallar)
+- instructions/PG.md (rolünün ayrıntıları)  
+- directory_pane_map.md (aracı yerleşimleri ve tmux pane ortak yönetimi - proje kökünün hemen altında)
+- Geçerli dizindeki ChangeLog.md (varsa)
 
-【通信方法】
-エージェント間通信は必ず以下を使用：
-- \${プロジェクトルート}/communication/agent_send.sh [宛先] '[メッセージ]'
-- 例: ../../../communication/agent_send.sh SE1 '[PG1.1] 作業開始しました'
+[İletişim yöntemi]
+Aracılar arası iletişim için şunları kullan:
+- \${proje_kökü}/communication/agent_send.sh [hedef] '[mesaj]'
+- Örn: ../../../communication/agent_send.sh SE1 '[PG1.1] Çalışmaya başladım'
 
 読み込み完了後、現在のディレクトリ（pwd）を確認し、自分の役割に従って作業を開始してください。"
 
-# ステップ5: 起動確認（オプション）
-# メッセージ送信後、エージェントが処理中であることを確認
-# claudeが処理中の場合のみ"claude"と表示される
+# Adım 5: Başlatma doğrulaması (isteğe bağlı)
+# Mesajı gönderdikten sonra aracının işlemde olduğunu doğrula
+# Yalnızca işlemdeyken “claude” görünür
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}" | grep "3: claude"
-# 注: 処理が終わって待機状態に戻ると再び"bash"と表示される
+# Not: İşlem bittiğinde ve beklemeye döndüğünde tekrar “bash” görünür
 ```
 
-### hooks機能の自動設定
-start_agent.shは自動的に以下を設定：
-- **SessionStart hook**: working_dirベースでエージェントを識別
-- **Stop hook**: ポーリング型エージェントの待機防止
-- `.claude/settings.local.json`: 相対パスでhooksを設定
+### Kanca (hooks) işlevinin otomatik ayarı
+start_agent.sh aşağıdakileri otomatik ayarlar:
+- **SessionStart hook**: aracıları working_dir’e göre tanımlar
+- **Stop hook**: yoklama tipi aracılarda beklemeyi önler
+- `.claude/settings.local.json`: kancaları göreli yollarla ayarlar
 
-### 手動での起動（非推奨・緊急時のみ）
+### Elle başlatma (önerilmez, yalnızca acil durumlar için)
 ```bash
-# 環境変数を設定
+# Ortam değişkenini ayarla
 agent_send.sh PG1.1 "export VIBECODE_ROOT='$(pwd)'"
-# ディレクトリ移動（!cdコマンドはPMの特権）
+# Dizin değiştirme (!cd komutu PM ayrıcalığıdır)
 agent_send.sh PG1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
-# hooksとtelemetryを手動設定
+# Kancaları ve telemetriyi elle ayarla
 agent_send.sh PG1.1 "\$VIBECODE_ROOT/hooks/setup_agent_hooks.sh PG1.1 . event-driven"
 agent_send.sh PG1.1 "\$VIBECODE_ROOT/telemetry/launch_claude_with_env.sh PG1.1"
 ```
 
-**重要な注意事項**:
-- agent_and_pane_id_table.jsonlの「待機中X」を正しいエージェントIDに更新してから実行
-- `start_agent.sh`はClaude起動コマンドを送信するだけで、初期化メッセージは送らない
-- Claude起動後、**1秒以上待機**してから初期化メッセージを送信すること
-- 初期化メッセージなしでは、エージェントは自分の役割を理解できない
+**Önemli uyarılar**:
+- Çalıştırmadan önce agent_and_pane_id_table.jsonl içindeki “BeklemedeX” girdilerini doğru aracı kimliğine güncelle
+- `start_agent.sh` yalnızca Claude’u başlatma komutunu gönderir, başlatma/ilk mesajı göndermez
+- Claude başladıktan sonra başlatma mesajını göndermeden **en az 1 saniye bekle**
+- Başlatma mesajı olmadan aracı rolünü anlayamaz
 
-いずれにしても、エージェントの再配置はSE等に譲渡せず自身で行うこと。directory_pane_map.mdの更新を忘れてはならない。
+Her durumda, aracının yeniden konumlandırılmasını SE vb.’ye devretmeden kendin yap. directory_pane_map.md güncellemeyi unutma.
 
-#### directory_pane_mapの更新ルール
-1. **即時更新**: エージェントを割り当てた直後に必ず更新する
-2. **絵文字による区別**: 
-   - 📁または📂: ディレクトリ
-   - 🤖: **実際にclaudeコマンドで起動済みのエージェントのみ**（例: 🤖SE1, 🤖PG1.1）
-   - 👤: 将来配置予定のエージェント（future_directory_pane_map.txtで使用）
-3. **安全な更新方法**:
+#### directory_pane_map güncelleme kuralları
+1. **Anında güncelle**: Aracı atadıktan hemen sonra mutlaka güncelle
+2. **Emoji ile ayrım**: 
+   - 📁 veya 📂: Dizin
+   - 🤖: **Gerçekte claude komutuyla başlatılmış aracılar** (ör: 🤖SE1, 🤖PG1.1)
+   - 👤: İleride yerleştirilecek aracılar (future_directory_pane_map.txt’de kullanılır)
+3. **Güvenli güncelleme yöntemi**:
    - directory_pane_map_temp.txtを作成
    - 変更を適用
    - diffで確認後、本体を更新
