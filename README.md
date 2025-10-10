@@ -726,13 +726,13 @@ Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 ---
 
 ### v1.1.0
-**変更点**: "ブロッキング最適化とスレッド数調整"  
-**結果**: 理論性能の65.1%達成 `312.4 GFLOPS`  
-**コメント**: "ブロックサイズを64から128に変更、キャッシュ効率が大幅改善"  
+**Değişiklikler**: "Bloklama optimizasyonu ve iş parçacığı sayısı ayarı"  
+**Sonuç**: Teorik performansın %65,1’i elde edildi `312.4 GFLOPS`  
+**Yorum**: "Blok boyutu 64’ten 128’e çıkarıldı; önbellek verimliliği belirgin iyileşti"  
 
 <details>
 
-- **生成時刻**: `2025-08-20T10:30:00Z`
+- **Oluşturma zamanı**: `2025-08-20T10:30:00Z`
 - [x] **compile**
     - status: `success`
     - warnings: `none`
@@ -760,13 +760,13 @@ Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 ---
 
 ### v1.0.0
-**変更点**: "初期OpenMP実装"  
-**結果**: ベースライン確立 `248.3 GFLOPS`  
-**コメント**: "基本的なOpenMP並列化を外側ループに適用"  
+**Değişiklikler**: "İlk OpenMP uygulaması"  
+**Sonuç**: Başlangıç düzeyi belirlendi `248.3 GFLOPS`  
+**Yorum**: "Temel OpenMP paralelleştirmesi dış döngüye uygulandı"  
 
 <details>
 
-- **生成時刻**: `2025-08-20T10:15:00Z`
+- **Oluşturma zamanı**: `2025-08-20T10:15:00Z`
 - [x] **compile**
     - status: `success`
     - warnings: `none`
@@ -789,46 +789,46 @@ Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 
 ---
 
-- 詳細：[Agent-shared/change_log/ChangeLog_format.md](Agent-shared/change_log/ChangeLog_format.md)
-- PMオーバーライド：[Agent-shared/change_log/ChangeLog_format_PM_override_template.md](Agent-shared/change_log/ChangeLog_format_PM_override_template.md)
+- Ayrıntı:[Agent-shared/change_log/ChangeLog_format.md](Agent-shared/change_log/ChangeLog_format.md)
+- PM geçersiz kılma:[Agent-shared/change_log/ChangeLog_format_PM_override_template.md](Agent-shared/change_log/ChangeLog_format_PM_override_template.md)
 
-## 🧬 進化的最適化アプローチ
+## 🧬 Evrimsel optimizasyon yaklaşımı
 
-### 段階的進化プロセス
-1.  **🌱 種子期**: 単一技術の個別最適化 (`/OpenMP/`, `/MPI/`, `/AVX512/`, `/CUDA/`)
-2.  **🌿 交配期**: 有望技術の融合 (`/OpenMP_MPI/`, `/MPI_CUDA/`)
-3.  **🌳 品種改良期**: 高度な組み合わせ (`/OpenMP_MPI_AVX512/`)
+### Aşamalı evrim süreci
+1.  **🌱 Tohum dönemi**: Tekil teknolojilerin ayrı ayrı optimizasyonu (`/OpenMP/`, `/MPI/`, `/AVX512/`, `/CUDA/`)
+2.  **🌿 Melezleme dönemi**: Umut vadeden teknolojilerin harmanlanması (`/OpenMP_MPI/`, `/MPI_CUDA/`)
+3.  **🌳 Islah dönemi**: İleri düzey kombinasyonlar (`/OpenMP_MPI_AVX512/`)
 
-### 📁Flat Directory の利点
-- **階層の曖昧性解消**: `/MPI/OpenMP/` vs `/OpenMP/MPI/` の重複排除
-- **並列探索効率化**: 複数エージェントによる同時最適化
-- **技術継承**: 上位世代が下位世代の成果を参照可能
+### 📁Flat Directory’nin avantajları
+- **Hiyerarşi belirsizliğinin giderilmesi**: `/MPI/OpenMP/` ve `/OpenMP/MPI/` gibi yinelemelerin elenmesi
+- **Paralel arama verimliliği**: Birden çok aracının eşzamanlı optimizasyonu
+- **Teknoloji mirası**: Üst nesillerin alt nesillerin çıktılarından yararlanabilmesi
 
-- [ ] 詳細: [Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md](Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md)
+- [ ] Ayrıntı: [Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md](Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md)
 
-## 🔍 ファイルベースの情報共有
+## 🔍 Dosya tabanlı bilgi paylaşımı
 
-### 成果物の管理
-- 成果物配置: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
-- SOTA管理: [Agent-shared/sota/sota_management.md](Agent-shared/sota/sota_management.md)
-- レポート階層: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
+### Çıktıların yönetimi
+- Çıktı yerleşimi: [Agent-shared/artifacts_position.md](Agent-shared/artifacts_position.md)
+- SOTA yönetimi: [Agent-shared/sota/sota_management.md](Agent-shared/sota/sota_management.md)
+- Rapor hiyerarşisi: [Agent-shared/report_hierarchy.md](Agent-shared/report_hierarchy.md)
 
 > [!IMPORTANT]
 > **ユーザ向け成果物**
 > プロジェクトの成果は`User-shared/`ディレクトリに集約されます：
 
 > [!TIP]
-> **エージェント可視化**
-> 各エージェントのコンテキスト推移を可視化
-> SE担当の統計解析により、性能推移とSOTA更新履歴をリアルタイム監視。
+> **Aracı görselleştirmesi**
+> Her aracının bağlam değişimini görselleştirir
+> SE’nin istatistiksel analiziyle performans eğrisi ve SOTA güncelleme geçmişi gerçek zamanlı izlenir.
 
-## 🔭 監視とメトリクス
+## 🔭 İzleme ve metrikler
 
-### 組み込みコンテキスト監視
+### Yerleşik bağlam izleme
 
 ![Context Usage by Agents](_images/context_usage_agents.png)
 
-エージェントごとのコンテキスト使用量を自動追跡し、auto-compact（メモリリセット）の発生を予測・検知する監視機能を標準搭載。各エージェントの消費量を可視化し、効率的なリソース管理を支援します。
+Aracı başına bağlam kullanımını otomatik izleyerek auto-compact (bellek sıfırlama) olayını öngörüp saptar. Tüketimi görselleştirerek verimli kaynak yönetimine yardımcı olur.
 
 ### OpenTelemetry izleme (opsiyonel)
 
