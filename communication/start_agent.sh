@@ -104,8 +104,10 @@ echo "🔧 Setting up agent $AGENT_ID (type: $AGENT_TYPE)"
 
 # Hooksを設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
+    # CLI_HOOKS_MODEを取得（環境変数から、デフォルトはauto）
+    CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     if [ -f "$VIBECODE_ROOT/hooks/setup_agent_hooks.sh" ]; then
-        "$VIBECODE_ROOT/hooks/setup_agent_hooks.sh" "$AGENT_ID" "$AGENT_DIR" "$AGENT_TYPE"
+        "$VIBECODE_ROOT/hooks/setup_agent_hooks.sh" "$AGENT_ID" "$AGENT_DIR" "$AGENT_TYPE" "$CLI_HOOKS_MODE"
     else
         echo "⚠️  Warning: setup_agent_hooks.sh not found"
     fi

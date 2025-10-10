@@ -34,7 +34,7 @@ if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
     echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
     if [ -f "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" ]; then
         # SOLOはポーリング型として設定
-        "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" SOLO "$PROJECT_ROOT" polling
+        "$PROJECT_ROOT/hooks/setup_agent_hooks.sh" SOLO "$PROJECT_ROOT" polling "$CLI_HOOKS_MODE"
     else
         echo "⚠️  Warning: hooks setup script not found"
     fi

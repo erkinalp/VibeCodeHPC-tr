@@ -6,15 +6,17 @@ set -e
 
 # 引数チェック
 if [ $# -lt 3 ]; then
-    echo "Usage: $0 <AGENT_ID> <AGENT_DIR> <AGENT_TYPE>"
-    echo "Example: $0 PG1.1.1 /path/to/agent/dir event-driven"
+    echo "Usage: $0 <AGENT_ID> <AGENT_DIR> <AGENT_TYPE> [CLI_HOOKS_MODE]"
+    echo "Example: $0 PG1.1.1 /path/to/agent/dir polling custom"
     echo "AGENT_TYPE: polling or event-driven"
+    echo "CLI_HOOKS_MODE: auto (default), custom, or hybrid"
     exit 1
 fi
 
 AGENT_ID=$1
 AGENT_DIR=$2
 AGENT_TYPE=$3
+CLI_HOOKS_MODE="${4:-auto}"  # 第4引数から取得、未指定時はauto
 
 # プロジェクトルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -29,9 +31,6 @@ else
 fi
 
 echo "🔧 Setting up hooks for agent: $AGENT_ID (type: $AGENT_TYPE, version: $HOOKS_VERSION)"
-
-# CLI_HOOKS_MODEを取得（環境変数から）
-CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
 echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
 
 # .claude/hooks ディレクトリ作成
