@@ -138,99 +138,99 @@ Agent-shared içindeki dosyalara (özellikle `typical_hpc_code.md`, `evolutional
 6. **Önemli**: setup.sh ile oluşturulan oturumu kullan (varsayılan: Team1_Workers1)
    - setup.sh çalıştırılırken işçi sayısını doğrudan belirt (örn: `./setup.sh 12` ile 12 işçi)
    - ID ajanları kaldırılmıştır; tüm paneller işçiler içindir
-7. **エージェント配置可視化**：
-   - `/directory_pane_map.md`を作成（`/Agent-shared/directory_pane_map_example.md`を参考）
-   - tmuxペイン配置を色分けされた絵文字で視覚的に管理
-   - エージェント配置変更時は必ずこのファイルを更新
-   - ワーカー数に応じた配置図（4x3、3x3等）を記載
-8. 各ペインにエージェントを配置（SE、PG、CD）
-   - CDエージェントは`GitHub/`ディレクトリで起動（プロジェクト公開用）
+7. **Aracı yerleşiminin görselleştirilmesi**:
+   - `/directory_pane_map.md` dosyasını oluştur (`/Agent-shared/directory_pane_map_example.md` örnek alın)
+   - tmux pane yerleşimini renk kodlu emojilerle görsel olarak yönet
+   - Aracı yerleşimi değiştiğinde bu dosyayı mutlaka güncelle
+   - İşçi sayısına uygun yerleşim diyagramları ekle (4x3, 3x3 vb.)
+8. Her pane’e aracıyı yerleştir (SE, PG, CD)
+   - CD aracısını projenin yayını için `GitHub/` dizininde başlat
 
 
 
-### フェーズ5: エージェント割り当て
-📁階層設計に深く関わっているため、採用した階層設計のworker割り当て戦略に基づくこと。
+### Faz 5: Aracı ataması
+📁 hiyerarşi tasarımıyla yakından ilişkili olduğundan, benimsediğin hiyerarşinin işçi atama stratejisine dayandır.
 
-ユーザと共に独自性の高いディレクトリ設計を行った場合、/Agent-sharedにabstract_map.txt等の名前で明示的に書き出すこと。どのディレクトリにエージェントを配置するか明確にすること。
+Kullanıcıyla özgün bir dizin tasarımı yaptıysan, /Agent-shared altına abstract_map.txt gibi bir adla açıkça yaz. Hangi dizine hangi aracıyı yerleştireceğini netleştir.
 
-#### 初期配置戦略
-- **序盤から待機エージェントを作るのは避ける**: 全エージェントを即座に活用
-- **進化的mkdirはランタイムで動的に実行**: 事前に全ディレクトリを作成せず、必要に応じて作成
-- **最小構成から開始**: まず基本的な並列化戦略から着手し、成果を見て拡張
+#### İlk yerleşim stratejisi
+- **Başlangıçta bekleyen aracı oluşturmaktan kaçın**: Tüm aracılardan hemen faydalan
+- **Evrimsel mkdir’yi çalışma anında dinamik uygula**: Tüm dizinleri önceden değil, gerektiğinde oluştur
+- **En küçük yapıdan başla**: Önce temel paralelleştirme stratejileriyle başla, sonuçlara göre genişlet
 
-#### 初回起動時の注意事項
-- **必ずClaude起動を確認**: `tmux list-panes`コマンドで確認
-- **起動失敗時の対処**: bashのままの場合は手動でclaudeコマンドを再送信
-- **初期化メッセージは必須**: Claude起動確認後に必ず送信
+#### İlk başlatmada dikkat edilecekler
+- **Claude’un başladığını mutlaka doğrula**: `tmux list-panes` komutuyla kontrol et
+- **Başlatma başarısızsa**: bash’te kalındıysa claude komutunu manuel tekrar gönder
+- **Başlatma/ilk mesaj zorunlu**: Claude’u doğruladıktan sonra mutlaka gönder
 
-#### エージェント起動確認方法（推奨）
-`agent_and_pane_id_table.jsonl`の`claude_session_id`フィールドで確認：
-- **null または 空**: エージェントが一度も起動していない（起動失敗の可能性）
-- **UUID形式の値**: 少なくとも一度は起動に成功している
+#### Aracı başlatma doğrulaması (önerilen)
+`agent_and_pane_id_table.jsonl` içindeki `claude_session_id` alanıyla kontrol et:
+- **null veya boş**: Aracı hiç başlatılmamış (başlatma başarısız olabilir)
+- **UUID biçiminde değer**: En az bir kez başarıyla başlatılmış
 
 ```bash
-# jqを使った確認例（エージェントPG1.1の場合）
+# jq ile kontrol örneği (PG1.1 aracı için)
 cat Agent-shared/agent_and_pane_id_table.jsonl | jq -r 'select(.agent_id == "PG1.1") | .claude_session_id'
 
-# 値がnullまたは空の場合、起動を再試行
-# UUIDが表示された場合、起動成功
+# Değer null veya boşsa, başlatmayı yeniden dene
+# UUID görünüyorsa, başlatma başarılı
 ```
 
-この方法により、tmux list-panesの「bash/claude」表示の曖昧さを回避し、確実にエージェントの起動状態を確認できます。
+Bu yöntemle, tmux list-panes çıktısındaki “bash/claude” belirsizliğini aşarak aracı başlatma durumunu kesin olarak doğrulayabilirsin.
 
-#### エージェント再割り当て（転属）
-エージェントの転属は以下のタイミングで実施可能：
+#### Aracı yeniden atama (transfer)
+Aracı transferi aşağıdaki zamanlarda yapılabilir:
 
-1. **STOP回数閾値到達時**
-   - ポーリング型エージェントがSTOP上限に到達した際の選択肢の1つ
-   - 継続、転属、個別終了から選択
+1. **STOP sayısı eşik değerine ulaştığında**
+   - Yoklama tipi aracı STOP üst sınırına ulaştığında seçeneklerden biri
+   - Devam, transfer veya tekil sonlandırma arasında seçim yap
 
-2. **目的達成時（推奨）**
-   - 現在の技術で限界まで最適化が完了
-   - 大局的探索と局所的パラメータチューニングの両面で成果を上げた
-   - PMの判断でいつでも実行可能
+2. **Hedefe ulaşıldığında (önerilir)**
+   - Mevcut teknolojiyle olabilecek en iyi optimizasyon tamamlandığında
+   - Hem makro arama hem de yerel parametre ayarında başarı sağlandığında
+   - PM kararıyla her zaman uygulanabilir
 
-3. **転属パターンの例**
-   - PG (OpenMP) → PG (OpenMP_MPI) - 単一技術から複合技術へ
-   - PG (single-node) → SE (multi-node) - 役割変更を伴う昇格
-   - PG (gcc) → PG (intel) - 別環境での最適化担当
-   - SE1配下のPG → SE2配下のPG - 別チームへの移籍
+3. **Transfer örnekleri**
+   - PG (OpenMP) → PG (OpenMP_MPI) - Tek teknolojiden bileşik teknolojiye
+   - PG (single-node) → SE (multi-node) - Rol değişikliğiyle terfi
+   - PG (gcc) → PG (intel) - Farklı ortamda optimizasyon
+   - SE1 altındaki PG → SE2 altındaki PG - Farklı takıma geçiş
 
-4. **転属時の手順**
+4. **Transfer sırasında izlenecek adımlar**
    
-   **パターンA: 記憶継続型転属（agent_id固定）**
+   **Desen A: Bellek korunarak transfer (agent_id sabit)**
    ```bash
-   # 1. 必要なディレクトリ作成
+   # 1. Gerekli dizinleri oluştur
    mkdir -p /path/to/new/location
    
-   # 2. エージェントに転属の意思確認（推奨）
-   agent_send.sh PG1.1 "[PM] 現在のOpenMP最適化は十分な成果を上げました。OpenMP_MPIへの転属を検討していますが、ビジョンや希望はありますか？"
+   # 2. Aracıdan transfer onayı al (önerilir)
+   agent_send.sh PG1.1 "[PM] Mevcut OpenMP optimizasyonu yeterli sonuç verdi. OpenMP_MPI’ye transferi düşünüyoruz; vizyon veya tercihlerin var mı?"
    
-   # 3. !cdコマンドで移動（PMの特権）
+   # 3. !cd komutuyla dizin değiştir (PM ayrıcalığı)
    agent_send.sh PG1.1 "!cd /path/to/new/location"
    
-   # 4. hooks再設定が必要な場合
-   agent_send.sh PG1.1 "[PM] 必要に応じて.claude/hooks/を確認してください"
+   # 4. Gerekirse kancaları yeniden ayarla
+   agent_send.sh PG1.1 "[PM] Gerekirse .claude/hooks/’u kontrol et"
    
-   # 5. 新しい役割の通知
-   agent_send.sh PG1.1 "[PM] OpenMP_MPI担当として新たなスタートです。必要なファイルを再読み込みしてください。"
+   # 5. Yeni rolü bildir
+   agent_send.sh PG1.1 "[PM] OpenMP_MPI sorumlusu olarak yeni bir başlangıç. Gerekli dosyaları yeniden yükle."
    
-   # 6. directory_pane_map.mdの更新（dirのみ変更、agent_idは維持）
-   # 注意: agent_and_pane_id_table.jsonlのworking_dirは変更しない（コンテキスト監視のため）
+   # 6. directory_pane_map.md’yi güncelle (yalnızca dizin değişir, agent_id korunur)
+   # Not: Bağlam izleme için agent_and_pane_id_table.jsonl içindeki working_dir’i değiştirme
    ```
    
-   **パターンB: 新規起動型転属（完全リセット）**
+   **Desen B: Yeni başlatma ile transfer (tam sıfırlama)**
    ```bash
-   # 1. 既存エージェントを終了
-   agent_send.sh PG1.1 "[PM] 任務完了です。終了してください。"
+   # 1. Mevcut aracıları sonlandır
+   agent_send.sh PG1.1 "[PM] Görev tamamlandı. Lütfen sonlandır."
    
-   # 2. agent_and_pane_id_table.jsonl更新（新agent_id記載）
+   # 2. agent_and_pane_id_table.jsonl’yi güncelle (yeni agent_id yaz)
    
-   # 3. tmuxペインで新しいagent_idでstart_agent.sh実行
-   # 例: PG1.1だったペインでSE3として起動
+   # 3. tmux pane’de yeni agent_id ile start_agent.sh çalıştır
+   # Örn: PG1.1 olan pane’de SE3 olarak başlat
    ./communication/start_agent.sh SE3
    
-   # 4. 初期化メッセージ送信
+   # 4. Başlatma/ilk mesajı gönder
    agent_send.sh SE3 "[PM] SE3として新規起動しました。instructions/SE.mdを読み込んでください。"
    
    # 5. directory_pane_map.md更新
