@@ -184,78 +184,78 @@ Proje kapanış koşulları ve akış şeması için bkz. [Issue #33: Proje kapa
 ## 1. Ön hazırlık
 本システムを利用する前に、以下の環境がセットアップ済みであることを確認してください。
 
-### ☑️ VibeCodeHPCリポジトリのコードをダウンロード
+### ☑️ VibeCodeHPC deposu kodlarını indirin
 
 > [!NOTE]
-> 以下の理由から VibeCodeHPC は git clone を用いずzipでダウンロードし展開することを推奨
+> Aşağıdaki sebeplerle VibeCodeHPC için git clone yerine zip indirip açmanız önerilir
 > 
-> GitHub/📁でプロジェクトの匿名版コピーを管理するCDエージェントのGit認証との混同を避ける
+> GitHub/📁 içindeki anonim proje kopyalarını yöneten CD aracısının Git kimliğiyle karışıklığı önlemek
 
-#### GUIの場合
-[release](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/releases)から(mainからでもOK) ダウンロードした.zipを展開
+#### GUI için
+[release](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/releases) sayfasından (main de olabilir) indirdiğiniz .zip’i açın
 
-#### CLIの場合
+#### CLI için
 <details>
-<summary>コマンドラインでダウンロードする場合（クリックで展開）</summary>
+<summary>Komut satırından indirme (genişletmek için tıklayın)</summary>
 
-VibeCodeHPCをダウンロード
+VibeCodeHPC’yi indirin
 ```bash
-wget https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/archive/refs/tags/v{バージョン}.zip
+wget https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-jp/archive/refs/tags/v{sürüm}.zip
 ```
 
-zip解凍
+Zip’i açın
 ```bash
-unzip VibeCodeHPC-jp-{バージョン}.zip
+unzip VibeCodeHPC-jp-{sürüm}.zip
 ```
 
-展開後、VibeCodeHPCのルートへ移動
+Açtıktan sonra VibeCodeHPC kök dizinine geçin
 ```bash
-cd VibeCodeHPC-jp-{バージョン}
+cd VibeCodeHPC-jp-{sürüm}
 ```
 </details>
 
 ---
 
-### ☑️ **SSHエージェントの設定 (ssh-agent)**
-- スーパーコンピュータへのパスワード不要のSSH接続を有効にするため、`ssh-agent` に秘密鍵を登録します。
-- ssh-agentを有効にする手順は[こちらのGoogleスライドを参照](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
+### ☑️ **SSH aracısı ayarı (ssh-agent)**
+- Süper bilgisayara parolasız SSH için `ssh-agent` içine özel anahtarınızı ekleyin.
+- ssh-agent etkinleştirme adımları için [bu Google Sunuları’na bakın](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
   
-  ssh-agentを起動：
+  ssh-agent’i başlatın:
   ```bash
   eval "$(ssh-agent -s)"
   ```
   
-  秘密鍵を追加：
+  Özel anahtar ekleyin:
   ```bash
   ssh-add ~/.ssh/your_private_key
   ```
-- 確認コマンド
+- Doğrulama komutu
   ```bash
   ssh-add -l
   ```
 > [!NOTE]
-> このターミナルを閉じるまでは有効で、tmuxのターミナル分割でも引き継がれます。
+> Bu terminal kapanana kadar geçerlidir ve tmux bölünmüş panellerinde devredilir.
 
 
 ---
 
-### ☑️ **Claude Codeのインストールと認証**
-- Windowsの場合は、WSL (Ubuntu 22.04) をセットアップします。
-- `nvm` 経由でのNode.js (v18以上) のインストールを推奨します [参考: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
-- 以下のコマンドでClaude Codeをインストールし、初回起動時にアカウント認証を完了させてください。
+### ☑️ **Claude Code kurulumu ve kimlik doğrulaması**
+- Windows için WSL (Ubuntu 22.04) kurun.
+- Node.js (v18+) için `nvm` ile kurulum önerilir [bkz: https://zenn.dev/acntechjp/articles/eb5d6c8e71bfb9]
+- Aşağıdaki komutla Claude Code’u kurun ve ilk çalıştırmada hesap doğrulamasını tamamlayın.
   ```bash
   npm install -g @anthropic-ai/claude-code
   claude
   ```
 
 
-### ☑️ **推奨ツールのインストール**
+### ☑️ **Önerilen araçların kurulumu**
 <details>
-<summary>tmux, jq, Python環境のインストール方法（クリックで展開）</summary>
+<summary>tmux, jq, Python ortamı kurulum yöntemleri (genişletmek için tıklayın)</summary>
 
-VibeCodeHPCの全機能を活用するため、以下のツールのインストールを推奨します：
+VibeCodeHPC’nin tüm özelliklerinden yararlanmak için aşağıdaki araçları kurmanız önerilir:
 
-#### **tmux** - ターミナルマルチプレクサ（マルチエージェント通信基盤）
+#### **tmux** - Terminal çoklayıcı (çoklu aracı iletişim altyapısı)
 
 Ubuntu/WSL:
 ```bash
@@ -272,18 +272,18 @@ macOS:
 brew install tmux
 ```
 
-ユーザ権限でのインストール（sudo不可の環境）:
+Kullanıcı yetkisiyle kurulum (sudo olmayan ortamlar):
 ```bash
 wget https://github.com/tmux/tmux/releases/download/3.4/tmux-3.4.tar.gz
 tar xzf tmux-3.4.tar.gz
 cd tmux-3.4
 ./configure --prefix=$HOME/.local
 make && make install
-export PATH=$HOME/.local/bin:$PATH  # .bashrcに追加推奨
+export PATH=$HOME/.local/bin:$PATH  # .bashrc’ye eklemeniz önerilir
 ```
-> シングルエージェントモード（`./start_solo.sh`）はtmuxなしでも動作しますが、セッション管理の観点からtmuxの使用を推奨
+> Tek aracı modu (`./start_solo.sh`) tmux olmadan da çalışır, ancak oturum yönetimi için tmux önerilir.
 
-#### **jq** - JSONLファイル解析用
+#### **jq** - JSONL dosya analizi için
 
 Ubuntu/WSL:
 ```bash
@@ -294,25 +294,25 @@ macOS:
 ```bash
 brew install jq
 ```
-> エージェント間通信（agent_send.sh）でJSONL形式のテーブルを効率的に解析します
+> Aracılar arası iletişimde (agent_send.sh) JSONL tablolarını verimli analiz eder
 
 
 #### Python paketleri - Görselleştirme ve veri analizi için
 
-通常のインストール:
+Standart kurulum:
 ```bash
 pip3 install -r requirements.txt
 ```
 
-必要なパッケージ:
-- **matplotlib** - グラフ生成（SOTA推移、予算消費、コンテキスト使用率）
-- **numpy** - 数値計算（線形回帰、統計処理）
-- **pandas** - データ分析（ChangeLog.md解析、集計）
-- **scipy** - 統計分析（予算予測の線形回帰）
+Gerekli paketler:
+- **matplotlib** - Grafik üretimi (SOTA eğilimi, bütçe tüketimi, bağlam kullanım oranı)
+- **numpy** - Sayısal hesaplama (doğrusal regresyon, istatistik işlemler)
+- **pandas** - Veri analizi (ChangeLog.md çözümleme, toplulaştırma)
+- **scipy** - İstatistik analiz (bütçe tahmini için doğrusal regresyon)
 
-> これらのパッケージは主に可視化スクリプトで使用されます。バージョンは厳密に指定していないため、最新版で問題ありません
+> Bu paketler esas olarak görselleştirme betiklerinde kullanılır. Sürüm kısıtı yoktur; güncel sürümler uygundur.
 
-> 可視化スクリプトは `python3 script.py` で実行されます
+> Görselleştirme betikleri `python3 script.py` ile çalıştırılır.
 </details>
 
 ---
