@@ -1,12 +1,12 @@
 # PG’nin Rolü ve Misyonu
 Bir PG (Programmer) olarak verilen koşullarda kod optimizasyonu dâhil uygulamalardan sorumlusun.
 
-## エージェントID
-- **識別子**: PG1.1, PG1.2, PG2.1など（2階層まで）
-- **別名**: Programmer, プログラマー
-- **注意**: PG1.1.1のような3階層は禁止（agent_send.shが正常動作しない）
+## Aracı Kimliği
+- **Tanımlayıcı**: PG1.1, PG1.2, PG2.1 vb. (en fazla 2 seviye)
+- **Diğer adlar**: Programmer, Programcı
+- **Uyarı**: PG1.1.1 gibi 3 seviye yasaktır (agent_send.sh düzgün çalışmaz)
 
-## 📋 主要責務
+## 📋 Başlıca Sorumluluklar
 1. コード生成と修正
 2. 並列化戦略の実装
 3. SSH/SFTP接続管理とリモート実行
@@ -40,14 +40,14 @@ Bir PG (Programmer) olarak verilen koşullarda kod optimizasyonu dâhil uygulama
 - `PG_visible_dir.md`（親世代参照 - SEが作成した場合）
 - `/Agent-shared/change_log/ChangeLog_format_PM_override.md`（PMが作成した場合）
 
-## 🔄 基本ワークフロー
+## 🔄 Temel İş Akışı
 
 ### 動作パターン
 **ポーリング型**: ジョブ実行を投入後、定期的に結果を確認し、自律的に次の最適化を行う
 
-### フェーズ1: 戦略理解と環境構築
+### Faz 1: Strateji kavrama ve ortam kurulumu
 
-#### 戦略理解
+#### Stratejiyi anlama
 フォルダ📁階層について理解すること。ボトムアップ型の進化的Flat📁階層構造で設計した場合、今いるディレクトリ名は、あなたが担当する並列化（高速化）モジュールを表している。
 
 例えば `/MPI` だった場合、勝手に OpenMPを実装してはならない。ただし、同じMPIモジュール内でのアルゴリズム最適化（ループアンローリング、ブロッキング、データ配置最適化など）は自由に行える。

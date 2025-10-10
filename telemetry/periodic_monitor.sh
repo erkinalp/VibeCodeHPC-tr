@@ -1,52 +1,40 @@
 #!/bin/bash
-# 定期的にcontext_usage_monitor.pyを実行するバックグラウンドスクリプト
-# SessionStartフックから起動され、tmux解除で自動終了
+# SessionStart kancasından başlar, tmux kapanınca otomatik biter
 
 set -e
 
-# プロジェクトルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# TMUXセッションから自動的にプロジェクト名を検出
 if [ -n "$TMUX" ]; then
-    # 現在のtmuxセッション名を取得
     CURRENT_SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "")
     
-    # プロジェクト名を抽出（最後の_PMまたは_Workersを削除）
     if [[ "$CURRENT_SESSION" =~ ^(.*)_PM$ ]]; then
         PROJECT_NAME="${BASH_REMATCH[1]}"
     elif [[ "$CURRENT_SESSION" =~ ^(.*)_Workers[0-9]*$ ]]; then
         PROJECT_NAME="${BASH_REMATCH[1]}"
     else
-        # パターンにマッチしない場合はデフォルト
         PROJECT_NAME="Team1"
     fi
 else
-    # TMUX外から起動された場合のフォールバック
     PROJECT_NAME="Team1"
 fi
 
-# 検出されたプロジェクト名でセッション名を構築
 PM_SESSION="${PROJECT_NAME}_PM"
 WORKER_SESSION="${PROJECT_NAME}_Workers1"
 
-# ログファイル
 LOG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor.log"
 PID_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor.pid"
 CHILD_PID_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_child.pid"
 
-# 設定ファイル（ユーザがオーバライド可能）
 CONFIG_FILE="$PROJECT_ROOT/Agent-shared/periodic_monitor_config.txt"
 
-# デフォルト値
 DEFAULT_UPDATE_INTERVAL_SEC=30  # 30秒（上書き更新頻度）
 DEFAULT_MILESTONE_INTERVAL_MIN=30  # 30分（マイルストーン確認間隔）
 DEFAULT_MAX_RUNTIME_MIN=1440  # 1440分（1日）= 24 * 60
 DEFAULT_BUDGET_INTERVAL_MIN=3  # 3分（予算集計間隔）
 DEFAULT_SOTA_INTERVAL_MIN=15  # 15分（SOTA可視化間隔）
 
-# 設定読み込み（存在すれば）
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi

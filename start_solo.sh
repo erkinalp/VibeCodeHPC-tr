@@ -1,17 +1,13 @@
 #!/bin/bash
-# シングルエージェント起動用統合スクリプト
-# 1つのClaude Codeインスタンスが全ての役割（PM/SE/PG/CD）を実行
 
 set -e
 
-# スクリプトのディレクトリからプロジェクトルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
 echo "🚀 VibeCodeHPC Tek Aracı Modu Başlatılıyor"
 echo "============================================"
 
-# tmuxの確認（オプション）
 TMUX_AVAILABLE=false
 if command -v tmux &>/dev/null; then
     TMUX_AVAILABLE=true
