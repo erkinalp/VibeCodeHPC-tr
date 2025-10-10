@@ -110,97 +110,97 @@ Ayrıntılı uygulama ve en iyi pratikler için `/Agent-shared/ssh_sftp_guide.md
 **Önemli**: requirement_definition.md izin vermedikçe tüm derleme/yürütmeyi süperbilgisayarda SSH üzerinden yap.
 Yerel PC’de yürütme yasaktır. Yerelde sadece toplama, görselleştirme ve ChangeLog.md düzenleme serbesttir.
 
-**重要なポイント**:
-- セッション作成時は必ずPIDを記録し、`ssh_sftp_sessions.json`で管理
-- エラー時はBashツールへのフォールバックを実装
-- エラーメッセージは必ずagent_send.sh経由でPMに通知
+**Önemli noktalar**:
+- Oturum oluştururken PID’yi kaydet ve `ssh_sftp_sessions.json` ile yönet
+- Hata durumunda Bash araçlarına geri dönüş (fallback) uygula
+- Hata mesajlarını mutlaka agent_send.sh ile PM’e ilet
 
-#### コンパイル実行と警告文の確認
-自分でコンパイルを実行し、警告を直接確認する：
+#### Derleme yürütme ve uyarıların kontrolü
+Derlemeyi kendin çalıştır ve uyarıları doğrudan kontrol et:
 
-1. **`compile_status: warning`の場合**
-   - compile_warningsの内容を精査
-   - 並列化が正しく適用されない可能性がある警告は重要
-   - 例：「collapse句が最適化されない」「ループ依存性」「データ競合の可能性」
+1. **`compile_status: warning` durumunda**
+   - compile_warnings içeriğini incele
+   - Paralelleştirmenin doğru uygulanmadığını ima eden uyarılar kritiktir
+   - Örnek: “collapse ifadesi optimize edilmedi”, “döngü bağımlılığı”, “veri yarışması olasılığı”
    
-2. **判断基準**
-   - **ジョブ実行を中止すべき警告**:
-     - ループ依存性による並列化無効
-     - データ競合の警告
-     - メモリアクセスパターンの問題
-   - **ジョブ実行しても良い警告**:
-     - 最適化レベルの推奨
-     - パフォーマンス改善の提案
+2. **Değerlendirme ölçütleri**
+   - **İş yürütmesini durdurman gereken uyarılar:**
+     - Döngü bağımlılığı nedeniyle paralelleştirmenin geçersizleşmesi
+     - Veri yarışması uyarıları
+     - Bellek erişim deseni sorunları
+   - **İş yürütülebilir uyarılar:**
+     - Optimizasyon seviyesi önerileri
+     - Performans iyileştirme önerileri
 
-3. **対応アクション**
-   - 重要な警告がある場合は、次のバージョンで修正
-   - `compile_output_path`のログファイルを自分で確認
-   - ChangeLog.mdに判断理由を記録
+3. **Eylemler**
+   - Kritik uyarılar varsa bir sonraki sürümde düzelt
+   - `compile_output_path` altındaki günlük dosyalarını kendin incele
+   - ChangeLog.md’ye karar gerekçesini yaz
 
-#### ジョブ実行と結果確認
-1. **ジョブ投入**
+#### İş yürütme ve sonuç doğrulama
+1. **İş gönderimi**
    ```python
-   # バッチジョブ実行（推奨）
+   # Batch iş yürütme (önerilir)
    mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="sbatch job.sh")
    ```
 
-2. **結果確認（ポーリング）**
-   - 定期的にジョブ状態を確認
-   - 完了後、結果ファイルを取得
-   - 性能データをChangeLog.mdに記録
+2. **Sonuç doğrulama (polling)**
+   - İş durumunu düzenli olarak kontrol et
+   - Tamamlanınca sonuç dosyalarını al
+   - Performans verilerini ChangeLog.md’ye işle
 
-### フェーズ4: ディレクトリ管理
-あなたが現在存在するディレクトリ以下は自由に階層を作成し、適宜コードの整理を行うこと。ただし生成したコードは削除せず/archivedなどのフォルダに移動すること
+### Faz 4: Dizin yönetimi
+Bulunduğun dizin altında özgürce alt hiyerarşi oluşturup kodu düzenleyebilirsin. Üretilmiş kodları silme; /archived benzeri klasörlere taşı.
 
-## 📁 ファイル命名規則
-makefileの修正はせず、ファイルは上書きせず手元に実行ファイル名_v0.0.0.cのようにコピーを作成してからファイルを上書きしていくバージョン管理を推奨する。
+## 📁 Dosya adlandırma kuralları
+makefile’ı değiştirme; dosyaları ezmeden önce yerelde yürütülebilir_ad_v0.0.0.c gibi bir kopya oluşturup sürümlemeyi bu şekilde sürdürmen önerilir.
 
-### バージョン管理方法
+### Sürüm yönetimi yöntemi
 
-**重要**: 基本的に `v1.0.0` から開始すること。`v0.x.x` は既存の/BaseCodeが動作しない場合のみ使用。
+**Önemli**: Temelde `v1.0.0` ile başla. `v0.x.x` sadece mevcut /BaseCode çalışmıyorsa kullanılır.
 
-#### メジャーバージョン （v1.0.0）
-- APIの変更に互換性のない場合、一つ以上の破壊的な変更を含む場合
-- 根本から設計を見直すレベルのリファクタリング時
-- 異なる最適化戦略のブランチを複数保持したい時
+#### Ana sürüm (v1.0.0)
+- API değişikliği geriye dönük uyumsuzsa veya yıkıcı değişiklik içeriyorsa
+- Temelden tasarım gözden geçiren refaktörizasyonlarda
+- Birden çok farklı optimizasyon stratejisi dalı tutmak istediğinde
 
-#### マイナーバージョン （v1.1.0）
-- 後方互換性があり機能性を追加した場合
-- 並列化実装に変更を加えた場合
-- 新しいアルゴリズムや最適化手法の導入
+#### Ara sürüm (v1.1.0)
+- Geriye dönük uyumlu yeni işlev eklendiğinde
+- Paralelleştirme uygulamasında değişiklik yapıldığında
+- Yeni algoritma veya optimizasyon yöntemleri eklendiğinde
 
-#### パッチバージョン （v1.0.1）
-- 後方互換性を伴うバグ修正
-- **パラメータの微調整**（ブロックサイズ、スレッド数の変更など）
+#### Yama sürümü (v1.0.1)
+- Geriye dönük uyumlu hata düzeltmeleri
+- **Parametre ince ayarı** (blok boyutu, iş parçacığı sayısı vb.)
 - Derleyici seçeneklerinin ayarlanması
-- 小さな性能改善
+- Küçük performans iyileştirmeleri
 
-## 🔍 実行結果の参照について
-ChangeLog.mdの他、/resultsなどにジョブID.out、ジョブID.errを自分で転送・管理する。これらの結果はスパコン上に保存されているので、重要でなくなった時点で適宜削除すること。
+## 🔍 Yürütme sonuçlarına başvuru
+ChangeLog.md’ye ek olarak /results içinde jobID.out, jobID.err gibi dosyaları kendin aktar ve yönet. Bu sonuçlar süperbilgisayarda saklandığından gereksiz hale geldiğinde uygun şekilde sil.
 
-## 🤝 他エージェントとの連携
+## 🤝 Diğer aracılarla işbirliği
 
-### 上位エージェント
-- **PM**: 問題が生じたり、他のエージェントにも非常に有用な発見やコードを共有したい場合など
-- **SE**: 再利用可能コードや統計情報を提供してもらう
+### Üst roller
+- **PM**: Sorunlar olduğunda veya diğer aracılara çok yararlı bulgular/kod paylaşılacağında
+- **SE**: Yeniden kullanılabilir kodlar ve istatistikler sağlar
 
-### 並列エージェント
-- **他のPG**: 異なる最適化戦略を担当する並列プログラマー
-- **CD**: GitHub管理とセキュリティ対応を行う
+### Paralel aracılar
+- **Diğer PG’ler**: Farklı optimizasyon stratejilerinden sorumlu paralel programcılar
+- **CD**: GitHub yönetimi ve güvenlik uyumundan sorumlu
 
-### 上位管理者
-- **Planner**: ユーザとの対話、プロジェクトの立ち上げ
+### Üst yönetici
+- **Planner**: Kullanıcıyla etkileşim, projenin başlatılması
 
-## 📝 ChangeLog.mdフォーマットの厳守
+## 📝 ChangeLog.md biçimine sıkı uyum
 
-**重要**: ChangeLog.mdのフォーマットは必ず守ること。特に`<details>`タグによる折り畳み形式は死守する。
+**Önemli**: ChangeLog.md biçimine mutlaka uy. Özellikle `<details>` ile katlama yapısı korunmalıdır.
 
-### フォーマットの基本原則
-1. **折り畳み形式の維持**: 全体が4行程度に収まるよう`<details>`タグを使用
-2. **PMオーバーライドの適用範囲**: PMが変更できるのは`<details>`内部の項目フィールドのみ
-3. **区切り文字の変更可能**: PMが「-」から別の区切り文字に変更しても、折り畳み構造は維持
+### Biçimin temel ilkeleri
+1. **Katlama yapısını koru**: Genel görünümün 4 satıra sığması için `<details>` kullan
+2. **PM override kapsamı**: PM yalnızca `<details>` içindeki madde alanlarını değiştirebilir
+3. **Ayraç değişebilir**: PM “-” yerine başka ayraç kullansa da katlama yapısı korunur
 
-### 正しいフォーマット例
+### Doğru biçim örneği
 ```markdown
 ### v1.1.0
 **変更点**: "ブロッキング最適化とスレッド数調整"  

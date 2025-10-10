@@ -123,70 +123,70 @@ Proje istikrar evresine girdiğinde veya diğer PM’lere kıyasla daha az arac�
    - **Kaynak grubu ayarı**: `_remote_info/` bilgilerine göre `load_rates()` fonksiyonunu da düzelt
      - Doğru kaynak grup adı (örn: cx-share → gerçek ad), GPU sayısı ve oranları gir
    
-2. **優先: SOTA可視化の確認とカスタマイズ**
-   - **基本グラフは自動生成済み**（PMのhooksでperiodic_monitor.shが起動、30分ごとに生成）
-   - **SEの確認作業**（画像を直接見ずに）：
+2. **Öncelik: SOTA görselleştirmesini doğrula ve özelleştir**
+   - **Temel grafikler otomatik üretilir** (PM’in hooks’u periodic_monitor.sh’ı başlatır; 30 dakikada bir üretilir)
+   - **SE doğrulama adımları** (görüntüyü doğrudan açmadan):
      ```bash
-     # PNG生成状況を確認
+     # PNG üretim durumunu kontrol et
      ls -la User-shared/visualizations/sota/**/*.png | tail -10
      
-     # データ整合性をサマリーで確認
+     # Veri tutarlılığını özetle kontrol et
      python3 Agent-shared/sota/sota_visualizer.py --summary
      
-     # 問題があればデバッグモードで調査
+     # Sorun varsa debug modunda incele
      python3 Agent-shared/sota/sota_visualizer.py --debug --levels local
      ```
-   - **プロジェクト固有の調整**：
-     - ChangeLogフォーマットが異なる場合: `_parse_changelog()`を直接編集
-     - 階層判定の改善: `_extract_hardware_key()`等を修正
-     - 性能単位の変換: TFLOPS、iterations/sec等への対応追加
-   - **特殊ケースの手動実行**：
-     - 特定PGを高解像度: `--specific PG1.2:150`
-     - データエクスポート: `--export`（マルチプロジェクト統合用）
+   - **Proje özelinde ayarlar:**
+     - ChangeLog biçimi farklıysa: `_parse_changelog()`’ı doğrudan düzenle
+     - Hiyerarşi tespit iyileştirmesi: `_extract_hardware_key()` vb. düzelt
+     - Performans birimi dönüşümleri: TFLOPS, iterations/sec desteği ekle
+   - **Özel durumlarda manuel çalıştırma:**
+     - Belirli PG için yüksek çözünürlük: `--specific PG1.2:150`
+     - Veri dışa aktarımı: `--export` (çoklu proje entegrasyonu için)
    
-3. **通常: 予算推移グラフ**（定期実行）
-   - `python3 Agent-shared/budget/budget_tracker.py`で定期的に実行・確認
-   - 線形回帰による予測とETA表示機能を活用
+3. **Rutin: Bütçe eğilim grafiği** (periyodik)
+   - `python3 Agent-shared/budget/budget_tracker.py` ile düzenli çalıştır ve kontrol et
+   - Doğrusal regresyon kestirimleri ve ETA gösterimini kullan
 
-**画像確認とデータ整合性の鉄則（最重要）**:
+**Görüntü doğrulama ve veri tutarlılığı kuralı (en önemli):**
 
-1. **画像は必ずサブエージェントで確認**（自己防衛）
+1. **Görüntüleri mutlaka alt aracıyla doğrula** (korunma)
 ```bash
-# ✅ 正しい方法（プロジェクトルートからの絶対パスまたは相対パス調整）
-# SEが例えば Flow/TypeII/single-node/ にいる場合
+# ✅ Doğru yöntem (proje kökünden mutlak yol veya göreli yol ayarı)
+# SE örneğin Flow/TypeII/single-node/ içindeyse
 claude -p "このSOTAグラフから読み取れる性能値を列挙" < ../../../User-shared/visualizations/sota/sota_project_time_linear.png
 
-# または絶対パスで指定
+# Veya mutlak yol ile belirt
 PROJECT_ROOT=$(pwd | sed 's|\(/VibeCodeHPC[^/]*\).*|\1|')
-claude -p "グラフの性能値を教えて" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png
+claude -p "Grafikteki performans değerlerini yaz" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png
 
-# ❌ 絶対に避ける（auto-compact誘発）
+# ❌ Kesinlikle kaçın (auto-compact tetikler)
 Read file_path="/path/to/graph.png"  # メインコンテキストで直接読み込み
 ```
 
-2. **SOTA可視化の整合性確認（SE中核業務）**
+2. **SOTA görselleştirme tutarlılığını doğrula (SE çekirdek işi)**
 ```bash
-# プロジェクトルートを取得
+# Proje kök yolunu al
 PROJECT_ROOT=$(pwd | sed 's|\(/VibeCodeHPC[^/]*\).*|\1|')
 
-# グラフとChangeLog.mdの相互検証
+# Grafik ile ChangeLog.md’yi çapraz doğrula
 claude -p "グラフに表示されている全ての性能値をリストアップ" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_project_time_linear.png > graph_values.txt
 grep "GFLOPS" */ChangeLog.md | grep -oE "[0-9]+\.[0-9]+" > changelog_values.txt
 diff graph_values.txt changelog_values.txt  # 抜けがないか確認
 
-# sota_local.txtとの照合（ファミリー別グラフ）
+# sota_local.txt ile karşılaştır (familyaya göre grafik)
 claude -p "このグラフの最高値を教えて" < $PROJECT_ROOT/User-shared/visualizations/sota/sota_family_OpenMP_time_linear.png
 cat OpenMP/sota_local.txt  # 一致するか確認
 ```
 
-3. **解像度管理の方針**
-- **序盤**: 低解像度（DPI 80-100）でトークン節約
-- **中盤以降**: 実験報告用に高解像度（DPI 150-200）に切り替え
+3. **Çözünürlük yönetimi ilkesi**
+- **Başlangıç**: Düşük çözünürlük (DPI 80-100) ile token tasarrufu
+- **Orta ve sonrası**: Deney raporları için yüksek çözünürlüğe (DPI 150-200) geç
   ```bash
-  # PMに提案
+  # PM’e öner
   agent_send.sh PM "[SE] 60分経過したので実験報告用に高解像度グラフを生成します"
   ```
-- **注意**: マイルストーン版（30/60/90分）は常に高解像度で保持
+- **Dikkat**: Kilometre taşları (30/60/90 dk) her zaman yüksek çözünürlükte tutulur
 
 - エージェント統計
 - ログ可視化  
