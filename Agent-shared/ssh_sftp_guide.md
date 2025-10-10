@@ -1,23 +1,22 @@
-# 🔌 SSH/SFTP接続・実行ガイド (Desktop Commander MCP版)
+# 🔌 SSH/SFTP Bağlantı ve Yürütme Kılavuzu (Desktop Commander MCP)
 
-## 概要
+## Genel Bakış
 
-PG/SE/PMエージェントが自身でリモート環境にSSH/SFTP接続してコマンド実行・ファイル転送を行うためのガイドです。
-Desktop Commander MCPを活用することで以下を実現します：
-- 2段階認証の回避（一度接続すれば再認証不要）
-- 大容量ファイル転送の効率化
-- 複数セッションの並列管理
-- 大量の標準出力によるコンテキスト浪費の防止
+PG/SE/PM aracılarının uzaktaki ortama SSH/SFTP ile bağlanıp komut çalıştırmaları ve dosya transferi yapmaları için bir kılavuzdur.
+Desktop Commander MCP kullanılarak şunlar sağlanır:
+- İki aşamalı kimlik doğrulamada tekrar gereksinimini azaltma (bir kez bağlanınca yeniden doğrulama gerekmez)
+- Büyük dosya transferlerinde verimlilik
+- Birden çok oturumun paralel yönetimi
+- Aşırı standart çıktı kaynaklı bağlam israfının önlenmesi
 
-## 前提条件
+## Ön Koşullar
 
-### ssh-agentのセットアップ（必須）
-ユーザがcommunication/setup.sh開始前に実行
+### ssh-agent kurulumu (zorunlu)
+Kullanıcı, `communication/setup.sh` çalıştırılmadan önce ayarlamalıdır.
 
-
-### Desktop Commander MCPの事前設定
+### Desktop Commander MCP ön ayarı
 ```bash
-# PMエージェント起動前に設定
+# PM aracısı başlatılmadan önce yapılandırın
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
 
