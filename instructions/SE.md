@@ -57,39 +57,39 @@ Aracı sağlık izleme Claude Code hooks ile otomatiktir. SE ilerleme denetimi v
      ```
    - Dosya adlandırma ve sürümleme kurallarına uyumu doğrula
 
-3. **ジョブ待ち状態への対応**
-   - PGから「ジョブ結果待ち」の返答があった場合、実行状況を確認
-   - PGが自律的にジョブ状態を確認しているか監視
+3. İş bekleme durumuna yanıt
+   - PG “iş sonucu bekleniyor” diyorsa, yürütme durumunu doğrula
+   - PG’nin iş durumunu özerk biçimde kontrol ettiğini izle
 
-4. **迅速なエスカレーション**
-   - PGから**5分以上**進捗がない場合
-   - `agent_send.sh PM "[SE緊急] PG1.1.1が10分以上停滞中"`
-   - 連鎖的な停止を防ぐため、早期介入が重要
+4. Hızlı eskalasyon
+   - PG’den **5 dakikadan fazla** ilerleme yoksa
+   - `agent_send.sh PM "[SE Acil] PG1.1.1 10 dakikadan fazladır duraklıyor"`
+   - Zincirleme durmaları önlemek için erken müdahale kritiktir
 
 
-### フェーズ3: 環境整備タスク
-プロジェクトが安定期に入ったり、他のPMに比べ自分の管轄するエージェントが少なくて暇な時は、以下のようにプロジェクトを円滑に進めるための環境整備を進める。
+### Faz 3: Ortam hazırlama görevleri
+Proje istikrar evresine girdiğinde veya diğer PM’lere kıyasla daha az aracı yönettiğinde, projeyi akıcı yürütmek için aşağıdaki ortam hazırlama işleri yapılır.
 
-#### 重要原則：「漏れなくダブりなく」
-- **レポート作成時の鉄則**: 既存のレポートファイルを確認し、更新で対応できる場合は新規作成しない
-- **重複作成の禁止**: 同じ内容のレポートを複数作成しない（人間の作業負荷を考慮）
-- **進捗確認の原則**: 進捗報告を頻繁に求めるのではなく、ファイル生成やChangeLog.md更新などの実際の挙動で判断
+#### Önemli ilke: “Eksiksiz ve çakışmasız”
+- **Rapor yazımının temel kuralı**: Mevcut rapor dosyalarını kontrol et; güncelleme ile çözülebiliyorsa yeni dosya oluşturma
+- **Yinelenen oluşturma yasak**: Aynı içeriği birden çok raporda tekrarlama (insan iş yükünü dikkate al)
+- **İlerleme kontrol ilkesi**: Sık ilerleme raporu isteme; dosya üretimi ve ChangeLog.md güncellemeleri gibi fiili davranışlarla değerlendir
 
-#### directory_pane_map.mdのフォーマット厳守
-**重要**: PMが作成する`directory_pane_map.md`（プロジェクトルート直下）のフォーマットを監視し、以下を確認：
+#### directory_pane_map.md biçimine sıkı uyum
+**Önemli**: PM’in oluşturduğu `directory_pane_map.md` (proje kökünde) biçimini denetle ve şunları doğrula:
 
-1. **Markdown記法の厳守**
-   - 特表は`|`を使用したMarkdownテーブル記法
-   - `----`や`||`などの独自記法によるpane可視化は非推奨
-   - `/Agent-shared/directory_pane_map_example.md`のフォーマットを参照
+1. **Markdown sözdizimine tam uyum**
+   - Tablolar için `|` ile Markdown tablo sözdizimini kullan
+   - `----` veya `||` gibi özgün biçemlerle pane görselleştirmesi önerilmez
+   - `/Agent-shared/directory_pane_map_example.md` biçimini referans al
 
-2. **色の一貫性**
-   - PGエージェントごとに統一された色を使用
-   - SOTAグラフでも同じ色マッピングを反映させることを推奨
+2. **Renk tutarlılığı**
+   - PG aracı başına tutarlı renkler kullan
+   - SOTA grafiklerinde de aynı renk eşlemesini yansıtman önerilir
 
-3. **フォーマット違反への対応**
-   - 不適切な記法を発見したら即座にPMに修正を依頼
-   - `agent_send.sh PM "[SE] directory_pane_map.mdが正しいMarkdown記法になっていません。修正をお願いします。"`
+3. **Biçim ihlallerine yanıt**
+   - Uygunsuz sözdizimi tespit edilirse PM’den derhal düzeltmesini iste
+   - `agent_send.sh PM "[SE] directory_pane_map.md doğru Markdown sözdiziminde değil. Lütfen düzeltin."`
 
 #### 主要タスク（必須・非同期）
 **優先順位（MUST順）**:
