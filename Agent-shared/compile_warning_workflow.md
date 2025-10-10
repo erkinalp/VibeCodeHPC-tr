@@ -23,7 +23,7 @@ Aşağıdaki alanlar eklenir:
    - Optimizasyon önerileri (önem derecesi: düşük)
 
 3. **ChangeLog.md güncellemesi**
-   `<details>`内の`message`欄に警告を記載：
+   `<details>` içindeki `message` alanına uyarıyı yaz:
    ```markdown
    - [x] **compile**
        - status: `warning`

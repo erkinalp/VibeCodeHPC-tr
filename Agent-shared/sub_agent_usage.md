@@ -124,7 +124,7 @@ analyze_all_changes() {
     done | claude -p "$analysis_prompt" --output-format json
 }
 
-# 使用例
+# Kullanım örneği
 result=$(analyze_all_changes "Flow/TypeII/single-node")
 echo "$result" | jq '.result' | python3 create_performance_graph.py
 ```

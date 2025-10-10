@@ -45,9 +45,9 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
 
 ## Manuel yerleştirme (sorun giderme)
 
-### 1. 個別エージェントへの配置
+### 1. Bireysel aracıya yerleştirme
 ```bash
-# エージェントタイプを確認
+# Aracı tipini kontrol et
 # PM, SE, PG, CD → polling
 
 # hooksを配置
@@ -55,20 +55,20 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
 ./hooks/setup_agent_hooks.sh PG1.1.1 /path/to/PG1.1.1/workdir polling
 ```
 
-### 2. 配置されるファイル
-各エージェントの作業ディレクトリに以下が配置されます：
+### 2. Yerleştirilen dosyalar
+Her aracının çalışma dizinine aşağıdakiler yerleştirilir:
 ```
 {AGENT_DIR}/
 └── .claude/
     ├── hooks/
-    │   ├── session_start.py  # セッション開始時の処理
-    │   └── stop.py          # 待機時の処理（タイプ別）
-    └── settings.local.json  # hooks有効化設定
+    │   ├── session_start.py  # Oturum başlangıcındaki işlem
+    │   └── stop.py          # Bekleme sırasındaki işlem (türe göre)
+    └── settings.local.json  # kancaları etkinleştirme ayarı
 ```
 
-## エージェントタイプ別の挙動
+## Aracı türüne göre davranış
 
-### ポーリング型（PM, SE, PG, CD）
+### Yoklama tipi (PM, SE, PG, CD)
 - **Stop hook**: 待機を阻止し、定期タスクリストを提示
 - **SessionStart hook**: 新規起動時に必須ファイルリスト提示
 - **推奨巡回間隔**:
@@ -77,13 +77,13 @@ VIBECODE_ENABLE_HOOKS=false VIBECODE_ENABLE_TELEMETRY=false ./communication/star
   - PG: 1-3分（ジョブ実行結果確認）
   - CD: 非同期（GitHub同期）
 
-## session_idの追跡
+## session_id takibi
 
-### agent_and_pane_id_table.jsonlの更新
-Claude起動後、SessionStart hookが自動的に：
-1. session_idを記録
-2. エージェントのステータスを"running"に更新
-3. 作業ディレクトリ（cwd）を記録
+### agent_and_pane_id_table.jsonl güncellemesi
+Claude başladıktan sonra, SessionStart kancası otomatik olarak şunları yapar:
+1. session_id’yi kaydeder
+2. Aracının durumunu "running" olarak günceller
+3. Çalışma dizinini (cwd) kaydeder
 
 ```jsonl
 {"agent_id": "PG1.1.1", "tmux_session": "Team1_Workers1", "tmux_window": 0, "tmux_pane": 3, "claude_session_id": "abc123...", "status": "running", "cwd": "/VibeCodeHPC-jp/Flow/...", "last_updated": "2025-08-02T12:34:56Z"}

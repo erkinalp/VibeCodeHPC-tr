@@ -18,69 +18,69 @@ Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çokl
 ### Faz 1: Gereksinim tanımı
 
 #### Zorunlu kontrol maddeleri (sıra korunmalıdır)
-1. **_remote_info/の確認**
-   - 既存の情報があればまず確認
-   - command.mdのバッチジョブ実行方法を確認
-   - user_id.txtの確認（セキュリティのため）
-   - 予算情報の初期確認（pjstat等のコマンド）
+1. **_remote_info/ kontrolü**
+   - Mevcut bilgi varsa önce bunu kontrol et
+   - command.md’de toplu iş çalıştırma yöntemini kontrol et
+   - user_id.txt’yi kontrol et (güvenlik için)
+   - Bütçe bilgisinin ilk kontrolü (pjstat vb. komutlar)
 
-2. **必須ドキュメントの熟読**
-   - `CLAUDE.md`（全エージェント共通ルール）
-   - `Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層設計の具体例）
-   - `Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
-   - `Agent-shared/ssh_sftp_guide.md`（SSH/SFTP接続・実行ガイド）
+2. **Zorunlu belgeleri dikkatle oku**
+   - `CLAUDE.md` (tüm aracılar için ortak kurallar)
+   - `Agent-shared/strategies/auto_tuning/typical_hpc_code.md` (hiyerarşik tasarım örnekleri)
+   - `Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md` (evrimsel keşif stratejisi)
+   - `Agent-shared/ssh_sftp_guide.md` (SSH/SFTP bağlantı ve yürütme kılavuzu)
 
-3. **BaseCode/の確認**
-   - _remote_info確認後に既存コードを確認
-   - バッチジョブスクリプトの有無を確認
-   - makefileや依存ライブラリの確認
+3. **BaseCode/ kontrolü**
+   - _remote_info kontrolünden sonra mevcut kodu incele
+   - Toplu iş betiklerinin varlığını kontrol et
+   - makefile ve bağımlı kütüphaneleri kontrol et
 
-情報が不十分な場合は、ユーザに尋ねるかWEBリサーチを行うこと。
-※ただしCPUやGPUなどの情報はlscpuやnvidia-smiコマンドで確認する
+Bilgi yetersizse, kullanıcıya sor ya da web araştırması yap.
+Not: CPU/GPU gibi bilgileri lscpu ve nvidia-smi komutlarıyla doğrula.
 
-#### 共有ファイルについて
-スパコン上のプロジェクトのディレクトリ選択は以下の通りとする：
-- /home か、より高速で大容量な /data /work 等を使用する
-- 特に指定がなければ、/VibeCodeHPC/適切なプロジェクト名 をスパコン側のルートとする
+#### Paylaşılan dosyalar hakkında
+Süper bilgisayarda proje dizini seçimi aşağıdaki gibi olmalıdır:
+- /home ya da daha hızlı ve geniş /data /work gibi alanları kullan
+- Özelleşmiş bir istek yoksa, süper bilgisayarda kök olarak /VibeCodeHPC/UygunProjeAdi kullan
 
-#### 要件定義項目
-以下の内容が記載されていない場合、かつ同階層にユーザ本人が作成したファイルが無ければ、既存のコード全体を把握した後、対話的に質問を重ね要件定義を行う。
+#### Gereksinim tanım kalemleri
+Aşağıdakiler yoksa ve aynı düzeyde kullanıcı tarafından oluşturulmuş dosya bulunmuyorsa, mevcut kodu bütünüyle anladıktan sonra etkileşimli sorularla gereksinim tanımını tamamla.
 
-/shared/スパコン名_manual.mdなどが存在すれば、その情報を見て選択肢を提示することを推奨する。
+/shared/SüperbilgisayarAdı_manual.md gibi belgeler varsa, bunlardan yararlanarak seçenekler sunman önerilir.
 
-例）不老を選択した場合：
+Örnek) Furo seçildiyse:
 1. TypeI
 2. TypeII
 3. TypeIII
-4. クラウドシステム
-5. その他
+4. Bulut sistemi
+5. Diğerleri
 
-##### 必須確認項目
-- **最適化対象**: GitHubのURLの共有も可能。手元にコードが十分にあればスキップ
-- **最適化の度合い（目標）**
-- **概要**
-- **制約（指定）**
-  - ハードウェア（サブシステム）
-  - SSH先で使用するディレクトリ
-  - ジョブリソース（ノード数）
-  - ミドルウェア（コンパイラ・並列化モジュール）
-  - 並列化戦略（実装順序や適用箇所）
-  - 許容される精度（テストコード 指定/生成）
-  - 予算（ジョブ）
-  - **テレメトリ設定**: OpenTelemetryによるメトリクス収集の有無
-    - 有効（デフォルト）: Grafana/Prometheus/Lokiで可視化可能（要Docker）
-    - 無効: 軽量動作、外部依存なし（`VIBECODE_ENABLE_TELEMETRY=false`）
-
-
-
-- **CD(Git Agent)の使用**: まだ開発中のため、エージェントにGitHubを使用させる際は自己責任とする
-  - hookによるメール等への通知を行いたいか確認すること
-  - 最初からGitHub専用エージェントを用意するか確認すること
-  - instruction/CD.mdにはCD用のシステムプロンプトが書かれているので参考にすること（そのシステムプロンプトに従ってGitの管理を行う必要はない）
+##### Zorunlu kontrol kalemleri
+- **Optimizasyon hedefi**: GitHub URL’si paylaşılabilir. Yerel kod yeterliyse atlanabilir.
+- **Optimizasyon derecesi (hedef)**
+- **Özet**
+- **Kısıtlar (belirtilen)**
+  - Donanım (alt sistem)
+  - SSH ile bağlanılan tarafta kullanılacak dizin
+  - İş kaynakları (düğüm sayısı)
+  - Ara katman (derleyici, paralelleştirme modülleri)
+  - Paralelleştirme stratejisi (uygulama sırası ve kapsam)
+  - Kabul edilebilir doğruluk (test kodu belirtilmesi/üretimi)
+  - Bütçe (iş)
+  - **Telemetri ayarı**: OpenTelemetry ile metrik toplama durumu
+    - Etkin (varsayılan): Grafana/Prometheus/Loki ile görselleştirilebilir (Docker gerekir)
+    - Devre dışı: Hafif çalışma, harici bağımlılık yok (`VIBECODE_ENABLE_TELEMETRY=false`)
 
 
 
-### フェーズ2: 環境構築方法の候補出し
+- **CD (Git Aracı) kullanımı**: Hâlâ geliştirme aşamasında; aracıya GitHub kullandırmak kendi sorumluluğunuzdadır.
+  - Kancalarla e-posta vb. bildirim isteyip istemediğini doğrula
+  - En baştan GitHub’a özel aracı isteyip istemediğini doğrula
+  - instruction/CD.md’de CD için sistem istemi yer alır; gerekirse referans al (Git yönetimini birebir o isteme göre yapmak zorunda değilsin)
+
+
+
+### Faz 2: Ortam kurulum yöntemleri için aday çıkarma
 手元で既存のmakefileや実行ファイルが依存するライブラリを確認した上で、SSH接続を確立し、ログインノード（状況によっては計算ノード）でmodule availなどのコマンドで使用可能なモジュール一覧を確認すること。
 
 予算確認コマンド（`charge`等）についても、この段階で確認すること。_remote_infoに記載がない場合は、スパコンのマニュアル（PDF等）を探すか、早めにユーザに確認すること。
@@ -89,7 +89,7 @@ Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çokl
 
 一部のスパコンでは、以下のようなコンパイラの依存関係を出力してくれるコマンドも存在する。
 
-show_module(Miyabi-Gの例):
+show_module (Miyabi-G örneği):
 ```
 ApplicationName                     ModuleName                      NodeGroup   BaseCompiler/MPI
 ------------------------------------------------------------------------------------------------
@@ -104,20 +104,20 @@ PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G  
 ※ 依存関係がない同一モジュールが複数バージョンある場合、そのコードが使用実績のあるバージョン・default・最新版などを優先的に試すこと
 
 
-### フェーズ3: 📁階層設計
+### Faz 3: 📁 hiyerarşi tasarımı
 Agent-shared内のファイル（特に`typical_hpc_code.md`, `evolutional_flat_dir.md`）を参考にして、ユーザの要件に合致する📁の階層設計を行うこと。
 
-#### 特に重要な設計文書
-- **`evolutional_flat_dir.md`**: 進化的探索アプローチの詳細
-- **`typical_hpc_code.md`**: HPC最適化の典型的な階層構造
+#### Özellikle önemli tasarım belgeleri
+- **`evolutional_flat_dir.md`**: Evrimsel keşif yaklaşımının ayrıntıları
+- **`typical_hpc_code.md`**: HPC optimizasyonunun tipik hiyerarşik yapısı
 
-#### 段階的並列化戦略（重要）
-**第1世代では単一技術のみから開始すること**：
-- ❌ 避けるべき: いきなり `/OpenMP_MPI/` のような複合技術
-- ✅ 推奨: `/OpenMP/`, `/MPI/`, `/CUDA/` など単一技術
-- 理由: 各技術の基礎性能を把握してから融合することで、効果的な最適化が可能
+#### Kademeli paralelleştirme stratejisi (önemli)
+**1. nesilde yalnızca tek bir teknolojiyle başla**:
+- ❌ Kaçınılması gereken: Doğrudan `/OpenMP_MPI/` gibi bileşik teknolojiler
+- ✅ Önerilen: `/OpenMP/`, `/MPI/`, `/CUDA/` gibi tekil teknolojiler
+- Gerekçe: Her teknolojinin temel performansını anladıktan sonra birleştirmek daha etkili optimizasyon sağlar
 
-`directory_pane_map.md`（プロジェクトルート直下）に📁階層とtmuxペイン配置を示すこと。ユーザと全エージェントが適宜参照するので作成と更新を必ず行うこと。ただし、末端はworkerが存在する📁まで記載する。workerがそれ以降のディレクトリに自由に作成する📁は含めなくて良い。
+`directory_pane_map.md` (proje kökünde) dosyasında 📁 hiyerarşisini ve tmux panel yerleşimini göster. Kullanıcı ve tüm aracılar bunu sık kullanacağı için oluşturmayı ve güncellemeyi ihmal etme. Uçta yalnızca işçi bulunan 📁’lere kadar yaz; işçilerin daha sonra serbestçe oluşturacağı 📁’ler dahil edilmez.
 
 
 ### フェーズ4: プロジェクト初期化
