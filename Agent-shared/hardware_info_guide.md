@@ -8,7 +8,7 @@ Her donanım ortamına ait doğru performans bilgilerini toplayıp tüm aracıla
 ### 1. Toplama konumu hiyerarşisi
 ```
 Flow/TypeII/single-node/
-├── hardware_info.md     # ここに集約
+├── hardware_info.md     # Burada toplanır
 ├── intel2024/
 └── gcc11.3.0/
 ```
@@ -30,11 +30,11 @@ grep -o 'avx[^ ]*\|sse[^ ]*\|fma' /proc/cpuinfo | sort -u
 numactl --hardware 2>/dev/null || echo "NUMA not available"
 
 # Teorik hesaplama performansı formülü (her hassasiyet için)
-# FP64 (double): FLOPS = コア数 × 周波数(GHz) × 2(FMA) × SIMD幅
-# FP32 (float):  FLOPS = コア数 × 周波数(GHz) × 2(FMA) × SIMD幅×2
-# FP16 (half):   FLOPS = コア数 × 周波数(GHz) × 2(FMA) × SIMD幅×4
+# FP64 (double): FLOPS = Çekirdek sayısı × Frekans (GHz) × 2(FMA) × SIMD genişliği
+# FP32 (float):  FLOPS = Çekirdek sayısı × Frekans (GHz) × 2(FMA) × SIMD genişliği × 2
+# FP16 (half):   FLOPS = Çekirdek sayısı × Frekans (GHz) × 2(FMA) × SIMD genişliği × 4
 
-# SIMD幅の目安:
+# SIMD genişliği için ipucu:
 # SSE: 2 (FP64), 4 (FP32)
 # AVX/AVX2: 4 (FP64), 8 (FP32)
 # AVX-512: 8 (FP64), 16 (FP32), 32 (FP16)
@@ -54,12 +54,12 @@ cat /proc/meminfo | grep -E "MemTotal|MemAvailable"
 sudo dmidecode -t memory 2>/dev/null | grep -E "Size|Speed|Type" || echo "dmidecode requires root"
 
 # Teorik bellek bant genişliği hesabı
-# バンド幅 = メモリチャネル数 × バス幅(bit)/8 × 周波数(MT/s)
+# Bant genişliği = Bellek kanalı sayısı × Veri yolu genişliği (bit)/8 × Frekans (MT/s)
 # Örnek: DDR4-3200, 8 kanal
 #     8 kanal × 64 bit / 8 × 3200 MT/s = 204.8 GB/s
 
-# STREAM benchmark結果があれば記載
-# ない場合は簡易テストを実施推奨
+# STREAM benchmark sonucu varsa yazın
+# Yoksa basit bir test yapılması önerilir
 ```
 
 #### GPU Bilgisi (varsa)
@@ -102,9 +102,9 @@ rocm-smi --showtopology 2>/dev/null  # AMD GPU topolojisi
 
 # Teorik hesaplama performansı formülü
 # NVIDIA:
-#   FP64 = SM数 × FP64コア/SM × 周波数 × 2(FMA)
-#   FP32 = SM数 × FP32コア/SM × 周波数 × 2(FMA)
-#   FP16 = FP32 × 2 (Tensor Coreなし) または 別途計算 (Tensor Coreあり)
+#   FP64 = SM sayısı × FP64 çekirdek/SM × Frekans × 2(FMA)
+#   FP32 = SM sayısı × FP32 çekirdek/SM × Frekans × 2(FMA)
+#   FP16 = FP32 × 2 (Tensor Core yoksa) veya ayrı hesap (Tensor Core varsa)
 
 # Örnek:
 # V100: 80 SM × 32 FP64/SM × 1.53GHz × 2 = 7.8 TFLOPS (FP64)
@@ -113,7 +113,7 @@ rocm-smi --showtopology 2>/dev/null  # AMD GPU topolojisi
 #       108 SM × 64 FP32/SM × 1.41GHz × 2 = 19.5 TFLOPS (FP32)
 
 # Önemli: Çoklu GPU yapılandırmalarında toplam performansı da belirtin
-# Örnek:# 例: 4 GPU × 9.7 TFLOPS = 38.8 TFLOPS (ノード全体のFP64)
+# Örnek: 4 GPU × 9.7 TFLOPS = 38.8 TFLOPS (düğüm toplam FP64)
 ```
 
 #### Ağ Bilgisi
@@ -157,7 +157,7 @@ Doğrulayan: PG1.1 (imzalı)
 - **Teorik hesaplama performansı**: 
   - Tekil: 9.7 TFLOPS (FP64), 19.5 TFLOPS (FP32)
   - Düğüm toplamı: 38.8 TFLOPS (FP64), 78.0 TFLOPS (FP32)
-- メモリバンド幅: 1.6 TB/s (各GPU)
+- Bellek bant genişliği: 1.6 TB/s (GPU başına)
 - **PCIe bağlantısı**: PCIe Gen4 x16 (her GPU-CPU arasında)
 
 ## Network
@@ -197,12 +197,12 @@ Doğrulayan: PG1.1 (imzalı)
 - **Zorunlu**: Her hassasiyet (FP64/FP32/FP16) için teorik performansı formülle birlikte yazın
 - Komut çıktıları ve web bilgileri uyuşmazsa ikisini de not düşerek yazın
 
-### 2. PGによるダブルチェック（最低1名）
+### 2. PG tarafından çift kontrol (en az 1 kişi)
 ```bash
-# SE → PG（代表者1名以上）
-agent_send.sh PG1.1 "[SE] hardware_info.mdを作成しました。Web検索でダブルチェックをお願いします"
+# SE → PG (en az 1 temsilci)
+agent_send.sh PG1.1 "[SE] hardware_info.md oluşturuldu. Web aramasıyla çift kontrol rica olunur."
 
-# PGがバッチジョブでGPU構成を確認（重要）
+# PG’nin GPU yapılandırmasını batch iş ile doğrulaması (önemli)
 cat > check_gpu.sh << 'EOF'
 #!/bin/bash
 #PJM -L rscgrp=cx-g-small
@@ -225,28 +225,28 @@ EOF
 
 pjsub check_gpu.sh
 
-# PGがチェック後、署名を追加
-echo "## 検証履歴" >> hardware_info.md
-echo "- 2025-07-30 12:30:00 UTC: PG1.1が検証完了。Intel ARKと照合済み" >> hardware_info.md
-echo "- 2025-07-30 13:00:00 UTC: PG1.3がGPU構成確認。4GPU全てNVLink接続を確認" >> hardware_info.md
+# PG kontrol sonrası imza ekler
+echo "## Doğrulama geçmişi" >> hardware_info.md
+echo "- 2025-07-30 12:30:00 UTC: PG1.1 doğrulamayı tamamladı. Intel ARK ile karşılaştırıldı." >> hardware_info.md
+echo "- 2025-07-30 13:00:00 UTC: PG1.3 GPU yapılandırmasını doğruladı. 4 GPU’nun tamamı NVLink ile bağlı." >> hardware_info.md
 ```
 
-### 3. 全エージェントへの通知
+### 3. Tüm aracılara bildirim
 ```bash
-# SE → 全PG
+# SE → Tüm PG’ler
 for pg in PG1.1 PG1.2 PG1.3; do
-  agent_send.sh $pg "[SE] hardware_info.md検証完了。理論性能比での評価をお願いします"
+  agent_send.sh $pg "[SE] hardware_info.md doğrulaması tamam. Teorik performans oranına göre değerlendirin."
 done
 
 # SE → PM
-agent_send.sh PM "[SE] ハードウェア情報収集・検証完了。PG1.1が署名済み"
+agent_send.sh PM "[SE] Donanım bilgisi toplama/doğrulama tamam. PG1.1 imzaladı."
 ```
 
-### 3. レポート作成時の活用
+### 3. Rapor oluştururken kullanım
 ```python
 # SEのレポート生成コード例
 def calculate_efficiency(actual_gflops, hardware_info_path):
-    """実効効率を計算"""
+    """Gerçekleşen verimliliği hesaplar"""
     with open(hardware_info_path) as f:
         content = f.read()
         # 理論演算性能を抽出
