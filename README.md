@@ -670,9 +670,9 @@ export CLI_HOOKS_MODE=custom
 詳細は `hooks/hooks_deployment_guide.md` を参照してください。
 
 
-起動後、以下のプロンプトをコピーして貼り付け：
+Başladıktan sonra aşağıdaki istemi kopyalayıp yapıştırın:
 ```
-あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
+Siz bir PM’siniz (Project Manager). VibeCodeHPC projesini başlatın.
 
 Önce aşağıdaki dosyaları okuyarak projenin genel resmini anlayın:
 - CLAUDE.md (tüm aracılar için ortak kurallar)
@@ -680,9 +680,9 @@ export CLI_HOOKS_MODE=custom
 - requirement_definition.md (proje gereksinimleri) — varsa
 - Agent-shared/ altındaki tüm .md ve .txt dosyaları (.py dosyaları hariç)
 
-特に重要：
-- max_agent_number.txt（利用可能なワーカー数）
-- agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
+Özellikle önemli:
+- max_agent_number.txt (kullanılabilir çalışan sayısı)
+- agent_and_pane_id_table.jsonl (oturum yapısı ve aracı yönetimi)
 - directory_pane_map_example.md（エージェント配置とペイン管理）
 - sota_management.md（SOTA管理方法とfamilyの重要性）
 

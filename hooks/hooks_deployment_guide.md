@@ -1,9 +1,9 @@
 # VibeCodeHPC Claude Code Hooks Yerleştirme Kılavuzu (PM için)
 
-## 概要
-Claude Code hooksは、エージェントの挙動を制御する仕組みです。特に：
-- **ポーリング型エージェント（PM, SE, PG, CD）**: 待機状態を防ぎ、常にアクティブに保つ
-- **全エージェント**: auto-compact後の必須ファイル再読み込みを促す
+## Genel Bakış
+Claude Code hooks, aracının davranışlarını kontrol eden bir mekanizmadır. Özellikle:
+- **Polling türü aracı (PM, SE, PG, CD)**: Bekleme durumunu engeller, sürekli aktif kalır
+- **Tüm aracılar**: auto-compact sonrası gerekli dosyaların yeniden okunmasını teşvik eder
 
 ## Hooksバージョン
 v0.6.3以降、プロジェクト特性に応じて2つのバージョンから選択可能：
