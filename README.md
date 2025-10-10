@@ -634,10 +634,10 @@ VIBECODE_ENABLE_TELEMETRY=false ./start_PM.sh
 
 Aracı davranışını kontrol eden hooks sayesinde aşağıdakiler sağlanır:
 
-#### 主な機能
-- [x] **Polling tipli aracılarda (PM, SE, PG, CD) beklemenin önlenmesiェント（PM, SE, PG, CD）の待機防止**: 定期的なタスクを自動提示
-- [x] **SSH/SFTP bağlantı desteği- [x] **SSH/SFTP接続支援**: PostToolUseフックがSSH接続を検出し、Desktop Commander MCPでのセッション管理方法を自動案内
-- [x] **session_id takibi- [x] **session_id追跡**: 各エージェントのClaude session_idを記録・管理
+#### Başlıca özellikler
+- [x] **Polling tipli aracılarda (PM, SE, PG, CD) beklemenin önlenmesi**: Periyodik görevlerin otomatik sunulması
+- [x] **SSH/SFTP bağlantı desteği**: PostToolUse hook’u SSH bağlantısını algılar ve Desktop Commander MCP ile oturum yönetimi için otomatik yönlendirme yaparar
+- [x] **session_id takibi**: Her aracının Claude session_id bilgisini kaydeder ve yönetir
 
 #### STOP Hooks sürüm seçimi
 ```bash
@@ -684,44 +684,44 @@ Siz bir PM’siniz (Project Manager). VibeCodeHPC projesini başlatın.
 - max_agent_number.txt (kullanılabilir çalışan sayısı)
 - agent_and_pane_id_table.jsonl (oturum yapısı ve aracı yönetimi)
 - directory_pane_map_example.md (aracı yerleşimi ve pane yönetimi)
-- sota_management.md（SOTA管理方法とfamilyの重要性）
+- sota_management.md (SOTA yönetimi ve family kavramının önemi)
 
-全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
+Tümünü inceledikten sonra, mevcut tmux oturumlarını kullanarak projeyi başlatın. Yeni oturum oluşturmayın.
 ```
 
 ---
 
-## 📈 SOTA管理システム
+## 📈 SOTA Yönetim Sistemi
 
-### 4階層SOTA追跡
+### 4 katmanlı SOTA takibi
 
-| 名称 | 最高性能のスコープ |
+| Ad | En yüksek performans kapsamı |
 |---------|------------------------|
-| **Local** | PG自身のディレクトリ内 |
-| **Family** | 技術系統（親子世代の関係） |
-| **Hardware** | 同一ハードウェア構成内（single-node/multi-node等） |
-| **Project** | プロジェクト全体 |
+| **Local** | PG’nin kendi dizini |
+| **Family** | Teknoloji soyu (ebeveyn-çocuk nesil ilişkisi) |
+| **Hardware** | Aynı donanım yapılandırması (tek düğüm/çok düğüm vb.) |
+| **Project** | Proje genelinde |
 
-各階層でのSOTA判定により、効率的なベンチマーク比較と最適化方針決定を自動化。
+Her katmandaki SOTA değerlendirmesi ile verimli kıyaslama ve optimizasyon stratejisi belirleme otomatikleştirilir.
 
-### SOTA性能推移の可視化
+### SOTA performans eğrisinin görselleştirilmesi
 
 ![Hardware Level SOTA Performance](_images/generation_hardware_count.png)
 
-異なるミドルウェア（gcc, intel等）のデータを統合し、ハードウェア（single-node）構成全体での性能変遷が自動プロットされる。
-特にその時点での最高性能：SOTA（State-of-the-Art）を可視化する。
+Farklı ara katman yazılımlardan (gcc, intel vb.) gelen veriler birleştirilerek tek düğümlü donanım yapılandırmasında performans değişimi otomatik çizdirilir.
+O andaki en yüksek performans olan SOTA (State-of-the-Art) vurgulanır.
 
-### 予算消費のリアルタイム追跡
+### Bütçe tüketiminin gerçek zamanlı takibi
 
 ![Budget Usage Timeline](_images/budget_usage.png)
 
-HPC予算の消費をリアルタイムで追跡し、線形回帰による予測と閾値到達時刻（ETA）を表示。多くのスパコンでは前日までの集計しか確認できませんが、ChangeLog.mdから即座に推定値を算出します。
+HPC bütçe tüketimi gerçek zamanlı izlenir; doğrusal regresyon ile tahmin ve eşik erişim zamanı (ETA) gösterilir. Birçok süperbilgisayarda yalnızca bir önceki güne kadar toplu veriler görülebilirken, ChangeLog.md üzerinden anlık tahmin üretilir.
 
-### ChangeLog.md統一フォーマット
+### ChangeLog.md birleşik biçimi
 
-エージェント間の情報共有を実現する統一ログシステム。
+Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 
-実際の`ChangeLog.md`例：
+Örnek `ChangeLog.md`:
 
 ---
 
