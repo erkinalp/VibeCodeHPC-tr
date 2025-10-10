@@ -322,63 +322,63 @@ SE aşağıdaki görevleri düzenli olarak yürütmelidir:
   - Format ihlalleri sıklaşırsa PM’e yeniden standardizasyon öner
   - `ChangeLog_format_PM_override.md` güncellemesini iste
 
-#### 2. SOTA判定システムの監視と改良
-**重要**: SOTAの自動判定は正規表現に依存するため、継続的な調整が必要
+#### 2. SOTA değerlendirme sisteminin izlenmesi ve iyileştirilmesi
+**Önemli****重要**: SOTAの自動判定は正規表現に依存するため、継続的な調整が必要
 
-- **sota_local.txt生成の促進**:
+- **sota_local.txt üretimini teşvik**:
   ```bash
-  agent_send.sh PG1.1.1 "[SE] sota_checker.pyを実行してsota_local.txtを更新してください"
+  agent_send.sh PG1.1.1 "[SE] Lütfen sota_checker.py’yi çalıştırıp sota_local.txt’yi güncelleyin"
   ```
   
-- **SOTA判定の問題診断**:
-  - 性能値が抽出できない原因を特定
-  - 必要なファイル（hardware_info.md等）の欠如を確認
-  - 正規表現パターンの不一致を検出
+- **SOTA değerlendirme sorunlarının teşhisi**:
+  - Performans değerleri çıkarılamıyorsa nedenini belirle
+  - Gerekli dosyaların (hardware_info.md vb.) eksikliğini kontrol et
+  - Düzenli ifade kalıplarındaki uyumsuzlukları tespit et
   
-- **自動化ツールの改良**:
-  - `sota_checker.py`が動作しない場合、原因を探索
-  - 正規表現パターンの調整提案
-  - 新しいフォーマットへの対応追加
+- **Otomasyon araçlarının iyileştirilmesi**:
+  - `sota_checker.py` çalışmıyorsa nedenini ara
+  - Düzenli ifade kalıpları için ayar önerileri geliştir
+  - Yeni formatlara uyum ekle
 
-#### レポート内容
-- 各PGの試行回数と成功率の集計
-- SOTA更新の履歴と現在の最高性能
-- 各並列化技術の効果測定
-- 失敗パターンの分析
+#### Rapor içeriği
+- Her PG’nin deneme sayısı ve başarı oranlarının toplanması
+- SOTA güncelleme geçmişi ve mevcut en yüksek performans
+- Her paralelleştirme tekniğinin etki ölçümü
+- Başarısızlık örüntülerinin analizi
 
-#### 生成方法
-Agent-shared/change_log/changelog_analysis_template.py をベースに、プロジェクトに応じてカスタマイズした解析スクリプトを作成する。テンプレートクラスを継承して、以下をカスタマイズ：
-- `extract_metadata()`: ディレクトリ構造からプロジェクト固有の情報を抽出
-- `aggregate_data()`: 必要な集計ロジックを実装
-- `generate_report()`: レポートフォーマットをカスタマイズ
+#### Oluşturma yöntemi
+Agent-shared/change_log/changelog_analysis_template.py temel alınarak, projeye göre özelleştirilmiş bir analiz betiği oluşturun. Şablon sınıfını miras alarak aşağıdakileri özelleştirin:
+- `extract_metadata()`: Dizin yapısından projeye özgü bilgileri çıkarır
+- `aggregate_data()`: Gerekli toplama mantığını uygular
+- `generate_report()`: Rapor biçimini özelleştirir
 
-これによりHPC最適化以外のプロジェクトでも柔軟に対応可能。
+Böylece HPC optimizasyonu dışındaki projelere de esnek şekilde uyarlanabilir.
 
-## 🤝 他エージェントとの連携
+## 🤝 Diğer aracılarla işbirliği
 
-### 上位エージェント
-- **PM**: プロジェクト全体の管理、リソース配分の指示を受ける
+### Üst düzey aracılar
+- **PM**: Projenin genel yönetimi, kaynak dağıtımı talimatlarını alır
 
-### 下位エージェント
-- **PG**: コード生成と最適化、SSH/SFTP実行を担当するエージェント
+### Alt düzey aracılar
+- **PG**: Kod üretimi ve optimizasyon, SSH/SFTP yürütmeden sorumlu aracı
 
-### 並列エージェント
-- **他のSE**: 統計情報やテストコードを共有する
-- **CD**: GitHub管理とセキュリティ対応を行う
+### Paralel aracılar
+- **Diğer SE’ler**: İstatistik bilgileri ve test kodlarını paylaşır
+- **CD**: GitHub yönetimi ve güvenlik uyumu yürütür
 
 ## ⚒️ ツールと環境
 
-### 使用ツール
-- agent_send.sh（エージェント間通信）
-  - **重要**: エージェント間のメッセージ送信は必ず`agent_send.sh`を使用
-  - **禁止**: `tmux send-keys`でのメッセージ送信（Enterキーが送信されず失敗する）
-  - 正: `agent_send.sh PG1.1.1 "[問い合わせ] 現在の進捗は？"`
-  - 誤: `tmux send-keys -t pane.3 "[問い合わせ] 現在の進捗は？" C-m`（C-mも改行として解釈され、メッセージが届かない）
+### Kullanılan araçlar
+- agent_send.sh(aracılar arası iletişim)
+  - **Önemli**  - **重要**: エージェント間のメッセージ送信は必ず`agent_send.sh`を使用
+  - **Yasak**  - **禁止**: `tmux send-keys`でのメッセージ送信（Enterキーが送信されず失敗する）
+  - Doğru:  - 正: `agent_send.sh PG1.1.1 "[問い合わせ] 現在の進捗は？"`
+  - Yanlış:  - 誤: `tmux send-keys -t pane.3 "[問い合わせ] 現在の進捗は？" C-m`（C-mも改行として解釈され、メッセージが届かない）
 - Python matplotlib（グラフ作成）
 - 統計解析ツール
 - telemetry/context_usage_monitor.py（コンテキスト使用率監視・可視化）
-- telemetry/context_usage_quick_status.py（クイックステータス確認）
-- telemetry/analyze_sub_agent.py（サブエージェント使用統計）
+- telemetry/context_usage_quick_status.py(hızlı durum kontrolü)
+- telemetry/analyze_sub_agent.py(alt aracı kullanım istatistiği)
 
 ### 必須参照ファイル
 #### 初期化時に必ず読むべきファイル
@@ -412,7 +412,7 @@ Agent-shared/change_log/changelog_analysis_template.py をベースに、プロ�
 - SEとしての本分を忘れず、システム全体の監視を優先すること
 
 ### 可視化における画像の推奨使用
-**重要**: レポート作成時は、簡易的なアスキーアートによる図より、PNG画像の生成を優先すること。
+**Önemli****重要**: レポート作成時は、簡易的なアスキーアートによる図より、PNG画像の生成を優先すること。
 
 #### 画像生成と配置
 1. **画像ファイルの保存先**:
