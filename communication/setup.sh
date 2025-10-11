@@ -3,30 +3,27 @@
 # 🧬 VibeCodeHPC Multi-Agent HPC Environment Setup
 # Dynamic tmux session creation for user-specified agent count
 
-set -e  # エラー時に停止
+set -e  # Hata durumunda dur
 
-# プロジェクトルートの取得（setup.shの親ディレクトリ）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # グローバル変数
-PROJECT_NAME=""  # ユーザが指定するプロジェクト名
-USE_DEFAULT_NAMES=true  # デフォルト名使用フラグ
-DRY_RUN=false  # dry-runフラグ
-HOOKS_VERSION="v3"  # hooksバージョン（デフォルトv3）
-PERIODIC_ENTER_INTERVAL=60  # 定期Enter送信間隔（秒）、0で無効
+PROJECT_NAME=""  # Kullanıcının belirleyeceği proje adı
+USE_DEFAULT_NAMES=true  # Varsayılan ad kullanım bayrağı
+DRY_RUN=false  # dry-run bayrağı
+HOOKS_VERSION="v3"  # hooks sürümü (varsayılan v3)
+PERIODIC_ENTER_INTERVAL=60  # Periyodik Enter aralığı (saniye), 0=kapalı
 
-# デフォルトセッション名
+# Varsayılan oturum adları
 DEFAULT_PM_SESSION="Team1_PM"
 DEFAULT_WORKER_SESSION="Team1_Workers1"
-DEFAULT_WORKER_SESSION_PREFIX="Team1_Workers"  # 13体以上の場合用
+DEFAULT_WORKER_SESSION_PREFIX="Team1_Workers"  # 13+ durumları için
 
-# 実際に使用するセッション名（determine_session_namesで設定）
 PM_SESSION=""
 WORKER_SESSION=""
 WORKER_SESSION_PREFIX=""
 
-# 色付きログ関数
 log_info() {
     echo -e "\033[1;32m[INFO]\033[0m $1"
 }
@@ -39,7 +36,6 @@ log_error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1"
 }
 
-# 使用方法表示
 show_usage() {
     cat << EOF
 🧬 VibeCodeHPC çok aracılı YBH (yüksek başarımlı hesaplama) ortam kurulumu
@@ -78,23 +74,19 @@ Oturum adlandırma kuralları:
 EOF
 }
 
-# エージェント構成計算
 calculate_agent_distribution() {
-    local total=$1  # PMを除いた数
+    local total=$1  # PM hariç sayı
     
-    # 最小構成チェック
     if [ $total -lt 2 ]; then
         log_error "Ajan sayısı çok az. En az 2 ajan (PM hariç) gerekir."
         return 1
     fi
     
-    # CD（2人構成以外は基本含める、PMが要件定義で調整）
     local cd_count=0
     if [ $total -ne 2 ]; then
         cd_count=1
     fi
     
-    # 残りを SE, PG に分配（デフォルト値、PMが実際に調整）
     local remaining=$((total - cd_count))
     
     local se_count
@@ -111,7 +103,6 @@ calculate_agent_distribution() {
     echo "$se_count $pg_count $cd_count"
 }
 
-# エージェント名生成（グループ化対応）
 generate_agent_names() {
     local se_count=$1
     local pg_count=$2
