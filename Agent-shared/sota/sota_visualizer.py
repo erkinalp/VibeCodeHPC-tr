@@ -135,10 +135,10 @@ class SOTAVisualizer:
         if self.config['pipeline']['critical_section'] and not params.get('force'):
             if lock_file.exists():
                 age = (datetime.now() - datetime.fromtimestamp(lock_file.stat().st_mtime)).seconds
-                if age < 1800:  # 30分以内なら実行中とみなす
-                    print(f"Pipeline locked ({age}s ago), skipping")
+                if age < 1800:  # 30 dakika içinde ise çalışıyor kabul et
+                    print(f"Pipeline kilitli ({age}s önce), atlanıyor")
                     return False
-                lock_file.unlink()  # 古いロックは削除
+                lock_file.unlink()  # Eski kilit kaldırılır
         
         lock_file.touch()
         start_time = datetime.now()
@@ -146,13 +146,10 @@ class SOTAVisualizer:
         try:
             print(f"[{start_time.strftime('%H:%M:%S')}] Pipeline started")
             
-            # 1. データ収集フェーズ（全ChangeLog.mdを一度だけ読み込み）
             self._collect_all_data()
             
-            # 2. DPI設定
             dpi_config = self._get_dpi_config(params)
             
-            # 3. 実行レベル
             levels = params.get('levels', self.config['pipeline']['levels'])
             
             generated_files = []
@@ -161,16 +158,13 @@ class SOTAVisualizer:
                 level_start = datetime.now()
                 
                 if level == 'local':
-                    # localは個別処理（メモリ効率）
                     files = self._process_local_level(dpi_config['local'], params)
                 elif level == 'family':
-                    # family（第2世代以降の融合技術）
                     files = self._process_family_level(dpi_config['family'], params)
                 elif level == 'hardware':
-                    # hardware（localから直接集約）
+                    # hardware: local'den doğrudan birleştirme
                     files = self._process_hardware_level(dpi_config['hardware'], params)
                 elif level == 'project':
-                    # project（全体集約）
                     files = self._process_project_level(dpi_config['project'], params)
                 else:
                     continue
@@ -179,7 +173,6 @@ class SOTAVisualizer:
                 elapsed = (datetime.now() - level_start).seconds
                 print(f"  {level}: {len(files)} graphs in {elapsed}s")
                 
-                # IO負荷軽減
                 if not params.get('no_delay'):
                     time.sleep(self.config['io_optimization'].get('io_delay_ms', 500) / 1000)
             
@@ -201,7 +194,7 @@ class SOTAVisualizer:
             lock_file.unlink(missing_ok=True)
     
     def _collect_all_data(self):
-        """全ChangeLog.mdを効率的に収集"""
+        """Tüm ChangeLog.md'leri verimli şekilde topla"""
         self.changelog_cache = {}
         
         for changelog in self.project_root.rglob("ChangeLog.md"):
@@ -214,7 +207,7 @@ class SOTAVisualizer:
               f"{sum(len(e) for e in self.changelog_cache.values())} entries")
     
     def _parse_changelog(self, path: Path) -> List[Dict]:
-        """ChangeLog.mdを解析（効率重視）"""
+        """ChangeLog.md'yi ayrıştır (verim odaklı)"""
         entries = []
         
         try:
@@ -224,16 +217,14 @@ class SOTAVisualizer:
             current_entry = {}
             
             for line in lines:
-                # バージョン行
                 if line.startswith('### v'):
                     if current_entry and 'performance' in current_entry:
                         entries.append(current_entry.copy())
                     current_entry = {'version': line.replace('### ', '').strip()}
                 
-                # 性能値抽出（複数形式対応）
                 elif 'GFLOPS' in line or 'TFLOPS' in line:
                     import re
-                    # "312.4 GFLOPS" や "`0.312 TFLOPS`" など
+                    # "312.4 GFLOPS" veya "`0.312 TFLOPS`" gibi
                     match = re.search(r'([\d.]+)\s*(GFLOPS|TFLOPS)', line)
                     if match:
                         value = float(match.group(1))
@@ -242,7 +233,7 @@ class SOTAVisualizer:
                         current_entry['performance'] = value
                 
                 elif '生成時刻' in line:
-                    # `2025-08-19T23:45:00Z` 形式を抽出
+                    # `2025-08-19T23:45:00Z` biçimini çıkar
                     import re
                     match = re.search(r'`(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)`', line)
                     if match:
@@ -255,7 +246,6 @@ class SOTAVisualizer:
                         except:
                             pass
                 
-                # 精度情報（オプション）
                 elif '精度' in line or 'accuracy' in line.lower():
                     import re
                     match = re.search(r'([\d.]+)\s*%', line)
@@ -264,7 +254,7 @@ class SOTAVisualizer:
                 
                 elif '誤差' in line or 'error' in line.lower():
                     import re
-                    # "2.7e-4" や "±0.003" 形式
+                    # "2.7e-4" veya "±0.003" biçimi
                     match = re.search(r'([±]?\s*[\d.]+e?[+-]?\d*)', line)
                     if match:
                         error_str = match.group(1).replace('±', '').strip()
@@ -273,7 +263,6 @@ class SOTAVisualizer:
                         except:
                             pass
             
-            # 最後のエントリ
             if current_entry and 'performance' in current_entry:
                 entries.append(current_entry)
                 
@@ -283,13 +272,12 @@ class SOTAVisualizer:
         return entries
     
     def _process_local_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
-        """localレベル処理（PGごと）"""
+        """local düzeyi işlemleri (PG bazında)"""
         generated = []
         
-        # 特定エージェントDPI指定を解析
         specific_dpis = self._parse_specific_dpis(params.get('specific', ''))
         
-        # ChangeLogがあるディレクトリごとに処理（localレベル = 技術ディレクトリごと）
+        # ChangeLog olan dizinleri işle (local düzeyi = teknoloji dizini bazında)
         local_dirs = {}
         for path, entries in self.changelog_cache.items():
             if entries:
@@ -309,7 +297,6 @@ class SOTAVisualizer:
             sota_entries = self._extract_sota_progression(entries)
             
             if sota_entries:
-                # グラフ生成
                 for x_axis in params.get('x_axes', ['time']):
                     output_path = self._generate_graph(
                         f'local/{dir_id.replace("/", "_")}',
@@ -382,15 +369,13 @@ class SOTAVisualizer:
         return generated
     
     def _process_project_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
-        """projectレベル処理（全体集約）"""
+        """project düzeyi işlemleri (genel birleştirme)"""
         generated = []
         
-        # 全エントリを時系列で集約
         all_entries = []
         for entries in self.changelog_cache.values():
             all_entries.extend(entries)
         
-        # SOTA更新履歴
         sota_entries = self._aggregate_sota_by_time(all_entries)
         
         if sota_entries:
@@ -413,10 +398,9 @@ class SOTAVisualizer:
         return generated
     
     def _process_family_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
-        """familyレベル処理（第2世代以降の融合技術とその親技術）"""
+        """family düzeyi işlemleri (2. nesil ve sonrası füzyon teknolojileri ve ebeveynleri)"""
         generated = []
         
-        # family判定（OpenMP_MPI, OpenMP_AVX2など）
         family_found = set()
         
         for path in self.changelog_cache.keys():
@@ -428,18 +412,13 @@ class SOTAVisualizer:
                         family_found.add(part)
                         break
         
-        # 各familyで処理（親技術も含めて）
         for family_key in family_found:
-            # 親技術を特定（例：OpenMP_MPI → ['OpenMP', 'MPI']）
             parent_techs = family_key.split('_')
             
-            # 関連する全データを収集
             multi_series_data = {}
             
-            # 1. family自体のデータ
             for path, entries in self.changelog_cache.items():
                 if family_key in path:
-                    # パスから識別名を生成（例：intel2024/OpenMP_MPI）
                     path_parts = path.split('/')
                     if len(path_parts) >= 2:
                         series_key = '/'.join(path_parts[-2:])

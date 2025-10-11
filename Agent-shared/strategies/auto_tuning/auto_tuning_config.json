@@ -9,7 +9,7 @@
       {
         "file": "instructions/{role}.md",
         "probability": 0.5,
-        "description": "エージェント役割定義"
+        "description": "Aracı rol tanımı"
       },
       {
         "file": "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",

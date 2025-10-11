@@ -42,6 +42,7 @@ plt.rcParams['font.size'] = 10
 
 class ContextUsageMonitor:
     """Bağlam kullanım oranı izleme sınıfı"""
+
     
     # Claude Code bağlam sınırı
     CONTEXT_LIMIT = 200000  # 200K token (gösterim amaçlı)
@@ -102,7 +103,7 @@ class ContextUsageMonitor:
         agent_table_path = self.project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
         
         if not agent_table_path.exists():
-            print(f"⚠️  Agent table not found: {agent_table_path}")
+            print(f"⚠️  Aracı tablosu bulunamadı: {agent_table_path}")
             return {}
         
         agent_info = {}
@@ -121,10 +122,10 @@ class ContextUsageMonitor:
                         continue
         
         if not agent_info:
-            print("⚠️  No agent sessions found in agent_and_pane_id_table.jsonl")
+            print("⚠️  agent_and_pane_id_table.jsonl içinde aracı oturumu bulunamadı")
             return {}
         
-        print(f"📊 Found {len(agent_info)} agents with session IDs")
+        print(f"📊 Oturum ID’si olan {len(agent_info)} aracı bulundu")
         
         system = platform.system()
         is_wsl = system == "Linux" and "microsoft" in platform.uname().release.lower()
