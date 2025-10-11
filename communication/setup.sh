@@ -386,13 +386,13 @@ create_single_worker_session() {
             tmux send-keys -t "$pane_target" "  export PS1='(\[\033[1;37m\]STATUS\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
             tmux send-keys -t "$pane_target" "fi" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
-            tmux send-keys -t "$pane_target" "echo '[VibeCodeHPC エージェント配置状態]'" C-m
+            tmux send-keys -t "$pane_target" "echo '[VibeCodeHPC Aracı Yerleşim Durumu]'" C-m
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
-            tmux send-keys -t "$pane_target" "echo 'PMがエージェントを配置中...'" C-m
+            tmux send-keys -t "$pane_target" "echo 'PM aracıları yerleştiriyor...'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
             # グローバル変数を参照（create_worker_sessionsで設定）
-            tmux send-keys -t "$pane_target" "echo 'ワーカー数: $GLOBAL_TOTAL_WORKERS'" C-m
-            tmux send-keys -t "$pane_target" "echo 'directory_pane_map.md を参照してください'" C-m
+            tmux send-keys -t "$pane_target" "echo 'Çalışan sayısı: $GLOBAL_TOTAL_WORKERS'" C-m
+            tmux send-keys -t "$pane_target" "echo 'directory_pane_map.md dosyasına bakın'" C-m
         else
             # その他のペインはエージェント配置待ち
             local pane_number=$global_pane_num
@@ -404,22 +404,22 @@ create_single_worker_session() {
             
             # bash/zsh対応プロンプト設定
             tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
-            tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;90m%}(待機中${pane_number})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
+            tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;90m%}(Beklemede${pane_number})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
             tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
-            tmux send-keys -t "$pane_target" "  export PS1='(\[\033[1;90m\]待機中${pane_number}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
+            tmux send-keys -t "$pane_target" "  export PS1='(\[\033[1;90m\]Beklemede${pane_number}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
             tmux send-keys -t "$pane_target" "fi" C-m
             tmux send-keys -t "$pane_target" "clear" C-m
-            tmux send-keys -t "$pane_target" "echo '=== エージェント配置待ち (Pane ${pane_number}) ==='" C-m
+            tmux send-keys -t "$pane_target" "echo '=== Aracı yerleşimi bekleniyor (Pane ${pane_number}) ==='" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
-            tmux send-keys -t "$pane_target" "echo 'PMがdirectory_pane_map.mdで配置を決定します'" C-m
-            tmux send-keys -t "$pane_target" "echo 'その後、エージェントが起動されます'" C-m
+            tmux send-keys -t "$pane_target" "echo 'PM, yerleşimi directory_pane_map.md üzerinden belirleyecek'" C-m
+            tmux send-keys -t "$pane_target" "echo 'Ardından aracı başlatılacaktır'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
-            tmux send-keys -t "$pane_target" "echo '📊 OpenTelemetryが有効化されています'" C-m
-            tmux send-keys -t "$pane_target" "echo '   OTLP エンドポイント: http://localhost:4317'" C-m
+            tmux send-keys -t "$pane_target" "echo '📊 OpenTelemetry etkin'" C-m
+            tmux send-keys -t "$pane_target" "echo '   OTLP uç noktası: http://localhost:4317'" C-m
         fi
     done
     
-    log_success "✅ ワーカーセッション作成完了: $session_name"
+    log_success "✅ Çalışan oturumu oluşturma tamamlandı: $session_name"
     return 0
 }
 
