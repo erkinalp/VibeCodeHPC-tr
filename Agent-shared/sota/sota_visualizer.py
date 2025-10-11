@@ -61,36 +61,35 @@ class SOTAVisualizer:
             except Exception as e:
                 print(f"Config load error: {e}, using defaults")
         
-        # デフォルト設定
         return {
             "pipeline": {
-                "levels": ["local", "family", "hardware", "project"],  # 実行順序
-                "critical_section": True,  # ロック制御
-                "max_local_agents": 10,  # localの最大処理数
-                "io_delay_ms": 500  # IO負荷軽減用待機時間
+                "levels": ["local", "family", "hardware", "project"],  # Yürütme sırası
+                "critical_section": True,  # Kilit kontrolü
+                "max_local_agents": 10,  # local için maksimum işlem sayısı
+                "io_delay_ms": 500  # IO yükünü azaltmak için bekleme süresi
             },
             "dpi": {
                 "local": {"linear": 60, "log": 40},
                 "family": {"linear": 70, "log": 45},
                 "hardware": {"linear": 80, "log": 50},
                 "project": {"linear": 100, "log": 60},
-                "debug": 30  # デバッグ時の統一DPI
+                "debug": 30  # Hata ayıklamada birleşik DPI
             },
             "axes": {
                 "x_options": ["time", "count", "version"],
                 "y_options": ["performance", "accuracy", "efficiency"],
                 "show_error_bars": True,
-                "accuracy_threshold": None  # 精度フィルタ（例: 95.0）
+                "accuracy_threshold": None  # Doğruluk filtresi (ör: 95.0)
             },
             "io_optimization": {
-                "compress_level": 1,  # PNG圧縮レベル(1=最小)
+                "compress_level": 1,  # PNG sıkıştırma seviyesi (1=en az)
                 "buffer_writes": True,
-                "cleanup_old_hours": 2  # 古いファイル削除
+                "cleanup_old_hours": 2  # Eski dosyaları sil
             }
         }
     
     def _get_project_start_time(self) -> datetime:
-        """プロジェクト開始時刻を取得"""
+        """Proje başlangıç zamanını al"""
         start_file = self.project_root / "Agent-shared/project_start_time.txt"
         
         if start_file.exists():
@@ -100,7 +99,6 @@ class SOTAVisualizer:
             except:
                 pass
         
-        # デフォルト: 現在時刻
         now = datetime.now(timezone.utc)
         start_file.parent.mkdir(parents=True, exist_ok=True)
         start_file.write_text(now.isoformat())
@@ -108,14 +106,14 @@ class SOTAVisualizer:
     
     def run(self, mode: str = 'pipeline', **params) -> bool:
         """
-        メインエントリポイント
+        Ana giriş noktası
         
         Args:
-            mode: 実行モード ('pipeline', 'single', 'debug', 'summary', 'export')
-            **params: 追加パラメータ
+            mode: Çalıştırma modu ('pipeline', 'single', 'debug', 'summary', 'export')
+            **params: Ek parametreler
         
         Returns:
-            成功時True
+            Başarılıysa True
         """
         if mode == 'summary':
             return self._run_summary_mode(**params)
@@ -130,9 +128,8 @@ class SOTAVisualizer:
             return self._run_pipeline_mode(**params)
     
     def _run_pipeline_mode(self, **params) -> bool:
-        """パイプラインモード（定期実行・SE制御両対応）"""
+        """Boru hattı modu (periyodik yürütme ve SE kontrolü destekli)"""
         
-        # クリティカルセクション制御
         lock_file = self.project_root / "Agent-shared/.sota_pipeline.lock"
         
         if self.config['pipeline']['critical_section'] and not params.get('force'):
