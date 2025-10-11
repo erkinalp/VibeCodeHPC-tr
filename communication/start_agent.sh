@@ -1,6 +1,4 @@
 #!/bin/bash
-# エージェント起動用スクリプト（シンプル版）
-# PMが使用：各エージェントを適切な場所でClaude起動
 
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <AGENT_ID> <TARGET_DIR> [additional_options]"
@@ -17,10 +15,9 @@ TARGET_DIR=$2
 shift 2
 ADDITIONAL_OPTIONS="$@"
 
-# 現在のディレクトリ（プロジェクトルート）を取得
 PROJECT_ROOT="$(pwd)"
 
-# agent_and_pane_id_table.jsonlでエージェントIDを確認
+# agent_and_pane_id_table.jsonl içinde aracı ID’sini kontrol et
 TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
 if [ -f "$TABLE_FILE" ]; then
     # AGENT_IDが「待機中」で始まるかチェック
@@ -35,7 +32,6 @@ if [ -f "$TABLE_FILE" ]; then
         exit 1
     fi
     
-    # テーブルに存在するか確認（jqがある場合のみ）
     if command -v jq &> /dev/null; then
         if ! grep -q "\"agent_id\":[[:space:]]*\"$AGENT_ID\"" "$TABLE_FILE"; then
             echo "⚠️  Uyarı: agent_and_pane_id_table.jsonl içinde $AGENT_ID bulunamadı"
@@ -46,48 +42,37 @@ fi
 
 echo "🚀 Starting agent $AGENT_ID at $TARGET_DIR"
 
-# 1. プロジェクトルートを環境変数として設定
 ./communication/agent_send.sh "$AGENT_ID" "export VIBECODE_ROOT='$PROJECT_ROOT'"
 
-# CLI_HOOKS_MODEを環境変数として設定（未設定時はauto）
+# CLI_HOOKS_MODE’u ortam değişkeni olarak ayarla (ayarlı değilse auto)
 CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
 ./communication/agent_send.sh "$AGENT_ID" "export CLI_HOOKS_MODE='$CLI_HOOKS_MODE'"
 
-# 2. ターゲットディレクトリに移動
-# TARGET_DIRが絶対パスか相対パスかを判定
+# TARGET_DIR mutlak mı göreli mi kontrol et
 if [[ "$TARGET_DIR" = /* ]]; then
-    # 絶対パス
     FULL_PATH="$TARGET_DIR"
 else
-    # 相対パス
     FULL_PATH="$PROJECT_ROOT/$TARGET_DIR"
 fi
 
 ./communication/agent_send.sh "$AGENT_ID" "cd $FULL_PATH"
 
-# 3. 現在地を確認
 ./communication/agent_send.sh "$AGENT_ID" "pwd"
 
-# 4. エージェント起動スクリプトを実行
-# 注：エージェントのカレントディレクトリにstart_agent_local.shを配置する必要がある
 echo "📝 Creating local startup script..."
 cat > "$FULL_PATH/start_agent_local.sh" << 'EOF'
 #!/bin/bash
-# エージェントローカル起動スクリプト
 
 set -e
 
-# プロジェクトルートは環境変数から取得
 if [ -z "$VIBECODE_ROOT" ]; then
     echo "❌ Error: VIBECODE_ROOT not set"
     exit 1
 fi
 
-# エージェントIDを引数から取得
 AGENT_ID=$1
 shift
 
-# エージェントタイプを判定
 determine_agent_type() {
     local agent_id=$1
     if [[ "$agent_id" =~ ^(PM|SE|PG|CD) ]]; then
@@ -102,9 +87,8 @@ AGENT_DIR="$(pwd)"
 
 echo "🔧 Setting up agent $AGENT_ID (type: $AGENT_TYPE)"
 
-# Hooksを設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
-    # CLI_HOOKS_MODEを取得（環境変数から、デフォルトはauto）
+    # CLI_HOOKS_MODE’u al (ortam değişkeninden, varsayılan auto)
     CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     if [ -f "$VIBECODE_ROOT/hooks/setup_agent_hooks.sh" ]; then
         "$VIBECODE_ROOT/hooks/setup_agent_hooks.sh" "$AGENT_ID" "$AGENT_DIR" "$AGENT_TYPE" "$CLI_HOOKS_MODE"
@@ -113,14 +97,13 @@ if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
     fi
 fi
 
-# working_dirをJSONLテーブルに記録
+# working_dir değerini JSONL tabloda kaydet
 if command -v jq &> /dev/null; then
     TABLE_FILE="$VIBECODE_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
     if [ -f "$TABLE_FILE" ]; then
         echo "📝 Updating working_dir for $AGENT_ID"
         WORKING_DIR="${AGENT_DIR#$VIBECODE_ROOT/}"
         
-        # 一時ファイルを使用して更新
         TEMP_FILE="$TABLE_FILE.tmp"
         while IFS= read -r line; do
             if [[ -z "$line" || "$line" =~ ^# ]]; then
@@ -141,13 +124,12 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# PM/SE/PGエージェントの場合、MCP（Desktop Commander）を設定
+# PM/SE/PG ajanları için MCP (Desktop Commander) kurulumu
 if [[ "$AGENT_ID" =~ ^(PM|SE|PG) ]]; then
     echo "🔧 Setting up MCP for $AGENT_ID agent"
     claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 fi
 
-# テレメトリ設定に基づいてClaude起動
 if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting agent without telemetry"
     exec claude --dangerously-skip-permissions "$@"
@@ -159,11 +141,10 @@ EOF
 
 chmod +x "$FULL_PATH/start_agent_local.sh"
 
-# CLI_HOOKS_MODEの値をstart_agent_local.shに埋め込む（環境変数依存を回避）
+# CLI_HOOKS_MODE değerini start_agent_local.sh içine göm (ortam değişkeni bağımlılığını azalt)
 sed -i.bak "s|CLI_HOOKS_MODE=\"\\\${CLI_HOOKS_MODE:-auto}\"|CLI_HOOKS_MODE=\"$CLI_HOOKS_MODE\"|" "$FULL_PATH/start_agent_local.sh"
 rm -f "$FULL_PATH/start_agent_local.sh.bak"
 
-# 5. 起動スクリプトを実行
 ./communication/agent_send.sh "$AGENT_ID" "./start_agent_local.sh $AGENT_ID $ADDITIONAL_OPTIONS"
 
 echo "✅ Agent $AGENT_ID startup initiated at $TARGET_DIR"
