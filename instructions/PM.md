@@ -582,7 +582,7 @@ tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 # \"claude\" görünümü yalnızca aracı işlem yaparken olur
 
 # Belirli aracı ID’si ile panel eşlemesi için
-# Agent-shared/agent_and_pane_id_table.jsonl を参照
+# Agent-shared/agent_and_pane_id_table.jsonl dosyasına bakın
 
 # pm_session için de benzer şekilde kontrol et
 tmux list-panes -t pm_session:0 -F "#{pane_index}: #{pane_current_command}"
@@ -632,52 +632,52 @@ claude --dangerously-skip-permissions -c
 ./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
 ```
 
-### エージェントの緊急一時停止（PMの特権機能）
-処理が暴走したエージェントを一時停止する必要がある場合：
+### Aracının acil geçici durdurulması (PM ayrıcalığı)
+İşlem kontrolden çıkarsa aracıyı geçici olarak durdurmak gerekirse:
 
 ```bash
-# 1. まず処理中のエージェントを確認
+# 1. Önce işlem yapan aracıları belirle
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
-# "claude"と表示されているペインのみが対象
+# Yalnızca \"claude\" görünen paneller hedef alınır
 
-# 2. ESCキーを送信して強制停止（例：ペイン3のPG1.1を停止）
+# 2. ESC tuşu göndererek zorla durdur (ör: panel 3’teki PG1.1’i durdur)
 tmux send-keys -t Team1_Workers1:0.3 Escape
 
-# 3. エージェントは"Interrupted by user"と表示され待機状態になる
-# Claude Code自体は終了せず、メモリも保持される
+# 3. Aracı \"Interrupted by user\" gösterir ve bekleme durumuna geçer
+# Claude Code kapanmaz ve belleği korunur
 
-# 4. 再開するには通常のメッセージを送信
+# 4. Yeniden başlatmak için normal mesaj gönder
 agent_send.sh PG1.1 "[PM] 処理を再開してください。先ほどの続きから始めてください。"
 ```
 
-**重要な制限事項**:
-- ESCキー送信は**処理中（"claude"表示）のエージェントにのみ**使用可能
-- 待機中（"bash"表示）のペインに送信するとtmuxペインが崩れる可能性
-- agent_send.shではESCキー相当の制御文字は送信できない
-- 再起動は不要で、メッセージ送信だけで再開可能
+**Önemli kısıtlar**:
+- ESC tuşu gönderimi yalnızca **işlemde olan (“claude” görünen) aracıya** uygulanabilir
+- Beklemede (“bash”) olan panele ESC gönderirsen tmux paneli bozulabilir
+- agent_send.sh ESC eşdeğeri kontrol karakterini gönderemez
+- Yeniden başlatma gerekmez; mesaj gönderimiyle devam edilebilir
 
-**推奨停止順序（プロジェクト終了時）**:
-1. **PG（最優先）**: ジョブ実行中の可能性があるため最初に停止
-2. **SE**: PG監視役のため次に停止
-3. **CD**: GitHub同期を完了させてから停止
-4. **PM（最後）**: 全エージェント停止確認後、最後に自身を停止
+**Önerilen durdurma sırası (proje bitişinde)**:
+1. **PG (öncelikli)**: İş çalıştırıyor olabilir; önce durdur
+2. **SE**: PG’yi izlediği için sonra durdur
+3. **CD**: GitHub eşitlemesini tamamladıktan sonra durdur
+4. **PM (en son)**: Tüm aracıların durduğu doğrulandıktan sonra en son durdur
 
-### 注意事項
-- **--continueオプションを忘れずに**: これがないと、エージェントの記憶（コンテキスト）が失われます
-- **EOFシグナル（Ctrl+D）は送信しない**: エージェントが終了してしまいます
-- **構文エラーに注意**: 特殊文字を含むコマンドは適切にエスケープしてください
-- **tmux send-keysとagent_send.shの使い分け**:
-  - `tmux send-keys`: Claude起動前のコマンド送信、ESCキーなどの制御文字送信
-  - `agent_send.sh`: Claude起動後の通常メッセージ送信
+### Dikkat edilmesi gerekenler
+- **--continue seçeneğini unutmayın**: Olmazsa aracı belleği (bağlam) kaybolur
+- **EOF sinyali (Ctrl+D) göndermeyin**: Aracı kapanır
+- **Sözdizimi hatalarına dikkat**: Özel karakter içeren komutları uygun kaçışlarla yazın
+- **tmux send-keys ve agent_send.sh farkı**:
+  - `tmux send-keys`: Claude başlamadan önce komut gönderimi, ESC gibi kontrol karakterleri
+  - `agent_send.sh`: Claude başladıktan sonra normal mesaj gönderimi
 
-### 予防策
-- 定期的にエージェントの生存確認を行う
-- 重要な作業前にChangeLog.mdへの記録を確実に行う
-- CDエージェントなど重要度の低いエージェントは後回しにして、コアエージェント（SE、PG）を優先的に監視
+### Önleyici önlemler
+- Düzenli olarak aracıların çalıştığını doğrula
+- Önemli işlerden önce ChangeLog.md’ye kaydı mutlaka yap
+- CD gibi daha az kritik ajanları sona bırak, çekirdek ajanları (SE, PG) öncelikli izle
 
-## 🏁 プロジェクト終了管理
+## 🏁 Proje bitiş yönetimi
 
-### STOP回数による自動終了
+### STOP sayısına göre otomatik sonlandırma
 ポーリング型エージェント（PM、SE、PG、CD）には終了を試みるSTOP回数の上限があります：
 - **PM**: 50回（最も高い閾値）
 - **CD**: 40回（非同期作業が多いため高め）
