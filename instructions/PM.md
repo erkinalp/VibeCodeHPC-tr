@@ -315,7 +315,7 @@ Aracılar arası iletişim için şunları kullan:
 - \${proje_kökü}/communication/agent_send.sh [hedef] '[mesaj]'
 - Örn: ../../../communication/agent_send.sh SE1 '[PG1.1] Çalışmaya başladım'
 
-読み込み完了後、現在のディレクトリ（pwd）を確認し、自分の役割に従って作業を開始してください。"
+Okumayı tamamladıktan sonra geçerli dizini (pwd) doğrula ve rolüne göre çalışmaya başla."
 
 # Adım 5: Başlatma doğrulaması (isteğe bağlı)
 # Mesajı gönderdikten sonra aracının işlemde olduğunu doğrula

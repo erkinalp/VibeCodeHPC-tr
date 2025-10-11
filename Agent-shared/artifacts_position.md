@@ -1,30 +1,30 @@
 # 📋 VibeCodeHPC Çıktı Yerleşim Kılavuzu
 
 ## Temel İlkeler
-- ChangeLog.md merkezli tasarım: İlerleme bilgilerinin merkezi yönetimi
-- Hiyerarşik yerleşimin açıklığa kavuşturulması: Agent-shared vs her aracının kendi dizini
-- Yalnızca var olan dosyaların belirtilmesi
+- ChangeLog.md merkezli tasarım: ilerleme bilgilerinin tek noktadan yönetimi
+- Hiyerarşik yerleşimin netleştirilmesi: Agent-shared vs her aracının kendi dizini
+- Yalnızca gerçekten var olan dosyaları listele
 
-## Zorunlu Belgeler
+## Zorunlu Dokümanlar
 
-### Proje kök dizini
+### Proje kökünün hemen altında
 ```
 VibeCodeHPC/
-├── CLAUDE.md                    # Ortak kurallar (yazar:PM, okuyucu:tümü)
-├── requirement_definition.md    # Proje gereksinimleri (yazar:PM, okuyucu:tümü)
-├── directory_pane_map.md        # Aracı yerleşimi ve tmux pane yönetimi (yazar:PM, okuyucu:tümü)
-├── sota_project.txt             # Project katmanı SOTA (yazar:PG, okuyucu:tümü)
-├── GitHub/                      # CD yönetimi (yazar:CD, okuyucu:tümü)
-│   └── [anonim proje kopyası]
-└── User-shared/                 # Kullanıcıya yönelik çıktılar (yazar:SE/PM, okuyucu:Kullanıcı)
+├── CLAUDE.md                    # Ortak kurallar (writer:PM, reader:all)
+├── requirement_definition.md    # Proje gereksinimleri (writer:PM, reader:all)
+├── directory_pane_map.md        # Aracı yerleşimi ve tmux pane yönetimi (writer:PM, reader:all)
+├── sota_project.txt             # Project katmanı SOTA (writer:PG, reader:all)
+├── GitHub/                      # CD yönetimi (writer:CD, reader:all)
+│   └── [Anonimleştirilmiş proje kopyası]
+└── User-shared/                 # Kullanıcıya yönelik çıktılar (writer:SE/PM, reader:User)
     ├── final_report.md          # Nihai rapor
     ├── reports/                 # Birleşik raporlar
-    └── visualizations/          # Grafikler ve çizimler
+    └── visualizations/          # Grafikler ve görseller
 ```
 
-## Agent-shared Katmanı
+## Agent-shared katmanı
 
-### Agent-shared/ (tüm aracılar tarafından başvurulan)
+### Agent-shared/ (tüm aracılar tarafından görüntülenir)
 ```
 Agent-shared/
 ├── change_log/                  # ChangeLog ile ilgili dosyalar
@@ -162,4 +162,3 @@ python3 /path/to/Agent-shared/budget/budget_tracker.py --summary
 ```
 
 **Dikkat**: Yollar mutlak yol veya proje kök dizininden göreli yol olarak belirtilmelidir.
-
