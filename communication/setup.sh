@@ -621,13 +621,13 @@ show_execution_plan() {
     echo "Panel sayısı: $worker_count"
     echo ""
     echo "Örnek yapılandırmalar (nihai yerleşimi PM belirler):"
-    echo "  2人: SE(1) + PG(1) ※最小構成"
-    echo "  6人: SE(2) + PG(4)"
-    echo "  8人: SE(2) + PG(5) + CD(1)"
-    echo "  11人: SE(2) + PG(8) + CD(1)"
-    echo "  15人: SE(3) + PG(11) + CD(1)"
+    echo "  2 kişi: SE(1) + PG(1) [en küçük yapı]"
+    echo "  6 kişi: SE(2) + PG(4)"
+    echo "  8 kişi: SE(2) + PG(5) + CD(1)"
+    echo "  11 kişi: SE(2) + PG(8) + CD(1)"
+    echo "  15 kişi: SE(3) + PG(11) + CD(1)"
     echo ""
-    echo "推奨: SEは2人が理想的、PGはプロジェクトの特性に応じて調整"
+    echo "Öneri: SE için 2 kişi idealdir, PG sayısını projenin özelliklerine göre ayarlayın"
     echo ""
 }
 
@@ -686,7 +686,6 @@ main() {
                 ;;
             --clean-only)
                 log_info "Temizlik modu"
-                # _old_つきのセッションを削除
                 tmux list-sessions 2>/dev/null | grep -E "_old_" | cut -d: -f1 | while read session; do
                     tmux kill-session -t "$session" 2>/dev/null && log_info "${session} silindi"
                 done
