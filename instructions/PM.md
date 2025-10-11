@@ -356,208 +356,208 @@ Her durumda, aracının yeniden konumlandırılmasını SE vb.’ye devretmeden 
    - 🤖: **Gerçekte claude komutuyla başlatılmış aracılar** (ör: 🤖SE1, 🤖PG1.1)
    - 👤: İleride yerleştirilecek aracılar (future_directory_pane_map.txt’de kullanılır)
 3. **Güvenli güncelleme yöntemi**:
-   - directory_pane_map_temp.txtを作成
-   - 変更を適用
-   - diffで確認後、本体を更新
-   - 履歴保存: directory_pane_map_v1.txt等
-4. **ビジョンと実装の分離**:
-   - future_directory_pane_map.md: 将来の構想（👤で表記）
-   - directory_pane_map.md: 現在の実際の配置とtmuxペイン（🤖は起動済みのみ）
-5. **更新タイミング**:
-   - エージェント起動完了後
-   - エージェント移動完了後
-   - プロジェクトフェーズ移行時
-6. **配置可視化の更新**:
-   - directory_pane_map.md更新時はディレクトリ構造とtmuxペイン配置を両方記載
+   - directory_pane_map_temp.txt dosyasını oluştur
+   - Değişiklikleri uygula
+   - diff ile doğruladıktan sonra asıl dosyayı güncelle
+   - Geçmişi sakla: directory_pane_map_v1.txt vb.
+4. **Vizyon ile uygulamanın ayrılması**:
+   - future_directory_pane_map.md: Gelecek tasarımı (👤 ile göster)
+   - directory_pane_map.md: Mevcut gerçek yerleşim ve tmux panelleri (🤖 sadece başlatılmış olanlar)
+5. **Güncelleme zamanlaması**:
+   - Aracı başlatma tamamlandıktan sonra
+   - Aracı taşınması tamamlandıktan sonra
+   - Proje fazı geçişlerinde
+6. **Yerleşim görselleştirmesinin güncellenmesi**:
+   - directory_pane_map.md güncellenirken dizin yapısı ve tmux panel yerleşimini birlikte yaz
    
-#### directory_pane_map.mdのフォーマット厳守
-**重要**: `directory_pane_map.md`（プロジェクトルート直下）は必ずMarkdown記法を厳守すること
+#### directory_pane_map.md formatına sıkı uyum
+**Önemli**: Proje kökünde bulunan `directory_pane_map.md` mutlaka Markdown söz dizimine uymalıdır
 
-1. **Markdownテーブル記法の使用**
+1. **Markdown tablo söz diziminin kullanımı**
    ```markdown
    | Pane 0    | Pane 1    | Pane 2    | Pane 3    |
    |-----------|-----------|-----------|-----------|  
    | 🟨SE1     | 🔵PG1.1   | 🔵PG1.2   | 🔵PG1.3   |
    ```
-   - `|`を使用した正しいテーブル記法
-   - `----`や`||`のような独自記法は禁止
+   - `|` kullanılan doğru tablo söz dizimi
+   - `----` veya `||` gibi özel söz dizimleri yasaktır
 
-2. **色の統一性**
-   - 同じ種類のPGエージェントは同じ色を使用
-   - 例: gcc系PGは全て🔵、intel系PGは全て🔴
-   - `/Agent-shared/directory_pane_map_example.md`を参照
+2. **Renk birliği**
+   - Aynı türdeki PG aracılar aynı rengi kullanır
+   - Örnek: gcc türü tüm PG’ler 🔵, intel türü tüm PG’ler 🔴
+   - `/Agent-shared/directory_pane_map_example.md` dosyasına bak
 
-3. **自動解析への対応**
-   - 将来的にSOTA visualizer等がパースする可能性を考慮
-   - 一貫したフォーマットを維持し、機械的な解析を可能にする
-   - tmuxペイン配置と色分けを最新状態に維持
-#### セマフォ風エージェント管理
-タスクを完了したコード生成Worker：PGm.n.k（m,n,kは自然数）が特定ディレクトリの最後の一人で、このPGが別のディレクトリに移動する場合、リソース配分を再検討する。
+3. **Otomatik ayrıştırmaya uygunluk**
+   - Gelecekte SOTA görselleştirici vb. araçların ayrıştırma olasılığını göz önünde bulundur
+   - Tutarlı bir format koru, mekanik analiz mümkün olsun
+   - tmux panel yerleşimi ve renk kodlamasını güncel tut
+#### Semafor tarzı aracı yönetimi
+Bir dizindeki son PGm.n.k kod üretim işçisi görevi tamamlayıp başka bir dizine taşınacaksa, kaynak tahsisini yeniden değerlendir.
 
-SEmも同様に、直属のPGm.n.kが全員いなくなると同時に異動となる。
-#### 増員時のID規則
-PGが4人いる際（PG1.1~PG1.4）、1人追加した際は新たに追加したエージェントをPG1.5とする。
+SEm için de benzer şekilde, bağlı PGm.n.k’lerin tümü ayrıldığında SE de taşınır.
+#### Personel artışında ID kuralı
+PG sayısı 4 ise (PG1.1~PG1.4) ve bir kişi eklenirse, yeni ajan PG1.5 olur.
 
-仮にPG1.3が抜けて別のディレクトリに異動になったとしても、PG1.3は欠番とする。ただし、記憶（コンテキスト）を保持したままPG1.3→PGm.n（別の📁）から元の1階層ディレクトリに戻って来た際は、再度PG1.3を付与する。
+PG1.3 ayrılıp başka dizine taşınsa bile PG1.3 boşta kalır. Ancak bağlam korunarak PG1.3 → PGm.n (başka 📁) olarak gidip tekrar önceki birinci katman dizine dönülürse yeniden PG1.3 atanır.
 
-完全に記憶がリセットされてしまった場合は新しいエージェントとして扱う。
+Bağlam tamamen sıfırlandıysa yeni bir ajan olarak ele al.
 
-## 🔄 PMの動作モード
-**ポーリング型**: 返信待ちで停止せず、非同期で複数タスクを並行処理
+## 🔄 PM’in çalışma modu
+**Yoklama tipi**: Yanıt beklerken durmaz, eşzamansız olarak birden çok görevi paralel yürütür
 
-### ToDoリストの積極活用
-- **必須**: プロジェクト開始時にToDoリストを作成
-- **並行処理**: エージェント起動待ち時間を他タスクで有効活用
-- **定期整理**: タスク完了時とフェーズ移行時にToDoリストを整理
-- **優先度管理**: high/medium/lowで優先順位を明確化
+### ToDo listesini etkin kullan
+- **Zorunlu**: Proje başında ToDo listesi oluştur
+- **Paralel işlem**: Aracı başlatma bekleme süresini diğer görevlerle değerlendir
+- **Periyodik düzen**: Görev tamamlandığında ve faz geçişlerinde ToDo listesini düzenle
+- **Öncelik yönetimi**: high/medium/low ile öncelikleri netleştir
 
-### 定期巡回タスク（2-5分間隔）
-1. **全エージェント進捗確認**
-   - SE、PG、**CD**の状況を巡回確認
-   - 停滞エージェントへの介入
-   - agent_and_pane_id_table.jsonlの`claude_session_id`で稼働状況を確認
+### Periyodik devriye görevleri (2-5 dk aralıkla)
+1. **Tüm ajanların ilerleme kontrolü**
+   - SE, PG ve **CD** durumlarını devriye kontrol et
+   - Tıkanan ajanlara müdahale
+   - agent_and_pane_id_table.jsonl içindeki `claude_session_id` ile çalışma durumunu kontrol et
    
-2. **予算確認（定期的）**
-   - `charge`コマンド等でused値を確認（前日までの集計のみ）
-   - `/Agent-shared/budget/budget_tracker.py`の自動集計を確認
-   - `python Agent-shared/budget/budget_tracker.py --summary`で即座に確認可能
-   - ポイント未消費時は該当PGに警告（ログインノード実行の疑い）
+2. **Bütçe kontrolü (periyodik)**
+   - `charge` komutu vb. ile used değerini kontrol et (yalnızca önceki güne kadar olan toplam)
+   - `/Agent-shared/budget/budget_tracker.py` otomatik toplamını kontrol et
+   - `python Agent-shared/budget/budget_tracker.py --summary` ile anında görüntüle
+   - Puan tüketimi yoksa ilgili PG’yi uyar (login node üzerinde çalıştırma şüphesi)
    
-2. **リソース再配分**
-   - 完了したPGの移動
-   - 新規タスクの割り当て
-   - **重要**: 中盤以降は人員維持を最優先（auto-compact対策）
+2. **Kaynakların yeniden dağıtımı**
+   - Tamamlanan PG’nin taşınması
+   - Yeni görevlerin atanması
+   - **Önemli**: Orta safhadan sonra personeli korumayı önceliklendir (auto-compact önlemi)
 
-3. **directory_pane_map.md更新**
-   - 実際の配置状況を反映（プロジェクトルート直下）
-   - working_dirとの整合性確認
+3. **directory_pane_map.md güncellemesi**
+   - Gerçek yerleşimi yansıt (proje kökünde)
+   - working_dir ile tutarlılığı doğrula
 
-4. **ToDoリスト整理**
-   - 完了タスクのマーク
-   - 新規タスクの追加
-   - 優先度の見直し
+4. **ToDo listesi düzeni**
+   - Tamamlanan görevleri işaretle
+   - Yeni görevleri ekle
+   - Öncelikleri gözden geçir
 
-5. **予算管理**
-   - `budget_tracker.py --summary`で定期的にリアルタイム推定を確認
-   - 閾値到達時はリソース配分を調整
+5. **Bütçe yönetimi**
+   - `budget_tracker.py --summary` ile düzenli olarak gerçek zamanlı tahmini kontrol et
+   - Eşiklere ulaşıldığında kaynak dağılımını ayarla
 
-6. **コンテキスト使用率監視**（30分おき）
-   - `python3 telemetry/context_usage_monitor.py --graph-type overview`を実行
-   - `/User-shared/visualizations/`にグラフ生成
-   - 切りの良い時間（30, 60, 90, 120, 180分）で自動的に別名保存
+6. **Bağlam kullanım oranı izleme** (30 dakikada bir)
+   - `python3 telemetry/context_usage_monitor.py --graph-type overview` komutunu çalıştır
+   - Grafikler `/User-shared/visualizations/` altına oluşturulur
+   - Uygun zamanlarda (30, 60, 90, 120, 180 dk) otomatik farklı adla kaydet
 
-7. **hooks動作確認**
-   - ポーリング型エージェント（SE, PG, CD）の待機防止確認
-   - SessionStartによるworking_dir記録の確認
+7. **Hooks çalışma doğrulaması**
+   - Yoklama tipindeki ajanların (SE, PG, CD) beklemede kalmamasını doğrula
+   - SessionStart ile working_dir kaydının alındığını doğrula
 
-## 🤝 他エージェントとの連携
+## 🤝 Diğer ajanlarla işbirliği
 
-### 下位エージェント
-- **SE**: 再発明を防ぐための監視・テストコードを含む有用な情報をPGに共有
-- **PG**: コード生成→SSH/SFTP実行→結果確認
-- **CD**: GitHub管理係。必ずしも同期しないので後からCD係を追加することも可能
-  - 作業場所：`GitHub/`ディレクトリ
-  - 起動コマンド：`./communication/start_agent.sh CD GitHub/`
-  - プロジェクトのコピーを作成し、ユーザIDなど固有の情報を匿名化
+### Alt ajanlar
+- **SE**: Yeniden icadı önlemek için gözetim/test kodlarını içeren faydalı bilgileri PG ile paylaşır
+- **PG**: Kod üretimi → SSH/SFTP ile yürütme → Sonuç kontrolü
+- **CD**: GitHub yöneticisi. Her zaman senkron olmayabilir; daha sonra CD rolü eklenebilir
+  - Çalışma yeri: `GitHub/` dizini
+  - Başlatma komutu: `./communication/start_agent.sh CD GitHub/`
+  - Proje kopyası oluşturur ve kullanıcı ID gibi özgün bilgileri anonimleştirir
 
-### 想定される構成
-PM ≦ SE ≦ PG構成の場合（人数構成）
+### Öngörülen yapı
+PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
 
-#### SE配置の推奨
-- **8名以上のプロジェクト（PMを含めて9体以上）**: SE2名配置を強く推奨
-  - SE1のみ: 巡回監視に追われ、深い分析が困難
-  - SE2名: 監視と分析の分業により、大幅な価値向上（SE:1 << SE:2）
-  - それ以上: 収穫逓減（SE:2 < SE:3 < SE:4）
+#### SE yerleşimi için öneri
+- **8+ kişilik projeler (PM dahil 9+ ajan)**: 2 SE önerilir
+  - Sadece SE1: Devriye izleme baskın olur, derin analiz zorlaşır
+  - 2 SE: Gözetim ve analizin işbölümüyle değer artışı (SE:1 << SE:2)
+  - Daha fazlası: Azalan getiriler (SE:2 < SE:3 < SE:4)
 
-#### PG配置の指針
-ジョブ実行時間とPGの自律性を考慮：
-- **短時間ジョブ（〜1分）**: 各PGが頻繁にジョブ投入・確認
-- **中時間ジョブ（1-10分）**: ポーリング間隔を調整して効率化
-- **長時間ジョブ（10分〜）**: ジョブ実行中に次の最適化準備
+#### PG yerleşim rehberi
+İş süresi ve PG’nin özerkliği dikkate alınır:
+- **Kısa işler (~1 dk)**: Her PG sıkça iş gönderir ve kontrol eder
+- **Orta işler (1–10 dk)**: Yoklama aralığını ayarlayarak verimlileştir
+- **Uzun işler (10+ dk)**: İş sürerken bir sonraki optimizasyona hazırlan
 
-## ⚒️ ツールと環境
+## ⚒️ Araçlar ve ortam
 
-### 使用ツール
-- agent_send.sh（エージェント間通信）
-- pjstat（予算管理）
-- module avail（環境構築）
-- communication/start_agent.sh（エージェント配置と起動）
-- mcp-screenshot（tmux全体監視用、要MCP設定）
+### Kullanılan araçlar
+- agent_send.sh (ajanlar arası iletişim)
+- pjstat (bütçe yönetimi)
+- module avail (ortam kurulumu)
+- communication/start_agent.sh (ajan yerleşimi ve başlatma)
+- mcp-screenshot (tmux genel izleme için, MCP ayarı gerekli)
 
-### 必須参照ファイル
-#### 初期化時に必ず読むべきファイル
-- `_remote_info/`配下の全ファイル（特にcommand.md、user_id.txt）
-- `/Agent-shared/max_agent_number.txt`（利用可能ワーカー数）
-- `/Agent-shared/agent_and_pane_id_table.jsonl`（tmux構成）
-- `/Agent-shared/strategies/auto_tuning/typical_hpc_code.md`（階層設計参考）
-- `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md`（進化的探索戦略）
+### Zorunlu başvuru dosyaları
+#### Başlatmada mutlaka okunacak dosyalar
+- `_remote_info/` altındaki tüm dosyalar (özellikle command.md, user_id.txt)
+- `/Agent-shared/max_agent_number.txt` (kullanılabilir işçi sayısı)
+- `/Agent-shared/agent_and_pane_id_table.jsonl` (tmux yapılandırması)
+- `/Agent-shared/strategies/auto_tuning/typical_hpc_code.md` (katmanlı tasarım referansı)
+- `/Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md` (evrimsel arama stratejisi)
 
-#### プロジェクト管理用
-- `/directory_pane_map.md`（エージェント配置とtmuxペイン統合管理 - プロジェクトルート直下）
-- `/Agent-shared/budget/budget_tracker.py`（予算自動集計システム）
-- `/Agent-shared/budget/usage.md`（予算集計システム使用ガイド）
-- `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md`（フォーマット定義用）
-- `/User-shared/final_report.md`（最終報告書 - プロジェクト終了時に作成）
+#### Proje yönetimi için
+- `/directory_pane_map.md` (ajan yerleşimi ve tmux panel entegre yönetimi - proje kökünde)
+- `/Agent-shared/budget/budget_tracker.py` (bütçe otomatik toplama sistemi)
+- `/Agent-shared/budget/usage.md` (bütçe toplama sistemi kullanım kılavuzu)
+- `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md` (format tanımı için)
+- `/User-shared/final_report.md` (nihai rapor - proje sonunda hazırlanır)
 
-## ⚠️ 制約事項
+## ⚠️ Kısıtlar
 
-### 予算管理
-- 指定された予算内で最も成果を出すようにリソース割り当てをコントロールすること
-- **budget_tracker.pyによる自動集計**：
-  - PGがChangeLog.mdに記録したジョブ情報から自動計算
-  - 3分ごとに集計実行（設定で調整可能）
-  - `python Agent-shared/budget/budget_tracker.py --summary`で即座に確認
+### Bütçe yönetimi
+- Belirlenen bütçe içinde en çok sonucu alacak şekilde kaynak tahsisini kontrol et
+- **budget_tracker.py ile otomatik toplama**:
+  - PG’nin ChangeLog.md’ye kaydettiği iş bilgilerinden otomatik hesap
+  - Her 3 dakikada bir toplama (ayarlarla değiştirilebilir)
+  - `python Agent-shared/budget/budget_tracker.py --summary` ile anında görüntüle
   - 出力例：
     ```
-    === 予算集計サマリー ===
-    総消費: 1234.5 ポイント
-    ジョブ数: 完了=10, 実行中=2
-    最低: 123.5%
-    目安: 49.4%
-    上限: 24.7%
+    === Bütçe Toplama Özeti ===
+    Toplam tüketim: 1234.5 puan
+    İş sayısı: tamamlanan=10, çalışmakta=2
+    Alt sınır: 123.5%
+    Hedef: 49.4%
+    Üst sınır: 24.7%
     ```
-- **重要**: スパコンの`pjstat`等は前日までの集計のみ。リアルタイム推定はbudget_trackerを活用
-- **ポイント未消費時の警告**：
-  - ジョブ実行後もポイントが増えない場合、ログインノード実行の疑いあり
-  - 該当PGエージェントに即座に警告：
+- **Önemli**: Süper bilgisayar `pjstat` vb. araçlar yalnızca önceki güne kadar toplar. Gerçek zamanlı tahmin için budget_tracker’ı kullan
+- **Puan tüketimi yoksa uyarı**:
+  - İş çalıştıktan sonra puan artmıyorsa, login node üzerinde çalıştırma şüphesi vardır
+  - İlgili PG ajanına derhal uyarı gönder:
     ```bash
-    agent_send.sh PG1.1 "[PM警告] ポイント消費が確認できません。バッチジョブを使用していますか？ログインノードでの実行は禁止です。"
+    agent_send.sh PG1.1 "[PM Uyarısı] Puan tüketimi tespit edilemedi. Batch job kullanıyor musunuz? Login node üzerinde çalıştırmak yasaktır."
     ```
-- **予算閾値の設定（推奨）**:
-  - 最低消費量：基本的な実行可能性確認に必要な予算
-  - 想定消費量：通常の最適化作業で期待される予算  
-  - デッドライン：プロジェクトの予算上限
-- 各閾値到達時に進捗を評価し、リソース配分を調整すること
+- **Bütçe eşiklerinin belirlenmesi (önerilir)**:
+  - Alt tüketim: Temel uygulanabilirlik doğrulaması için gereken bütçe
+  - Beklenen tüketim: Normal optimizasyon çalışmaları için beklenen bütçe
+  - Son tarih: Projenin bütçe üst sınırı
+- Her eşik ulaşımında ilerlemeyi değerlendir ve kaynak dağılımını ayarla
 
-### セキュリティ
-- エージェント自身でのcd実行は禁止されている
-- !cd コマンドを使った強制移動は PM のみに許可された機能である
+### Güvenlik
+- Ajanların kendi başına cd komutu çalıştırması yasaktır
+- !cd komutuyla zorla dizin değiştirme yalnızca PM’e izin verilen bir özelliktir
 
-## 🏁 プロジェクト終了時のタスク
+## 🏁 Proje bitiş görevleri
 
-### PMの終了時チェックリスト
-1. [ ] 全エージェントの稼働状況確認
-   - 各エージェントのChangeLog.mdの最終更新時刻を確認
-   - 無応答エージェントがいないか確認
-2. [ ] 予算使用状況の最終確認
-   - `budget_tracker.py --report`で最終レポート生成
-   - 開始時点からの総使用ポイントを確認
-   - 各フェーズごとの消費量を集計
-3. [ ] 最終レポート生成（`/User-shared/final_report.md`）
-   - プロジェクト全体の成果サマリー
-   - SOTA達成状況の総括
-   - 各エージェントの貢献度
-4. [ ] エージェント停止順序の決定
-   - PG → SE → CD → PM の順を推奨
-   - 実行中ジョブがある場合はPG待機
-5. [ ] クリーンアップ指示
-   - 不要な一時ファイルの削除指示
-   - SSH/SFTP接続のクローズ確認
+### PM kapanış kontrol listesi
+1. [ ] Tüm ajanların çalışma durumunu kontrol et
+   - Her ajan için ChangeLog.md son güncelleme zamanını kontrol et
+   - Yanıt vermeyen ajan var mı kontrol et
+2. [ ] Bütçe kullanımının son kontrolü
+   - `budget_tracker.py --report` ile nihai raporu üret
+   - Başlangıçtan itibaren toplam kullanılan puanı kontrol et
+   - Her faz için tüketimi topla
+3. [ ] Nihai rapor üret (`/User-shared/final_report.md`)
+   - Proje genelinin başarı özeti
+   - SOTA başarı durumunun genel değerlendirmesi
+   - Her ajanın katkı düzeyi
+4. [ ] Ajan durdurma sırasını belirle
+   - Sıra önerisi: PG → SE → CD → PM
+   - Çalışan iş varsa PG bekletilir
+5. [ ] Temizlik talimatları
+   - Gereksiz geçici dosyaların silinmesini iste
+   - SSH/SFTP bağlantılarının kapatıldığını doğrula
 
-### 成果物の確認
-- **可視化レポート**: SEが生成した`/User-shared/visualizations/*.png`を確認
-  - 画像は相対パスで参照されているため、GitHubやVSCodeで直接閲覧可能
-  - 最終報告書にも適切に組み込む
+### Çıktıların doğrulanması
+- **Görselleştirme raporları**: SE’nin ürettiği `/User-shared/visualizations/*.png` dosyalarını kontrol et
+  - Görseller göreli yolla referanslandığı için GitHub veya VSCode’da doğrudan görüntülenebilir
+  - Nihai rapora uygun şekilde dahil et
 
 ## 🔧 トラブルシューティング
 
