@@ -186,7 +186,6 @@ class SOTAVisualizer:
             total_elapsed = (datetime.now() - start_time).seconds
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Completed: {len(generated_files)} files in {total_elapsed}s")
             
-            # 古いファイル削除（ストレージ管理）
             if self.config['io_optimization'].get('cleanup_old_hours'):
                 self._cleanup_old_files()
             
@@ -239,10 +238,9 @@ class SOTAVisualizer:
                     if match:
                         value = float(match.group(1))
                         if match.group(2) == 'TFLOPS':
-                            value *= 1000  # TFLOPS→GFLOPS変換
+                            value *= 1000  # TFLOPS→GFLOPS dönüşümü
                         current_entry['performance'] = value
                 
-                # 生成時刻（details内、バッククォート必須）
                 elif '生成時刻' in line:
                     # `2025-08-19T23:45:00Z` 形式を抽出
                     import re
@@ -252,7 +250,6 @@ class SOTAVisualizer:
                         try:
                             timestamp = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
                             current_entry['timestamp'] = timestamp
-                            # 経過時間計算
                             elapsed = (timestamp - self.project_start_time).total_seconds()
                             current_entry['elapsed_seconds'] = elapsed
                         except:
@@ -265,7 +262,6 @@ class SOTAVisualizer:
                     if match:
                         current_entry['accuracy'] = float(match.group(1))
                 
-                # 誤差情報（科学記法対応）
                 elif '誤差' in line or 'error' in line.lower():
                     import re
                     # "2.7e-4" や "±0.003" 形式
@@ -297,24 +293,19 @@ class SOTAVisualizer:
         local_dirs = {}
         for path, entries in self.changelog_cache.items():
             if entries:
-                # パスから見やすい識別子を生成（例: "intel2024/OpenMP"）
                 path_parts = path.split('/')
                 if len(path_parts) >= 2:
-                    # 最後の2階層を使用（例: intel2024/OpenMP）
                     dir_id = '/'.join(path_parts[-2:])
                 else:
                     dir_id = path_parts[-1] if path_parts else path
                 
                 local_dirs[dir_id] = entries
         
-        # 最大処理数制限
         max_agents = params.get('max_local', self.config['pipeline']['max_local_agents'])
         
         for i, (dir_id, entries) in enumerate(list(local_dirs.items())[:max_agents]):
-            # DPI決定（個別指定 or デフォルト）
             dpi = specific_dpis.get(dir_id, dpi_config['linear'])
             
-            # SOTA抽出（単調増加）
             sota_entries = self._extract_sota_progression(entries)
             
             if sota_entries:
@@ -334,18 +325,17 @@ class SOTAVisualizer:
         return generated
     
     def _process_hardware_level(self, dpi_config: Dict, params: Dict) -> List[Path]:
-        """hardwareレベル処理（localから集約）"""
+        """hardware düzeyi işlemleri (local'den toplayarak)"""
         generated = []
         
-        # hardware階層を識別
-        hardware_groups = {}  # コンパイラごと（single-node/gcc11.3.0など）
-        hardware_merged = {}  # ハードウェア全体（single-nodeなど）
+        # hardware katmanını tanımla
+        hardware_groups = {}  # Derleyici başına (ör: single-node/gcc11.3.0)
+        hardware_merged = {}  # Donanım genel görünümü (ör: single-node)
         
         for path, entries in self.changelog_cache.items():
             # hardware階層を判定
             hw_key = self._extract_hardware_key(path)
             if hw_key:
-                # コンパイラごとのグループ
                 if hw_key not in hardware_groups:
                     hardware_groups[hw_key] = []
                 hardware_groups[hw_key].extend(entries)
@@ -356,9 +346,7 @@ class SOTAVisualizer:
                     hardware_merged[hw_base] = []
                 hardware_merged[hw_base].extend(entries)
         
-        # コンパイラごとのグラフ生成
         for hw_key, all_entries in hardware_groups.items():
-            # 時系列でSOTA更新
             sota_entries = self._aggregate_sota_by_time(all_entries)
             
             if sota_entries:
@@ -376,7 +364,6 @@ class SOTAVisualizer:
         
         # ハードウェア全体（コンパイラ統合）のグラフ生成
         for hw_base, all_entries in hardware_merged.items():
-            # 時系列でSOTA更新
             sota_entries = self._aggregate_sota_by_time(all_entries)
             
             if sota_entries:
@@ -515,7 +502,6 @@ class SOTAVisualizer:
                     print(f"  ❌ Hata: Zaman bilgisi bulunmuyor. Bu grafik atlanacak")
                     return None
                 
-                # 時系列順にソート（重要！）
                 entries = sorted(entries, key=lambda e: e['elapsed_seconds'])
                 
                 x_data = [e['elapsed_seconds'] / 60 for e in entries]  # 分単位
@@ -554,7 +540,6 @@ class SOTAVisualizer:
             
             y_data = [e['performance'] for e in entries]
             
-            # 精度フィルタリング
             if params.get('accuracy_threshold'):
                 filtered = [(x, y, e) for x, y, e in zip(x_data, y_data, entries)
                            if e.get('accuracy', 100) >= params['accuracy_threshold']]
@@ -619,7 +604,7 @@ class SOTAVisualizer:
         try:
             fig, ax = plt.subplots(figsize=(12, 8))
             
-            # matplotlibのデフォルトカラーサイクルを使用
+            # matplotlib varsayılan renk döngüsünü kullan
             colors = plt.cm.tab10(np.linspace(0, 1, 10))
             
             # 各系列をプロット
@@ -635,7 +620,6 @@ class SOTAVisualizer:
                 if not valid_entries:
                     continue
                 
-                # 時系列順にソート
                 valid_entries = sorted(valid_entries, key=lambda e: e['elapsed_seconds'])
                 
                 # データ準備
@@ -675,7 +659,7 @@ class SOTAVisualizer:
             return None
     
     def _extract_sota_progression(self, entries: List[Dict]) -> List[Dict]:
-        """SOTA更新のみ抽出（単調増加）"""
+        """Yalnızca SOTA güncellemelerini çıkar (tekdüze artış)"""
         if not entries:
             return []
         
@@ -685,7 +669,6 @@ class SOTAVisualizer:
             # タイムスタンプがない場合は元の順序を保持
             valid_entries = entries
         
-        # タイムスタンプでソート
         sorted_entries = sorted(valid_entries, key=lambda e: e.get('elapsed_seconds', float('inf')))
         
         sota = []
@@ -710,7 +693,6 @@ class SOTAVisualizer:
             # タイムスタンプがない場合は元の順序を保持
             valid_entries = entries
         
-        # タイムスタンプでソート
         sorted_entries = sorted(valid_entries, key=lambda e: e.get('elapsed_seconds', float('inf')))
         
         sota = []
