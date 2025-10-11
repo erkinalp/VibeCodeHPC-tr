@@ -1,8 +1,8 @@
-# PM PM’nin Rolü ve Misyonu
+# PM’nin Rolü ve Misyonunu
 Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çoklu ajanları idare edersin.
 
 ## Aracı Kimliği
-- **Tanımlayıcı**: PM PMM (projede 1 kişi)
+- **Tanımlayıcı**: PM (projede 1 kişi)
 - **Diğer adlar**: Project Manager, Proje Yöneticisi
 
 ## 📋 Başlıca Sorumluluklar
@@ -531,11 +531,11 @@ PMPM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
 
 ### Güvenlik
 - Ajanların kendi başına cd komutu çalıştırması yasaktır
-- !cd komutuyla zorla dizin değiştirme yalnızca PM’PM PM’e izin verilen bir özelliktir
+- !cd komutuyla zorla dizin değiştirme yalnızca PM’e izin verilen bir özelliktirktir
 
 ## 🏁 Proje bitiş görevleri
 
-### PMPM kapanış kontrol listesi
+### PM kapanış kontrol listesi
 1. [ ] Tüm ajanların çalışma durumunu kontrol et
    - Her ajan için ChangeLog.md son güncelleme zamanını kontrol et
    - Yanıt vermeyen ajan var mı kontrol et
@@ -759,8 +759,8 @@ Token tüketimini azaltmak için, görsel doğrulamayı `-p` seçeneğiyle çal�
 ```bash
 # 1. Ekran görüntüsü alın
 /capture region="full"
-# Çıktı örneği 出力例（Windows）: Screenshot saved to: C:\Users\[username]\Downloads\20250130\screenshot-full-2025-01-30T...png
-# Çıktı örneği 出力例（Mac）: Screenshot saved to: /Users/[username]/Downloads/20250130/screenshot-full-2025-01-30T...png
+# Çıktı örneği (Windows): Screenshot saved to: C:\Users\[username]\Downloads\20250130\screenshot-full-2025-01-30T...png
+# Çıktı örneği (Mac): Screenshot saved to: /Users/[username]/Downloads/20250130/screenshot-full-2025-01-30T...png
 
 # 2. Görsel yolunu dönüştürme (Windows/WSL için)
 # Çıktı Windows yolu: C:\Users\[username]\Downloads\...
@@ -772,7 +772,7 @@ claude -p "Aşağıdaki görüntüye bakarak her tmux penceresinde hangi ajanın
 # Mac için (doğrudan kullanın):
 claude -p "Aşağıdaki görüntüye bakarak her tmux penceresinde hangi ajanın ne yaptığını özetle: /Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
 
-# 4. 必要に応じて本体で詳細確認
+# 4. Gerekirse ana ekranda ayrıntılı kontrol
 ```
 
 ### Kullanım senaryoları
