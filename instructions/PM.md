@@ -507,7 +507,7 @@ PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
   - PG’nin ChangeLog.md’ye kaydettiği iş bilgilerinden otomatik hesap
   - Her 3 dakikada bir toplama (ayarlarla değiştirilebilir)
   - `python Agent-shared/budget/budget_tracker.py --summary` ile anında görüntüle
-  - 出力例：
+  - Çıktı örneği:
     ```
     === Bütçe Toplama Özeti ===
     Toplam tüketim: 1234.5 puan
@@ -559,76 +559,76 @@ PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
   - Görseller göreli yolla referanslandığı için GitHub veya VSCode’da doğrudan görüntülenebilir
   - Nihai rapora uygun şekilde dahil et
 
-## 🔧 トラブルシューティング
+## 🔧 Sorun Giderme
 
-### エージェント停止時の復帰方法
-エージェントが停止した場合（EOFシグナルやエラーによる終了）、以下の手順で復帰させます：
+### Aracı durduğunda geri döndürme yöntemi
+Aracı durduysa (EOF sinyali veya hata ile kapandıysa), aşağıdaki adımlarla geri getirilebilir:
 
-#### 1. エージェントの生存確認（tmuxコマンドで確認）
+#### 1. Aracının çalıştığını doğrulama (tmux komutlarıyla)
 ```bash
-# セッションの全ペインの実行中コマンドを確認
-# セッション名はsetup.sh実行時の設定による（デフォルト: Team1_Workers1）
+# Oturumdaki tüm panellerde çalışan komutları kontrol et
+# Oturum adı setup.sh çalıştırılırken belirlenir (varsayılan: Team1_Workers1)
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 
-# 出力例：
+# Çıktı örneği:
 # 0: bash    （SE1が待機中または停止）
 # 1: claude  （PG1.1が処理中）
 # 2: bash    （PG1.1が待機中または停止）
 # 3: bash    （PG1.2が待機中または停止）
 
-# 重要: "bash"表示は以下の2つの状態を示す
-# 1. Claudeが正常に起動して入力待機中
-# 2. Claudeが停止してbashに戻っている
-# "claude"表示はエージェントが処理中の時のみ
+# Önemli: \"bash\" görünümü iki durumu ifade eder
+# 1. Claude normal açıldı ve girdi bekliyor
+# 2. Claude durdu ve bash’e geri döndü
+# \"claude\" görünümü yalnızca aracı işlem yaparken olur
 
-# 特定のエージェントIDとペインの対応は
+# Belirli aracı ID’si ile panel eşlemesi için
 # Agent-shared/agent_and_pane_id_table.jsonl を参照
 
-# pm_sessionも同様に確認
+# pm_session için de benzer şekilde kontrol et
 tmux list-panes -t pm_session:0 -F "#{pane_index}: #{pane_current_command}"
 ```
 
-#### Claude Code生存確認（より確実な方法）
+#### Claude Code çalışıyor mu doğrulama (daha kesin yöntem)
 ```bash
-# 疑わしいエージェントに特殊なメッセージを送信
-# !で始まるコマンドはClaude Codeのみが実行可能
+# Şüpheli aracıya özel bir mesaj gönder
+# ! ile başlayan komutlar sadece Claude Code tarafından çalıştırılabilir
 agent_send.sh SE1 "!agent-send.sh PM 'SE1 alive at $(date)'"
 
-# 返信がない場合：
-# - Claude Codeが落ちて通常のtmuxペインになっている（!でエラー）
-# - または完全に応答不能
+# Yanıt yoksa:
+# - Claude Code kapanmış ve normal tmux paneline dönmüş (! komutları hata verir)
+# - Veya tamamen yanıtsız
 
-# この方法の利点：
-# - Claude Codeの生存を確実に判定できる
-# - 通常のechoコマンドと違い、偽陽性がない
+# Bu yöntemin avantajları:
+# - Claude Code’un çalıştığı kesin olarak anlaşılır
+# - Normal echo komutundan farklı olarak yanlış pozitif üretmez
 ```
 
-**注意**: この生存確認を行うとエージェントが動き出すため、初期化メッセージを送る前に行わないこと。ステップ4の起動確認より優先して行わないこと。
+**Not**: Bu kontrol aracıyı harekete geçirebilir; ilk başlatma mesajlarını göndermeden önce yapmayın ve adım 4’teki başlatma doğrulamasından önce uygulamayın.
 
-#### 2. エージェントの再起動
+#### 2. Aracıyı yeniden başlatma
 ```bash
-# 該当ペインで以下を実行（--continueオプションで記憶を維持）
+# İlgili panelde aşağıdakini çalıştırın (--continue ile bellek korunur)
 claude --dangerously-skip-permissions --continue
 
-# または -c（短縮形）
+# veya -c (kısa biçim)
 claude --dangerously-skip-permissions -c
 ```
 
-#### 3. telemetry付きでの再起動
+#### 3. Telemetry ile yeniden başlatma
 ```bash
-# 作業ディレクトリを確認してから
+# Çalışma dizinini doğruladıktan sonra
 ./telemetry/launch_claude_with_env.sh [AGENT_ID] --continue
 
-# launch_claude_with_env.shは追加のclaude引数を受け付ける
-# 例: ./telemetry/launch_claude_with_env.sh SE1 --continue
+# launch_claude_with_env.sh ek claude argümanlarını kabul eder
+# Örnek: ./telemetry/launch_claude_with_env.sh SE1 --continue
 ```
 
-#### 4. start_agent.shでの再起動（推奨）
+#### 4. start_agent.sh ile yeniden başlatma (önerilen)
 ```bash
-# 作業ディレクトリを指定して再起動
+# Çalışma dizinini belirterek yeniden başlat
 ./communication/start_agent.sh [AGENT_ID] [WORK_DIR] --continue
 
-# 例: SE1をFlow/TypeII/single-nodeで再起動
+# Örnek: SE1’i Flow/TypeII/single-node altında yeniden başlat
 ./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
 ```
 
