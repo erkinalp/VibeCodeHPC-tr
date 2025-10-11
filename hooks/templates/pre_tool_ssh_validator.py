@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC PreToolUse Hook for SSH/SFTP Validation
-Desktop Commander MCPのSSH接続を支援・Bashツールの直接SSH使用を警告
+Desktop Commander MCP üzerinden SSH bağlantısını destekler; Bash aracında doğrudan SSH kullanımını uyarır
 """
 
 import json
@@ -13,7 +13,7 @@ from datetime import datetime
 import re
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-tr) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -24,7 +24,7 @@ def find_project_root(start_path):
     return None
 
 def check_ssh_sessions_file():
-    """ssh_sftp_sessions.jsonの存在確認"""
+    """ssh_sftp_sessions.json dosyasının varlığını doğrula"""
     sessions_file = Path.cwd() / "ssh_sftp_sessions.json"
     if sessions_file.exists():
         try:
@@ -36,7 +36,7 @@ def check_ssh_sessions_file():
     return False
 
 def get_agent_id():
-    """現在のエージェントIDを取得"""
+    """Geçerli ajan kimliğini al"""
     agent_id_file = Path.cwd() / ".claude" / "hooks" / "agent_id.txt"
     if agent_id_file.exists():
         return agent_id_file.read_text().strip()
@@ -44,36 +44,33 @@ def get_agent_id():
 
 def main():
     try:
-        # JSONを読み込み
         input_data = json.load(sys.stdin)
         
         tool_name = input_data.get("tool_name", "")
         tool_input = input_data.get("tool_input", {})
         
-        # Bashツールで直接SSH/SFTPを使おうとしている場合
         if tool_name == "Bash":
             command = tool_input.get("command", "")
             
-            # SSH/SFTPコマンドの検出
+            # SSH/SFTP komutunu tespit et
             if re.match(r'^\s*(ssh|sftp|scp)\s+', command):
-                # ssh_sftp_sessions.jsonがあるかチェック
+                # ssh_sftp_sessions.json var mı kontrol et
                 has_sessions = check_ssh_sessions_file()
                 
-                warning_message = f"""⚠️ 直接Bashでのssh/sftp実行を検出しました。
+                warning_message = f"""⚠️ Bash aracıyla doğrudan ssh/sftp çalıştırılması tespit edildi."""
 
-Desktop Commander MCPの使用を強く推奨します：
-• /Agent-shared/ssh_sftp_guide.md を参照してください
-• ssh_sftp_sessions.jsonでセッション管理が必要です
-{"• 既存セッションファイルを検出 - interact_with_processの使用を検討" if has_sessions else "• セッションファイルが未作成 - start_processから開始"}
+Desktop Commander MCP kullanımını şiddetle öneririz:
+• /Agent-shared/ssh_sftp_guide.md dosyasına bakın
+• ssh_sftp_sessions.json ile oturum yönetimi gereklidir
+{"• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin" if has_sessions else "• Oturum dosyası oluşturulmamış - start_process ile başlayın"}
 
-理由：
-1. 2段階認証の回避（一度接続すれば再認証不要）
-2. 大量の標準出力によるコンテキスト浪費の防止
-3. セッションの永続化と再利用
+Gerekçe:
+1. İki aşamalı doğrulama sorunlarının önlenmesi (bir kez bağlanınca yeniden doğrulama gerekmeyebilir)
+2. Büyük standart çıkışların bağlam tüketimini önler
+3. Oturumun kalıcı hale getirilmesi ve yeniden kullanım
 
-このまま実行する場合は、大量の出力に注意してください。"""
+Bu şekilde çalıştırmaya devam edecekseniz, büyük çıktılara dikkat edin."""
                 
-                # 警告のみ表示（ブロックはしない）
                 output = {
                     "systemMessage": warning_message,
                     "suppressOutput": False,
@@ -82,27 +79,26 @@ Desktop Commander MCPの使用を強く推奨します：
                 print(json.dumps(output))
                 sys.exit(0)
         
-        # Desktop Commander MCPのstart_processでSSH使用時のアドバイス
+        # Desktop Commander MCP start_process ile SSH kullanımında öneriler
         elif tool_name == "mcp__desktop-commander__start_process":
             command = tool_input.get("command", "")
             
             if command.startswith("ssh "):
-                # -ttオプションの推奨（強制ではない）
                 if " -tt " not in command and not command.startswith("ssh -tt"):
-                    advice = "SSH接続に-ttオプションの使用を推奨（PTY確保でインタラクティブ操作が安定）"
-                    session_reminder = "返されたPIDを必ずssh_sftp_sessions.jsonに記録してください"
+                    advice = "SSH bağlantısında -tt seçeneğinin kullanılmasını öneririz (PTY ayırma ile etkileşimli işlemler daha kararlı olur)"
+                    session_reminder = "Dönen PID'yi mutlaka ssh_sftp_sessions.json dosyasına kaydedin"
                     
                     # 終了コード2でブロック＆Claudeに表示（でも続行したいので使わない方がいい）
                     print(f"💡 {advice}\n• {session_reminder}", file=sys.stderr)
                     sys.exit(0)  # 終了コード0で、stdoutはトランスクリプトモードでのみ表示
                 
                 # セッション管理のリマインダーのみ
-                print("• 返されたPIDを必ずssh_sftp_sessions.jsonに記録してください", file=sys.stderr)
+                print("• Dönen PID'yi mutlaka ssh_sftp_sessions.json dosyasına kaydedin", file=sys.stderr)
                 sys.exit(1)  # 非ブロッキングエラーでClaudeにもstderrが見える
             
             elif command.startswith("sftp "):
                 # SFTPの場合はセッション管理のリマインダーのみ
-                print("• 返されたPIDを必ずssh_sftp_sessions.jsonに記録してください", file=sys.stderr)
+                print("• Dönen PID'yi mutlaka ssh_sftp_sessions.json dosyasına kaydedin", file=sys.stderr)
                 sys.exit(1)  # 非ブロッキングエラーでClaudeにもstderrが見える
         
         # その他の場合は何もしない
