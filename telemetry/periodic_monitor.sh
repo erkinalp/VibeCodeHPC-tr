@@ -126,20 +126,16 @@ fi
 START_TIME=$(cat "$START_TIME_FILE")
 START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
 
-# サブプロセス1: 高頻度更新（上書き版）
 (
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Starting update subprocess (interval: ${UPDATE_INTERVAL_SEC}s)" >> "$LOG_FILE"
     echo $BASHPID > "$CHILD_PID_FILE"
     
     while true; do
-        # プロジェクト名を含むセッションの存在確認（動的に検出）
         if ! tmux list-panes -t "$PM_SESSION" 2>/dev/null | grep -q . && \
            ! tmux list-panes -t "$WORKER_SESSION" 2>/dev/null | grep -q .; then
-            # 該当プロジェクトのセッションが存在しない場合のみ終了
             exit 0
         fi
         
-        # 最大実行時間チェック
         CURRENT_EPOCH=$(date -u +%s)
         ELAPSED_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
         if [ $ELAPSED_MINUTES -gt $MAX_RUNTIME_MIN ]; then
@@ -147,27 +143,20 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
             exit 0
         fi
         
-        # 上書き版のグラフ生成（簡潔なログ）
         $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" --graph-type overview 2>&1 | tail -2 >> "$LOG_FILE"
         
-        # 予算集計とSOTA可視化を時間差実行（負荷分散）
         CURRENT_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
         
-        # 予算集計: 3分間隔（元のまま）
         if [ $((CURRENT_MINUTES % BUDGET_INTERVAL_MIN)) -eq 0 ] && [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
             $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
         fi
         
-        # SOTA可視化: パイプライン版で効率的に実行
-        # プロジェクト開始5分後から定期実行
         PROJECT_ELAPSED=$(get_elapsed_minutes)
         
-        # 初回は5分後、その後SOTA_INTERVAL_MIN分ごと
         if [ $PROJECT_ELAPSED -eq 5 ] || ([ $PROJECT_ELAPSED -gt 5 ] && [ $((PROJECT_ELAPSED % SOTA_INTERVAL_MIN)) -eq 5 ]); then
             if [ -f "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" ]; then
                 echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] SOTA pipeline starting (elapsed=${PROJECT_ELAPSED}min)" >> "$LOG_FILE"
                 
-                # パイプラインモードで実行（タイムアウトはSOTA間隔と同じ）
                 SOTA_TIMEOUT=${SOTA_INTERVAL_MIN}m
                 timeout $SOTA_TIMEOUT $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/sota/sota_visualizer.py" \
                     --no-delay 2>&1 | tail -5 >> "$LOG_FILE" &
@@ -180,23 +169,19 @@ START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null || date -u +%s)
     done
 ) &
 
-# メインプロセス: マイルストーン保存
 LAST_MILESTONE=0
-MILESTONE_CHECK_INTERVAL=$((MILESTONE_INTERVAL_MIN * 60))  # 分を秒に変換
+MILESTONE_CHECK_INTERVAL=$((MILESTONE_INTERVAL_MIN * 60))  # Dakikayı saniyeye çevir
 
 while true; do
-    # プロジェクト名を含むセッションの存在確認（動的に検出）
     if ! tmux list-panes -t "$PM_SESSION" 2>/dev/null | grep -q . && \
        ! tmux list-panes -t "$WORKER_SESSION" 2>/dev/null | grep -q .; then
         echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] No project tmux sessions found (${PROJECT_NAME}), exiting" >> "$LOG_FILE"
         cleanup_and_exit
     fi
     
-    # 経過時間計算
     CURRENT_EPOCH=$(date -u +%s)
     ELAPSED_MINUTES=$(( (CURRENT_EPOCH - START_EPOCH) / 60 ))
     
-    # 最大実行時間チェック
     if [ $ELAPSED_MINUTES -gt $MAX_RUNTIME_MIN ]; then
         echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Max runtime reached (${MAX_RUNTIME_MIN}min), terminating" >> "$LOG_FILE"
         cleanup_and_exit
@@ -204,19 +189,15 @@ while true; do
     
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Checking milestones... Elapsed: ${ELAPSED_MINUTES} minutes" >> "$LOG_FILE"
     
-    # マイルストーンごとの特別保存
     for MILESTONE in "${MILESTONES[@]}"; do
         if [ $ELAPSED_MINUTES -ge $MILESTONE ] && [ $LAST_MILESTONE -lt $MILESTONE ]; then
             echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Milestone $MILESTONE minutes reached, saving..." >> "$LOG_FILE"
             
-            # コンテキスト使用率のマイルストーン保存（visualizations直下のみ）
-            # 注: context_usage_monitor.pyは自動的にvisualizations/context_usage_${MILESTONE}min.pngを生成
             $PYTHON_CMD "$PROJECT_ROOT/telemetry/context_usage_monitor.py" \
                 --graph-type overview --max-minutes $MILESTONE 2>&1 | tail -5 >> "$LOG_FILE"
             
-            # 予算集計のマイルストーン保存（after_30min: 1分遅延）
             (
-                sleep 60  # 1分遅延で負荷分散
+                sleep 60  # Yük dağıtımı için 1 dk gecikme
                 if [ -f "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" ]; then
                     MILESTONE_TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
                     SNAPSHOT_DIR="$PROJECT_ROOT/Agent-shared/budget/snapshots"
@@ -225,13 +206,11 @@ while true; do
                     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone (after_30min) for ${MILESTONE}min" >> "$LOG_FILE"
                     $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" 2>&1 | tail -1 >> "$LOG_FILE"
                     
-                    # マイルストーン時点の別名保存
                     if [ -f "$SNAPSHOT_DIR/latest.json" ]; then
                         cp "$SNAPSHOT_DIR/latest.json" "$SNAPSHOT_DIR/budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json"
                         echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Budget milestone saved: budget_milestone_${MILESTONE}min_${MILESTONE_TIMESTAMP}.json" >> "$LOG_FILE"
                     fi
                     
-                    # マイルストーン時点のグラフも別名保存
                     GRAPH_PATH="$PROJECT_ROOT/User-shared/visualizations/budget_usage.png"
                     if [ -f "$GRAPH_PATH" ]; then
                         cp "$GRAPH_PATH" "$PROJECT_ROOT/User-shared/visualizations/budget_usage_${MILESTONE}min.png"
@@ -244,6 +223,5 @@ while true; do
         fi
     done
     
-    # マイルストーン確認間隔で待機
     sleep $MILESTONE_CHECK_INTERVAL
 done
