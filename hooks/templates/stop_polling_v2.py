@@ -217,40 +217,40 @@ Not: ESC tuşu gönderilmiş bir ajan “kullanıcı tarafından kesildi” benz
     
     required_files = get_required_files(agent_id)
     
-    reason = f"""あなたはポーリング型のエージェント（{agent_id}）です。待機状態に入ることは許可されていません。
-[STOP試行: {stop_count}/{threshold}]
+    reason = f"""Sen bir polling tipi ajansın ({agent_id}). Bekleme moduna geçmek izinli değildir.
+[STOP denemesi: {stop_count}/{threshold}]
 
-【プロジェクト構造の把握】
-プロジェクト全体像が曖昧な場合は、まず以下で構造を確認：
+Proje yapısını kavrama:
+Projenin genel resmi net değilse, önce aşağıdaki adımlarla yapıyı kontrol et:
 
-1. プロジェクトルートを探す（cdは使用禁止）：
-   pwd で現在地確認後、親ディレクトリを相対パスで探索
-   例: /Flow/TypeII/single-node/OpenMP にいる場合
-   - ls ../../../../ でルート階層を確認（CLAUDE.mdとAgent-sharedがあるはず）
-   - ls ../../../../Agent-shared/ で共有リソース確認
-   - プロジェクトルートは通常 VibeCodeHPC* という名前
+1. Proje kökünü bul (cd kullanma):
+   pwd ile konumunu doğrula, üst dizinleri göreli yollarla tara
+   Örnek: /Flow/TypeII/single-node/OpenMP konumundayken:
+   - ls ../../../../  ile kök katmanı kontrol et (CLAUDE.md ve Agent-shared olmalı)
+   - ls ../../../../Agent-shared/  ile paylaşılan kaynakları kontrol et
+   - Proje kökü genellikle VibeCodeHPC* adını taşır
 
-2. 構造確認（トークン節約しつつ）：
-   - ls ../ （同階層の他エージェント/技術確認）
-   - ls -d ../../../*/ （ハードウェア階層のディレクトリのみ）
-   - cat ../../../../Agent-shared/directory_pane_map.txt （配置図）
-   - find . -name "*.md" -o -name "ChangeLog.md" | head -20 （重要ファイル）
+2. Yapı doğrulaması (token tasarruf ederek):
+   - ls ../  (aynı katmandaki diğer ajan/teknikleri gör)
+   - ls -d ../../../*/  (yalnızca donanım katmanı dizinleri)
+   - cat ../../../../Agent-shared/directory_pane_map.txt  (yerleşim haritası)
+   - find . -name "*.md" -o -name "ChangeLog.md" | head -20  (önemli dosyalar)
 
-3. 自分の位置と状況確認：
-   - pwd （現在のフルパス）
-   - ls -t . | head -10 （最近更新されたファイル）
-   - ls -a . （隠しファイル含む、ただし-laは避ける）
+3. Konum ve durumunu doğrula:
+   - pwd  (tam yol)
+   - ls -t . | head -10  (son güncellenen dosyalar)
+   - ls -a .  (gizli dosyalar dahil; ancak -la yerine -a tercih et)
 
-【必須ファイルの再読み込み】
-以下の基準で優先順位を決定：
-1. 未読または「曖昧に読んだ」（10行のみ等）＝実質未読として扱う
-2. .md/.txt/.py（主要ドキュメント・スクリプト）を優先
-3. ../../../../ で始まる相対パスはプロジェクトルート基準
+Zorunlu dosyaları yeniden gözden geçirme:
+Aşağıdaki ölçütlerle önceliklendir:
+1. Hiç okunmamış veya “üstünkörü okundu” (ör. yalnızca 10 satır) ise, fiilen okunmamış say
+2. .md/.txt/.py (ana dokümanlar/scripter) öncelikli
+3. ../../../../ ile başlayan göreli yollar proje kökü bazlıdır
 
-読むべきファイル：
+Okunması gereken dosyalar:
 {chr(10).join(f'- {file}' for file in required_files)}
 
-確認後、以下の並行タスクを進めてください：
+Ardından aşağıdaki paralel görevleri yürüt:
 
 """
     

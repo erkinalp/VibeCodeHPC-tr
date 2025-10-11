@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 SOTA Visualizer - Pipeline Edition
-効率的なデータ処理とSE向けの柔軟な制御を実現
+Verimli veri işleme ve SE için esnek kontrol
 
-主な特徴:
-- メモリ効率的なパイプライン処理
-- ストレージIO最小化
-- SE向けの改変しやすい設計
-- マルチプロジェクト統合対応
+Öne çıkan özellikler:
+- Bellek açısından verimli boru hattı işleme
+- Depolama IO en aza indirme
+- SE için kolayca değiştirilebilir tasarım
+- Çoklu proje entegrasyonuna uygun
 """
 
 import json
@@ -24,22 +24,20 @@ import numpy as np
 
 
 class SOTAVisualizer:
-    """効率的なSOTA可視化パイプライン"""
+    """Verimli SOTA görselleştirme boru hattı"""
     
     def __init__(self, project_root: Path, config: Optional[Dict] = None):
         """
         Args:
-            project_root: プロジェクトルートパス
-            config: 設定辞書（Noneの場合はデフォルト/ファイルから読み込み）
+            project_root: Proje kök yolu
+            config: Yapılandırma sözlüğü (None ise varsayılan/değerler dosyadan yüklenir)
         """
         self.project_root = Path(project_root)
         self.config = config or self._load_config()
         
-        # データキャッシュ（メモリ効率のため）
         self.data_cache = {}
         self.changelog_cache = {}
         
-        # 出力ディレクトリ
         self.output_base = self.project_root / "User-shared/visualizations/sota"
         self.output_dirs = {
             'project': self.output_base / 'project',
@@ -48,14 +46,12 @@ class SOTAVisualizer:
             'local': self.output_base / 'local'
         }
         
-        # プロジェクト開始時刻
         self.project_start_time = self._get_project_start_time()
         
-        # 理論性能（hardware_info.mdから読み取り）
         self.theoretical_performance = None
         
     def _load_config(self) -> Dict:
-        """設定ファイル読み込み（SE制御用）"""
+        """Ayar dosyası yükleme (SE kontrolü için)"""
         config_path = self.project_root / "Agent-shared/sota_pipeline_config.json"
         
         if config_path.exists():
