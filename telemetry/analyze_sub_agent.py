@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-サブエージェント（claude -p）使用統計の分析
-情報圧縮率とコンテキスト節約効果を可視化
+Alt aracılar (claude -p) kullanım istatistiklerinin analizi
+Bilgi sıkıştırma oranı ve bağlam tasarrufu etkisinin görselleştirilmesi
 """
 
 import json
@@ -13,7 +13,7 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 class SubAgentAnalyzer:
-    """サブエージェント使用統計の分析"""
+    """Alt aracı kullanım istatistiklerinin analizi"""
     
     def __init__(self, project_root: Path = Path(".")):
         self.project_root = project_root
@@ -24,7 +24,7 @@ class SubAgentAnalyzer:
         self.visualization_dir.mkdir(parents=True, exist_ok=True)
     
     def load_data(self) -> List[Dict]:
-        """ログファイルからデータを読み込み"""
+        """Günlük dosyasından verileri yükle"""
         if not self.log_file.exists():
             print(f"No log file found at {self.log_file}")
             return []
@@ -34,7 +34,6 @@ class SubAgentAnalyzer:
             for line in f:
                 try:
                     record = json.loads(line.strip())
-                    # タイムスタンプをdatetimeに変換
                     record['datetime'] = datetime.fromisoformat(record['timestamp'].replace('Z', '+00:00'))
                     records.append(record)
                 except Exception as e:
@@ -44,11 +43,10 @@ class SubAgentAnalyzer:
         return records
     
     def calculate_statistics(self, records: List[Dict]) -> Dict:
-        """統計情報を計算"""
+        """İstatistikleri hesapla"""
         if not records:
             return {}
         
-        # エージェント別の集計
         by_agent = defaultdict(lambda: {
             'calls': 0,
             'total_input_tokens': 0,
@@ -77,7 +75,6 @@ class SubAgentAnalyzer:
             if record.get('success', False):
                 by_agent[agent]['success_count'] += 1
             
-            # ファイル参照を記録
             files = record.get('files_referenced', '')
             if files:
                 for f in files.split(','):

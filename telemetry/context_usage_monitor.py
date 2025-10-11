@@ -699,21 +699,20 @@ class ContextUsageMonitor:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
     
     def generate_summary_report(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]):
-        """サマリーレポートをMarkdown形式で生成"""
+        """Özet raporu Markdown formatında oluştur"""
         report_path = self.output_dir / "context_usage_report.md"
         
         with open(report_path, 'w') as f:
-            # タイトル（累積モードで変更）
             if hasattr(self, 'is_cumulative') and self.is_cumulative:
-                f.write("# 累積トークン使用量レポート\n\n")
+                f.write("# Kümülatif token kullanım raporu\n\n")
             else:
-                f.write("# コンテキスト使用状況レポート\n\n")
+                f.write("# Bağlam kullanım durumu raporu\n\n")
             
-            f.write(f"生成日時: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write(f"Oluşturulma zamanı: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
             
-            f.write("## サマリー\n\n")
-            f.write("| エージェント | 合計 [トークン] | 使用率 | Cache Read | Cache Create | Input | Output | 推定時間 |\n")
-            f.write("|-------------|----------------|--------|------------|--------------|-------|--------|----------|\n")
+            f.write("## Özet\n\n")
+            f.write("| Aracı | Toplam [token] | Kullanım oranı | Cache Read | Cache Create | Input | Output | Tahmini süre |\n")
+            f.write("|-------|-----------------|----------------|------------|--------------|-------|--------|--------------|\n")
             
             # エージェントデータを整理
             agent_summaries = []
@@ -773,25 +772,25 @@ class ContextUsageMonitor:
                        f"{summary['tokens']['output']:,} | "
                        f"{summary['est_hours']} |\n")
             
-            f.write("\n## Visualizations\n\n")
-            f.write("### Global Views\n")
-            f.write("- [Overview](context_usage_overview.png) - 軽量な折れ線グラフ\n")
-            f.write("- [Stacked by Count](context_usage_stacked_count.png) - エージェント別積み上げ\n")
-            f.write("- [Stacked by Time](context_usage_stacked_time.png) - 時系列積み上げ\n")
-            f.write("- [Timeline](context_usage_timeline.png) - 予測とトレンド分析\n\n")
+            f.write("\n## Görselleştirmeler\n\n")
+            f.write("### Global Görünümler\n")
+            f.write("- [Overview](context_usage_overview.png) - hafif çizgi grafik\n")
+            f.write("- [Stacked by Count](context_usage_stacked_count.png) - aracı bazında yığın\n")
+            f.write("- [Stacked by Time](context_usage_stacked_time.png) - zaman serisi yığın\n")
+            f.write("- [Timeline](context_usage_timeline.png) - tahmin ve trend analizi\n\n")
             
-            f.write("### Individual Agent Details\n")
+            f.write("### Aracı Bazında Detaylar\n")
             for agent_id in sorted(all_agent_data.keys()):
-                f.write(f"- {agent_id}: [Detail](context_usage_{agent_id}_detail.png) | "
-                       f"[Count](context_usage_{agent_id}_count.png)\n")
+                f.write(f"- {agent_id}: [Detay](context_usage_{agent_id}_detail.png) | "
+                       f"[Adet](context_usage_{agent_id}_count.png)\n")
             
-            f.write("\n## Quick Access Commands\n\n")
+            f.write("\n## Hızlı Erişim Komutları\n\n")
             f.write("```bash\n")
-            f.write("# 最新状態の確認（テキスト出力）\n")
+            f.write("# En güncel durum (metin çıktısı)\n")
             f.write("python telemetry/context_usage_monitor.py --status\n\n")
-            f.write("# 特定エージェントの状態確認\n")
+            f.write("# Belirli aracının durumunu görüntüle\n")
             f.write("python telemetry/context_usage_monitor.py --status --agent PG1.1.1\n\n")
-            f.write("# 概要グラフのみ生成（軽量）\n")
+            f.write("# Yalnızca özet grafiği üret (hafif)\n")
             f.write("python telemetry/context_usage_monitor.py --graph-type overview\n")
             f.write("```\n\n")
             
@@ -804,11 +803,11 @@ class ContextUsageMonitor:
             else:
                 f.write("- Cache: Disabled\n")
         
-        print(f"✅ レポート生成完了: {report_path}")
+        print(f"✅ Rapor oluşturma tamamlandı: {report_path}")
     
     def print_quick_status(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]], 
                           target_agent: Optional[str] = None):
-        """コンソールに現在の状態を出力（クイックアクセス用）"""
+        """Konsola mevcut durumu yazdır (hızlı erişim için)"""
         
         print("\n" + "="*60)
         print(f"VibeCodeHPC Context Usage Status - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
