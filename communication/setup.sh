@@ -42,39 +42,39 @@ log_error() {
 # 使用方法表示
 show_usage() {
     cat << EOF
-🧬 VibeCodeHPC Multi-Agent HPC Environment Setup
+🧬 VibeCodeHPC Çoklu Ajan HPC Ortam Kurulumu
 
-使用方法:
-  $0 [ワーカー数(PM除く)] [オプション]
+Kullanım:
+  $0 [işçi sayısı (PM hariç)] [Seçenekler]
 
-パラメータ:
-  ワーカー数      : PM以外のエージェント総数 (最小: 3)
+Parametreler:
+  İşçi sayısı    : PM dışındaki ajanların toplamı (en az: 3)
   
-オプション:
-  --project <名前>  : プロジェクト名を指定（例: GEMM, MatMul）
-  --hooks <v2|v3>  : hooksバージョンを指定（デフォルト: v3）
-  --periodic-enter <秒> : 定期Enter送信間隔を指定（デフォルト: 60秒、0で無効）
-  --clean-only     : 既存セッションのクリーンアップのみ実行
-  --dry-run        : 実際のセットアップを行わずに計画を表示
-  --help           : このヘルプを表示
+Seçenekler:
+  --project <ad>         : Proje adı (ör: GEMM, MatMul)
+  --hooks <v2|v3>        : hooks sürümü (varsayılan: v3)
+  --periodic-enter <sn>  : Periyodik Enter aralığı (varsayılan: 60 sn, 0=kapalı)
+  --clean-only           : Sadece mevcut oturumları temizle
+  --dry-run              : Gerçek kurulum yapmadan planı göster
+  --help                 : Bu yardımı göster
 
-例:
-  $0 11                    # デフォルト名 (Team1_PM, Team1_Workers1)
-  $0 11 --project GEMM     # プロジェクト名指定 (GEMM_PM, GEMM_Workers1)
-  $0 11 --hooks v2         # hooks v2を使用
-  $0 --clean-only          # クリーンアップのみ
-  $0 --dry-run 11          # 11ワーカー構成の計画表示
+Örnek:
+  $0 11                    # Varsayılan adlar (Team1_PM, Team1_Workers1)
+  $0 11 --project GEMM     # Proje adı (GEMM_PM, GEMM_Workers1)
+  $0 11 --hooks v2         # hooks v2 kullan
+  $0 --clean-only          # Sadece temizlik
+  $0 --dry-run 11          # 11 işçili yapı planını göster
 
-セッション名の命名規則:
-  デフォルト: Team1_PM, Team1_Workers1, Team1_Workers2...
-  プロジェクト指定: <ProjectName>_PM, <ProjectName>_Workers1...
+Oturum adlandırma kuralları:
+  Varsayılan: Team1_PM, Team1_Workers1, Team1_Workers2...
+  Proje adıyla: <ProjectName>_PM, <ProjectName>_Workers1...
 
-参考構成例（実際の配置はPMが決定）:
-  2人: SE(1) + PG(1) ※最小構成
-  6人: SE(2) + PG(3) + CD(1)
-  8人: SE(2) + PG(5) + CD(1)
-  11人: SE(2) + PG(8) + CD(1)
-  15人: SE(3) + PG(11) + CD(1)
+Örnek yapılandırmalar (nihai yerleşimi PM belirler):
+  2 kişi: SE(1) + PG(1) [en küçük yapı]
+  6 kişi: SE(2) + PG(3) + CD(1)
+  8 kişi: SE(2) + PG(5) + CD(1)
+  11 kişi: SE(2) + PG(8) + CD(1)
+  15 kişi: SE(3) + PG(11) + CD(1)
 EOF
 }
 
@@ -167,33 +167,33 @@ determine_session_names() {
 check_session_conflicts() {
     local conflicts=false
     
-    log_info "🔍 セッション名の衝突チェック中..."
+    log_info "🔍 Oturum adlarının çakışması kontrol ediliyor..."
     
     # PMセッションのチェック
     if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
-        log_error "❌ セッション '$PM_SESSION' は既に存在します"
+        log_error "❌ '$PM_SESSION' oturumu zaten mevcut"
         conflicts=true
     fi
     
     # ワーカーセッションのチェック
     if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
-        log_error "❌ セッション '$WORKER_SESSION' は既に存在します"
+        log_error "❌ '$WORKER_SESSION' oturumu zaten mevcut"
         conflicts=true
     fi
     
     if [ "$conflicts" = true ]; then
         echo ""
-        echo "既存のセッション一覧:"
-        tmux list-sessions 2>/dev/null || echo "セッションなし"
+        echo "Mevcut oturumlar:"
+        tmux list-sessions 2>/dev/null || echo "Oturum yok"
         echo ""
-        echo "対処方法:"
-        echo "1. 別のプロジェクト名を指定: $0 $1 --project <別の名前>"
-        echo "2. 既存セッションを削除: tmux kill-session -t $PM_SESSION"
-        echo "3. --clean-only オプションで古いセッションをクリーンアップ"
+        echo "Çözüm yolları:"
+        echo "1. Başka bir proje adı verin: $0 $1 --project &lt;yeni_ad&gt;"
+        echo "2. Mevcut oturumu silin: tmux kill-session -t $PM_SESSION"
+        echo "3. --clean-only ile eski oturumları temizleyin"
         return 1
     fi
     
-    log_success "✅ セッション名の衝突なし"
+    log_success "✅ Oturum adı çakışması yok"
     return 0
 }
 
@@ -213,16 +213,16 @@ handle_existing_sessions() {
 
 # PMセッション作成
 create_pm_session() {
-    log_info "📺 PMセッション作成中: $PM_SESSION"
+    log_info "📺 PM oturumu oluşturuluyor: $PM_SESSION"
     
     # 新しいPMセッション作成
     tmux new-session -d -s "$PM_SESSION" -n "project-manager"
     
     # セッションが作成されたか確認
     if ! tmux has-session -t "$PM_SESSION" 2>/dev/null; then
-        log_error "${PM_SESSION}の作成に失敗しました"
-        log_info "既存のセッション一覧:"
-        tmux list-sessions || echo "セッションなし"
+        log_error "${PM_SESSION} oluşturulamadı"
+        log_info "Mevcut oturumlar:"
+        tmux list-sessions || echo "Oturum yok"
         return 1
     fi
     
@@ -238,17 +238,17 @@ create_pm_session() {
     tmux send-keys -t "${PM_SESSION}:project-manager" "  export PS1='(\[\033[1;35m\]PM\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ '" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "fi" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "clear" C-m
-    tmux send-keys -t "${PM_SESSION}:project-manager" "echo '=== PM (Project Manager) エージェント ==='" C-m
-    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'VibeCodeHPC HPC最適化システム'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo '=== PM (Proje Yöneticisi) Ajanı ==='" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'VibeCodeHPC HPC optimizasyon sistemi'" C-m
     if [ -n "$PROJECT_NAME" ] && [ "$USE_DEFAULT_NAMES" = false ]; then
-        tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'プロジェクト: ${PROJECT_NAME}'" C-m
+        tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'Proje: ${PROJECT_NAME}'" C-m
     fi
-    tmux send-keys -t "${PM_SESSION}:project-manager" "echo '役割: プロジェクト管理・要件定義'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'Rol: Proje yönetimi ve gereksinim tanımı'" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "echo ''" C-m
-    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'エージェント起動コマンド:'" C-m
+    tmux send-keys -t "${PM_SESSION}:project-manager" "echo 'Ajan başlatma komutu:'" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "echo './start_PM.sh'" C-m
     
-    log_success "✅ PMセッション作成完了"
+    log_success "✅ PM oturumu oluşturuldu"
 }
 
 # 状態表示pane更新関数生成
@@ -262,10 +262,9 @@ generate_status_display_script() {
 
 while true; do
     clear
-    echo "[VibeCodeHPC エージェント配置図]"
+    echo "[VibeCodeHPC Ajan Yerleşim Şeması]"
     echo "================================"
     
-    # エージェント配置を表示
     # TODO: 実際の配置に基づいて動的に生成
     
     sleep 5
@@ -873,8 +872,8 @@ main() {
     fi
     
     echo ""
-    echo "現在のtmuxセッション一覧:"
-    tmux list-sessions || echo "セッションなし"
+    echo "Mevcut tmux oturumları:"
+    tmux list-sessions || echo "Oturum yok"
 }
 
 main "$@"
