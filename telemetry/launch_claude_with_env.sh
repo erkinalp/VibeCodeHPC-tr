@@ -59,7 +59,7 @@ TEAM_ID=$(echo $AGENT_ID | grep -oE '^[A-Z]+[0-9]+(\.[0-9]+)?' | sed 's/^[A-Z]*/
 export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},agent.id=${AGENT_ID},agent.type=${AGENT_TYPE},team.id=${TEAM_ID},working.dir=${RELATIVE_DIR}"
 
 
-# OTEL_EXPORTER_OTLP_PROTOCOLが未設定の場合はデフォルト値を設定
+# OTEL_EXPORTER_OTLP_PROTOCOL ayarlı değilse varsayılan değeri kullan
 if [ -z "$OTEL_EXPORTER_OTLP_PROTOCOL" ]; then
     export OTEL_EXPORTER_OTLP_PROTOCOL="grpc"
     echo "⚠️  OTEL_EXPORTER_OTLP_PROTOCOL not set, using default: grpc"
@@ -76,18 +76,16 @@ echo "  OTEL_EXPORTER_OTLP_ENDPOINT=$OTEL_EXPORTER_OTLP_ENDPOINT"
 echo "  OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES"
 echo ""
 
-# bash/zsh対応プロンプト設定
+# bash/zsh uyumlu prompt ayarı
 if [ -n "$ZSH_VERSION" ]; then
     export PROMPT=$'%{\033[1;33m%}('${AGENT_ID}')%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '
 elif [ -n "$BASH_VERSION" ]; then
     export PS1="(\[\033[1;33m\]${AGENT_ID}\[\033[0m\]) \[\033[1;32m\]\w\[\033[0m\]\$ "
 fi
 
-# サブエージェントのエイリアスを設定
 alias claude-p="$TELEMETRY_DIR/claude_p_wrapper.sh"
 echo "📊 Sub-agent tracking enabled. Use 'claude-p' instead of 'claude -p'"
 
-# 現在のディレクトリを確認（デバッグ用）
 CURRENT_DIR="$(pwd 2>&1)"
 if [ $? -ne 0 ]; then
     echo "❌ FATAL ERROR: Cannot determine current directory"
