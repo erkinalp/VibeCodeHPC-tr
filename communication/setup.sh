@@ -42,7 +42,7 @@ log_error() {
 # 使用方法表示
 show_usage() {
     cat << EOF
-🧬 VibeCodeHPC Çoklu Ajan HPC Ortam Kurulumu
+🧬 VibeCodeHPC çok aracılı YBH (yüksek başarımlı hesaplama) ortam kurulumu
 
 Kullanım:
   $0 [işçi sayısı (PM hariç)] [Seçenekler]

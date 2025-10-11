@@ -127,7 +127,7 @@ def get_required_files(agent_id):
     """Ajan ID'sinden gerekli dosya listesini üret"""
     common_files = [
         "CLAUDE.md",
-        "requirement_definition.md（ユーザの意図を理解）",
+        "requirement_definition.md (kullanıcı niyetini anlama)",
         "Agent-shared/directory_pane_map.txt"
     ]
     
@@ -135,34 +135,34 @@ def get_required_files(agent_id):
     
     role_files = {
         "PM": [
-            "instructions/PM.md（詳細な役割定義）", 
-            "_remote_info/（スパコン接続情報）", 
-            "Agent-shared/max_agent_number.txt（利用可能ワーカー数）",
-            "Agent-shared/agent_and_pane_id_table.jsonl（エージェント稼働状況）",
-            "Agent-shared/stop_thresholds.json（終了閾値管理）",
-            "Agent-shared/artifacts_position.md（成果物配置ルール）",
-            "User-shared/visualizations/context_usage_*.png（auto-compact監視）",
-            "User-shared/reports/（最新レポート、重複作成防止）"
+            "instructions/PM.md (ayrıntılı rol tanımı)", 
+            "_remote_info/ (uzak sistem bağlantı bilgileri)", 
+            "Agent-shared/max_agent_number.txt (kullanılabilir işçi sayısı)",
+            "Agent-shared/agent_and_pane_id_table.jsonl (ajan çalışma durumu)",
+            "Agent-shared/stop_thresholds.json (bitiş eşiği yönetimi)",
+            "Agent-shared/artifacts_position.md (çıktı yerleşim kuralları)",
+            "User-shared/visualizations/context_usage_*.png (auto-compact izleme)",
+            "User-shared/reports/ (son rapor, yinelenmeyi önleme)"
         ],
         "SE": [
-            "instructions/SE.md（詳細な役割定義）", 
-            "Agent-shared/report_hierarchy.md（レポート階層、既に読んでいるはず）",
-            "Agent-shared/budget/budget_termination_criteria.md（予算終了条件）",
-            "Agent-shared/compile_warning_workflow.md（PG支援用）",
-            "Agent-shared/sub_agent_usage.md（トークン節約手法）",
-            "User-shared/visualizations/sota/project/（最新PNG確認）",
-            "Flow/またはプロジェクト階層のChangeLog.md群（PG活動把握）"
+            "instructions/SE.md (ayrıntılı rol tanımı)", 
+            "Agent-shared/report_hierarchy.md (rapor hiyerarşisi)",
+            "Agent-shared/budget/budget_termination_criteria.md (bütçe bitiş koşulları)",
+            "Agent-shared/compile_warning_workflow.md (PG desteği için)",
+            "Agent-shared/sub_agent_usage.md (token tasarruf yöntemi)",
+            "User-shared/visualizations/sota/project/ (güncel PNG kontrolü)",
+            "Flow/ veya proje hiyerarşisindeki ChangeLog.md grubu (PG faaliyetlerinin takibi)"
         ],
         "PG": [
-            "instructions/PG.md（詳細な役割定義）", 
-            "_remote_info/（SSH接続情報、必要に応じて）",
-            "Agent-shared/strategies/auto_tuning/（最適化戦略、既に読んでいるはず）",
-            "Agent-shared/compile_warning_workflow.md（警告対処法）",
-            "Agent-shared/artifacts_position.md（成果物配置ルール）",
-            "hardware_info.md（該当階層、理論性能目標）", 
-            "BaseCode/（オリジナルコード、相対パスで）",
-            "../*/ChangeLog.md（他PGの成果、visible_path経由）",
-            "User-shared/visualizations/sota/family/（自分の技術領域）"
+            "instructions/PG.md (ayrıntılı rol tanımı)", 
+            "_remote_info/ (SSH bağlantı bilgileri, gerekirse)",
+            "Agent-shared/strategies/auto_tuning/ (optimizasyon stratejileri)",
+            "Agent-shared/compile_warning_workflow.md (uyarı işleme yöntemi)",
+            "Agent-shared/artifacts_position.md (çıktı yerleşim kuralları)",
+            "hardware_info.md (ilgili katman, kuramsal performans hedefi)", 
+            "BaseCode/ (orijinal kod, göreli yol)",
+            "../*/ChangeLog.md (diğer PG çıktıları, visible_path üzerinden)",
+            "User-shared/visualizations/sota/family/ (kendi teknik alanın)"
         ],
         "CD": [
             "instructions/CD.md（詳細な役割定義）", 
@@ -203,12 +203,12 @@ Ajan {agent_id} olarak aşağıdaki kapanış öncesi görevleri uygulayın:
 2. Gereksinim kontrolü ve son görevlerin icrası:
    - requirement_definition.md içindeki tüm maddeleri kontrol et
    - Devam eden görevleri uygun bir noktada tamamla
-   - ChangeLog.mdの最終更新
+   - ChangeLog.md'nin son güncellenmesi
    - Çalışma dizinini düzenle
    - Çıktıları doğrula
 
 3. Nihai rapor:
-   agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
+   agent_send.sh PM "[{agent_id}] Kapanış hazırlığı tamam. Başlıca çıktılar: [buraya yaz]"
 
 その後、PMがagent.sendで送る、ユーザ権限の「ESC」コマンドによる強制中止か、続投\転属などの指示を待つために
 sleep 等で待機した後、ドキュメント等を見返すこと。待つ秒数は最初は10秒程度から、徐々に長くしていくこと。

@@ -57,12 +57,12 @@ def main():
                 # ssh_sftp_sessions.json var mı kontrol et
                 has_sessions = check_ssh_sessions_file()
                 
-                warning_message = f"""⚠️ Bash aracıyla doğrudan ssh/sftp çalıştırılması tespit edildi."""
+                warning_message = f"""⚠️ Bash aracıyla doğrudan ssh/sftp çalıştırılması tespit edildi.
 
 Desktop Commander MCP kullanımını şiddetle öneririz:
 • /Agent-shared/ssh_sftp_guide.md dosyasına bakın
 • ssh_sftp_sessions.json ile oturum yönetimi gereklidir
-{"• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin" if has_sessions else "• Oturum dosyası oluşturulmamış - start_process ile başlayın"}
+{("• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin") if has_sessions else ("• Oturum dosyası oluşturulmamış - start_process ile başlayın")}
 
 Gerekçe:
 1. İki aşamalı doğrulama sorunlarının önlenmesi (bir kez bağlanınca yeniden doğrulama gerekmeyebilir)
