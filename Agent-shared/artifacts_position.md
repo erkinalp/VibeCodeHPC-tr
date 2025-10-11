@@ -1,164 +1,165 @@
-# 📋 VibeCodeHPC 成果物配置ガイド
+# 📋 VibeCodeHPC Çıktı Yerleşim Kılavuzu
 
-## 核心原則
-- ChangeLog.md中心設計: 進捗情報の一元管理
-- 階層配置の明確化: Agent-shared vs 各エージェント直下
-- 実在するファイルのみ記載
+## Temel İlkeler
+- ChangeLog.md merkezli tasarım: İlerleme bilgilerinin merkezi yönetimi
+- Hiyerarşik yerleşimin açıklığa kavuşturulması: Agent-shared vs her aracının kendi dizini
+- Yalnızca var olan dosyaların belirtilmesi
 
-## 必須ドキュメント
+## Zorunlu Belgeler
 
-### プロジェクトルート直下
+### Proje kök dizini
 ```
 VibeCodeHPC/
-├── CLAUDE.md                    # 共通ルール（writer:PM, reader:all）
-├── requirement_definition.md    # プロジェクト要件（writer:PM, reader:all）
-├── directory_pane_map.md        # エージェント配置とtmuxペイン管理（writer:PM, reader:all）
-├── sota_project.txt             # Project階層SOTA（writer:PG, reader:all）
-├── GitHub/                      # CD管理（writer:CD, reader:all）
-│   └── [匿名版プロジェクトコピー]
-└── User-shared/                 # ユーザ向け成果物（writer:SE/PM, reader:User）
-    ├── final_report.md          # 最終報告書
-    ├── reports/                 # 統合レポート
-    └── visualizations/          # グラフ・図表
+├── CLAUDE.md                    # Ortak kurallar (yazar:PM, okuyucu:tümü)
+├── requirement_definition.md    # Proje gereksinimleri (yazar:PM, okuyucu:tümü)
+├── directory_pane_map.md        # Aracı yerleşimi ve tmux pane yönetimi (yazar:PM, okuyucu:tümü)
+├── sota_project.txt             # Project katmanı SOTA (yazar:PG, okuyucu:tümü)
+├── GitHub/                      # CD yönetimi (yazar:CD, okuyucu:tümü)
+│   └── [anonim proje kopyası]
+└── User-shared/                 # Kullanıcıya yönelik çıktılar (yazar:SE/PM, okuyucu:Kullanıcı)
+    ├── final_report.md          # Nihai rapor
+    ├── reports/                 # Birleşik raporlar
+    └── visualizations/          # Grafikler ve çizimler
 ```
 
-## Agent-shared階層
+## Agent-shared Katmanı
 
-### Agent-shared/ (全エージェント参照)
+### Agent-shared/ (tüm aracılar tarafından başvurulan)
 ```
 Agent-shared/
-├── change_log/                  # ChangeLog関連ファイル
-│   ├── ChangeLog_format.md      # 基本フォーマット定義（reader:all）
-│   ├── ChangeLog_format_PM_override_template.md # PMオーバーライドテンプレート（writer:PM, reader:SE,PG）
-│   ├── changelog_analysis_template.py # 解析テンプレート（writer:SE, reader:all）
-│   └── changelog_helper.py      # ChangeLog記録ヘルパー（writer:SE, reader:PG,SE）
-├── budget/                      # 予算管理関連
-│   ├── budget_termination_criteria.md # 予算ベース終了条件（reader:all）
-│   ├── budget_tracker.py        # 予算集計スクリプト（writer:SE, reader:PM,SE）
-│   └── usage.md                 # 予算システム使用ガイド（reader:PM,SE）
-├── sota/                        # SOTA管理・可視化
-│   ├── sota_management.md       # SOTA管理システム仕様（reader:all）
-│   ├── sota_checker.py          # SOTA判定・記録スクリプト（writer:SE, reader:all）
-│   ├── sota_checker_usage.md    # SOTA判定ツール使用法（reader:all）
-│   ├── sota_visualizer.py       # SOTA可視化ツール（writer:SE, reader:SE）
-│   ├── sota_visualizer_usage.md # 可視化ツール使用法（reader:SE）
-│   └── sota_grouping_config_template.yaml # グループ設定テンプレート（writer:SE, reader:SE）
-├── strategies/                  # 最適化戦略
+├── change_log/                  # ChangeLog ile ilgili dosyalar
+│   ├── ChangeLog_format.md      # Temel format tanımı (okuyucu:tümü)
+│   ├── ChangeLog_format_PM_override_template.md # PM geçersiz kılma şablonu (yazar:PM, okuyucu:SE,PG)
+│   ├── changelog_analysis_template.py # Analiz şablonu (yazar:SE, okuyucu:tümü)
+│   └── changelog_helper.py      # ChangeLog kayıt yardımcısı (yazar:SE, okuyucu:PG,SE)
+├── budget/                      # Bütçe yönetimi ile ilgili
+│   ├── budget_termination_criteria.md # Bütçe tabanlı sonlandırma kriterleri (okuyucu:tümü)
+│   ├── budget_tracker.py        # Bütçe toplama betiği (yazar:SE, okuyucu:PM,SE)
+│   └── usage.md                 # Bütçe sistemi kullanım kılavuzu (okuyucu:PM,SE)
+├── sota/                        # SOTA yönetimi ve görselleştirme
+│   ├── sota_management.md       # SOTA yönetim sistemi özellikleri (okuyucu:tümü)
+│   ├── sota_checker.py          # SOTA belirleme ve kayıt betiği (yazar:SE, okuyucu:tümü)
+│   ├── sota_checker_usage.md    # SOTA belirleme aracı kullanımı (okuyucu:tümü)
+│   ├── sota_visualizer.py       # SOTA görselleştirme aracı (yazar:SE, okuyucu:SE)
+│   ├── sota_visualizer_usage.md # Görselleştirme aracı kullanımı (okuyucu:SE)
+│   └── sota_grouping_config_template.yaml # Grup yapılandırma şablonu (yazar:SE, okuyucu:SE)
+├── strategies/                  # Optimizasyon stratejileri
 │   └── auto_tuning/
-│       ├── typical_hpc_code.md  # HPC最適化の典型例（writer:PM, reader:all）
-│       └── evolutional_flat_dir.md # 進化的探索戦略（writer:PM, reader:all）
-├── directory_pane_map_example.md # エージェント配置テンプレート（reader:PM）
-├── hardware_info_guide.md       # ハードウェア情報収集ガイド（writer:SE, reader:all）
-├── compile_warning_workflow.md  # コンパイル警告処理フロー（reader:PG）
-├── ssh_sftp_guide.md            # SSH/SFTP接続・実行ガイド（reader:PM,SE,PG）
-├── sub_agent_usage.md           # サブエージェント使用法（reader:all）
-├── report_hierarchy.md          # レポート階層構成（reader:SE）
-├── PG_visible_dir_format.md     # PG参照許可フォーマット（reader:SE,PG）
-├── artifacts_position.md        # 成果物配置ルール（本ファイル）
-├── project_start_time.txt       # プロジェクト開始時刻（writer:PM, reader:all）
-├── agent_and_pane_id_table.jsonl # エージェント管理表（writer:PM,SE, reader:all）
-└── stop_thresholds.json         # STOP回数閾値設定（writer:PM, reader:all）
+│       ├── typical_hpc_code.md  # HPC optimizasyonu tipik örnekleri (yazar:PM, okuyucu:tümü)
+│       └── evolutional_flat_dir.md # Evrimsel arama stratejisi (yazar:PM, okuyucu:tümü)
+├── directory_pane_map_example.md # Aracı yerleşim şablonu (okuyucu:PM)
+├── hardware_info_guide.md       # Donanım bilgisi toplama kılavuzu (yazar:SE, okuyucu:tümü)
+├── compile_warning_workflow.md  # Derleme uyarısı işleme akışı (okuyucu:PG)
+├── ssh_sftp_guide.md            # SSH/SFTP bağlantı ve yürütme kılavuzu (okuyucu:PM,SE,PG)
+├── sub_agent_usage.md           # Alt aracı kullanımı (okuyucu:tümü)
+├── report_hierarchy.md          # Rapor hiyerarşi yapısı (okuyucu:SE)
+├── PG_visible_dir_format.md     # PG başvuru izni formatı (okuyucu:SE,PG)
+├── artifacts_position.md        # Çıktı yerleşim kuralları (bu dosya)
+├── project_start_time.txt       # Proje başlangıç zamanı (yazar:PM, okuyucu:tümü)
+├── agent_and_pane_id_table.jsonl # Aracı yönetim tablosu (yazar:PM,SE, okuyucu:tümü)
+└── stop_thresholds.json         # STOP sayısı eşik ayarları (yazar:PM, okuyucu:tümü)
 ```
 
-### _remote_info/ (スパコン・ユーザ固有)
+### _remote_info/ (süper bilgisayar ve kullanıcıya özgü)
 ```
 _remote_info/
-└── Flow/                        # スパコン固有設定
-    ├── command_list.md          # 実行コマンド一覧
-    ├── node_resource_groups.md  # リソースグループ定義
-    ├── type2_compiler.md        # コンパイラ情報
-    ├── user_info.md             # ユーザ環境情報（reader:all、GitHub公開時は匿名化必須）
-    └── sample_bash.sh           # バッチジョブスクリプトサンプル（reader:PG）
+└── Flow/                        # Süper bilgisayara özgü ayarlar
+    ├── command_list.md          # Yürütme komutları listesi
+    ├── node_resource_groups.md  # Kaynak grubu tanımları
+    ├── type2_compiler.md        # Derleyici bilgileri
+    ├── user_info.md             # Kullanıcı ortam bilgileri (okuyucu:tümü, GitHub yayımında anonimleştirme zorunlu)
+    └── sample_bash.sh           # Toplu iş betiği örneği (okuyucu:PG)
 ```
 
-### communication/ (通信システム)
+### communication/ (iletişim sistemi)
 ```
 communication/
-├── agent_send.sh                # エージェント間メッセージ送信
-├── setup.sh                     # tmuxセッション作成・初期化
-├── start_agent.sh               # エージェント個別起動
+├── agent_send.sh                # Aracılar arası mesaj gönderimi
+├── setup.sh                     # tmux oturumu oluşturma ve başlatma
+├── start_agent.sh               # Aracı tekil başlatma
 └── logs/
-    └── send_log.txt             # 送信履歴（自動生成）
+    └── send_log.txt             # Gönderim geçmişi (otomatik oluşturulur)
 ```
 
-## 各エージェント直下
+## Her Aracının Kendi Dizini
 
-### ハードウェア階層直下
+### Donanım katmanı dizini
 ```
 Flow/TypeII/single-node/
-├── hardware_info.md            # ハードウェア仕様（理論演算性能含む）（writer:SE/PG, reader:all）
-├── sota_hardware.txt           # Hardware階層SOTA（writer:PG, reader:all）
-├── intel2024/                  # コンパイラ環境階層
-│   └── setup.md                # 環境構築手順（writer:最初のPG, reader:all PGs）
-└── gcc11.3.0/                  # コンパイラ環境階層
-    └── setup.md                # 環境構築手順（writer:最初のPG, reader:all PGs）
+├── hardware_info.md            # Donanım özellikleri (teorik hesaplama performansı dahil) (yazar:SE/PG, okuyucu:tümü)
+├── sota_hardware.txt           # Hardware katmanı SOTA (yazar:PG, okuyucu:tümü)
+├── intel2024/                  # Derleyici ortam katmanı
+│   └── setup.md                # Ortam kurulum prosedürü (yazar:ilk PG, okuyucu:tüm PG'ler)
+└── gcc11.3.0/                  # Derleyici ortam katmanı
+    └── setup.md                # Ortam kurulum prosedürü (yazar:ilk PG, okuyucu:tüm PG'ler)
 ```
 
-### PG階層（並列化モジュール）
+### PG Katmanı (paralelleştirme modülü)
 ```
-OpenMP/ または MPI/ など（PGが作業するディレクトリ）
-├── ChangeLog.md                 # 【必須】全情報統合（→Agent-shared/change_log/ChangeLog_format.md参照）
-├── visible_path_PG1.1.txt       # 参照許可パス一覧（writer:SE, reader:PG）※SEが作成時のみ
-├── sota_local.txt               # Local階層SOTA（writer:PG, reader:all）
-├── optimized_code_v*.c          # 最適化コード各バージョン（例: matmul_v1.2.3.c）
-├── batch_job_v*.sh              # バッチジョブスクリプト各バージョン
-└── results/                     # 実行結果ファイル（必要時作成）
+OpenMP/ veya MPI/ vb. (PG'nin çalıştığı dizin)
+├── ChangeLog.md                 # 【ZORUNLU】Tüm bilgilerin birleştirilmesi (→Agent-shared/change_log/ChangeLog_format.md'ye bakın)
+├── visible_path_PG1.1.txt       # Başvuru izni yol listesi (yazar:SE, okuyucu:PG) ※Yalnızca SE oluşturduğunda
+├── sota_local.txt               # Local katmanı SOTA (yazar:PG, okuyucu:tümü)
+├── optimized_code_v*.c          # Optimize edilmiş kod her sürüm (örn: matmul_v1.2.3.c)
+├── batch_job_v*.sh              # Toplu iş betiği her sürüm
+└── results/                     # Yürütme sonuç dosyaları (gerektiğinde oluşturulur)
     ├── job_12345.out
     └── job_12345.err
 ```
 
-## 情報統合の考え方
+## Bilgi Birleştirme Yaklaşımı
 
-### ChangeLog.mdに統合される情報
-ChangeLog.mdは以下の全情報を一元管理：
-- **バージョン履歴**: 各試行のバージョン番号（v1.0.0形式）
-- **変更内容**: 実装した最適化手法の説明
-- **性能データ**: GFLOPS、効率、実行時間
-- **コンパイル情報**: 成功/失敗、警告
-- **ジョブ情報**: ジョブID、実行状態、リソース使用量
-- **SOTA達成状況**: local/family/hardware/project各階層
+### ChangeLog.md'de birleştirilen bilgiler
+ChangeLog.md aşağıdaki tüm bilgileri merkezi olarak yönetir:
+- **Sürüm geçmişi**: Her denemenin sürüm numarası (v1.0.0 formatı)
+- **Değişiklik içeriği**: Uygulanan optimizasyon tekniklerinin açıklaması
+- **Performans verileri**: GFLOPS, verimlilik, yürütme süresi
+- **Derleme bilgileri**: Başarı/başarısızlık, uyarılar
+- **İş bilgileri**: İş ID'si, yürütme durumu, kaynak kullanımı
+- **SOTA başarı durumu**: local/family/hardware/project her katman
 
-### 独立ファイルとして管理するもの
-- **実行結果ファイル**: サイズが大きい（results/*.out, results/*.err）
-- **環境構築手順**: コンパイラ環境階層で共有（setup.md）
-- **SOTA記録**: 高速アクセス用（sota_local.txt等）
+### Bağımsız dosya olarak yönetilen öğeler
+- **Yürütme sonuç dosyaları**: Boyutu büyük (results/*.out, results/*.err)
+- **Ortam kurulum prosedürleri**: Derleyici ortam katmanında paylaşılan (setup.md)
+- **SOTA kayıtları**: Hızlı erişim için (sota_local.txt vb.)
 
-## 取得・解析方法
+## Alma ve Analiz Yöntemleri
 
-### ChangeLog.md解析
+### ChangeLog.md Analizi
 ```bash
-# バージョン一覧取得
+# Sürüm listesini alma
 grep "^### v" ChangeLog.md | sed 's/### //'
 
-# 最新性能データ取得（最初のperformance行）
+# En son performans verilerini alma (ilk performance satırı)
 grep -m1 "performance:" ChangeLog.md
 
-# ジョブID一覧取得
+# İş ID listesini alma
 grep "id:" ChangeLog.md | awk '{print $3}'
 
-# SOTA達成の確認
+# SOTA başarısını doğrulama
 grep "sota" ChangeLog.md -A1 | grep "scope:"
 ```
 
-### SOTA情報確認
+### SOTA Bilgisi Doğrulama
 ```bash
-# 各階層のSOTA確認（ファイルが存在する場合）
-cat sota_local.txt                           # PGディレクトリ内
-cat ../../../sota_hardware.txt               # ハードウェア階層
-cat /path/to/project/sota_project.txt        # プロジェクトルート
+# Her katmandaki SOTA'yı doğrulama (dosya varsa)
+cat sota_local.txt                           # PG dizini içinde
+cat ../../../sota_hardware.txt               # Donanım katmanı
+cat /path/to/project/sota_project.txt        # Proje kök dizini
 ```
 
-### Pythonツール活用
+### Python Araçlarının Kullanımı
 ```bash
-# ChangeLog記録ヘルパー（PG用）
+# ChangeLog kayıt yardımcısı (PG için)
 python3 /path/to/Agent-shared/change_log/changelog_helper.py \
-  -v 1.0.0 -c "OpenMP並列化実装" -m "初回実装"
+  -v 1.0.0 -c "OpenMP paralelleştirme uygulaması" -m "İlk uygulama"
 
-# SOTA可視化（SE用）  
+# SOTA görselleştirme (SE için)  
 python3 /path/to/Agent-shared/sota/sota_visualizer.py --level project
 
-# 予算集計（PM用）
+# Bütçe toplama (PM için)
 python3 /path/to/Agent-shared/budget/budget_tracker.py --summary
 ```
 
-**注意**: パスは絶対パスまたはプロジェクトルートからの相対パスで指定すること。
+**Dikkat**: Yollar mutlak yol veya proje kök dizininden göreli yol olarak belirtilmelidir.
+

@@ -1,180 +1,181 @@
-# 予算基準によるプロジェクト終了条件
+# Bütçe Kriterine Dayalı Proje Sonlandırma Koşulları
 
-## 概要
-プロジェクトの終了判断をPMの主観ではなく、スパコン予算（計算ポイント）の消費状況に基づいて客観的に行う。
+## Genel Bakış
+Projenin sonlandırma kararını PM'nin öznel yargısına değil, süper bilgisayar bütçesinin (hesaplama noktası) tüketim durumuna dayalı olarak nesnel bir şekilde vermek.
 
-## 基本原則
-- **主観的判断の排除**: PMの「そろそろ終わりにしよう」という主観的判断を完全に排除
-- **透明性の確保**: 全エージェントが終了条件と現在のフェーズを把握可能
-- **段階的対応**: 予算消費率に応じた段階的なアクション
+## Temel İlkeler
+- **Öznel yargının ortadan kaldırılması**: PM'nin "artık bitirme zamanı" gibi öznel yargısını tamamen ortadan kaldırmak
+- **Şeffaflığın sağlanması**: Tüm aracıların sonlandırma koşullarını ve mevcut fazı anlayabilmesi
+- **Aşamalı müdahale**: Bütçe tüketim oranına göre aşamalı eylem
 
-## 予算消費による段階的対応
+## Bütçe Tüketimine Göre Aşamalı Müdahale
 
-### 🔵 フェーズ0: 未達成期（0-最低消費量）
-- **状態**: 最低消費量に未到達
-- **問題**: 基本動作確認すら完了していない
-- **対応**:
-  - ログインノード実行の疑いを即座に調査
-  - ジョブ投入方法の確認
-  - 環境構築の問題を優先解決
-  - PMの「そろそろ終わり」判断を防ぐため積極的に実行
+### 🔵 Faz 0: Ulaşılmamış Dönem (0-minimum tüketim miktarı)
+- **Durum**: Minimum tüketim miktarına ulaşılmamış
+- **Sorun**: Temel işlem doğrulaması bile tamamlanmamış
+- **Müdahale**:
+  - Giriş düğümü yürütme şüphesini hemen araştır
+  - İş gönderme yöntemini doğrula
+  - Ortam kurulum sorunlarını öncelikle çöz
+  - PM'nin "artık bitirme zamanı" yargısını önlemek için aktif olarak yürüt
 
-### 🟢 フェーズ1: 積極的探索期（最低消費量-想定消費量の50%）
-- **状態**: 基本動作確認完了、予算に余裕あり
-- **戦略**: 
-  - 新しい最適化手法を積極的に試行
-  - 複数のパラメータを広範囲に探索
-  - 並列度の高い実験を推奨
+### 🟢 Faz 1: Aktif Keşif Dönemi (minimum tüketim-beklenen tüketimin %50'si)
+- **Durum**: Temel işlem doğrulaması tamamlandı, bütçede bol marj var
+- **Strateji**: 
+  - Yeni optimizasyon tekniklerini aktif olarak dene
+  - Birden çok parametreyi geniş bir aralıkta keşfet
+  - Yüksek paralellik dereceli deneyleri öner
 
-### 🟡 フェーズ2: 効率重視期（想定消費量の50%-80%）
-- **状態**: 順調に進行中
-- **戦略**:
-  - 成果の出ている手法に集中
-  - パラメータチューニングの収束を意識
-  - コスト効率を重視
+### 🟡 Faz 2: Verimlilik Odaklı Dönem (beklenen tüketimin %50-80'i)
+- **Durum**: Sorunsuz ilerleme
+- **Strateji**:
+  - Sonuç veren tekniklere odaklan
+  - Parametre ayarlamasının yakınsamasını göz önünde bulundur
+  - Maliyet verimliliğini vurgula
 
-### 🟠 フェーズ3: 収束期（想定消費量の80%-100%）
-- **状態**: 想定消費量に接近
-- **戦略**:
-  - 最も有望な最適化のみ継続
-  - 新規実装を慎重に判断
-  - 成果のまとめを開始
+### 🟠 Faz 3: Yakınsama Dönemi (beklenen tüketimin %80-100'ü)
+- **Durum**: Beklenen tüketim miktarına yaklaşılıyor
+- **Strateji**:
+  - Yalnızca en umut verici optimizasyona devam et
+  - Yeni uygulamaları dikkatle değerlendir
+  - Sonuçların özetlenmesine başla
 
-### 🔴 フェーズ4: 警戒期（想定消費量-デッドラインの90%）
-- **状態**: デッドラインに接近中
-- **アクション**:
-  - 新規ジョブは事前承認制
-  - 実行中ジョブの早期終了を検討
-  - 最終レポート準備
+### 🔴 Faz 4: Uyarı Dönemi (beklenen tüketim-son tarihin %90'ı)
+- **Durum**: Son tarihe yaklaşılıyor
+- **Eylem**:
+  - Yeni işler ön onay sistemine tabi
+  - Çalışan işlerin erken sonlandırılmasını değerlendir
+  - Nihai rapor hazırlığı
 
-### ⛔ フェーズ5: 強制終了（デッドラインの90%-100%）
-- **状態**: 予算上限間近
-- **アクション**:
-  - 新規ジョブ完全禁止
-  - 重要ジョブのみ完了待機
-  - 5分以内に全作業終了
+### ⛔ Faz 5: Zorunlu Sonlandırma (son tarihin %90-100'ü)
+- **Durum**: Bütçe üst sınırına yakın
+- **Eylem**:
+  - Yeni iş tamamen yasak
+  - Yalnızca önemli işlerin tamamlanmasını bekle
+  - Tüm çalışmaları 5 dakika içinde sonlandır
 
-## 予算追跡方法
+## Bütçe Takip Yöntemi
 
-### budget_history.mdの記録形式
+### budget_history.md Kayıt Formatı
 ```markdown
-## プロジェクト開始時
-- UTC時刻: 2025-01-30T10:00:00Z
-- 開始時used: 12,345 ポイント
-- 最低消費量: 100 ポイント（従来500→緩和）
-- 想定消費量: 1,000 ポイント
-- デッドライン: 1,500 ポイント
+## Proje başlangıcında
+- UTC zamanı: 2025-01-30T10:00:00Z
+- Başlangıç used: 12,345 nokta
+- Minimum tüketim miktarı: 100 nokta (eski 500→gevşetildi)
+- Beklenen tüketim: 1,000 nokta
+- Son tarih: 1,500 nokta
 
-## 最新確認時
-- UTC時刻: 2025-01-30T12:00:00Z
-- 現在のused: 12,845 ポイント
-- **本プロジェクトでの使用量: 500 ポイント**
-- 想定消費量に対する進捗: 50%
-- デッドラインに対する消費率: 25%
-- **現在フェーズ: 🟡 フェーズ2: 効率重視期**
+## En son doğrulama
+- UTC zamanı: 2025-01-30T12:00:00Z
+- Şu anki used: 12,845 nokta
+- **Bu projedeki kullanım: 500 nokta**
+- Beklenen tüketime göre ilerleme: %50
+- Son tarihe göre tüketim oranı: %25
+- **Mevcut faz: 🟡 Faz 2: Verimlilik Odaklı Dönem**
 ```
 
-### 監視コマンド（スパコン依存）
-- 不老: `charge`
-- その他: `_remote_info/command.md`参照
-- **注意**: 各スパコンで予算確認コマンドは異なるため、必ず事前確認すること
+### İzleme Komutu (süper bilgisayara bağlı)
+- Furo: `charge`
+- Diğerleri: `_remote_info/command.md`'ye bakın
+- **Dikkat**: Her süper bilgisayarda bütçe doğrulama komutu farklıdır, mutlaka önceden doğrulayın
 
-### 予算効率メトリクス
+### Bütçe Verimliliği Metrikleri
 ```
-効率スコア = (性能向上率) / (ポイント消費)
+Verimlilik skoru = (performans artış oranı) / (nokta tüketimi)
 
-判定基準:
-- 高効率: スコア > 0.1
-- 標準: 0.01 < スコア < 0.1  
-- 低効率: スコア < 0.01
+Değerlendirme kriterleri:
+- Yüksek verimlilik: Skor > 0.1
+- Standart: 0.01 < Skor < 0.1  
+- Düşük verimlilik: Skor < 0.01
 ```
 
-## エージェント別の対応
+## Aracılara Göre Müdahale
 
-### PM（予算管理の中心）
-- **5-10分ごと**に予算状況を確認
-- フェーズ移行時に全エージェントへ即座に通知
-- 予算消費率と効率スコアに基づくリソース再配分
-- 予算基準による客観的な終了決定（主観排除）
+### PM (bütçe yönetiminin merkezi)
+- **5-10 dakikada bir** bütçe durumunu doğrula
+- Faz geçişinde tüm aracılara hemen bildir
+- Bütçe tüketim oranı ve verimlilik skoruna dayalı kaynak yeniden tahsisi
+- Bütçe kriterine dayalı nesnel sonlandırma kararı (öznel yargının ortadan kaldırılması)
 
 ```bash
-# 予算確認と通知の自動化（コマンドはスパコンにより異なる）
-# 例: 不老の場合
+# Bütçe doğrulama ve bildirimin otomasyonu (komut süper bilgisayara göre değişir)
+# Örnek: Furo için
 current_usage=$(charge | grep "used" | awk '{print $2}')
 consumption_rate=$((current_usage * 100 / budget_limit))
 
-if [ $consumption_rate -ge 70 ] && [ $last_phase != "収束期" ]; then
-    agent_send.sh ALL "[PM] 予算消費率70%到達。フェーズ3:収束期に移行。新規実装を停止してください。"
+if [ $consumption_rate -ge 70 ] && [ $last_phase != "yakınsama dönemi" ]; then
+    agent_send.sh ALL "[PM] Bütçe tüketim oranı %70'e ulaştı. Faz 3: Yakınsama dönemine geçiliyor. Yeni uygulamaları durdurun."
 fi
 ```
 
-### SE（予算効率の分析）
-- 予算効率（ポイント/性能向上）を定期的に計算
-- 非効率なPGの特定と改善提案
-- 予算消費予測グラフの生成
-- フェーズ移行の妥当性を検証
+### SE (bütçe verimliliği analizi)
+- Bütçe verimliliğini (nokta/performans artışı) düzenli olarak hesapla
+- Verimsiz PG'leri tanımla ve iyileştirme öner
+- Bütçe tüketim tahmin grafiği oluştur
+- Faz geçişinin geçerliliğini doğrula
 
-### PG（予算意識した実装）
-- **ジョブ投入前に必ず予算フェーズを確認**
-- フェーズ3以降は新規実装禁止
-- フェーズ4では既存ジョブの結果確認のみ
-- 長時間ジョブは事前にPMへ相談
+### PG (bütçe bilinciyle uygulama)
+- **İş göndermeden önce mutlaka bütçe fazını doğrula**
+- Faz 3 ve sonrasında yeni uygulama yasak
+- Faz 4'te yalnızca mevcut işlerin sonuçlarını doğrula
+- Uzun süreli işler için önceden PM'ye danış
 
 ```bash
-# PGのジョブ投入前チェック
+# PG'nin iş gönderme öncesi kontrolü
 if [ $current_phase -ge 4 ]; then
-    echo "[ERROR] フェーズ4以降は新規ジョブ投入禁止"
-    agent_send.sh PM "[PG] 新規ジョブ投入を試みましたが、フェーズ4のため中止しました"
+    echo "[ERROR] Faz 4 ve sonrasında yeni iş gönderimi yasak"
+    agent_send.sh PM "[PG] Yeni iş göndermeye çalıştım ancak Faz 4 nedeniyle iptal ettim"
     exit 1
 fi
 ```
 
-### CD（成果物保全）
-- 予算状況に関わらずSOTAコードの即座のバックアップ
-- フェーズ4到達時点で最終GitHub同期
+### CD (çıktı koruma)
+- Bütçe durumundan bağımsız olarak SOTA kodunun anında yedeklenmesi
+- Faz 4'e ulaşıldığında nihai GitHub senkronizasyonu
 
-## 予算枯渇時の緊急手順
+## Bütçe Tükenmesi Durumunda Acil Prosedür
 
-1. **即座に実行**
-   - 全実行中ジョブの`scancel`/`qdel`
-   - SSH/SFTPセッションの終了
-   - 最新SOTAコードのGitHub push
+1. **Hemen yürüt**
+   - Tüm çalışan işlerin `scancel`/`qdel` ile sonlandırılması
+   - SSH/SFTP oturumlarının kapatılması
+   - En son SOTA kodunun GitHub'a push edilmesi
 
-2. **5分以内に完了**
-   - 各エージェントの最終ChangeLog.md更新
-   - final_report.mdの生成
-   - 成果物の整理
+2. **5 dakika içinde tamamla**
+   - Her aracının son ChangeLog.md güncellemesi
+   - final_report.md oluşturulması
+   - Çıktıların düzenlenmesi
 
-3. **クリーンアップ**
-   - スパコン側の大容量ファイル削除（任意）
-   - ローカル一時ファイルの削除
+3. **Temizlik**
+   - Süper bilgisayar tarafındaki büyük dosyaların silinmesi (isteğe bağlı)
+   - Yerel geçici dosyaların silinmesi
 
-## 予算閾値と消費率の計算
+## Bütçe Eşikleri ve Tüketim Oranının Hesaplanması
 
-### 3段階の予算閾値
-PMがrequirement_definition.mdで設定する3つの閾値：
-1. **最低消費量**: 基本動作確認に必要な最小限のポイント
-2. **想定消費量**: 通常の最適化作業で期待されるポイント
-3. **デッドライン**: プロジェクトの絶対上限
+### 3 Aşamalı Bütçe Eşikleri
+PM'nin requirement_definition.md'de belirlediği 3 eşik:
+1. **Minimum tüketim miktarı**: Temel işlem doğrulaması için gereken minimum nokta
+2. **Beklenen tüketim**: Normal optimizasyon çalışmasında beklenen nokta
+3. **Son tarih**: Projenin mutlak üst sınırı
 
-### 消費率の計算方法
+### Tüketim Oranının Hesaplama Yöntemi
 ```
-本プロジェクトの使用量 = 現在のused値 - 開始時のused値
-消費率 = (本プロジェクトの使用量 / デッドライン) × 100
+Bu projedeki kullanım = Şu anki used değeri - Başlangıç used değeri
+Tüketim oranı = (Bu projedeki kullanım / Son tarih) × 100
 ```
 
-**重要**: 
-- usedは**ユーザの年間累積値**であり、本プロジェクトだけの値ではない
-- 必ず開始時のused値との差分で計算すること
-- budget_history.mdに差分が記録されているので、それを参照
+**Önemli**: 
+- used **kullanıcının yıllık kümülatif değeridir**, yalnızca bu projenin değeri değildir
+- Mutlaka başlangıç used değeri ile farkı hesaplayın
+- budget_history.md'de fark kaydedilir, ona başvurun
 
-### フェーズ判定の実装責任
-- **PMの責務**: budget_history.mdを5-10分ごとに更新し、消費率を計算
-- **各エージェント**: budget_history.mdから現在のフェーズを読み取る
-- スパコン固有の予算確認コマンドは`_remote_info/command.md`に記載
+### Faz Belirleme Uygulama Sorumluluğu
+- **PM'nin sorumluluğu**: budget_history.md'yi 5-10 dakikada bir güncelle ve tüketim oranını hesapla
+- **Her aracı**: budget_history.md'den mevcut fazı oku
+- Süper bilgisayara özgü bütçe doğrulama komutu `_remote_info/command.md`'de belirtilir
 
-## 重要な注意事項
-- **ログインノード実行は厳禁**: 予算消費しないが規約違反
-- **ポイント未消費の警告**: ジョブ実行後も消費がない場合、即座に警告
-- **予算情報の扱い**: 個人情報のため、具体的な残額は記載しない（used値と差分のみ）
-- **主観的判断の完全排除**: PMの「そろそろ」という判断は一切行わない
+## Önemli Notlar
+- **Giriş düğümü yürütmesi kesinlikle yasak**: Bütçe tüketmez ancak kural ihlalidir
+- **Nokta tüketilmemesi uyarısı**: İş yürütme sonrası tüketim yoksa hemen uyar
+- **Bütçe bilgisinin işlenmesi**: Kişisel bilgi olduğundan, belirli kalan miktarı belirtme (yalnızca used değeri ve fark)
+- **Öznel yargının tamamen ortadan kaldırılması**: PM'nin "artık" gibi yargısı hiç yapılmaz
+

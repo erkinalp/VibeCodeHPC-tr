@@ -1,48 +1,48 @@
-# ChangeLog PMオーバーライド例
+# ChangeLog PM Geçersiz Kılma Örneği
 
-**注意**: これは`ChangeLog_format_PM_override.md`の作成例です。
-PMは実際のプロジェクトに応じてこの例を参考に作成してください。
+**Dikkat**: Bu, `ChangeLog_format_PM_override.md` oluşturma örneğidir.
+PM, gerçek projeye göre bu örneği referans alarak oluşturmalıdır.
 
-このドキュメントは基本フォーマット（`ChangeLog_format.md`）への**追加ルールのみ**を定義します。
-基本フォーマットの構造は変更できません。
+Bu belge, temel format (`ChangeLog_format.md`) için **yalnızca ek kuralları** tanımlar.
+Temel formatın yapısı değiştirilemez.
 
-## PMオーバーライド項目
+## PM Geçersiz Kılma Öğeleri
 
-### 1. 性能指標の統一
-- **単位の明記**: `test`セクションの`unit`フィールドに必ず記載
-  - 行列計算: `GFLOPS` または `MFLOPS`
-  - シミュレーション: `iterations/sec` または `seconds`
-- **表記精度**: 小数点第1位まで（例: `285.7`）
+### 1. Performans Göstergelerinin Birleştirilmesi
+- **Birimin belirtilmesi**: `test` bölümünün `unit` alanına mutlaka yazılmalıdır
+  - Matris hesaplama: `GFLOPS` veya `MFLOPS`
+  - Simülasyon: `iterations/sec` veya `seconds`
+- **Gösterim hassasiyeti**: Ondalık noktadan sonra 1 basamak (örn: `285.7`)
 
-### 2. プロジェクト固有の必須params
-基本フォーマットの`params`セクションに以下を追加：
-- `compile_flags`: 使用したコンパイルオプション（必須）
-- `mpi_processes`: MPIプロセス数（MPI使用時は必須）
-- `omp_threads`: OpenMPスレッド数（OpenMP使用時は必須）
+### 2. Projeye Özgü Zorunlu params
+Temel formatın `params` bölümüne aşağıdakiler eklenir:
+- `compile_flags`: Kullanılan derleme seçenekleri (zorunlu)
+- `mpi_processes`: MPI işlem sayısı (MPI kullanımında zorunlu)
+- `omp_threads`: OpenMP iş parçacığı sayısı (OpenMP kullanımında zorunlu)
 
-### 3. コンパイル警告の扱い
-`compile`の`status: warning`時：
-- 並列化に関する警告は`message`に1-2行で要約
-- 詳細が必要な場合は`compile_warnings`フィールドを追加（任意）
+### 3. Derleme Uyarılarının İşlenmesi
+`compile`'ın `status: warning` durumunda:
+- Paralelleştirme ile ilgili uyarılar `message` alanında 1-2 satırda özetlenir
+- Ayrıntı gerekiyorsa `compile_warnings` alanı eklenir (isteğe bağlı)
 
-### 4. SOTA更新時の追加情報
-`sota`セクションに以下を任意追加：
-- `previous`: 前回の記録値
-- `improvement`: 改善率（%表記）
+### 4. SOTA Güncellemesinde Ek Bilgi
+`sota` bölümüne aşağıdakiler isteğe bağlı olarak eklenir:
+- `previous`: Önceki kayıt değeri
+- `improvement`: İyileştirme oranı (% gösterimi)
 
-## 記載例（行列計算プロジェクト）
+## Kayıt Örneği (matris hesaplama projesi)
 
 ```markdown
 ### v1.2.3
-**変更点**: "OpenMP collapse(2)とMPI領域分割を実装"  
-**結果**: 性能向上を確認 `285.7`  
-**コメント**: "collapse句により内側ループも並列化、MPIで領域分割を追加"  
+**Değişiklikler**: "OpenMP collapse(2) ve MPI bölge bölümleme uygulandı"  
+**Sonuç**: Performans artışı doğrulandı `285.7`  
+**Yorum**: "collapse cümlesi ile iç döngü de paralelleştirildi, MPI ile bölge bölümleme eklendi"  
 
 <details>
 
 - [x] **compile**
     - status: `warning`
-    - message: "OpenMP: 一部のループで並列化が無効化される警告"
+    - message: "OpenMP: Bazı döngülerde paralelleştirme devre dışı bırakılıyor uyarısı"
     - compile_warnings: "loop at line 45: not vectorized due to data dependency"
     - log: `/results/compile_v1.2.3.log`
 - [x] **job**
@@ -65,30 +65,31 @@ PMは実際のプロジェクトに応じてこの例を参考に作成してく
 </details>
 ```
 
-## 差分まとめ
+## Fark Özeti
 
-基本フォーマットからの追加点：
-1. `test`の`unit`フィールド（基本フォーマットに追加済み）
-2. `compile_warnings`フィールド（任意）
-3. `sota`の`previous`と`improvement`（任意）
-4. `params`の`compile_flags`、`mpi_processes`、`omp_threads`（条件付き必須）
+Temel formattan eklenen noktalar:
+1. `test`'in `unit` alanı (temel formata zaten eklendi)
+2. `compile_warnings` alanı (isteğe bağlı)
+3. `sota`'nın `previous` ve `improvement` alanları (isteğe bağlı)
+4. `params`'ın `compile_flags`, `mpi_processes`, `omp_threads` alanları (koşullu zorunlu)
 
-## 注意事項
+## Dikkat Edilmesi Gerekenler
 
-1. **Markdown構造の保持**
-   - `<details>`タグは絶対に変更しない
-   - フィールドの階層構造を維持
-   - 日本語での記述を継続
-   - **重要**: PMが変更できるのは`<details>`内部の項目フィールドのみ
-   - **折り畳み形式（4行表示）は必ず維持すること**
+1. **Markdown Yapısının Korunması**
+   - `<details>` etiketi kesinlikle değiştirilmez
+   - Alanların hiyerarşik yapısı korunur
+   - Türkçe ile yazıma devam edilir
+   - **Önemli**: PM'nin değiştirebileceği yalnızca `<details>` içindeki öğe alanlarıdır
+   - **Katlanmış format (4 satır gösterim) mutlaka korunmalıdır**
 
-2. **Python解析との互換性**
-   - フィールド名は半角英数字とアンダースコアのみ
-   - 数値は引用符なしで記載可能
-   - 単位は別フィールドに分離
+2. **Python Analizi ile Uyumluluk**
+   - Alan adları yalnızca yarım genişlik alfasayısal karakterler ve alt çizgi
+   - Sayılar tırnak işareti olmadan yazılabilir
+   - Birimler ayrı alanlara ayrılır
 
-3. **運用ルール**
-   - PMはプロジェクト開始時にこの例を参考に作成
-   - 途中変更は最小限に
-   - 全エージェントへの周知を徹底
-   - PGエージェントは折り畳み形式を死守すること
+3. **İşletim Kuralları**
+   - PM proje başlangıcında bu örneği referans alarak oluşturur
+   - Ara değişiklikler minimumda tutulur
+   - Tüm aracılara bildirim kesinlikle yapılır
+   - PG aracıları katlanmış formatı kesinlikle korur
+
