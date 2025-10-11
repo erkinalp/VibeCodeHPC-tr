@@ -100,18 +100,15 @@ def get_stop_threshold(agent_id):
                     config = json.load(f)
                     thresholds = config.get('thresholds', {})
                     
-                    # 完全一致をまず試す
                     if agent_id in thresholds:
                         return thresholds[agent_id]
                     
-                    # プレフィックスマッチを試す
                     for prefix in ['PM', 'CD', 'SE', 'PG']:
                         if agent_id.startswith(prefix) and prefix in thresholds:
                             return thresholds[prefix]
             except:
                 pass
     
-    # フォールバック値
     if agent_id == "PM":
         return 50
     elif agent_id == "SOLO":
@@ -127,7 +124,7 @@ def get_stop_threshold(agent_id):
 
 
 def load_config(project_root):
-    """auto_tuning_config.jsonを読み込み"""
+    """auto_tuning_config.json'u yükle"""
     config_file = project_root / "Agent-shared" / "strategies" / "auto_tuning" / "auto_tuning_config.json"
     
     if config_file.exists():
@@ -137,7 +134,6 @@ def load_config(project_root):
         except:
             pass
     
-    # フォールバック設定
     return {
         "file_provision": {
             "always_full": [
@@ -156,26 +152,24 @@ def load_config(project_root):
 
 
 def should_provide_file(file_config, stop_count):
-    """確率的にファイル提供を決定（決定論的実装）"""
+    """Olasılıksal olarak dosya sağlamayı belirle (deterministik uygulama)"""
     if isinstance(file_config, str):
-        # always_fullの場合
+        # always_full ise
         return True
     
     file_path = file_config.get("file", "")
     probability = file_config.get("probability", 0.5)
     
-    # 確率を整数比に変換
     numerator = int(probability * 100)
     denominator = 100
     
-    # ファイルパスのハッシュ値で分散
     hash_offset = hash(file_path) % denominator
     
     return ((stop_count + hash_offset) % denominator) < numerator
 
 
 def read_file_content(file_path, project_root, latest_entries=None):
-    """ファイル内容を読み込み（ファイルタイプに応じた抽出）"""
+    """Dosya içeriğini oku (dosya türüne göre çıkarım)"""
     full_path = project_root / file_path
     
     if not full_path.exists():
@@ -184,40 +178,35 @@ def read_file_content(file_path, project_root, latest_entries=None):
     try:
         content = full_path.read_text(encoding='utf-8')
         
-        # ChangeLog.mdの特別処理（最新エントリのみ）
+        # ChangeLog.md için özel işlem (yalnızca en yeni girdiler)
         if file_path.endswith('ChangeLog.md') and latest_entries:
             entries = content.split('### v')
             if len(entries) > 1:
-                # 指定された数の最新エントリを取得
                 recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
-                return recent[:10000]  # ChangeLogの制限を緩和
+                return recent[:10000]  # ChangeLog sınırını gevşet
         
-        # サイズ制限（全文提供だが巨大すぎるファイルは制限）
         if len(content) > 10000:
-            return content[:10000] + "\n\n...[ファイルサイズが大きいため以下省略]"
+            return content[:10000] + "\n\n...[Dosya çok büyük olduğu için devamı kısaltıldı]"
         
         return content
     except Exception as e:
-        return f"[読み込みエラー: {str(e)}]"
+        return f"[Okuma hatası: {str(e)}]"
 
 
 def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths=None):
-    """エージェントの位置に応じてファイルパスを解決"""
-    # ./から始まる相対パス
+    """Ajanın konumuna göre dosya yolunu çözümle"""
     if file_path.startswith("./"):
         resolved = agent_working_dir / file_path[2:]
         if resolved.exists():
             return resolved
-        # フォールバック: プロジェクトルートから
         return project_root / file_path[2:]
     
-    # ../から始まる相対パス
     if file_path.startswith("../"):
         resolved = agent_working_dir / file_path
         if resolved.exists():
             return resolved
     
-    # fallback_pathsがある場合は順次試行
+    # fallback_paths varsa sırayla dene
     if fallback_paths:
         for fallback in fallback_paths:
             if fallback.startswith("../"):
@@ -227,25 +216,21 @@ def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths
             if candidate.exists():
                 return candidate
     
-    # それ以外はプロジェクトルートからの相対パス
     return project_root / file_path
 
 
 def generate_embedded_content(stop_count, threshold, agent_id, project_root):
-    """埋め込みコンテンツを生成"""
+    """Gömülü içerik üret"""
     config = load_config(project_root)
     
-    # エージェントロールを取得（SOLOはそのまま）
     role = agent_id if agent_id == "SOLO" else (agent_id.split('.')[0] if '.' in agent_id else agent_id)
     
-    # 現在の作業ディレクトリを取得
     agent_working_dir = Path.cwd()
     
     embedded_parts = []
     reference_parts = []
     
-    # 1. 常に全文提供
-    embedded_parts.append("## 📄 必須ファイル内容\n")
+    embedded_parts.append("## 📄 Zorunlu dosya içerikleri\n")
     for file_path in config["file_provision"]["always_full"]:
         formatted_path = file_path.replace("{role}", role)
         content = read_file_content(formatted_path, project_root)
@@ -255,7 +240,6 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             embedded_parts.append(content)
             embedded_parts.append("```\n")
     
-    # 2. 共通の高確率提供（common_full）
     provided_any = False
     common_full = config["file_provision"].get("common_full", [])
     for file_config in common_full:
@@ -264,7 +248,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             content = read_file_content(formatted_path, project_root)
             if content:
                 if not provided_any:
-                    embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                    embedded_parts.append("\n## 📋 Ek sağlanan dosyalar\n")
                     provided_any = True
                 embedded_parts.append(f"### {formatted_path}")
                 embedded_parts.append("```")
@@ -308,7 +292,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                                     # 文字制限なし（実験優先）
                                     if content:
                                         if not provided_any:
-                                            embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                                            embedded_parts.append("\n## 📋 Ek sağlanan dosyalar\n")
                                             provided_any = True
                                         # プロジェクトルートからの相対パス表示
                                         rel_path = file_path_obj.relative_to(project_root)
@@ -322,9 +306,9 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             elif file_config.get("type") == "directory_listing":
                 if resolved_path and resolved_path.exists() and resolved_path.is_dir():
                     if not provided_any:
-                        embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                        embedded_parts.append("\n## 📋 Ek sağlanan dosyalar\n")
                         provided_any = True
-                    embedded_parts.append(f"### {formatted_path} (ディレクトリ一覧)")
+                    embedded_parts.append(f"### {formatted_path} (Dizin listesi)")
                     embedded_parts.append("```")
                     try:
                         import os
@@ -335,7 +319,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                             else:
                                 embedded_parts.append(f"📄 {item}")
                     except Exception as e:
-                        embedded_parts.append(f"[エラー: {str(e)}]")
+                        embedded_parts.append(f"[Hata: {str(e)}]")
                     embedded_parts.append("```\n")
             else:
                 # 通常ファイルの処理
@@ -355,7 +339,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
                             
                             if content:
                                 if not provided_any:
-                                    embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                                    embedded_parts.append("\n## 📋 Ek sağlanan dosyalar\n")
                                     provided_any = True
                                 embedded_parts.append(f"### {formatted_path}")
                                 embedded_parts.append("```")
@@ -383,7 +367,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             content = read_file_content(formatted_path, project_root, latest_entries)
             if content:
                 if not provided_any:
-                    embedded_parts.append("\n## 📋 追加提供ファイル\n")
+                    embedded_parts.append("\n## 📋 Ek sağlanan dosyalar\n")
                     provided_any = True
                 embedded_parts.append(f"### {formatted_path}")
                 embedded_parts.append("```")
@@ -393,7 +377,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             reference_parts.append(file_path.replace("{role}", role))
     
     if reference_parts:
-        embedded_parts.append("\n## 📁 参照推奨ファイル（必要に応じて読み込み）\n")
+        embedded_parts.append("\n## 📁 Başvurulması önerilen dosyalar (gerektikçe okuyun)\n")
         for path in reference_parts:
             embedded_parts.append(f"- {path}")
     

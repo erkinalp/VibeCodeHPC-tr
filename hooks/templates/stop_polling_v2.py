@@ -91,7 +91,6 @@ def get_stop_threshold(agent_id):
     if not agent_id:
         return 30
     
-    # プロジェクトルートを探す
     project_root = find_project_root(Path.cwd())
     if project_root:
         threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
@@ -165,13 +164,13 @@ def get_required_files(agent_id):
             "User-shared/visualizations/sota/family/ (kendi teknik alanın)"
         ],
         "CD": [
-            "instructions/CD.md（詳細な役割定義）", 
-            "_remote_info/user_id.txt（匿名化対象）",
-            "Agent-shared/artifacts_position.md（成果物配置、既に読んでいるはず）",
-            "各PGのChangeLog.md（最新更新確認）",
-            "各PGのsota_local.txt（SOTA達成確認）",
-            "../Flow/やプロジェクト階層のsota_*.txt（新SOTA検知）",
-            "../.gitignore（GitHub/にいるため一つ上）"
+            "instructions/CD.md (ayrıntılı rol tanımı)", 
+            "_remote_info/user_id.txt (anonimleştirme hedefi)",
+            "Agent-shared/artifacts_position.md (çıktı yerleşimi; daha önce okunmuş olmalı)",
+            "Her PG'nin ChangeLog.md dosyası (son güncellemeyi kontrol et)",
+            "Her PG'nin sota_local.txt dosyası (SOTA doğrulaması)",
+            "../Flow/ veya proje hiyerarşisindeki sota_*.txt (yeni SOTA tespiti)",
+            "../.gitignore (GitHub/ altında olduğundan bir üstte)"
         ]
     }
     
@@ -187,7 +186,6 @@ def generate_block_reason(agent_info, stop_count):
     agent_id = agent_info.get('agent_id', 'unknown')
     threshold = get_stop_threshold(agent_id)
     
-    # 閾値に達した場合
     if stop_count >= threshold:
         reason = f"""
 ⚠️ STOP deneme sayısı üst sınıra ({threshold} kez) ulaştı.
@@ -210,18 +208,13 @@ Ajan {agent_id} olarak aşağıdaki kapanış öncesi görevleri uygulayın:
 3. Nihai rapor:
    agent_send.sh PM "[{agent_id}] Kapanış hazırlığı tamam. Başlıca çıktılar: [buraya yaz]"
 
-その後、PMがagent.sendで送る、ユーザ権限の「ESC」コマンドによる強制中止か、続投\転属などの指示を待つために
-sleep 等で待機した後、ドキュメント等を見返すこと。待つ秒数は最初は10秒程度から、徐々に長くしていくこと。
-ただし数分待っても何も返答がない場合は、忘れている可能性があるので、再度PMに連絡すること。
+Sonrasında, PM'den gelecek agent.send ile kullanıcı yetkili “ESC” komutu ile zorla durdurma veya devam/yeniden görevlendirme talimatlarını beklemek için kısa beklemeler (örn. sleep) kullanın; bekleme süresini önce ~10 sn’den başlayıp kademeli artırın.
+Birkaç dakika yanıt yoksa unutulmuş olabilir; PM ile yeniden iletişime geçin.
 
-注意：ESCキーを送信したエージェントは一時停止（疑似 Interrupted by user）状態になるため
-誰かがそのエージェントにagent.sendを送ると再開するので、
-もしあなたがPMである場合、必ず全員が終了したことを確認してから
-自身もsleep状態の割合を増やし、ユーザの最終確認を待つこと。
+Not: ESC tuşu gönderilmiş bir ajan “kullanıcı tarafından kesildi” benzeri bekleme durumuna geçer. Bu ajana tekrar agent.send gelirse devam eder. PM iseniz, herkesin bittiğini doğrulamadan kendi bekleme oranınızı artırmayın; son kullanıcı onayını bekleyin.
 """
         return reason
     
-    # 通常のブロック理由
     required_files = get_required_files(agent_id)
     
     reason = f"""あなたはポーリング型のエージェント（{agent_id}）です。待機状態に入ることは許可されていません。
