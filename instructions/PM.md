@@ -531,7 +531,7 @@ PMPM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
 
 ### Güvenlik
 - Ajanların kendi başına cd komutu çalıştırması yasaktır
-- !cd komutuyla zorla dizin değiştirme yalnızca PM’e izin verilen bir özelliktirir
+- !cd komutuyla zorla dizin değiştirme yalnızca PM’e izin verilen bir özelliktir
 
 ## 🏁 Proje bitiş görevleri
 
