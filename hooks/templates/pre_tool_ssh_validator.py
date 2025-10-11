@@ -88,24 +88,24 @@ Bu şekilde çalıştırmaya devam edecekseniz, büyük çıktılara dikkat edin
                     advice = "SSH bağlantısında -tt seçeneğinin kullanılmasını öneririz (PTY ayırma ile etkileşimli işlemler daha kararlı olur)"
                     session_reminder = "Dönen PID'yi mutlaka ssh_sftp_sessions.json dosyasına kaydedin"
                     
-                    # 終了コード2でブロック＆Claudeに表示（でも続行したいので使わない方がいい）
+                    # Çıkış kodu 2 ile engelle ve Claude'da göster (ama devam etmek istediğimiz için kullanmamak daha iyi)
                     print(f"💡 {advice}\n• {session_reminder}", file=sys.stderr)
-                    sys.exit(0)  # 終了コード0で、stdoutはトランスクリプトモードでのみ表示
+                    sys.exit(0)  # Çıkış kodu 0 ile, stdout yalnızca transkript modunda görünür
                 
-                # セッション管理のリマインダーのみ
+                # Yalnızca oturum yönetimi hatırlatıcısı
                 print("• Dönen PID'yi mutlaka ssh_sftp_sessions.json dosyasına kaydedin", file=sys.stderr)
-                sys.exit(1)  # 非ブロッキングエラーでClaudeにもstderrが見える
+                sys.exit(1)  # Engelleyici olmayan hata ile Claude'da da stderr görünür
             
             elif command.startswith("sftp "):
-                # SFTPの場合はセッション管理のリマインダーのみ
+                # SFTP durumunda yalnızca oturum yönetimi hatırlatıcısı
                 print("• Dönen PID'yi mutlaka ssh_sftp_sessions.json dosyasına kaydedin", file=sys.stderr)
-                sys.exit(1)  # 非ブロッキングエラーでClaudeにもstderrが見える
+                sys.exit(1)  # Engelleyici olmayan hata ile Claude'da da stderr görünür
         
-        # その他の場合は何もしない
+        # Diğer durumlarda hiçbir şey yapma
         sys.exit(0)
         
     except Exception as e:
-        # エラーは静かに処理
+        # Hataları sessizce işle
         sys.exit(0)
 
 if __name__ == "__main__":

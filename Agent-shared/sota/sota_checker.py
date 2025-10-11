@@ -260,7 +260,7 @@ def get_virtual_parent_sota(current_dir):
     
     return parent_sota, best_info
 
-# CLI実行対応
+# CLI yürütme desteği
 if __name__ == "__main__":
     import sys
     from datetime import datetime

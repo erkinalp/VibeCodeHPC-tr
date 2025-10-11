@@ -69,16 +69,16 @@ class ChangeLogAnalysisTemplate:
             
             entry = {"version": version}
             
-            change_match = re.search(r'\*\*変更点\*\*:\s*"([^"]+)"', entry_content)
+            change_match = re.search(r'\*\*Değişiklikler\*\*:\s*"([^"]+)"', entry_content)
             if change_match:
                 entry["change_summary"] = change_match.group(1)
             
-            result_match = re.search(r'\*\*結果\*\*:\s*([^`]+)\s*`([^`]+)`', entry_content)
+            result_match = re.search(r'\*\*Sonuç\*\*:\s*([^`]+)\s*`([^`]+)`', entry_content)
             if result_match:
                 entry["result_type"] = result_match.group(1).strip()
                 entry["result_value"] = result_match.group(2).strip()
             
-            comment_match = re.search(r'\*\*コメント\*\*:\s*"([^"]+)"', entry_content)
+            comment_match = re.search(r'\*\*Yorum\*\*:\s*"([^"]+)"', entry_content)
             if comment_match:
                 entry["technical_comment"] = comment_match.group(1)
             

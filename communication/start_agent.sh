@@ -20,12 +20,12 @@ PROJECT_ROOT="$(pwd)"
 # agent_and_pane_id_table.jsonl içinde aracı ID’sini kontrol et
 TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
 if [ -f "$TABLE_FILE" ]; then
-    # AGENT_ID '待機中' ile başlıyor mu kontrol et
-    if [[ "$AGENT_ID" =~ ^待機中 ]]; then
-        echo "❌ Hata: Aracı ID’si '待機中' olarak kalmış"
-        echo "   Önce agent_and_pane_id_table.jsonl içindeki agent_id’yi doğru kimlik ile güncelleyin (ör: PG1.1.3)"
+    # AGENT_ID 'beklemede' ile başlıyor mu kontrol et
+    if [[ "$AGENT_ID" =~ ^beklemede ]]; then
+        echo "❌ Hata: Aracı ID'si 'beklemede' olarak kalmış"
+        echo "   Önce agent_and_pane_id_table.jsonl içindeki agent_id'yi doğru kimlik ile güncelleyin (ör: PG1.1.3)"
         echo ""
-        echo "   Örnek: '待機中3' → 'PG1.1.3'"
+        echo "   Örnek: 'beklemede3' → 'PG1.1.3'"
         echo ""
         echo "   Sonrasında bu komutu doğru kimlikle çalıştırın:"
         echo "   ./communication/start_agent.sh PG1.1.3 $TARGET_DIR"
