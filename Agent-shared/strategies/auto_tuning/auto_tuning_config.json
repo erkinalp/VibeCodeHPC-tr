@@ -170,7 +170,7 @@
 "description": "ChangeLog analiz şablonu (uzun)"
       }
     },
-"compact_recovery_hint": "⚠️ Bellek kısmen sıfırlanmış olabilir.\nÇalışmaya devam etmeden önce aşağıdakileri yapınız:\n- ls -R Agent-shared/ ile dosya yapısını kontrol edin\n- pwd ile mevcut konumu kontrol edin\n- agent_send.sh PM '[{agent_id}] Bellek sıfırlama sonrası devam' ile durum raporu gönderin\n\n【Önemli Davranış Kuralları】\n- sleep sonrası çalışmaya devam edin (bekleme veya DURDURMA yasaktır)\n- sleep maksimum 60 saniye (uzun süreler 60 saniyelik parçalara bölünmeli)\n- Bağlam %90 olsa bile ToDo listesi güncellemesi önceliklidir (sleep tekrarları yasaktır)\n- Mesajlara 3 dakika içinde cevap verin (TCP tarzı cevap zorunluluğu)"
+"compact_recovery_hint": "⚠️ Bellek kısmen sıfırlanmış olabilir.\nÇalışmaya devam etmeden önce aşağıdakileri yapınız:\n- ls -R Agent-shared/ ile dosya yapısını kontrol edin\n- pwd ile mevcut konumu kontrol edin\n- agent_send.sh PM '[{agent_id}] Bellek sıfırlama sonrası devam' ile durum raporu gönderin\n\n[Önemli Davranış Kuralları]\n- sleep sonrası çalışmaya devam edin (bekleme veya DURDURMA yasaktır)\n- sleep maksimum 60 saniye (uzun süreler 60 saniyelik parçalara bölünmeli)\n- Bağlam %90 olsa bile ToDo listesi güncellemesi önceliklidir (sleep tekrarları yasaktır)\n- Mesajlara 3 dakika içinde cevap verin (TCP tarzı cevap zorunluluğu)"
   },
   "agent_tasks": {
     "PG": [
