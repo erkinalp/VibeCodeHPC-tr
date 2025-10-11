@@ -431,14 +431,14 @@ create_worker_sessions() {
     GLOBAL_TOTAL_WORKERS=$((total_panes - 1))
     
     # まず単一セッションで試行
-    log_info "🔧 単一セッションでの作成を試行中..."
+    log_info "🔧 Tek oturumda oluşturma denemesi yapılıyor..."
     if create_single_worker_session "$WORKER_SESSION" 0 $((total_panes - 1)); then
         log_success "✅ 単一セッションで作成成功"
         return 0
     fi
     
     # 単一セッションで失敗した場合、自動的に複数セッションに分割
-    log_info "📦 'no space for new pane'エラーを検出。複数セッションに自動分割します"
+    log_info "📦 'no space for new pane' hatası tespit edildi. Otomatik olarak birden çok oturuma bölünüyor"
     
     # より小さいペイン数で再試行
     local max_panes_per_session=12
@@ -446,7 +446,7 @@ create_worker_sessions() {
     
     # 実際に作成可能な最大ペイン数を探る（12から順に減らして試行）
     while [ $test_panes -ge 4 ]; do
-        log_info "🔍 ${test_panes}ペインでのテスト..."
+        log_info "🔍 ${test_panes} panel ile test..."
         local test_session="${WORKER_SESSION_PREFIX}_test"
         
         # テストセッション作成
@@ -499,7 +499,7 @@ create_worker_sessions() {
         
         if [ "$test_success" = true ]; then
             max_panes_per_session=$test_panes
-            log_success "✅ 最大 ${max_panes_per_session} ペイン/セッションが作成可能"
+            log_success "✅ Oturum başına en fazla ${max_panes_per_session} panel oluşturulabilir"
             break
         fi
         
@@ -527,7 +527,7 @@ create_worker_sessions() {
         local end_pane=$((start_pane + panes_in_session - 1))
         
         if ! create_single_worker_session "$session_name" $start_pane $end_pane; then
-            log_error "❌ セッション ${session_name} の作成に失敗"
+            log_error "❌ ${session_name} oturumunun oluşturulması başarısız"
             creation_success=false
             break
         fi
@@ -538,7 +538,7 @@ create_worker_sessions() {
     done
     
     if [ "$creation_success" = true ]; then
-        log_success "✅ 全ワーカーセッション作成完了（合計: $((session_num - 1))セッション）"
+        log_success "✅ Tüm işçi oturumları oluşturuldu (toplam: $((session_num - 1)) oturum)"
         return 0
     else
         return 1
@@ -551,7 +551,7 @@ generate_agent_pane_table() {
     
     local jsonl_table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
     
-    log_info "📝 エージェント配置表（初期状態）生成中..."
+    log_info "📝 Aracı yerleşim tablosu (başlangıç) oluşturuluyor..."
     
     mkdir -p ./Agent-shared
     
@@ -571,7 +571,7 @@ generate_agent_pane_table() {
         for i in "${!pane_indices[@]}"; do
             local pane_id="${pane_indices[$i]}"
             # 全ペインを待機中として登録
-            local agent_id="待機中$((i + 1))"
+            local agent_id="Beklemede$((i + 1))"
             echo '{"agent_id": "'$agent_id'", "tmux_session": "'$WORKER_SESSION'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
         done
     else
@@ -597,7 +597,7 @@ generate_agent_pane_table() {
                     local pane_id="${pane_indices[$i]}"
                     # 全ペインを待機中として登録
                     global_agent_count=$((global_agent_count + 1))
-                    local agent_id="待機中${global_agent_count}"
+                    local agent_id="Beklemede${global_agent_count}"
                     echo '{"agent_id": "'$agent_id'", "tmux_session": "'$session_name'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
                 done
             fi
@@ -607,7 +607,7 @@ generate_agent_pane_table() {
         done
     fi
     
-    log_success "✅ agent_and_pane_id_table.jsonl 生成完了"
+    log_success "✅ agent_and_pane_id_table.jsonl oluşturma tamamlandı"
 }
 
 # 実行計画表示（シンプル版）
