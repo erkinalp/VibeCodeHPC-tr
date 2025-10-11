@@ -1,6 +1,6 @@
-# VibeCodeHPC - Multi Agentic Vibe Coding for HPC
+# VibeCodeHPC - Multi Agentic Vibe Coding for YBH
 
-VibeCodeHPC, HPC için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çoklu aracı bir sistemdir.
+VibeCodeHPC, YBH (yüksek başarımlı hesaplama) için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çoklu aracı bir sistemdir.
 Claude Code gibi CLI ortamlarında tmux tabanlı iletişimle birden fazla yapay zekâ aracısı birlikte çalışır.
 
 ![Çoklu aracı çalışması ekran görüntüsü](_images/MultiAgentUI.png)
@@ -22,7 +22,7 @@ Claude Code gibi CLI ortamlarında tmux tabanlı iletişimle birden fazla yapay 
 - **Birleşik günlük**: `ChangeLog.md` ile merkezi ilerleme yönetimi
 
 ### Desteklenen Ortamlar
-- **Süper bilgisayarlar**: Furo, Fugaku gibi HPC sistemleri
+- **Süper bilgisayarlar**: Furo, Fugaku gibi YBH sistemleri
 - **Derleyiciler**: Intel OneAPI, GCC, NVIDIA HPC SDK...
 
 ## 🏗️ Aracı Yapısı

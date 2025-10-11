@@ -352,7 +352,7 @@ Agent-shared/change_log/changelog_analysis_template.py temel alınarak, projeye 
 - `aggregate_data()`: Gerekli toplama mantığını uygular
 - `generate_report()`: Rapor biçimini özelleştirir
 
-Böylece HPC optimizasyonu dışındaki projelere de esnek şekilde uyarlanabilir.
+Böylece YBH (yüksek başarımlı hesaplama) optimizasyonu dışındaki projelere de esnek şekilde uyarlanabilir.
 
 ## 🤝 Diğer aracılarla işbirliği
 
