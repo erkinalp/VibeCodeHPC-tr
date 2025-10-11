@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC Stop Hook for SOLO Agent
-シングルエージェント用 - 時間管理と継続タスク提示
+Tekli ajan için - zaman yönetimi ve devam görevleri bildirimi
 """
 
 import json
@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-tr) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """Geçerli dizindeki stop_count.txt dosyasından sayıyı al"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -38,7 +38,7 @@ def get_stop_count():
 
 
 def increment_stop_count():
-    """stop_count.txtをインクリメント"""
+    """stop_count.txt değerini artır"""
     hooks_dir = Path.cwd() / ".claude" / "hooks"
     hooks_dir.mkdir(parents=True, exist_ok=True)
     
@@ -51,7 +51,7 @@ def increment_stop_count():
 
 
 def get_elapsed_time():
-    """プロジェクト開始からの経過時間を取得"""
+    """Proje başlangıcından geçen süreyi al"""
     project_root = find_project_root(Path.cwd())
     if not project_root:
         return None
@@ -71,7 +71,7 @@ def get_elapsed_time():
 
 
 def get_stop_threshold():
-    """SOLOエージェントのSTOP回数閾値を返す"""
+    """SOLO ajanı için STOP deneme eşiğini döndür"""
     project_root = find_project_root(Path.cwd())
     if project_root:
         threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
@@ -86,7 +86,6 @@ def get_stop_threshold():
             except:
                 pass
     
-    # デフォルト値（シングルエージェントは長めに設定）
     return 100
 
 
@@ -105,7 +104,7 @@ def format_elapsed_time(elapsed):
 
 
 def generate_block_reason(stop_count):
-    """SOLOエージェント用のブロック理由を生成"""
+    """SOLO ajan için engelleme gerekçesini üret"""
     threshold = get_stop_threshold()
     elapsed = get_elapsed_time()
     elapsed_str = format_elapsed_time(elapsed)
@@ -192,27 +191,21 @@ En öncelikli görevi ToDo listesiyle yönetin ve uygulayın.
 
 def main():
     try:
-        # JSONを読み込み
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
         
-        # STOP回数をインクリメント
         stop_count = increment_stop_count()
         
-        # SOLOエージェント用のブロック理由を生成
         reason = generate_block_reason(stop_count)
         
         if reason:
-            # 終了コード2でstderrに出力
             print(reason, file=sys.stderr)
             sys.exit(2)
         
-        # 通常終了
         sys.exit(0)
         
     except Exception:
-        # エラーは静かに処理
         sys.exit(0)
 
 
