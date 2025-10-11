@@ -97,7 +97,7 @@ Flow/TypeII/single-node/
 ### PG Katmanı (paralelleştirme modülü)
 ```
 OpenMP/ veya MPI/ vb. (PG'nin çalıştığı dizin)
-├── ChangeLog.md                 # 【ZORUNLU】Tüm bilgilerin birleştirilmesi (→Agent-shared/change_log/ChangeLog_format.md'ye bakın)
+├── ChangeLog.md                 # [ZORUNLU] Tüm bilgilerin birleştirilmesi (→Agent-shared/change_log/ChangeLog_format.md'ye bakın)
 ├── visible_path_PG1.1.txt       # Başvuru izni yol listesi (yazar:SE, okuyucu:PG) ※Yalnızca SE oluşturduğunda
 ├── sota_local.txt               # Local katmanı SOTA (yazar:PG, okuyucu:tümü)
 ├── optimized_code_v*.c          # Optimize edilmiş kod her sürüm (örn: matmul_v1.2.3.c)

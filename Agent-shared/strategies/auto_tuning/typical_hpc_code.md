@@ -137,8 +137,8 @@ PG izleme
 Her aracının sorumluluğunu yerine getirip getirmediğini doğrula
 
 ☑ Başvuru kapsamı ayarı 📁OpenMP_MPI🤖PG için
-　　　　　　　　aynı katmandaki 📁MPI, 📁OpenMP'ye yalnızca başvuru izni verilmiş mi
-　　　　　　　　farklı katman örneği: gcc📂 ve intel📂 farklı (başka SE'nin yetki alanı) ama MPI📁 var, izin ver
+              aynı katmandaki 📁MPI, 📁OpenMP'ye yalnızca başvuru izni verilmiş mi
+              farklı katman örneği: gcc📂 ve intel📂 farklı (başka SE'nin yetki alanı) ama MPI📁 var, izin ver
 ☑ PG'nin cevabı doğrudan çıkaran hile kod üretip üretmediği
 ☑ Yararlı test kodunun paylaşımı
 ☑ PG'nin uygun şekilde module load ve make yapıp yapmadığı

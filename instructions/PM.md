@@ -93,8 +93,8 @@ show_module (Miyabi-G örneği):
 ```
 ApplicationName                     ModuleName                      NodeGroup   BaseCompiler/MPI
 ------------------------------------------------------------------------------------------------
-CUDA Toolkit                        　cuda/12.4                       Login-G     -
-CUDA Toolkit                        　cuda/12.4                       Miyabi-G    -
+CUDA Toolkit                         cuda/12.4                       Login-G     -
+CUDA Toolkit                         cuda/12.4                       Miyabi-G    -
 PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Login-G     cuda/12.4
 PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G    cuda/12.4
 ```

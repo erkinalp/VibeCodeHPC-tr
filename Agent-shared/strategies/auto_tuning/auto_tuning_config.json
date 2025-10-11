@@ -14,7 +14,7 @@
       {
         "file": "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
         "probability": 0.3,
-        "description": "HPC階層設計の具体例"
+        "description": "YBH katmanlı tasarımın somut örnekleri"
       },
       {
         "file": "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md",

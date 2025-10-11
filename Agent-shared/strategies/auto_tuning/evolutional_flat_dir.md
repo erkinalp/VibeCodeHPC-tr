@@ -22,9 +22,9 @@ projenin "bağımlılık ilişkileri" ve "başvuru kapsamını" mantıksal olara
 Örneğin, derin hiyerarşi hiç kullanmadan, aşağıdaki gibi başvuru izni vererek hiyerarşi ilişkisini ifade edebiliriz
 ```
 Kök📂
-　　　├📁A 　(talimat.md "Yalnızca A'ya başvuru izni")
-　　　├📁B 　(talimat.md "Yalnızca B'ye başvuru izni")
-　　　└📁A+B (talimat.md "Yalnızca A ve B'ye başvuru izni")
+  ├📁A  (talimat.md "Yalnızca A'ya başvuru izni")
+  ├📁B  (talimat.md "Yalnızca B'ye başvuru izni")
+  └📁A+B (talimat.md "Yalnızca A ve B'ye başvuru izni")
 ```
 Özellikle aşağıdaki gibi paralel dağıtık (hızlandırma) yaklaşımlarına uygulanır
 #### Tipik YBH Kodu
@@ -59,16 +59,16 @@ Ek bilgiler MPI-opt1 gibi - ile yazılır. Sürüm varsayılan ise atlanır
 durum 1
 ```
 Kök📂
-　　　├📂A 
-　　　│　　└📁/B 
-　　　└📁B 　
+  ├📂A 
+  │    └📁/B 
+  └📁B
 ```
 durum 2
 ```
 Kök📂
-　　　├📁A 
-　　　└📂B 
-　　　   　　└📁/A 
+  ├📁A 
+  └📂B 
+        └📁/A 
 ```
 2 farklı desen mevcut ve görünürlük kötüleşir
 A + B + C gibi kombinasyonlar üstel olarak arttığında
@@ -106,7 +106,7 @@ Birden fazla varsa, module load sırasına göre soldan sağa yaz
 - /singularity4.1.2/konteyner_adı📂
 
 Aşağıda yalnızca /Flow/TypeII/single-node/gcc11.3.0📂 altındaki katmanla sınırlı açıklama
-### 【1. Nesil: Tohum Dönemi 🌱】
+### [1. Nesil: Tohum Dönemi 🌱]
 Her temel teknolojiyi, kullanılan paralel modül tek başına keşfet
 ```
 /AVX2📁🤖
@@ -115,7 +115,7 @@ Her temel teknolojiyi, kullanılan paralel modül tek başına keşfet
 /OpenMP📁🤖
 ```
 
-### 【2. Nesil: Çaprazlama Dönemi 🌿】
+### [2. Nesil: Çaprazlama Dönemi 🌿]
 1. neslin umut veren sonuçlarını "füzyon" et veya tekil teknolojiyi daha da "derinleştir"
 ```
 /AVX2📁
@@ -127,7 +127,7 @@ Her temel teknolojiyi, kullanılan paralel modül tek başına keşfet
 /OpenMP_MPI📁🤖 (füzyon)
 ```
 
-### 【3. Nesil: Islah Dönemi 🌳】
+### [3. Nesil: Islah Dönemi 🌳]
 2. nesilde doğan en iyi başyapıta, daha başka umut veren teknolojileri birleştirerek nihai türü üret
 ```
 /AVX2📁
