@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC PostToolUse Hook for SSH/SFTP Handler
-ツール実行後にPID情報とセッション管理のアドバイスを提供
+Araç çalıştıktan sonra PID bilgisi ve oturum yönetimi önerileri sağlar
 """
 
 import json
@@ -12,7 +12,7 @@ from pathlib import Path
 from datetime import datetime
 
 def check_ssh_sessions_file():
-    """ssh_sftp_sessions.jsonの存在確認"""
+    """ssh_sftp_sessions.json varlığını kontrol et"""
     sessions_file = Path.cwd() / "ssh_sftp_sessions.json"
     if sessions_file.exists():
         try:
@@ -25,23 +25,21 @@ def check_ssh_sessions_file():
 
 def main():
     try:
-        # JSONを読み込み
         input_data = json.load(sys.stdin)
         
         tool_name = input_data.get("tool_name", "")
         tool_input = input_data.get("tool_input", {})
         tool_response = input_data.get("tool_response", {})
         
-        # Desktop Commander MCPのstart_processの結果を処理
+        # Desktop Commander MCP start_process sonucunu işle
         if tool_name == "mcp__desktop-commander__start_process":
             command = tool_input.get("command", "")
             
             if command.startswith(("ssh ", "sftp ")):
-                # PIDを抽出（tool_responseから）
                 response_text = str(tool_response)
                 pid = None
                 
-                # "Process started with PID XXXXX" パターンを探す
+                # "Process started with PID XXXXX" desenini ara
                 import re
                 pid_match = re.search(r'PID (\d+)', response_text)
                 if pid_match:
@@ -72,11 +70,9 @@ Desktop Commander MCP ile oturum yönetimi:
 • ssh_sftp_sessions.json için {"güncelleme" if has_sessions else "oluşturma"} işlemini ilerletin
 """
                     
-                    # stderrに出力して終了コード2でClaudeに表示
                     print(message, file=sys.stderr)
-                    sys.exit(2)  # PostToolUseでは終了コード2でもClaudeに表示される
+                    sys.exit(2)  # PostToolUse'de çıkış kodu 2 olsa da Claude'da görüntülenir
         
-        # Bashツールで直接SSH/SFTP実行した場合
         elif tool_name == "Bash":
             command = tool_input.get("command", "")
             
@@ -102,15 +98,12 @@ Bir sonraki sefer mcp__desktop-commander__start_process kullanımını değerlen
 • Desktop Commander MCP'ye geçişi değerlendirin
 """
                 
-                # stderrに出力して終了コード2でClaudeに表示
                 print(message, file=sys.stderr)
-                sys.exit(2)  # PostToolUseでは終了コード2でもClaudeに表示される
+                sys.exit(2)  # PostToolUse'de çıkış kodu 2 olsa da Claude'da görüntülenir
         
-        # その他の場合は何もしない
         sys.exit(0)
         
     except Exception as e:
-        # エラーは静かに処理
         sys.exit(0)
 
 if __name__ == "__main__":
