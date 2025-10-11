@@ -84,7 +84,7 @@ calculate_agent_distribution() {
     
     # 最小構成チェック
     if [ $total -lt 2 ]; then
-        log_error "エージェント数が少なすぎます。最小2エージェント(PM除く)必要です。"
+        log_error "Ajan sayısı çok az. En az 2 ajan (PM hariç) gerekir."
         return 1
     fi
     
@@ -208,7 +208,7 @@ handle_existing_sessions() {
     rm -f ./tmp/agent*_done.txt 2>/dev/null
     
     sleep 0.5
-    log_success "✅ セッション準備完了"
+    log_success "✅ Oturum hazırlığı tamam"
 }
 
 # PMセッション作成
