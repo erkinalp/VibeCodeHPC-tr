@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ステートレス予算集計システム
-ChangeLog.mdから直接時刻情報を読み取って集計
+Durumsuz bütçe toplama sistemi
+ChangeLog.md'den zaman bilgisi okunarak doğrudan hesaplanır
 """
 
 import re
@@ -14,7 +14,7 @@ import sys
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü bul (VibeCodeHPC yapısı)"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -31,8 +31,7 @@ class BudgetTracker:
         self.rates = self.load_rates()
         
     def load_rates(self) -> Dict:
-        """リソースグループごとのレート設定"""
-        # デフォルト設定（不老TypeII）
+        """Kaynak gruplarına göre ücret oranı ayarı"""
         rates = {
             'cx-share': {'gpu': 1, 'rate': 0.007},
             'cx-interactive': {'gpu': 1, 'rate': 0.007},
@@ -41,22 +40,22 @@ class BudgetTracker:
             'cx-small': {'gpu': 4, 'rate': 0.007},
             'cx-middle': {'gpu': 4, 'rate': 0.007},
             'cx-large': {'gpu': 4, 'rate': 0.007},
-            'cx-middle2': {'gpu': 4, 'rate': 0.014},  # 2倍レート
+            'cx-middle2': {'gpu': 4, 'rate': 0.014},  # 2x oran
             'cxgfs-small': {'gpu': 4, 'rate': 0.007},
             'cxgfs-middle': {'gpu': 4, 'rate': 0.007},
         }
         
-        # node_resource_groups.mdから追加情報を読み込み（将来実装）
+        # node_resource_groups.md'den ek bilgi yükleme (gelecekte)
         # config_path = self.project_root / "_remote_info/flow/node_resource_groups.md"
         
         return rates
     
     def extract_jobs(self) -> List[Dict]:
-        """全ChangeLog.mdからジョブ情報を抽出"""
+        """Tüm ChangeLog.md dosyalarından iş bilgilerini çıkar"""
         all_jobs = []
         
         for changelog in self.project_root.glob('**/ChangeLog.md'):
-            # Agent-sharedは除外
+            # Agent-shared hariç tutulur
             if 'Agent-shared' in str(changelog) or '.git' in str(changelog):
                 continue
                 
@@ -66,7 +65,7 @@ class BudgetTracker:
         return all_jobs
     
     def parse_changelog(self, changelog_path: Path) -> List[Dict]:
-        """ChangeLog.mdからジョブ情報を抽出"""
+        """ChangeLog.md içinden iş bilgilerini çıkar"""
         jobs = []
         
         try:
@@ -75,20 +74,17 @@ class BudgetTracker:
         except:
             return jobs
         
-        # バージョンエントリごとに処理
         version_pattern = r'### v(\d+\.\d+\.\d+)(.*?)(?=###|\Z)'
         
         for match in re.finditer(version_pattern, content, re.DOTALL):
             version, section = match.groups()
             
-            # jobセクションを探す
             job_match = re.search(r'- \[.\] \*\*job\*\*(.*?)(?=- \[.\] \*\*|\Z)', section, re.DOTALL)
             if not job_match:
                 continue
                 
             job_section = job_match.group(1)
             
-            # 必須フィールドを抽出
             job_info = {
                 'version': version,
                 'path': str(changelog_path),
@@ -101,9 +97,8 @@ class BudgetTracker:
                 'status': self.extract_field(job_section, 'status'),
             }
             
-            # 有効なジョブのみ追加
             if job_info['job_id'] and job_info['resource_group']:
-                # runtime_secが無い場合は計算
+                # runtime_sec yoksa hesaplansın
                 if not job_info['runtime_sec'] and job_info['start_time'] and job_info['end_time']:
                     try:
                         start = datetime.fromisoformat(job_info['start_time'].replace('Z', '+00:00'))
@@ -117,21 +112,20 @@ class BudgetTracker:
         return jobs
     
     def extract_field(self, text: str, field: str) -> str:
-        """フィールド値を抽出"""
+        """Alan değerini çıkar"""
         pattern = rf'- {field}:\s*`([^`]*)`'
         match = re.search(pattern, text)
         return match.group(1) if match else None
     
     def calculate_timeline(self, jobs: List[Dict], as_of: datetime = None) -> List[Tuple[datetime, float]]:
-        """イベントベースで予算消費を計算
-        
+        """Olay tabanlı bütçe tüketimini hesapla
+         
         Args:
-            jobs: ジョブリスト
-            as_of: この時刻までのデータを計算（None の場合は現在時刻）
+            jobs: İş listesi
+            as_of: Bu zamana kadar olan veriyi hesapla (None ise şu an)
         """
         events = []
         
-        # プロジェクト開始時刻
         start_file = self.project_root / "Agent-shared/project_start_time.txt"
         if start_file.exists():
             try:
@@ -143,19 +137,15 @@ class BudgetTracker:
         else:
             project_start = datetime.now(timezone.utc) - timedelta(hours=1)
         
-        # 各ジョブからイベント生成
         for job in jobs:
             if not job.get('start_time'):
                 continue
                 
-            # 終了時刻の決定
             end_time_str = job.get('end_time') or job.get('cancelled_time')
             if not end_time_str:
-                # runningの場合は現在時刻を使用（pendingは除外）
                 if job.get('status') == 'running':
                     end_time_str = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 else:
-                    # pendingまたはその他の場合はスキップ
                     continue
             
             try:
@@ -164,7 +154,6 @@ class BudgetTracker:
             except:
                 continue
             
-            # レート計算
             resource_group = job.get('resource_group', 'cx-small')
             rate_info = self.rates.get(resource_group, {'gpu': 4, 'rate': 0.007})
             points_per_sec = rate_info['rate'] * rate_info['gpu']
@@ -182,24 +171,20 @@ class BudgetTracker:
                 'job': job
             })
         
-        # 時刻でソート
         events.sort(key=lambda x: x['time'])
         
-        # タイムライン生成
         timeline = [(project_start, 0.0)]
         current_rate = 0.0
         total_points = 0.0
         last_time = project_start
         
         for event in events:
-            # 前のイベントからの消費を計算
             duration = (event['time'] - last_time).total_seconds()
             if duration > 0:
                 total_points += current_rate * duration
             
             timeline.append((event['time'], total_points))
             
-            # レート更新
             if event['type'] == 'start':
                 current_rate += event['rate']
             else:
@@ -207,27 +192,22 @@ class BudgetTracker:
                 
             last_time = event['time']
         
-        # 実行中のジョブがある場合でも、現在時刻の点は追加しない
-        # タイムラインは純粋にイベント（start/end）のみ
             
         return timeline
     
     def generate_report(self, as_of: datetime = None) -> Dict:
-        """レポート生成"""
+        """Rapor üretimi"""
         jobs = self.extract_jobs()
         timeline = self.calculate_timeline(jobs, as_of)
         
-        # 現在の総消費量
         current_total = timeline[-1][1] if timeline else 0
         
-        # スナップショット保存
         snapshot_dir = self.project_root / 'Agent-shared/budget/snapshots'
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
         cutoff_time = as_of if as_of else datetime.now(timezone.utc)
         timestamp = cutoff_time.strftime('%Y-%m-%dT%H-%M-%SZ')
         
-        # レポート作成
         report = {
             'timestamp': timestamp,
             'total_points': current_total,
@@ -236,7 +216,6 @@ class BudgetTracker:
             'timeline_points': len(timeline),
         }
         
-        # JSON保存
         report_full = {
             **report,
             'jobs': jobs,
@@ -250,7 +229,7 @@ class BudgetTracker:
         return report
     
     def visualize_budget(self, output_path: Path = None, as_of: datetime = None):
-        """予算消費の推移をグラフ化"""
+        """Bütçe tüketim eğrisini görselleştir"""
         try:
             import matplotlib.pyplot as plt
             import matplotlib.dates as mdates
@@ -258,7 +237,6 @@ class BudgetTracker:
             import numpy as np
             from scipy import stats
             
-            # 日本語フォント設定（利用可能な場合）
             try:
                 rcParams['font.sans-serif'] = ['DejaVu Sans', 'Helvetica', 'Arial', 'sans-serif']
             except:
@@ -271,120 +249,91 @@ class BudgetTracker:
                 print("Grafiğe dönüştürülecek veri yok")
                 return
             
-            # タイムラインデータをプロット用に整理
             times = [t[0] for t in timeline]
             points = [t[1] for t in timeline]
             
-            # グラフ作成
             fig, ax = plt.subplots(figsize=(14, 7))
             
-            # 折れ線グラフ（ジョブ実行中は線形増加）
             ax.plot(times, points, linewidth=2, color='blue', label='Budget Usage', marker='o', markersize=4)
             ax.fill_between(times, points, alpha=0.3, color='blue')
             
-            # 実行中のジョブがあるかチェック
             running_jobs = [j for j in jobs if j.get('status') == 'running']
             
-            # 線形回帰による予測（直近のデータを使用）
             if len(times) >= 2:
-                # 時刻を数値に変換（最初の時刻からの秒数）
                 times_numeric = [(t - times[0]).total_seconds() for t in times]
                 
-                # 直近のデータで線形回帰（最後の30%のデータを使用）
                 recent_start = max(0, int(len(times) * 0.7))
                 recent_times = times_numeric[recent_start:]
                 recent_points = points[recent_start:]
                 
                 if len(recent_times) >= 2:
-                    # 線形回帰
                     slope, intercept, r_value, p_value, std_err = stats.linregress(recent_times, recent_points)
                     
-                    # 現在時刻の設定
                     current_time = as_of or datetime.now(timezone.utc)
                     
-                    # 実行中のジョブがある場合は現在のレートを考慮
                     if running_jobs:
-                        # 最後のイベントから現在まで実行中
                         last_time = times[-1]
                         
-                        # 現在実行中のレートを計算
                         current_rate = 0
                         for job in running_jobs:
                             resource_group = job.get('resource_group', 'cx-small')
                             rate_info = self.rates.get(resource_group, {'gpu': 4, 'rate': 0.007})
                             current_rate += rate_info['rate'] * rate_info['gpu']
                         
-                        # 実行中のジョブによる現在までの推定値
                         duration = (current_time - last_time).total_seconds()
                         estimated_current = points[-1] + current_rate * duration
                         
-                        # 予測線の作成（線形回帰を使用、最後の点から）
                         future_time = last_time + timedelta(hours=1)
                         
-                        # 予測用の時間点を数値に変換
                         pred_times = [last_time, future_time]
                         pred_times_numeric = [
                             (last_time - times[0]).total_seconds(),
                             (future_time - times[0]).total_seconds()
                         ]
-                        # 線形回帰に基づく予測値
                         pred_points = [slope * t + intercept for t in pred_times_numeric]
                     else:
                         # 実行中のジョブがない場合も線形回帰を使用
                         last_time = times[-1]
                         future_time = last_time + timedelta(hours=1)
                         
-                        # 予測用の時間点を数値に変換
                         pred_times = [last_time, future_time]
                         pred_times_numeric = [
                             (last_time - times[0]).total_seconds(),
                             (future_time - times[0]).total_seconds()
                         ]
-                        # 線形回帰に基づく予測値
                         pred_points = [slope * t + intercept for t in pred_times_numeric]
                         
-                        # 実行中のジョブがないので推定値は最後の点
                         estimated_current = points[-1]
                     
-                    # 予測線を描画（線形回帰の結果を使用）
                     ax.plot(pred_times, pred_points, '--', linewidth=2, color='purple', 
                            label=f'Prediction (rate: {slope*3600:.1f} pt/hr)', alpha=0.7)
                     
-                    # 閾値到達時刻の計算
                     budget_limits = {
                         'Minimum (100pt)': 100,
                         'Expected (500pt)': 500,
                         'Deadline (1000pt)': 1000
                     }
                     
-                    # 現在のポイント（実行中のジョブがある場合は推定値）
                     if running_jobs:
                         current_points = estimated_current
                     else:
                         current_points = points[-1]
                     
-                    # 各閾値への到達予測
                     predictions_text = []
                     for label, limit in budget_limits.items():
                         if current_points < limit and slope > 0:
-                            # 線形回帰に基づく予測
-                            # 到達までの秒数
                             seconds_to_limit = (limit - intercept) / slope
-                            # 到達時刻
                             eta = times[0] + timedelta(seconds=seconds_to_limit)
-                            # 最後のデータ点からの時間
                             hours_from_last = (eta - times[-1]).total_seconds() / 3600
                             if hours_from_last > 0:
                                 predictions_text.append(f"{label}: {eta.strftime('%m-%d %H:%M')} (+{hours_from_last:.1f}h from last data)")
                     
-                    # 予測情報をグラフに追加（右上に配置）
                     if predictions_text:
                         prediction_str = "ETA:\n" + "\n".join(predictions_text)
                         ax.text(0.98, 0.98, prediction_str, transform=ax.transAxes,
                                verticalalignment='top', horizontalalignment='right', fontsize=10,
                                bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
             
-            # 予算閾値の水平線
             budget_limits = {
                 'Minimum (100pt)': 100,
                 'Expected (500pt)': 500,
@@ -395,40 +344,32 @@ class BudgetTracker:
             for (label, limit), color in zip(budget_limits.items(), colors):
                 ax.axhline(y=limit, color=color, linestyle='--', alpha=0.7, label=label)
             
-            # 実行中ジョブがある場合の注釈
             running_jobs = [j for j in jobs if j.get('status') == 'running']
             if running_jobs:
-                # 最後の点に注釈を追加
                 ax.annotate('Running jobs\n(estimated)', 
                            xy=(times[-1], points[-1]),
                            xytext=(10, 10), textcoords='offset points',
                            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                            arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
             
-            # 軸の設定
             ax.set_xlabel('Time (UTC)')
             ax.set_ylabel('Points')
             ax.set_title('YBH Budget Usage Timeline')
             
-            # X軸の日付フォーマット
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
             ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-            fig.autofmt_xdate()  # 日付ラベルを斜めに
+            fig.autofmt_xdate()  # Tarih etiketlerini eğimli yap
             
-            # グリッドと凡例
             ax.grid(True, alpha=0.3)
             ax.legend(loc='upper left')
             
-            # Y軸を0から開始
             ax.set_ylim(bottom=0)
             
-            # 出力先の決定
             if output_path is None:
                 output_path = self.project_root / "User-shared" / "visualizations" / "budget_usage.png"
             
             output_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # 保存
             plt.tight_layout()
             plt.savefig(output_path, dpi=100, bbox_inches='tight')
             plt.close()
