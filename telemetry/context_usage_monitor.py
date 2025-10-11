@@ -33,7 +33,6 @@ import numpy as np
 import pickle
 import gzip
 
-# グラフスタイル設定
 try:
     plt.style.use('seaborn-v0_8-darkgrid')
 except:
@@ -45,8 +44,8 @@ class ContextUsageMonitor:
     """Bağlam kullanım oranı izleme sınıfı"""
     
     # Claude Code bağlam sınırı
-    CONTEXT_LIMIT = 200000  # 200Kトークン（表示用）
-    AUTO_COMPACT_THRESHOLD = 160000  # 実際のauto-compact発生点（推定）
+    CONTEXT_LIMIT = 200000  # 200K token (gösterim amaçlı)
+    AUTO_COMPACT_THRESHOLD = 160000  # Gerçek auto-compact tetik noktası (tahmini)
     WARNING_THRESHOLD = 140000  # Uyarı eşiği
     
     def __init__(self, project_root: Path, use_cache: bool = True, max_minutes: Optional[int] = None):
@@ -139,21 +138,17 @@ class ContextUsageMonitor:
             working_dir = info['working_dir'] or info['cwd']
             
             if working_dir:
-                # working_dirが指定されている場合
+                # working_dir belirtilmişse
                 full_path = self.project_root / working_dir
             else:
-                # PM等working_dirが空の場合
                 full_path = self.project_root
             
-            # パスをClaude projectsディレクトリ名に変換
-            # Claude Codeの変換ルール（実験により判明）:
-            # - 英数字(a-zA-Z0-9)以外のすべての文字を'-'に置換
-            # - パス区切り文字も'-'に変換される
-            # 例: /mnt/c/Users/test_v1.0.0 -> -mnt-c-Users-test-v1-0-0
+            # Claude Code dönüştürme kuralları (deneysel olarak saptandı):
+            # Örn: /mnt/c/Users/test_v1.0.0 -> -mnt-c-Users-test-v1-0-0
             import re
             
             if system == "Windows":
-                # Windows: バックスラッシュをスラッシュに統一
+                # Windows: ters eğik çizgileri eğik çizgiye dönüştür
                 path_str = str(full_path).replace('\\', '/')
             else:
                 path_str = str(full_path)
@@ -302,7 +297,6 @@ class ContextUsageMonitor:
             self.generate_timeline_graph(all_agent_data)
             
         if graph_type in ['all', 'individual']:
-            # 各エージェントの個別グラフを生成
             for agent_id, cumulative_data in all_agent_data.items():
                 if cumulative_data:
                     self.generate_agent_detail_graphs(agent_id, cumulative_data)
@@ -312,11 +306,10 @@ class ContextUsageMonitor:
         """Genel görünüm için hafif çizgi grafiği (basamak stili)
         
         Args:
-            time_unit: 'seconds', 'minutes', 'hours' のいずれか（デフォルト: 'minutes'）
+            time_unit: 'seconds', 'minutes' veya 'hours' (varsayılan: 'minutes')
         """
         milestone_minutes = [30, 60, 90, 120, 180]
         
-        # 指定された時間制限またはマイルストーンで生成
         if self.max_minutes and self.max_minutes in milestone_minutes:
             self._generate_single_overview_graph(all_agent_data, time_unit, self.max_minutes)
         elif self.max_minutes:
@@ -432,10 +425,10 @@ class ContextUsageMonitor:
         
         token_types = ['cache_read', 'cache_creation', 'input', 'output']
         token_colors = {
-            'cache_read': '#f39c12',     # turuncu,     # オレンジ（最も静的）
+            'cache_read': '#f39c12',     # turuncu (en statik)
             'cache_creation': '#2ecc71',  # yeşil
             'input': '#3498db',          # mavi
-            'output': '#e74c3c'          # kırmızı         # 赤（最も動的）
+            'output': '#e74c3c'          # kırmızı (en dinamik)
         }
         
         if x_axis == 'count':
@@ -478,7 +471,6 @@ class ContextUsageMonitor:
                 
                 token_values = {tt: [tokens[tt] for _, tokens in data] for tt in token_types}
                 
-                # 積み上げ面グラフ
                 bottom = np.zeros(len(times))
                 for token_type in token_types:
                     values = np.array(token_values[token_type])
@@ -604,7 +596,6 @@ class ContextUsageMonitor:
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
         plt.close()
         
-        # 2. ログ回数ベースのグラフ
         self._generate_count_based_graph(agent_id, cumulative_data)
         
         print(f"✅ {agent_id} için bireysel grafik oluşturma tamamlandı")
