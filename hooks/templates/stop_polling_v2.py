@@ -256,51 +256,51 @@ Ardından aşağıdaki paralel görevleri yürüt:
     
     # 役割別の並行タスク（既存のコードから）
     if "PM" in agent_id:
-        reason += """【PMの並行タスク】
-1. 全エージェントの進捗確認（SE、PG、CDの巡回）
-2. directory_pane_map.txtの更新確認
-3. 予算管理（pjstatでポイント確認）
-4. 停滞エージェントへの介入
-5. リソース再配分の検討
+        reason += """[PM için paralel görevler]
+1. Tüm aracılarda (SE, PG, CD) ilerleme kontrolü ve dolaşım
+2. directory_pane_map.txt güncellemelerini doğrula
+3. Bütçe yönetimi (pjstat ile puanları kontrol et)
+4. Takılan aracılara müdahale
+5. Kaynakların yeniden dağıtımını değerlendir
 
-特に最近、進捗確認を行っていないエージェントを優先すること。
+Özellikle son zamanlarda hiç kontrol edilmemiş aracıları önceliklendir.
 """
     
     elif agent_id.startswith("SE"):
-        reason += """【SEの並行タスク】
-1. 各PGのChangeLog.md更新状況の監視
-2. telemetry/context_usage_monitor.pyでコンテキスト使用状況確認
-3. SOTA更新履歴のグラフ生成（Agent-shared/log_analyzer.py）
-4. ジョブ実行結果待ち状態の確認
-5. visible_path_PG*.txtの更新
+        reason += """[SE için paralel görevler]
+1. PG'lerin ChangeLog.md güncellemelerini izle
+2. telemetry/context_usage_monitor.py ile bağlam kullanımını kontrol et
+3. SOTA güncelleme geçmişi grafikleri üret (Agent-shared/log_analyzer.py)
+4. İş yürütme sonuç bekleme durumlarını kontrol et
+5. visible_path_PG*.txt dosyalarını güncelle
 """
     
     elif agent_id.startswith("PG"):
-        reason += """【PGの並行タスク】
-1. ChangeLog.mdの更新とSOTA管理
-2. SSH/SFTPセッションの状態確認（Desktop Commander利用）
-3. ジョブキューの状態確認（squeue等）
-4. コンパイル警告の解析と修正
-5. /resultsディレクトリの整理
-6. 新しい最適化手法の実装
+        reason += """[PG için paralel görevler]
+1. ChangeLog.md güncellemesi ve SOTA yönetimi
+2. SSH/SFTP oturum durumlarını kontrol et (Desktop Commander kullan)
+3. İş kuyruğu durumunu kontrol et (squeue vb.)
+4. Derleme uyarılarını analiz et ve düzelt
+5. /results dizinini düzenle
+6. Yeni optimizasyon yöntemlerini uygula
 
-性能向上の余地がある限り、継続的に最適化を進めてください。
+Performans artışı mümkün olduğu sürece iyileştirmeye devam et.
 """
     
     elif agent_id.startswith("CD"):
-        reason += """【CDの並行タスク】
-1. 各PGのSOTA達成コードの確認
-2. GitHub/ディレクトリへのコピーと匿名化処理
-3. .gitignoreの更新確認
-4. git statusでの変更確認
-5. コミットメッセージの準備
+        reason += """[CD için paralel görevler]
+1. PG'lerin SOTA'ya ulaşan kodlarını kontrol et
+2. GitHub/dizin kopyalama ve anonimleştirme işlemleri
+3. .gitignore güncellemelerini doğrula
+4. git status ile değişiklikleri kontrol et
+5. Commit mesajlarını hazırla
 
-非同期でGitHub同期を進めてください。
+GitHub senkronizasyonunu eşzamanlı olmayan şekilde ilerlet.
 """
     
     reason += f"""
-それでも待機する必要がある場合は、sleep 10 等を使用してください。
-（残りSTOP試行可能回数: {threshold - stop_count}回）
+Yine de beklemek gerekiyorsa, sleep 10 vb. kullanın.
+(Kalan STOP deneme hakkı: {threshold - stop_count})
 """
     
     return reason
