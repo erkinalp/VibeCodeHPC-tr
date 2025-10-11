@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-VibeCodeHPC Stop Hook v2 (ポーリング型エージェント用)
-PM, SE, PG, CDの待機状態を防ぐ - STOP回数制御版
+VibeCodeHPC Stop Hook v2 (Polling tipi ajanlar için)
+PM, SE, PG, CD bekleme durumunu engelleme - STOP sayısı kontrollü sürüm
 """
 
 import json
@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kök dizinini (VibeCodeHPC-jp) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """Geçerli dizindeki stop_count.txt'den sayıyı al"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -38,7 +38,7 @@ def get_stop_count():
 
 
 def increment_stop_count():
-    """stop_count.txtをインクリメント"""
+    """stop_count.txt değerini arttır"""
     hooks_dir = Path.cwd() / ".claude" / "hooks"
     hooks_dir.mkdir(parents=True, exist_ok=True)
     
@@ -51,20 +51,19 @@ def increment_stop_count():
 
 
 def get_agent_info_from_cwd():
-    """現在のディレクトリから自分のエージェント情報を取得"""
+    """Geçerli dizinden ajan bilgilerini al"""
     cwd = Path.cwd()
     project_root = find_project_root(cwd)
     
     if not project_root:
         return None
     
-    # agent_id.txtから直接読み取り（session_start.pyと同じ方式）
+    # agent_id.txt'den doğrudan oku (session_start.py ile aynı yöntem)
     agent_id_file = Path.cwd() / ".claude" / "hooks" / "agent_id.txt"
     if agent_id_file.exists():
         agent_id = agent_id_file.read_text().strip()
         return {"agent_id": agent_id}
     
-    # フォールバック：working_dirでマッチング
     try:
         relative_dir = str(cwd.relative_to(project_root))
         if relative_dir == ".":
@@ -88,7 +87,7 @@ def get_agent_info_from_cwd():
 
 
 def get_stop_threshold(agent_id):
-    """エージェント種別ごとのSTOP回数閾値を返す"""
+    """Ajan türüne göre STOP sayısı eşiğini döndür"""
     if not agent_id:
         return 30
     
@@ -103,18 +102,15 @@ def get_stop_threshold(agent_id):
                     config = json.load(f)
                     thresholds = config.get('thresholds', {})
                     
-                    # 完全一致をまず試す
                     if agent_id in thresholds:
                         return thresholds[agent_id]
                     
-                    # プレフィックスマッチを試す
                     for prefix in ['PM', 'CD', 'SE', 'PG']:
                         if agent_id.startswith(prefix) and prefix in thresholds:
                             return thresholds[prefix]
             except:
                 pass
     
-    # フォールバック値
     if agent_id == "PM":
         return 50
     elif agent_id.startswith("CD"):
@@ -124,11 +120,11 @@ def get_stop_threshold(agent_id):
     elif agent_id.startswith("PG"):
         return 20
     else:
-        return 30  # その他のエージェント用デフォルト
+        return 30  # Diğer ajanlar için varsayılan
 
 
 def get_required_files(agent_id):
-    """エージェントIDから必須ファイルリストを生成"""
+    """Ajan ID'sinden gerekli dosya listesini üret"""
     common_files = [
         "CLAUDE.md",
         "requirement_definition.md（ユーザの意図を理解）",
@@ -187,31 +183,31 @@ def get_required_files(agent_id):
 
 
 def generate_block_reason(agent_info, stop_count):
-    """ポーリング型エージェント用のブロック理由を生成"""
+    """Polling tipi ajanlar için bloklama nedenini üret"""
     agent_id = agent_info.get('agent_id', 'unknown')
     threshold = get_stop_threshold(agent_id)
     
     # 閾値に達した場合
     if stop_count >= threshold:
         reason = f"""
-⚠️ STOP回数が上限（{threshold}回）に達しました。
+⚠️ STOP deneme sayısı üst sınıra ({threshold} kez) ulaştı.
 
-📝 **重要**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
-   全ての要件を満たしているか項目ごとに ☑ 確認すること。
+📝 Önemli: Proje kapatılacaksa requirement_definition.md yeniden gözden geçirilmeli ve
+   tüm gereksinimlerin madde madde karşılandığı ☑ doğrulanmalıdır.
 
-エージェント {agent_id} として以下の終了前タスクを実行してください：
+Ajan {agent_id} olarak aşağıdaki kapanış öncesi görevleri uygulayın:
 
-1. PMへの終了通知:
-   agent_send.sh PM "[{agent_id}] STOP回数が上限に達しました。終了前の最終タスクを実行中です。"
+1. PM'ye kapanış bildirimi:
+   agent_send.sh PM "[{agent_id}] STOP sayısı üst sınıra ulaştı. Kapanış öncesi son görevler yürütülüyor."
 
-2. 要件確認と最終タスク実行:
-   - requirement_definition.mdの全項目を確認
-   - 現在進行中のタスクを切りの良いところまで完了
+2. Gereksinim kontrolü ve son görevlerin icrası:
+   - requirement_definition.md içindeki tüm maddeleri kontrol et
+   - Devam eden görevleri uygun bir noktada tamamla
    - ChangeLog.mdの最終更新
-   - 作業ディレクトリの整理
-   - 成果物の確認
+   - Çalışma dizinini düzenle
+   - Çıktıları doğrula
 
-3. 最終報告:
+3. Nihai rapor:
    agent_send.sh PM "[{agent_id}] 終了準備完了。主な成果: [ここに成果を記載]"
 
 その後、PMがagent.sendで送る、ユーザ権限の「ESC」コマンドによる強制中止か、続投\転属などの指示を待つために

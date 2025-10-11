@@ -50,26 +50,26 @@ def main():
                 if pid:
                     has_sessions = check_ssh_sessions_file()
                     message = f"""
-SSH/SFTPセッション開始を検出しました:
+SSH/SFTP oturumu başlangıcı tespit edildi:
 • PID: {pid}
-• コマンド: {command}
+• Komut: {command}
 
-Desktop Commander MCPでのセッション管理：
-• /Agent-shared/ssh_sftp_guide.md を参照してください
-• ssh_sftp_sessions.jsonでセッション管理が必要です
-{"• 既存セッションファイルを検出 - interact_with_processの使用を検討" if has_sessions else "• セッションファイルが未作成 - start_processから開始"}
+Desktop Commander MCP ile oturum yönetimi:
+• /Agent-shared/ssh_sftp_guide.md dosyasına bakın
+• ssh_sftp_sessions.json ile oturum yönetimi gereklidir
+{"• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin" if has_sessions else "• Oturum dosyası oluşturulmamış - start_process ile başlayın"}
 
-【重要】以下の手順でセッション管理してください:
-1. ssh_sftp_sessions.jsonを作成/更新してPID {pid}を記録
-2. interact_with_processでコマンド実行（PID: {pid}）
-3. セッション終了時はforce_terminate（PID: {pid}）
+【Önemli】Aşağıdaki adımlarla oturum yönetimi yapın:
+1. ssh_sftp_sessions.json dosyasını oluştur/güncelle ve PID {pid} kaydet
+2. interact_with_process ile komut çalıştır (PID: {pid})
+3. Oturum bittiğinde force_terminate (PID: {pid})
 
--ttオプションなしで接続した場合、インタラクティブ操作で問題が発生する可能性があります。
+-tt seçeneği olmadan bağlandıysanız interaktif işlemlerde sorun yaşayabilirsiniz.
 
-⚠️ この警告表示後も作業を継続してください（STOPしないこと）:
-• /Agent-shared/ssh_sftp_guide.mdを確認
-• mcp__desktop-commander__list_sessionsでMCPセッション確認
-• ssh_sftp_sessions.jsonの{"更新" if has_sessions else "作成"}を進める
+⚠️ Bu uyarıdan sonra da çalışmaya devam edin (STOP etmeyin):
+• /Agent-shared/ssh_sftp_guide.md'yi kontrol edin
+• mcp__desktop-commander__list_sessions ile MCP oturumlarını kontrol edin
+• ssh_sftp_sessions.json için {"güncelleme" if has_sessions else "oluşturma"} işlemini ilerletin
 """
                     
                     # stderrに出力して終了コード2でClaudeに表示
@@ -83,23 +83,23 @@ Desktop Commander MCPでのセッション管理：
             if command.strip().startswith(("ssh ", "sftp ", "scp ")):
                 has_sessions = check_ssh_sessions_file()
                 message = f"""
-⚠️ Bashツールで直接SSH/SFTP/SCPを実行しました。
+⚠️ Bash aracıyla doğrudan SSH/SFTP/SCP çalıştırdınız.
 
-【推奨】Desktop Commander MCPを使用してください:
-• /Agent-shared/ssh_sftp_guide.md を参照してください
-• ssh_sftp_sessions.jsonでセッション管理が必要です
-{"• 既存セッションファイルを検出 - interact_with_processの使用を検討" if has_sessions else "• セッションファイルが未作成 - start_processから開始"}
+【Öneri】Desktop Commander MCP kullanın:
+• /Agent-shared/ssh_sftp_guide.md dosyasına bakın
+• ssh_sftp_sessions.json ile oturum yönetimi gereklidir
+{"• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin" if has_sessions else "• Oturum dosyası oluşturulmamış - start_process ile başlayın"}
 
-理由：
-• セッション管理が可能
-• 大量出力によるコンテキスト消費を防止
-• 2段階認証の回避
+Gerekçe:
+• Oturum yönetimi mümkündür
+• Büyük çıktılarda bağlam tüketimini önler
+• İki aşamalı doğrulama sorunlarının önlenmesi
 
-次回からはmcp__desktop-commander__start_processの使用を検討してください。
+Bir sonraki sefer mcp__desktop-commander__start_process kullanımını değerlendirin.
 
-⚠️ この警告表示後も作業を継続してください（STOPしないこと）:
-• /Agent-shared/ssh_sftp_guide.mdを確認
-• Desktop Commander MCPへの移行を検討
+⚠️ Bu uyarıdan sonra da çalışmaya devam edin (STOP etmeyin):
+• /Agent-shared/ssh_sftp_guide.md'yi kontrol edin
+• Desktop Commander MCP'ye geçişi değerlendirin
 """
                 
                 # stderrに出力して終了コード2でClaudeに表示

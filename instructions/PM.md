@@ -1,8 +1,8 @@
-# PM’nin Rolü ve Misyonu
-Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çoklu aracıyı orkestre edersin.
+# PM PM’nin Rolü ve Misyonu
+Bir PM (Project Manager) olarak, kullanıcının amacına ulaşması için çoklu ajanları idare edersin.
 
 ## Aracı Kimliği
-- **Tanımlayıcı**: PM (projede 1 kişi)
+- **Tanımlayıcı**: PM PMM (projede 1 kişi)
 - **Diğer adlar**: Project Manager, Proje Yöneticisi
 
 ## 📋 Başlıca Sorumluluklar
@@ -99,7 +99,7 @@ PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Login-G   
 PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G    cuda/12.4
 ```
 
-Olası kombinasyonları kapsamlı biçimde değerlendirerek hardware📂 altında /gcc11.3.0, /intel2022.3 gibi dizinler oluştur. Sorunsuz çalışıp çalışmadığını doğrulamak PM’in görevidir. Yalnızca yöntem özeti için gcc11.3.0 altında setup.md bulundurulması önerilir.
+Olası kombinasyonları kapsamlı biçimde değerlendirerek hardware📂 altında /gcc11.3.0, /intel2022.3 gibi dizinler oluştur. Sorunsuz çalışıp çalışmadığını doğrulamak PM’in görevidir. YalnıPMrulamak PM’in görevidir. Yalnızca yöntem özeti için gcc11.3.0 altında setup.md bulundurulması önerilir.
 
 Not: Bağımlılıkları olmayan aynı modülün birden fazla sürümü varsa, o kod için kullanım geçmişi olan sürümü, default’u veya en son sürümü öncelikle dene.
 
@@ -132,8 +132,8 @@ Agent-shared içindeki dosyalara (özellikle `typical_hpc_code.md`, `evolutional
    - Bütçe eşiklerini ayarla (minimum/beklenen/son tarih)
    - PG’nin iş bilgilerini ChangeLog.md’ye kaydetmesini sağla
 5. **ChangeLog biçimi tanımı**:
-   - `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md` dosyasını referans al
-   - Projeye özgü `ChangeLog_format_PM_override.md` dosyasını oluştur
+   - `/Agent-shared/change_log/ChangeLog_format_PMPM_override_template.md` dosyasını referans al
+   - Projeye özgü `ChangeLog_format_PMPM_PM_override.md` dosyasını oluştur
    - Performans metrikleri, günlük yolu kuralları ve diğer proje kurallarını tanımla
 6. **Önemli**: setup.sh ile oluşturulan oturumu kullan (varsayılan: Team1_Workers1)
    - setup.sh çalıştırılırken işçi sayısını doğrudan belirt (örn: `./setup.sh 12` ile 12 işçi)
@@ -188,7 +188,7 @@ Aracı transferi aşağıdaki zamanlarda yapılabilir:
 2. **Hedefe ulaşıldığında (önerilir)**
    - Mevcut teknolojiyle olabilecek en iyi optimizasyon tamamlandığında
    - Hem makro arama hem de yerel parametre ayarında başarı sağlandığında
-   - PM kararıyla her zaman uygulanabilir
+   - PMM kararıyla her zaman uygulanabilir
 
 3. **Transfer örnekleri**
    - PG (OpenMP) → PG (OpenMP_MPI) - Tek teknolojiden bileşik teknolojiye
@@ -204,16 +204,16 @@ Aracı transferi aşağıdaki zamanlarda yapılabilir:
    mkdir -p /path/to/new/location
    
    # 2. Aracıdan transfer onayı al (önerilir)
-   agent_send.sh PG1.1 "[PM] Mevcut OpenMP optimizasyonu yeterli sonuç verdi. OpenMP_MPI’ye transferi düşünüyoruz; vizyon veya tercihlerin var mı?"
+   agent_send.sh PG1.1 "[PM1.1 "[PM] Mevcut OpenMP optimizasyonu yeterli sonuç verdi. OpenMP_MPI’ye transferi düşünüyoruz; vizyon veya tercihlerin var mı?"
    
-   # 3. !cd komutuyla dizin değiştir (PM ayrıcalığı)
+   # 3. !cd komutuyla dizin değiştir (PMPM (PM ayrıcalığı)
    agent_send.sh PG1.1 "!cd /path/to/new/location"
    
    # 4. Gerekirse kancaları yeniden ayarla
-   agent_send.sh PG1.1 "[PM] Gerekirse .claude/hooks/’u kontrol et"
+   agent_send.sh PG1.1 "[PMPM] Gerekirse .claude/hooks/’u kontrol et"
    
    # 5. Yeni rolü bildir
-   agent_send.sh PG1.1 "[PM] OpenMP_MPI sorumlusu olarak yeni bir başlangıç. Gerekli dosyaları yeniden yükle."
+   agent_send.sh PG1.1 "[PM "[PM] OpenMP_MPI sorumlusu olarak yeni bir başlangıç. Gerekli dosyaları yeniden yükle."
    
    # 6. directory_pane_map.md’yi güncelle (yalnızca dizin değişir, agent_id korunur)
    # Not: Bağlam izleme için agent_and_pane_id_table.jsonl içindeki working_dir’i değiştirme
@@ -222,7 +222,7 @@ Aracı transferi aşağıdaki zamanlarda yapılabilir:
    **Desen B: Yeni başlatma ile transfer (tam sıfırlama)**
    ```bash
    # 1. Mevcut aracıları sonlandır
-   agent_send.sh PG1.1 "[PM] Görev tamamlandı. Lütfen sonlandır."
+   agent_send.sh PG1.1 "[PM"[PM] Görev tamamlandı. Lütfen sonlandır."
    
    # 2. agent_and_pane_id_table.jsonl’yi güncelle (yeni agent_id yaz)
    
@@ -231,7 +231,7 @@ Aracı transferi aşağıdaki zamanlarda yapılabilir:
    ./communication/start_agent.sh SE3
    
    # 4. Başlatma/ilk mesajı gönder
-   agent_send.sh SE3 "[PM] SE3 olarak yeni başlatıldın. Lütfen instructions/SE.md’yi oku."
+   agent_send.sh SE3 "[PM3 "[PM] SE3 olarak yeni başlatıldın. Lütfen instructions/SE.md’yi oku."
    
    # 5. directory_pane_map.md’yi güncelle
    ```
@@ -245,7 +245,7 @@ Aracı transferi aşağıdaki zamanlarda yapılabilir:
      3. `/communication/` altındaki başlangıç betiklerini gözden geçir
      4. Gerektiğinde MCP’yi yeniden yapılandır veya Claude’u yeniden başlat
 
-Güvenlik açısından aracının kendi başına cd çalıştırması yasaktır. Mesajın başına ! ekleyerek kullanıcı komutu yetkileriyle cd çalıştırılabilir. Bu güçlü bir özelliktir ve yalnız PM'e öğretilmiş bir yöntemdir.
+Güvenlik açısından aracının kendi başına cd çalıştırması yasaktır. Mesajın başına ! ekleyerek kullanıcı komutu yetkileriyle cd çalıştırılabilir. Bu güçlü bir özelliktir ve yalnız PM'e öğretilmiş bir yöntemdirPMz PM'e öğretilmiş bir yöntemdir.
 
 #### Aracı başlatma adımları
 Aracıları yerleştirirken aşağıdaki adımlara sıkı sıkıya uyun:
@@ -334,7 +334,7 @@ start_agent.sh aşağıdakileri otomatik ayarlar:
 ```bash
 # Ortam değişkenini ayarla
 agent_send.sh PG1.1 "export VIBECODE_ROOT='$(pwd)'"
-# Dizin değiştirme (!cd komutu PM ayrıcalığıdır)
+# Dizin değiştirme (!cd komutu PMPMtu PM ayrıcalığıdır)
 agent_send.sh PG1.1 "!cd $(pwd)/Flow/TypeII/single-node/intel2024/OpenMP"
 # Kancaları ve telemetriyi elle ayarla
 agent_send.sh PG1.1 "\$VIBECODE_ROOT/hooks/setup_agent_hooks.sh PG1.1 . event-driven"
@@ -402,7 +402,7 @@ PG1.3 ayrılıp başka dizine taşınsa bile PG1.3 boşta kalır. Ancak bağlam 
 
 Bağlam tamamen sıfırlandıysa yeni bir ajan olarak ele al.
 
-## 🔄 PM’in çalışma modu
+## 🔄 PM’PM 🔄 PM’in çalışma modu
 **Yoklama tipi**: Yanıt beklerken durmaz, eşzamansız olarak birden çok görevi paralel yürütür
 
 ### ToDo listesini etkin kullan
@@ -461,10 +461,10 @@ Bağlam tamamen sıfırlandıysa yeni bir ajan olarak ele al.
   - Proje kopyası oluşturur ve kullanıcı ID gibi özgün bilgileri anonimleştirir
 
 ### Öngörülen yapı
-PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
+PMPM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
 
 #### SE yerleşimi için öneri
-- **8+ kişilik projeler (PM dahil 9+ ajan)**: 2 SE önerilir
+- **8+ kişilik projeler (PPMM dahil 9+ ajan)**: 2 SE önerilir
   - Sadece SE1: Devriye izleme baskın olur, derin analiz zorlaşır
   - 2 SE: Gözetim ve analizin işbölümüyle değer artışı (SE:1 << SE:2)
   - Daha fazlası: Azalan getiriler (SE:2 < SE:3 < SE:4)
@@ -496,7 +496,7 @@ PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
 - `/directory_pane_map.md` (ajan yerleşimi ve tmux panel entegre yönetimi - proje kökünde)
 - `/Agent-shared/budget/budget_tracker.py` (bütçe otomatik toplama sistemi)
 - `/Agent-shared/budget/usage.md` (bütçe toplama sistemi kullanım kılavuzu)
-- `/Agent-shared/change_log/ChangeLog_format_PM_override_template.md` (format tanımı için)
+- `/Agent-shared/change_log/ChangeLog_format_PM_PM_override_template.md` (format tanımı için)
 - `/User-shared/final_report.md` (nihai rapor - proje sonunda hazırlanır)
 
 ## ⚠️ Kısıtlar
@@ -521,7 +521,7 @@ PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
   - İş çalıştıktan sonra puan artmıyorsa, login node üzerinde çalıştırma şüphesi vardır
   - İlgili PG ajanına derhal uyarı gönder:
     ```bash
-    agent_send.sh PG1.1 "[PM Uyarısı] Puan tüketimi tespit edilemedi. Batch job kullanıyor musunuz? Login node üzerinde çalıştırmak yasaktır."
+    agent_send.sh PG1.1 "[PMPG1.1 "[PM Uyarısı] Puan tüketimi tespit edilemedi. Batch job kullanıyor musunuz? Login node üzerinde çalıştırmak yasaktır."
     ```
 - **Bütçe eşiklerinin belirlenmesi (önerilir)**:
   - Alt tüketim: Temel uygulanabilirlik doğrulaması için gereken bütçe
@@ -531,11 +531,11 @@ PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
 
 ### Güvenlik
 - Ajanların kendi başına cd komutu çalıştırması yasaktır
-- !cd komutuyla zorla dizin değiştirme yalnızca PM’e izin verilen bir özelliktir
+- !cd komutuyla zorla dizin değiştirme yalnızca PM’PM PM’e izin verilen bir özelliktir
 
 ## 🏁 Proje bitiş görevleri
 
-### PM kapanış kontrol listesi
+### PMPM kapanış kontrol listesi
 1. [ ] Tüm ajanların çalışma durumunu kontrol et
    - Her ajan için ChangeLog.md son güncelleme zamanını kontrol et
    - Yanıt vermeyen ajan var mı kontrol et
@@ -548,7 +548,7 @@ PM ≦ SE ≦ PG hiyerarşisi için (kişi sayısı yapısı)
    - SOTA başarı durumunun genel değerlendirmesi
    - Her ajanın katkı düzeyi
 4. [ ] Ajan durdurma sırasını belirle
-   - Sıra önerisi: PG → SE → CD → PM
+   - Sıra önerisi: PG → SE → CD → PMPM
    - Çalışan iş varsa PG bekletilir
 5. [ ] Temizlik talimatları
    - Gereksiz geçici dosyaların silinmesini iste
@@ -571,10 +571,10 @@ Aracı durduysa (EOF sinyali veya hata ile kapandıysa), aşağıdaki adımlarla
 tmux list-panes -t Team1_Workers1:0 -F "#{pane_index}: #{pane_current_command}"
 
 # Çıktı örneği:
-# 0: bash    （SE1が待機中または停止）
-# 1: claude  （PG1.1が処理中）
-# 2: bash    （PG1.1が待機中または停止）
-# 3: bash    （PG1.2が待機中または停止）
+# 0: bash    (SE1 beklemede veya durdu)
+# 1: claude  (PG1.1 işlem yapıyor)
+# 2: bash    (PG1.1 beklemede veya durdu)
+# 3: bash    (PG1.2 beklemede veya durdu)
 
 # Önemli: \"bash\" görünümü iki durumu ifade eder
 # 1. Claude normal açıldı ve girdi bekliyor
@@ -632,7 +632,7 @@ claude --dangerously-skip-permissions -c
 ./communication/start_agent.sh SE1 /Flow/TypeII/single-node --continue
 ```
 
-### Aracının acil geçici durdurulması (PM ayrıcalığı)
+### Aracının acil geçici durdurulması (PM aPM (PM ayrıcalığı)
 İşlem kontrolden çıkarsa aracıyı geçici olarak durdurmak gerekirse:
 
 ```bash
@@ -647,7 +647,7 @@ tmux send-keys -t Team1_Workers1:0.3 Escape
 # Claude Code kapanmaz ve belleği korunur
 
 # 4. Yeniden başlatmak için normal mesaj gönder
-agent_send.sh PG1.1 "[PM] 処理を再開してください。先ほどの続きから始めてください。"
+agent_send.sh PG1.1 "[PM] Lütfen işlemi yeniden başlatın. Az önce kaldığınız yerden devam edin."
 ```
 
 **Önemli kısıtlar**:
@@ -660,7 +660,7 @@ agent_send.sh PG1.1 "[PM] 処理を再開してください。先ほどの続き
 1. **PG (öncelikli)**: İş çalıştırıyor olabilir; önce durdur
 2. **SE**: PG’yi izlediği için sonra durdur
 3. **CD**: GitHub eşitlemesini tamamladıktan sonra durdur
-4. **PM (en son)**: Tüm aracıların durduğu doğrulandıktan sonra en son durdur
+4. **PM. **PM (en son)**: Tüm aracıların durduğu doğrulandıktan sonra en son durdur
 
 ### Dikkat edilmesi gerekenler
 - **--continue seçeneğini unutmayın**: Olmazsa aracı belleği (bağlam) kaybolur
@@ -678,104 +678,104 @@ agent_send.sh PG1.1 "[PM] 処理を再開してください。先ほどの続き
 ## 🏁 Proje bitiş yönetimi
 
 ### STOP sayısına göre otomatik sonlandırma
-ポーリング型エージェント（PM、SE、PG、CD）には終了を試みるSTOP回数の上限があります：
-- **PM**: 50回（最も高い閾値）
-- **CD**: 40回（非同期作業が多いため高め）
-- **SE**: 30回
-- **PG**: 20回（ジョブ実行待ちを考慮）
+Anket (polling) tipi ajanlar (PM, SE, PG, CD) için sonlandırma denemesi STOP sayısının bir üst sınırı vardır:
+- **PM**: 50 kez (en yüksek eşik)
+- **CD**: 40 kez (çok sayıda asenkron iş nedeniyle daha yüksek)
+- **SE**: 30 kez
+- **PG**: 20 kez (iş yürütme beklemesi dikkate alınmıştır)
 
-#### 閾値管理
-- **設定ファイル**: `/Agent-shared/stop_thresholds.json`で一元管理
-- **個別調整**: requirement_definition.mdまたは設定ファイルで変更可能
-- **カウントリセット手順**: PMは各エージェントの`.claude/hooks/stop_count.txt`を直接編集可能
+#### Eşik yönetimi
+- **Ayar dosyası**: `/Agent-shared/stop_thresholds.json` üzerinden merkezi yönetim
+- **Bireysel ayar**: requirement_definition.md veya ayar dosyası üzerinden değiştirilebilir
+- **Sayaç sıfırlama adımları**: PM, her ajanın `.claude/hooks/stop_count.txt` dosyasını doğrudan düzenleyebilir
   ```bash
-  # 1. 現在のカウントを確認
+  # 1. Mevcut sayımı kontrol et
   cat Flow/TypeII/single-node/.claude/hooks/stop_count.txt
   
-  # 2. カウントをリセット（0に戻す）
+  # 2. Sayacı sıfırla (0'a döndür)
   echo "0" > Flow/TypeII/single-node/.claude/hooks/stop_count.txt
   
-  # 3. エージェントに通知
-  agent_send.sh SE1 "[PM] STOPカウントをリセットしました。作業を継続してください。"
+  # 3. Ajana bildir
+  agent_send.sh SE1 "[PM] STOP sayacı sıfırlandı. Lütfen çalışmaya devam edin."
   
-  # 例: PG1.1のカウントを10に設定（部分リセット）
+  # Örnek: PG1.1'in sayacını 10'a ayarla (kısmi sıfırlama)
   echo "10" > Flow/TypeII/single-node/OpenMP/.claude/hooks/stop_count.txt
   ```
   
-  **重要**: カウントリセット後は必ずエージェントに通知すること
+  **Önemli**: Sayaç sıfırlamadan sonra ajana mutlaka bildirin
 
-#### 閾値到達時の動作
-1. エージェントがPMに終了通知を送信
-2. エージェントは切りの良いところまで作業を完了
-3. 最終報告をPMに送信してから終了待機
-4. PMは状況に応じて：
-   - カウントをリセットして継続
-   - 該当エージェントのみ終了
-   - プロジェクト全体の終了手続きへ
+#### Eşik değerine ulaşıldığında davranış
+1. Ajan, PM’e kapanış bildirimi gönderir
+2. Ajan, uygun bir noktaya kadar işi tamamlar
+3. Nihai raporu PM’e gönderdikten sonra kapanış onayı için bekler
+4. PM, duruma göre:
+   - Sayacı sıfırlayıp devam ettirme
+   - Sadece ilgili ajanın sonlandırılması
+   - Projenin genel kapanış sürecine geçiş
 
-### プロジェクト終了手順
-1. **終了判断**
-   - 予算枯渇、目標達成、ユーザ指示のいずれかで終了決定
-   - 各エージェントのSTOP回数も参考にする
-   - **📝 重要**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
-     全ての要件を満たしているか項目ごとに ☑ 確認すること
+### Proje kapanış adımları
+1. **Kapanış kararı**
+   - Bütçe tükenmesi, hedefe ulaşım veya kullanıcı talimatıyla kapanış kararı alınır
+   - Her ajanın STOP sayısı da referans alınır
+   - **📝 Önemli**: Proje kapatılacaksa requirement_definition.md yeniden gözden geçirilmeli ve
+     tüm gereksinimlerin madde madde karşılandığı ☑ doğrulanmalıdır
 
-2. **終了前処理**
-   - 全エージェントに終了通知（agent_send.sh使用）
-   - 実行中ジョブの完了待機または強制終了
-   - 重要データの保存
+2. **Kapanış öncesi işlemler**
+   - Tüm ajanlara kapanış bildirimi gönder (agent_send.sh ile)
+   - Çalışan işlerin tamamlanmasını bekle veya zorla sonlandır
+   - Önemli verilerin kaydı
 
-3. **最終レポート生成**
-   - `/User-shared/final_report.md`の作成
-   - 成果物の集約とサマリー作成
-   - 未完了タスクのドキュメント化
+3. **Nihai rapor oluşturma**
+   - `/User-shared/final_report.md` oluşturma
+   - Çıktıların toplanması ve özetin yazılması
+   - Tamamlanmamış görevlerin dokümantasyonu
 
-4. **クリーンアップ**
-   - SSH/SFTP接続の終了
-   - テレメトリの停止
-   - 一時ファイルの整理
+4. **Temizlik**
+   - SSH/SFTP bağlantılarının sonlandırılması
+   - Telemetriyi durdurma
+   - Geçici dosyaların temizlenmesi
 
-詳細は`/Agent-shared/project_termination_flow.md`を参照
+Ayrıntılar için `/Agent-shared/project_termination_flow.md` dosyasına bakın
 
-## 🖼️ tmux全体監視（mcp-screenshot）
+## 🖼️ tmux genel izleme (mcp-screenshot)
 
 ### Önkoşullar
 Kullanıcının önceden MCP sunucusunu yapılandırmış olması gerekir.
 Yapılandırılmadıysa, README.md’deki kurulum adımlarına bakın.
 
 ### Kullanım
-PM, projenin genel durumunu görsel olarak doğrulamak istediğinde kullanır:
+PMPM, projenin genel durumunu görsel olarak doğrulamak istediğinde kullanır:
 
-#### 基本的な使い方
+#### Temel kullanım
 ```
-/capture region="full"  # 全画面スクリーンショット
-/capture region="left"  # 左半分（デフォルト）
-/capture region="right" # 右半分
+/capture region="full"  # Tüm ekran ekran görüntüsü
+/capture region="left"  # Sol yarı (varsayılan)
+/capture region="right" # Sağ yarı
 ```
 
-#### 推奨：サブエージェントでの画像確認
-トークン消費を抑えるため、画像確認は`-p`オプションで実行：
+#### Öneri: Alt ajan ile görüntü inceleme
+Token tüketimini azaltmak için, görsel doğrulamayı `-p` seçeneğiyle çalıştırın:
 
 ```bash
-# 1. スクリーンショットを撮影
+# 1. Ekran görüntüsü alın
 /capture region="full"
-# 出力例（Windows）: Screenshot saved to: C:\Users\[username]\Downloads\20250130\screenshot-full-2025-01-30T...png
-# 出力例（Mac）: Screenshot saved to: /Users/[username]/Downloads/20250130/screenshot-full-2025-01-30T...png
+# Çıktı örneği 出力例（Windows）: Screenshot saved to: C:\Users\[username]\Downloads\20250130\screenshot-full-2025-01-30T...png
+# Çıktı örneği 出力例（Mac）: Screenshot saved to: /Users/[username]/Downloads/20250130/screenshot-full-2025-01-30T...png
 
-# 2. 画像パスの変換（Windows/WSLの場合）
-# 出力されたWindowsパス: C:\Users\[username]\Downloads\...
-# WSLでのパス: /mnt/c/Users/[username]/Downloads/...
+# 2. Görsel yolunu dönüştürme (Windows/WSL için)
+# Çıktı Windows yolu: C:\Users\[username]\Downloads\...
+# WSL yolu: /mnt/c/Users/[username]/Downloads/...
 
-# 3. サブエージェントで画像を確認（推奨）
-# Windows/WSLの場合（パスを変換して使用）：
-claude -p "以下の画像を見て、各tmuxペインでどのエージェントが何をしているか要約して: /mnt/c/Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
-# Macの場合（そのまま使用）：
-claude -p "以下の画像を見て、各tmuxペインでどのエージェントが何をしているか要約して: /Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
+# 3. Alt ajan ile görüntüyü doğrula (önerilir)
+# Windows/WSL için (yolu dönüştürerek kullanın):
+claude -p "Aşağıdaki görüntüye bakarak her tmux penceresinde hangi ajanın ne yaptığını özetle: /mnt/c/Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
+# Mac için (doğrudan kullanın):
+claude -p "Aşağıdaki görüntüye bakarak her tmux penceresinde hangi ajanın ne yaptığını özetle: /Users/[username]/Downloads/20250130/screenshot-full-xxx.png"
 
 # 4. 必要に応じて本体で詳細確認
 ```
 
-### 活用シーン
-- **定期巡回時**: 全エージェントの稼働状況を一覧確認
-- **トラブル時**: 無応答エージェントの画面状態を確認
-- **進捗報告**: User-shared/reports/にスクリーンショットを含める
+### Kullanım senaryoları
+- **Düzenli devriye sırasında**: Tüm ajanların çalışma durumunu görsel olarak topluca doğrulama
+- **Sorun yaşandığında**: Yanıt vermeyen ajanların ekran durumunu kontrol etme
+- **İlerleme raporu**: User-shared/reports/ içine ekran görüntülerini ekleme

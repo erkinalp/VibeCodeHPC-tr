@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-VibeCodeHPC コンテキスト使用率クイックステータス
-リアルタイムのトークン使用状況を高速で確認するツール
+VibeCodeHPC Bağlam Kullanımı Hızlı Durum
+Gerçek zamanlı token kullanımını hızlıca kontrol etme aracı
 
-将来的にはOpenTelemetryメトリクスとして送信予定
+İleride OpenTelemetry metrikleri olarak gönderim planlanmaktadır
 """
 
 import json
@@ -13,7 +13,7 @@ import argparse
 from typing import Dict, List, Tuple, Optional
 
 class ContextQuickStatus:
-    """コンテキスト使用率の高速確認クラス"""
+    """Bağlam kullanım oranını hızlıca doğrulama sınıfı"""
     
     # Claude Codeのコンテキスト制限
     AUTO_COMPACT_THRESHOLD = 160000  # 実際のauto-compact発生点（推定）
@@ -24,7 +24,7 @@ class ContextQuickStatus:
         self.claude_projects_dir = Path.home() / ".claude" / "projects"
     
     def get_latest_usage(self, agent_id: Optional[str] = None) -> Dict[str, Dict]:
-        """最新のトークン使用状況を取得（高速版）"""
+        """En güncel token kullanım durumunu al (hızlı sürüm)"""
         
         # プロジェクトディレクトリ名を生成
         # Claude Codeの変換ルール: 英数字以外のすべての文字を'-'に置換
@@ -61,7 +61,7 @@ class ContextQuickStatus:
         return agent_status
     
     def _get_agent_sessions(self) -> Dict[str, str]:
-        """agent_and_pane_id_table.jsonlからsession_idとagent_idの対応を取得"""
+        """agent_and_pane_id_table.jsonl içinden session_id ile agent_id eşlemesini al"""
         sessions = {}
         
         agent_table_path = self.project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
@@ -81,7 +81,7 @@ class ContextQuickStatus:
         return sessions
     
     def _get_latest_usage_from_file(self, jsonl_file: Path) -> Optional[Dict]:
-        """JSONLファイルから最新のusage情報を取得（最後から探索）"""
+        """JSONL dosyasından en güncel kullanım bilgisini al (sondan tarama)"""
         
         # ファイルを逆順で読む（効率的）
         with open(jsonl_file, 'rb') as f:
@@ -126,7 +126,7 @@ class ContextQuickStatus:
         return None
     
     def print_status(self, agent_status: Dict[str, Dict]):
-        """ステータスを表示"""
+        """Durumu görüntüle"""
         
         if not agent_status:
             print("❌ No usage data found")
@@ -188,7 +188,7 @@ class ContextQuickStatus:
         print("\n" + "="*70)
     
     def export_to_otel_format(self, agent_status: Dict[str, Dict]) -> List[Dict]:
-        """OpenTelemetry形式に変換（将来の実装用）"""
+        """OpenTelemetry biçimine dönüştür (gelecek kullanım için)"""
         metrics = []
         
         for agent_id, usage in agent_status.items():
@@ -211,7 +211,7 @@ class ContextQuickStatus:
         return metrics
 
 def main():
-    """メイン処理"""
+    """Ana işlem"""
     parser = argparse.ArgumentParser(description='Quick context usage status check')
     parser.add_argument('--agent', type=str, default=None,
                        help='Show status for specific agent only')

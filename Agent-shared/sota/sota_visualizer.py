@@ -513,13 +513,13 @@ class SOTAVisualizer:
                 # elapsed_secondsがないエントリを検出
                 missing_time = [e.get('version', f'unknown_{i}') for i, e in enumerate(entries) if 'elapsed_seconds' not in e]
                 if missing_time:
-                    print(f"  ⚠️ Warning: ChangeLogに生成時刻が不足: {', '.join(missing_time)}")
-                    print(f"     {len(missing_time)}個のエントリを除外してグラフ生成")
+                    print(f"  ⚠️ Uyarı: ChangeLog'da oluşturma zamanı eksik: {', '.join(missing_time)}")
+                    print(f"     Grafik oluştururken {len(missing_time)} girdi dışarıda bırakıldı")
                     # 有効なエントリのみ使用
                     entries = [e for e in entries if 'elapsed_seconds' in e]
                 
                 if not entries:
-                    print(f"  ❌ Error: 時間情報が1つもありません。このグラフをスキップ")
+                    print(f"  ❌ Hata: Zaman bilgisi bulunmuyor. Bu grafik atlanacak")
                     return None
                 
                 # 時系列順にソート（重要！）
@@ -937,28 +937,22 @@ class SOTAVisualizer:
 
 
 def main():
-    """メインエントリポイント"""
+    """Ana giriş noktası"""
     parser = argparse.ArgumentParser(
         description='SOTA Visualizer - Efficient Pipeline Edition',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # 通常のパイプライン実行（定期実行用）
   python sota_visualizer.py
   
-  # デバッグモード（低解像度）
   python sota_visualizer.py --debug
   
-  # サマリー表示（グラフ生成なし）
   python sota_visualizer.py --summary
   
-  # 特定PGのみ高解像度
   python sota_visualizer.py --specific PG1.2:150
   
-  # データエクスポート
   python sota_visualizer.py --export
   
-  # SEカスタム実行
   python sota_visualizer.py --levels local,project --dpi 80
         """
     )
@@ -1014,7 +1008,7 @@ Examples:
         current = current.parent
     
     if not project_root:
-        print("Error: Could not find project root (CLAUDE.md)")
+        print("Hata: Proje kökü bulunamadı (CLAUDE.md)")
         sys.exit(1)
     
     # Visualizer作成

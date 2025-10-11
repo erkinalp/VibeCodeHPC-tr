@@ -43,9 +43,9 @@ def create_test_changelog(temp_dir, pg_name, jobs):
     for job in jobs:
         version = job.get('version', '1.0.0')
         content += f"### v{version}\n"
-        content += f"**生成時刻**: `{job.get('generation_time', datetime.utcnow().isoformat())}Z`\n"
-        content += f"**変更点**: \"{job.get('change', 'テスト変更')}\"\n"
-        content += f"**結果**: {job.get('result', '100 GFLOPS')}\n\n"
+        content += f"**Oluşturma zamanı**: `{job.get('generation_time', datetime.utcnow().isoformat())}Z`\n"
+        content += f"**Değişiklikler**: \"{job.get('change', 'Test değişikliği')}\"\n"
+        content += f"**Sonuç**: {job.get('result', '100 GFLOPS')}\n\n"
         content += "<details>\n\n"
         content += f"- [x] **job**\n"
         content += f"    - id: `{job.get('job_id', '12345')}`\n"
@@ -69,9 +69,9 @@ def create_test_changelog(temp_dir, pg_name, jobs):
     return changelog_path
 
 def run_test():
-    """テスト実行"""
+    """Test çalıştırma"""
     print("=" * 60)
-    print("budget_tracker.py テスト開始")
+    print("budget_tracker.py test başlangıcı")
     print("=" * 60)
     
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -85,8 +85,7 @@ def run_test():
             start_time.isoformat() + "Z"
         )
         
-        # テストシナリオ1: 単一ジョブ
-        print("\n[テスト1] 単一ジョブの計算")
+        print("\n[Test1] Tek iş hesaplama")
         print("-" * 40)
         
         job1_start = start_time + timedelta(minutes=10)
@@ -104,16 +103,16 @@ def run_test():
         
         tracker = BudgetTracker(temp_path)
         jobs = tracker.extract_jobs()
-        print(f"抽出されたジョブ数: {len(jobs)}")
+        print(f"抽出されたジョブ数: {lenİş sayısı: {len(jobs)}")
         
         timeline = tracker.calculate_timeline(jobs)
         if timeline:
             total_points = timeline[-1][1]
-            print(f"総消費ポイント: {total_points:.2f}")
-            print(f"期待値: {0.028 * 1800:.2f} (cx-small: 4GPU x 0.007/sec x 1800sec)")
+            print(f"Toplam tüketilen puan: {total_points:.2f}")
+            print(f"Beklenen değer: {0.028 * 1800:.2f} (cx-small: 4GPU x 0.007/sec x 1800sec)")
         
         # テストシナリオ2: 並列ジョブ
-        print("\n[テスト2] 並列ジョブの計算")
+        print("\n[Test2] Paralel iş hesaplama")
         print("-" * 40)
         
         # PG1.1.1のジョブ（既存）
@@ -124,7 +123,7 @@ def run_test():
         create_test_changelog(temp_path / "Flow/TypeII/single-node/gcc/MPI", "PG1.1.2", [{
             'version': '1.0.0', 
             'job_id': 'job_002',
-            'resource_group': 'cx-middle',  # 異なるリソースグループ
+            'resource_group': 'cx-middle',  # farklı kaynak grubu
             'start_time': job2_start.isoformat() + 'Z',
             'end_time': job2_end.isoformat() + 'Z',
             'runtime_sec': '1500',
@@ -133,21 +132,21 @@ def run_test():
         
         tracker = BudgetTracker(temp_path)
         jobs = tracker.extract_jobs()
-        print(f"抽出されたジョブ数: {len(jobs)}")
+        print(f"抽出されたジョブ数: {lenİş sayısı: {len(jobs)}")
         
         timeline = tracker.calculate_timeline(jobs)
         if timeline:
             total_points = timeline[-1][1]
-            print(f"総消費ポイント: {total_points:.2f}")
+            print(f"Toplam tüketilen puan: {total_points:.2f}")
             
-            # 期待値計算（手動）
+            # Beklenen değer       # 期待値計算（手動）
             # job1: 0.028 * 1800 = 50.4
             # job2: 0.028 * 1500 = 42.0  (cx-middleも4GPU x 0.007)
             # 合計: 92.4
-            print(f"期待値: 92.4 (job1: 50.4 + job2: 42.0)")
+            print(f"Beklenen değer: 92.4 (job1: 50.4 + job2: 42.0)")
         
-        # テストシナリオ3: 実行中のジョブ
-        print("\n[テスト3] 実行中ジョブの計算")
+        # テストシナリオ3: 実行中のジョブÇalışanリオ3: 実行中のジョブ
+        print("\n[テスト3] 実行中ジョブÇalışan\n[テスト3] 実行中ジョブの計算")
         print("-" * 40)
         
         job3_start = datetime.utcnow() - timedelta(minutes=5)
@@ -155,73 +154,73 @@ def run_test():
         create_test_changelog(temp_path / "Flow/TypeII/single-node/intel/OpenMP", "PG1.2.1", [{
             'version': '2.0.0',
             'job_id': 'job_003',
-            'resource_group': 'cx-share',  # 1GPU
+            'resource_group': 'cx-share',  # 1 GPU
             'start_time': job3_start.isoformat() + 'Z',
-            # end_timeなし - 実行中
+            # end_timeなし - 実行中Çalışan
             'status': 'running'
         }])
         
         tracker = BudgetTracker(temp_path)
         jobs = tracker.extract_jobs()
-        print(f"抽出されたジョブ数: {len(jobs)}")
+        print(f"抽出されたジョブ数: {lenİş sayısı: {len(jobs)}")
         
         running_jobs = [j for j in jobs if j.get('status') == 'running']
-        print(f"実行中ジョブ数: {len(running_jobs)}")
+        print(f"Çalışannt(f"実行中ジョブ数: {len(running_jobs)}")
         
         timeline = tracker.calculate_timeline(jobs)
         if timeline:
             total_points = timeline[-1][1]
-            print(f"総消費ポイント（実行中含む）: {total_points:.2f}")
-            print("※実行中ジョブは現在時刻まで計算")
+            print(f"総消費ポイント（実行中含む）: {total_pÇalışanント（実行中含む）: {total_points:.2f}")
+            print("※実行Çalışan            print("※実行中ジョブは現在時刻まで計算")
         
         # テストシナリオ4: レポート生成
-        print("\n[テスト4] レポート生成")
+        print("\n[Test4] Rapor oluşturma")
         print("-" * 40)
         
-        # snapshotsディレクトリ作成
+        # snapshots dizini oluştur
         snapshot_dir = temp_path / "Agent-shared" / "budget" / "snapshots"
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
         report = tracker.generate_report()
-        print(f"レポート生成完了:")
-        print(f"  - タイムスタンプ: {report['timestamp']}")
-        print(f"  - 総ポイント: {report['total_points']:.2f}")
-        print(f"  - ジョブ数: {report['job_count']}")
-        print(f"  - 実行中: {report['running_jobs']}")
-        print(f"  - タイムライン点数: {report['timeline_points']}")
+        print(f"Rapor oluşturma tamamlandı:")
+        print(f"  - Zaman damgası: {report['timestamp']}")
+        print(f"  - Toplam puan: {report['total_points']:.2f}")
+        print(f"  - İş sayısı: {report['job_count']}")
+        print(f"  - Çalışan: {report['running_jobs']}")
+        print(f"  - Zaman çizgisi noktaları: {report['timeline_points']}")
         
         # ファイル確認
         latest_file = snapshot_dir / "latest.json"
         if latest_file.exists():
-            print(f"  - latest.json作成: ✅")
+            print(f"  - latest.json oluşturma: ✅")
         else:
-            print(f"  - latest.json作成: ❌")
+            print(f"  - latest.json oluşturma: ❌")
         
         # テストシナリオ5: サマリー表示
-        print("\n[テスト5] サマリー表示")
+        print("\n[Test5] Özet görüntüleme")
         print("-" * 40)
         tracker.print_summary()
         
         # テストシナリオ6: グラフ生成
-        print("\n[テスト6] グラフ生成")
+        print("\n[Test6] Grafik oluşturma")
         print("-" * 40)
         
         graph_path = temp_path / "test_budget_graph.png"
         tracker.visualize_budget(graph_path)
         
         if graph_path.exists():
-            print(f"  - グラフファイルサイズ: {graph_path.stat().st_size} bytes")
+            print(f"  - Grafik dosya boyutu: {graph_path.stat().st_size} bytes")
         else:
-            print(f"  - グラフ生成失敗")
+            print(f"  - Grafik oluşturma başarısız")
 
 if __name__ == "__main__":
     try:
         run_test()
         print("\n" + "=" * 60)
-        print("✅ テスト完了")
+        print("✅ Test tamamlandı")
         print("=" * 60)
     except Exception as e:
-        print(f"\n❌ エラー発生: {e}")
+        print(f"\n❌ Hata oluştu: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

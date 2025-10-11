@@ -268,7 +268,7 @@ class BudgetTracker:
             timeline = self.calculate_timeline(jobs, as_of)
             
             if not timeline:
-                print("グラフ化するデータがありません")
+                print("Grafiğe dönüştürülecek veri yok")
                 return
             
             # タイムラインデータをプロット用に整理
@@ -433,17 +433,17 @@ class BudgetTracker:
             plt.savefig(output_path, dpi=100, bbox_inches='tight')
             plt.close()
             
-            print(f"グラフ保存完了: {output_path}")
+            print(f"Grafik kaydedildi: {output_path}")
             
             # 実行中ジョブの警告
             if running_jobs:
-                print(f"※注意: 実行中ジョブ{len(running_jobs)}件を含むため、グラフ右端の値は推定値です")
+                print(f"Not: {len(running_jobs)} adet çalışan iş içerdiği için grafiğin sağ uç değerleri tahminidir")
             
         except ImportError:
-            print("ERROR: matplotlibがインストールされていません")
-            print("pip install matplotlib を実行してください")
+            print("ERROR: matplotlib kurulu değil")
+            print("Lütfen: pip install matplotlib komutunu çalıştırın")
         except Exception as e:
-            print(f"グラフ生成エラー: {e}")
+            print(f"Grafik oluşturma hatası: {e}")
     
     def print_summary(self, as_of: datetime = None):
         """簡易サマリー表示"""
@@ -454,37 +454,37 @@ class BudgetTracker:
         running = len([j for j in jobs if j.get('status') == 'running'])
         completed = len([j for j in jobs if j.get('status') == 'completed'])
         
-        print(f"=== 予算集計サマリー ===")
-        print(f"総消費: {total:.1f} ポイント")
-        print(f"ジョブ数: 完了={completed}, 実行中={running}")
+        print(f"=== Bütçe Toplama Özeti ===")
+        print(f"Toplam tüketim: {total:.1f} puan")
+        print(f"İş sayısı: tamamlanan={completed}, çalışan={running}")
         
         # 予算に対する割合（仮定値）
-        budget_limits = {'最低': 100, '目安': 500, '上限': 1000}
+        budget_limits = {'Minimum': 100, 'Beklenen': 500, 'Üst sınır': 1000}
         for label, limit in budget_limits.items():
             percentage = (total / limit * 100) if limit > 0 else 0
             print(f"{label}: {percentage:.1f}%")
         
         if running > 0:
-            print(f"※実行中ジョブ{running}件は現在時刻まで推定")
+            print(f"Not: {running} adet çalışan iş için değerler mevcut zamana kadar tahmindir")
 
 
 def main():
     import argparse
     
-    parser = argparse.ArgumentParser(description='予算集計システム')
-    parser.add_argument('--summary', action='store_true', help='簡易サマリー表示')
-    parser.add_argument('--report', action='store_true', help='詳細レポート生成')
-    parser.add_argument('--json', action='store_true', help='JSON形式で出力')
-    parser.add_argument('--graph', action='store_true', help='予算消費グラフ生成（非推奨: デフォルトで生成されます）')
-    parser.add_argument('--output', type=str, help='グラフ出力先パス')
-    parser.add_argument('--as-of', type=str, help='指定時刻までのデータを表示 (YYYY-MM-DDTHH:MM:SSZ)')
+    parser = argparse.ArgumentParser(description='Bütçe toplama sistemi')
+    parser.add_argument('--summary', action='store_true', help='Basit özet göster')
+    parser.add_argument('--report', action='store_true', help='Ayrıntılı rapor oluştur')
+    parser.add_argument('--json', action='store_true', help='JSON formatında çıktı ver')
+    parser.add_argument('--graph', action='store_true', help='Bütçe tüketim grafiği oluştur (önerilmez: varsayılan olarak oluşturulur)')
+    parser.add_argument('--output', type=str, help='Grafik çıktı yolu')
+    parser.add_argument('--as-of', type=str, help='Belirtilen zamana kadar olan verileri göster (YYYY-MM-DDTHH:MM:SSZ)')
     
     args = parser.parse_args()
     
     # プロジェクトルートを探す
     project_root = find_project_root(Path.cwd())
     if not project_root:
-        print("ERROR: プロジェクトルートが見つかりません", file=sys.stderr)
+        print("ERROR: Proje kökü bulunamadı", file=sys.stderr)
         sys.exit(1)
     
     tracker = BudgetTracker(project_root)
@@ -498,10 +498,10 @@ def main():
             as_of = datetime.fromisoformat(as_of_str)
             if as_of.tzinfo is None:
                 as_of = as_of.replace(tzinfo=timezone.utc)
-            print(f"時刻指定: {as_of.strftime('%Y-%m-%d %H:%M:%S UTC')} までのデータを表示")
+            print(f"Zaman belirtildi: {as_of.strftime('%Y-%m-%d %H:%M:%S UTC')} tarihine kadar olan veriler gösterilecek")
         except ValueError as e:
-            print(f"ERROR: --as-of の形式が不正です: {e}")
-            print("正しい形式: YYYY-MM-DDTHH:MM:SSZ (例: 2025-08-20T01:00:00Z)")
+            print(f"ERROR: --as-of biçimi geçersiz: {e}")
+            print("Doğru biçim: YYYY-MM-DDTHH:MM:SSZ (ör.: 2025-08-20T01:00:00Z)")
             sys.exit(1)
     
     if args.summary:
@@ -515,8 +515,8 @@ def main():
     else:
         # デフォルト動作：レポート生成とグラフ保存
         report = tracker.generate_report(as_of)
-        print(f"レポート生成完了: {report['total_points']:.1f} ポイント消費")
-        print(f"詳細: Agent-shared/budget/snapshots/latest.json")
+        print(f"Rapor oluşturuldu: {report['total_points']:.1f} puan tüketildi")
+        print(f"Ayrıntılar: Agent-shared/budget/snapshots/latest.json")
         
         # グラフも自動生成（画像を読み込まずに保存のみ）
         tracker.visualize_budget(as_of=as_of)

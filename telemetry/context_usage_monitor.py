@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 """
-VibeCodeHPC コンテキスト使用率監視システム
-Claude Code JSONLログからトークン使用状況を解析し、各種グラフで可視化
+VibeCodeHPC bağlam (context) kullanım izleme sistemi
+Claude Code JSONL günlüklerinden token kullanımını analiz eder ve çeşitli grafiklerle görselleştirir
 
-機能:
-1. agent_and_pane_id_table.jsonlからセッションIDを動的取得
-2. ~/.claude/projects/ 以下のJSONLログを監視
-3. usage情報を抽出して累積トークン数を計算
-4. 多様なグラフ形式で可視化（積み上げ棒、折れ線、概要）
-5. auto-compact（160K前後）の予測
-6. 軽量キャッシュシステム（オプション）
-7. クイックステータス確認機能
-8. 時間制限オプション（--max-minutes）でグラフの表示範囲を制御
+Özellikler:
+1. agent_and_pane_id_table.jsonl dosyasından oturum ID’lerini dinamik olarak alır
+2. ~/.claude/projects/ altındaki JSONL günlüklerini izler
+3. usage bilgilerini çıkarır ve toplam/akümülasyon token sayılarını hesaplar
+4. Çeşitli grafik türleriyle görselleştirir (yığılmış çubuk, çizgi, genel görünüm)
+5. auto-compact (~160K) için öngörü
+6. Hafif önbellek sistemi (opsiyonel)
+7. Hızlı durum (quick status) kontrolü
+8. Zaman sınırı seçeneği (--max-minutes) ile grafik kapsamını kısıtlama
 """
 
 import json
@@ -24,7 +24,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import argparse
 import matplotlib
-matplotlib.use('Agg')  # GUIなし環境でも動作
+matplotlib.use('Agg')  # GUI olmayan ortamlarda da çalışır
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from collections import defaultdict, OrderedDict
@@ -42,46 +42,44 @@ plt.rcParams['figure.figsize'] = (14, 10)
 plt.rcParams['font.size'] = 10
 
 class ContextUsageMonitor:
-    """コンテキスト使用率監視クラス"""
+    """Bağlam kullanım oranı izleme sınıfı"""
     
-    # Claude Codeのコンテキスト制限
+    # Claude Code bağlam sınırı
     CONTEXT_LIMIT = 200000  # 200Kトークン（表示用）
     AUTO_COMPACT_THRESHOLD = 160000  # 実際のauto-compact発生点（推定）
-    WARNING_THRESHOLD = 140000  # 警告閾値
+    WARNING_THRESHOLD = 140000  # Uyarı eşiği
     
     def __init__(self, project_root: Path, use_cache: bool = True, max_minutes: Optional[int] = None):
         self.project_root = project_root
         self.claude_projects_dir = self._get_claude_projects_dir()
         self.output_dir = project_root / "User-shared" / "visualizations"
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.max_minutes = max_minutes  # 時間制限（分）
+        self.max_minutes = max_minutes  # Zaman sınırı (dakika)
         
-        # キャッシュ設定
         self.use_cache = use_cache
         self.cache_dir = project_root / ".cache" / "context_monitor"
         if self.use_cache:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
     
     def _get_claude_projects_dir(self) -> Path:
-        """プラットフォームに応じたClaude projectsディレクトリを取得"""
+        """Platforma göre Claude projects dizinini al"""
         return Path.home() / ".claude" / "projects"
     
     def get_cache_path(self, agent_id: str, jsonl_file: Path) -> Path:
-        """キャッシュファイルパスを生成"""
+        """Önbellek dosya yolunu üret"""
         cache_name = f"{agent_id}_{jsonl_file.stem}.pkl.gz"
         return self.cache_dir / cache_name
     
     def load_from_cache(self, cache_path: Path, jsonl_file: Path) -> Optional[List[Dict]]:
-        """キャッシュからデータを読み込み"""
+        """Veriyi önbellekten yükle"""
         if not self.use_cache or not cache_path.exists():
             return None
             
-        # ファイルの更新時刻を比較
         cache_mtime = cache_path.stat().st_mtime
         jsonl_mtime = jsonl_file.stat().st_mtime
         
         if jsonl_mtime > cache_mtime:
-            return None  # JSONLの方が新しい
+            return None  # JSONL daha yeni
             
         try:
             with gzip.open(cache_path, 'rb') as f:
@@ -90,7 +88,7 @@ class ContextUsageMonitor:
             return None
     
     def save_to_cache(self, cache_path: Path, data: List[Dict]):
-        """データをキャッシュに保存"""
+        """Veriyi önbelleğe kaydet"""
         if not self.use_cache:
             return
             
@@ -98,17 +96,16 @@ class ContextUsageMonitor:
             with gzip.open(cache_path, 'wb') as f:
                 pickle.dump(data, f)
         except:
-            pass  # キャッシュ失敗は無視
+            pass  # Önbelleğe alma başarısızsa yoksay
     
     def find_project_jsonl_files(self) -> Dict[str, List[Path]]:
-        """agent_and_pane_id_table.jsonlからセッションIDを読み取り、対応するJSONLファイルを検索"""
+        """agent_and_pane_id_table.jsonl içinden oturum ID’lerini okuyup ilgili JSONL dosyalarını bul"""
         agent_table_path = self.project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
         
         if not agent_table_path.exists():
             print(f"⚠️  Agent table not found: {agent_table_path}")
             return {}
         
-        # エージェント情報を読み込み
         agent_info = {}
         with open(agent_table_path, 'r', encoding='utf-8') as f:
             for line in f:
@@ -119,7 +116,7 @@ class ContextUsageMonitor:
                             agent_info[data['agent_id']] = {
                                 'session_id': data['claude_session_id'],
                                 'working_dir': data.get('working_dir', ''),
-                                'cwd': data.get('cwd', '')  # 互換性のためcwdも確認
+                                'cwd': data.get('cwd', '')  # Uyumluluk için cwd de kontrol edilir
                             }
                     except json.JSONDecodeError:
                         continue
@@ -130,17 +127,15 @@ class ContextUsageMonitor:
         
         print(f"📊 Found {len(agent_info)} agents with session IDs")
         
-        # プラットフォーム判定とパス変換
         system = platform.system()
         is_wsl = system == "Linux" and "microsoft" in platform.uname().release.lower()
         
-        # 各エージェントのJSONLファイルを検索
         agent_files = {}
         for agent_id, info in agent_info.items():
             if not info['session_id']:
                 continue
             
-            # working_dirまたはcwdに基づいてプロジェクトディレクトリを特定
+            # working_dir veya cwd’ye göre proje dizinini belirle
             working_dir = info['working_dir'] or info['cwd']
             
             if working_dir:
@@ -157,17 +152,14 @@ class ContextUsageMonitor:
             # 例: /mnt/c/Users/test_v1.0.0 -> -mnt-c-Users-test-v1-0-0
             import re
             
-            # まずパス区切り文字を統一
             if system == "Windows":
                 # Windows: バックスラッシュをスラッシュに統一
                 path_str = str(full_path).replace('\\', '/')
             else:
                 path_str = str(full_path)
             
-            # 英数字以外のすべての文字（パス区切り、特殊文字、空白等）を'-'に置換
             dir_name = re.sub(r'[^a-zA-Z0-9]', '-', path_str)
             
-            # ディレクトリを検索
             project_dir = self.claude_projects_dir / dir_name
             if project_dir.exists():
                 jsonl_file = project_dir / f"{info['session_id']}.jsonl"
@@ -179,7 +171,6 @@ class ContextUsageMonitor:
                 else:
                     print(f"  ⚠️  {agent_id}: Session file not found: {jsonl_file.name}")
             else:
-                # プロジェクトディレクトリが見つからない場合、近い名前を探す
                 similar_dirs = [d for d in self.claude_projects_dir.iterdir() 
                                if d.is_dir() and dir_name.lower() in d.name.lower()]
                 if similar_dirs:
@@ -191,26 +182,22 @@ class ContextUsageMonitor:
     
     def parse_usage_data(self, jsonl_file: Path, agent_id: str, last_n: Optional[int] = None,
                         max_minutes: Optional[int] = None) -> List[Dict]:
-        """JSONLファイルからusage情報を抽出（キャッシュ対応、時間制限対応）"""
+        """JSONL dosyasından usage bilgilerini çıkar (önbellek ve zaman sınırı destekli)"""
         
-        # キャッシュチェック
         cache_path = self.get_cache_path(agent_id, jsonl_file)
         cached_data = self.load_from_cache(cache_path, jsonl_file)
         if cached_data is not None:
-            # 時間制限とlast_nを適用
             filtered_data = self._apply_time_filter(cached_data, max_minutes)
             if last_n and len(filtered_data) > last_n:
                 return filtered_data[-last_n:]
             return filtered_data
         
-        # 通常の解析処理
         all_entries = []
         with open(jsonl_file, 'r') as f:
             for line in f:
                 if line.strip():
                     try:
                         entry = json.loads(line)
-                        # usageフィールドを持つエントリのみ
                         if 'message' in entry and isinstance(entry['message'], dict):
                             msg = entry['message']
                             if 'usage' in msg and isinstance(msg['usage'], dict) and 'timestamp' in entry:
@@ -221,21 +208,18 @@ class ContextUsageMonitor:
                     except (json.JSONDecodeError, KeyError, TypeError):
                         continue
         
-        # キャッシュに保存
         self.save_to_cache(cache_path, all_entries)
         
-        # 時間制限とlast_nを適用
         filtered_entries = self._apply_time_filter(all_entries, max_minutes)
         if last_n and len(filtered_entries) > last_n:
             return filtered_entries[-last_n:]
         return filtered_entries
     
     def _apply_time_filter(self, entries: List[Dict], max_minutes: Optional[int]) -> List[Dict]:
-        """時間制限を適用してエントリをフィルタリング"""
+        """Zaman sınırını uygulayarak girdileri filtrele"""
         if not max_minutes or not entries:
             return entries
         
-        # 最初のタイムスタンプを取得
         first_timestamp = None
         for entry in entries:
             try:
@@ -248,7 +232,6 @@ class ContextUsageMonitor:
         if not first_timestamp:
             return entries
         
-        # 時間制限でフィルタリング
         filtered = []
         for entry in entries:
             try:
@@ -262,7 +245,7 @@ class ContextUsageMonitor:
         return filtered
     
     def calculate_cumulative_tokens(self, usage_entries: List[Dict], cumulative: bool = False) -> List[Tuple[datetime, Dict[str, int]]]:
-        """トークン数を計算（累積またはスナップショット）"""
+        """Token sayısını hesapla (kümülatif veya anlık görüntü)"""
         token_data = []
         total_input = 0
         total_cache_creation = 0
@@ -270,13 +253,11 @@ class ContextUsageMonitor:
         total_output = 0
         
         for entry in usage_entries:
-            # タイムスタンプ変換
             ts = datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
             
             usage = entry['usage']
             
             if cumulative:
-                # 累積モード（従来の動作）
                 total_input += usage.get('input_tokens', 0)
                 total_cache_creation += usage.get('cache_creation_input_tokens', 0)
                 total_cache_read += usage.get('cache_read_input_tokens', 0)
@@ -290,7 +271,6 @@ class ContextUsageMonitor:
                     'total': total_input + total_cache_creation + total_cache_read + total_output
                 }))
             else:
-                # スナップショットモード（各時点のコンテキスト使用量）
                 input_tokens = usage.get('input_tokens', 0)
                 cache_creation = usage.get('cache_creation_input_tokens', 0)
                 cache_read = usage.get('cache_read_input_tokens', 0)
@@ -308,14 +288,13 @@ class ContextUsageMonitor:
     
     def generate_all_graphs(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]],
                            graph_type: str = 'all', time_unit: str = 'minutes', cumulative: bool = False):
-        """指定されたタイプのグラフを生成"""
+        """Belirtilen türde grafikleri üret"""
         self.is_cumulative = cumulative
         
         if graph_type in ['all', 'overview']:
             self.generate_overview_line_graph(all_agent_data, time_unit)
             
         if graph_type in ['all', 'stacked']:
-            # デフォルトはカウントベース（トークン数の明記があるログ）
             self.generate_stacked_bar_chart(all_agent_data, x_axis='count')
             self.generate_stacked_bar_chart(all_agent_data, x_axis='time')
             
@@ -330,55 +309,44 @@ class ContextUsageMonitor:
     
     def generate_overview_line_graph(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]], 
                                     time_unit: str = 'minutes'):
-        """概要用の軽量な折れ線グラフ（ステップスタイル）
+        """Genel görünüm için hafif çizgi grafiği (basamak stili)
         
         Args:
             time_unit: 'seconds', 'minutes', 'hours' のいずれか（デフォルト: 'minutes'）
         """
-        # 切りの良い時間で複数のグラフを生成
         milestone_minutes = [30, 60, 90, 120, 180]
         
         # 指定された時間制限またはマイルストーンで生成
         if self.max_minutes and self.max_minutes in milestone_minutes:
-            # マイルストーン時間の場合、その時間までのグラフを生成
             self._generate_single_overview_graph(all_agent_data, time_unit, self.max_minutes)
         elif self.max_minutes:
-            # マイルストーン以外の時間指定
             self._generate_single_overview_graph(all_agent_data, time_unit, self.max_minutes)
         else:
-            # 時間指定なしの場合、全体とマイルストーンを生成
-            # 全体グラフ
             self._generate_single_overview_graph(all_agent_data, time_unit, None)
             
-            # プロジェクト開始からの経過時間を確認
             project_start = self._get_project_start_time(all_agent_data)
             if project_start:
-                # 現在までの経過時間を計算
                 latest_time = max([t for data in all_agent_data.values() for t, _ in data]) if all_agent_data else None
                 if latest_time:
                     elapsed_minutes = (latest_time - project_start).total_seconds() / 60
                     
-                    # 経過時間を超えたマイルストーンのみ生成
                     for milestone in milestone_minutes:
                         if elapsed_minutes >= milestone:
                             self._generate_single_overview_graph(all_agent_data, time_unit, milestone)
     
     def _generate_single_overview_graph(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]], 
                                        time_unit: str, max_minutes: Optional[int]):
-        """単一の概要グラフを生成"""
+        """Tek bir genel görünüm grafiği üret"""
         plt.figure(figsize=(12, 8))
         
-        # タイトルに時間制限を表示
         title_suffix = f" (First {max_minutes} minutes)" if max_minutes else ""
         
-        # プロジェクト開始時刻を取得
         project_start = self._get_project_start_time(all_agent_data)
         
-        # プロジェクト開始時刻以降のデータのみをフィルタリング
         filtered_agent_data = {}
         if project_start:
             for agent_id, cumulative_data in all_agent_data.items():
-                # max_minutesが指定されている場合、その範囲内のデータのみを使用
+                # max_minutes verilmişse o aralıktaki verileri kullan
                 if max_minutes:
                     filtered_data = [(t, tokens) for t, tokens in cumulative_data 
                                    if t >= project_start and 
@@ -390,31 +358,25 @@ class ContextUsageMonitor:
         else:
             filtered_agent_data = all_agent_data
         
-        # 各エージェントの総トークン数の推移
         for agent_id, cumulative_data in filtered_agent_data.items():
             if not cumulative_data:
                 continue
                 
-            # 相対時間に変換（デフォルトは分単位）
             time_divisor = {'seconds': 1, 'minutes': 60, 'hours': 3600}[time_unit]
             times = [(t - project_start).total_seconds() / time_divisor for t, _ in cumulative_data]
             totals = [tokens['total'] for _, tokens in cumulative_data]
             
-            # ステップスタイル（階段状）の折れ線グラフ
             plt.step(times, totals, where='post', marker='o', markersize=3, 
                     label=agent_id, alpha=0.8)
         
-        # 閾値ライン
         plt.axhline(y=self.AUTO_COMPACT_THRESHOLD, color='red', 
                    linestyle='--', linewidth=2, label='Auto-compact (~160K)')
         plt.axhline(y=self.WARNING_THRESHOLD, color='orange', 
                    linestyle='--', linewidth=1, label='Warning (140K)')
         
-        # X軸ラベル（単位に応じて変更）
         unit_labels = {'seconds': 'Seconds', 'minutes': 'Minutes', 'hours': 'Hours'}
         plt.xlabel(f'{unit_labels[time_unit]} from Project Start')
         
-        # Y軸ラベル（累積モードで変更）
         if hasattr(self, 'is_cumulative') and self.is_cumulative:
             plt.ylabel('Cumulative Token Usage')
             plt.title(f'Cumulative Token Usage Over Time{title_suffix}')
@@ -425,15 +387,12 @@ class ContextUsageMonitor:
         plt.grid(True, alpha=0.3)
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}K'))
         
-        # X軸の範囲を時間制限に合わせて設定
         if max_minutes:
             plt.xlim(0, max_minutes)
         
         plt.tight_layout()
         
-        # ファイル名に時間制限を含める
         if max_minutes:
-            # マイルストーン時間の場合、特別なファイル名
             if max_minutes in [30, 60, 90, 120, 180]:
                 output_path = self.output_dir / f"context_usage_{max_minutes}min.png"
             else:
@@ -444,10 +403,10 @@ class ContextUsageMonitor:
         plt.savefig(output_path, dpi=120, bbox_inches='tight')
         plt.close()
         
-        print(f"✅ 概要グラフ生成: {output_path}")
+        print(f"✅ Genel görünüm grafiği oluşturuldu: {output_path}")
     
     def _get_project_start_time(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]) -> Optional[datetime]:
-        """プロジェクト開始時刻を取得"""
+        """Proje başlangıç zamanını al"""
         start_time_file = self.project_root / "Agent-shared" / "project_start_time.txt"
         project_start = None
         
@@ -459,7 +418,6 @@ class ContextUsageMonitor:
             except:
                 pass
         
-        # ファイルがない場合は全データの最も古いタイムスタンプを使用
         if project_start is None:
             for agent_data in all_agent_data.values():
                 if agent_data and (project_start is None or agent_data[0][0] < project_start):
@@ -469,20 +427,18 @@ class ContextUsageMonitor:
     
     def generate_stacked_bar_chart(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]],
                                   x_axis: str = 'count'):
-        """積み上げ棒グラフ（静的なものを下に配置）"""
+        """Yığılmış çubuk grafik (daha statik olanlar altta)"""
         fig, ax = plt.subplots(figsize=(16, 10))
         
-        # カラーマップ（静的→動的の順）
         token_types = ['cache_read', 'cache_creation', 'input', 'output']
         token_colors = {
-            'cache_read': '#f39c12',     # オレンジ（最も静的）
-            'cache_creation': '#2ecc71',  # 緑
-            'input': '#3498db',          # 青
-            'output': '#e74c3c'          # 赤（最も動的）
+            'cache_read': '#f39c12',     # turuncu,     # オレンジ（最も静的）
+            'cache_creation': '#2ecc71',  # yeşil
+            'input': '#3498db',          # mavi
+            'output': '#e74c3c'          # kırmızı         # 赤（最も動的）
         }
         
         if x_axis == 'count':
-            # ログ回数ベースの棒グラフ
             bar_width = 0.8
             agent_positions = {}
             
@@ -490,14 +446,11 @@ class ContextUsageMonitor:
                 if not cumulative_data:
                     continue
                     
-                # 最新のデータポイントを使用
                 latest_time, latest_tokens = cumulative_data[-1]
                 
-                # X軸の位置
                 x_pos = idx
                 agent_positions[agent_id] = x_pos
                 
-                # 積み上げ棒グラフ（静的なものから）
                 bottom = 0
                 for token_type in token_types:
                     value = latest_tokens[token_type]
@@ -506,7 +459,6 @@ class ContextUsageMonitor:
                           label=token_type if idx == 0 else "")
                     bottom += value
                 
-                # 合計値をバーの上に表示
                 total = latest_tokens['total']
                 percentage = (total / self.AUTO_COMPACT_THRESHOLD) * 100
                 ax.text(x_pos, total + 2000, f'{total:,}\n({percentage:.1f}%)', 
@@ -517,8 +469,6 @@ class ContextUsageMonitor:
             ax.set_xlabel('Agents')
             
         else:  # x_axis == 'time'
-            # 時間ベースの積み上げ面グラフ
-            # 最もトークン数が多いエージェントを選択
             max_agent = max(all_agent_data.items(), 
                           key=lambda x: x[1][-1][1]['total'] if x[1] else 0)[0]
             
@@ -526,7 +476,6 @@ class ContextUsageMonitor:
                 data = all_agent_data[max_agent]
                 times = [t for t, _ in data]
                 
-                # 各トークンタイプの値を取得
                 token_values = {tt: [tokens[tt] for _, tokens in data] for tt in token_types}
                 
                 # 積み上げ面グラフ
@@ -543,7 +492,6 @@ class ContextUsageMonitor:
                 plt.xticks(rotation=45)
                 ax.set_title(f'Token Usage Timeline - {max_agent}')
         
-        # 共通設定
         ax.axhline(y=self.AUTO_COMPACT_THRESHOLD, color='red', 
                   linestyle='--', linewidth=2, label='Auto-compact (~160K)')
         ax.axhline(y=self.WARNING_THRESHOLD, color='orange', 
@@ -561,14 +509,13 @@ class ContextUsageMonitor:
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
         plt.close()
         
-        print(f"✅ 積み上げグラフ生成（{x_axis}軸）: {output_path}")
+        print(f"✅ Yığılmış grafik oluşturuldu ({x_axis} ekseni): {output_path}")
     
     def generate_timeline_graph(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]):
-        """auto-compact予測に特化したタイムライングラフ"""
+        """auto-compact öngörüsüne odaklı zaman çizelgesi grafiği"""
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), 
                                        gridspec_kw={'height_ratios': [2, 1]})
         
-        # 上段: 全エージェントの推移
         for agent_id, cumulative_data in all_agent_data.items():
             if not cumulative_data:
                 continue
@@ -576,7 +523,6 @@ class ContextUsageMonitor:
             times = [t for t, _ in cumulative_data]
             totals = [tokens['total'] for _, tokens in cumulative_data]
             
-            # 現在の使用率に応じて色を変える
             current_usage = totals[-1] if totals else 0
             if current_usage >= self.AUTO_COMPACT_THRESHOLD * 0.95:
                 color = 'red'
@@ -600,7 +546,6 @@ class ContextUsageMonitor:
         ax1.grid(True, alpha=0.3)
         ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}K'))
         
-        # 下段: 増加率の可視化
         self._plot_growth_rates(ax2, all_agent_data)
         
         plt.tight_layout()
@@ -608,27 +553,24 @@ class ContextUsageMonitor:
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
         plt.close()
         
-        print(f"✅ タイムライングラフ生成: {output_path}")
+        print(f"✅ Zaman çizelgesi grafiği oluşturuldu: {output_path}")
     
     def generate_agent_detail_graphs(self, agent_id: str, cumulative_data: List[Tuple[datetime, Dict[str, int]]]):
-        """個別エージェントの詳細グラフ（2種類）"""
+        """Ajan bazında detay grafikler (2 tür)"""
         
-        # 1. 時系列積み上げ面グラフ
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), 
                                        gridspec_kw={'height_ratios': [2, 1]})
         
         times = [t for t, _ in cumulative_data]
         
-        # カラーマップ（静的→動的の順）
         token_types = ['cache_read', 'cache_creation', 'input', 'output']
         token_colors = {
-            'cache_read': '#f39c12',     # オレンジ
-            'cache_creation': '#2ecc71',  # 緑
-            'input': '#3498db',          # 青
-            'output': '#e74c3c'          # 赤
+            'cache_read': '#f39c12',     # turuncu
+            'cache_creation': '#2ecc71',  # yeşil
+            'input': '#3498db',          # mavi
+            'output': '#e74c3c'          # kırmızı
         }
         
-        # 上段: 積み上げ面グラフ
         token_values = {tt: [tokens[tt] for _, tokens in cumulative_data] for tt in token_types}
         bottom = np.zeros(len(times))
         
@@ -639,12 +581,10 @@ class ContextUsageMonitor:
                            label=token_type, alpha=0.8)
             bottom += values
         
-        # 最新の統計情報
         latest_tokens = cumulative_data[-1][1]
         total = latest_tokens['total']
         percentage = (total / self.AUTO_COMPACT_THRESHOLD) * 100
         
-        # 閾値ライン
         ax1.axhline(y=self.AUTO_COMPACT_THRESHOLD, color='red', 
                    linestyle='--', linewidth=2, label='Auto-compact')
         ax1.axhline(y=self.WARNING_THRESHOLD, color='orange', 
@@ -657,7 +597,6 @@ class ContextUsageMonitor:
         ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}K'))
         ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d %H:%M'))
         
-        # 下段: 各トークンタイプの割合推移
         self._plot_token_ratios(ax2, cumulative_data, token_types)
         
         plt.tight_layout()
@@ -668,14 +607,13 @@ class ContextUsageMonitor:
         # 2. ログ回数ベースのグラフ
         self._generate_count_based_graph(agent_id, cumulative_data)
         
-        print(f"✅ {agent_id} の個別グラフ生成完了")
+        print(f"✅ {agent_id} için bireysel grafik oluşturma tamamlandı")
     
     def _plot_token_ratios(self, ax, cumulative_data: List[Tuple[datetime, Dict[str, int]]], 
                           token_types: List[str]):
-        """トークンタイプの割合推移をプロット"""
+        """Token türlerinin oran seyrini çiz"""
         times = [t for t, _ in cumulative_data]
         
-        # 各時点での割合を計算
         ratios = {tt: [] for tt in token_types}
         
         for _, tokens in cumulative_data:
@@ -687,7 +625,6 @@ class ContextUsageMonitor:
                 for tt in token_types:
                     ratios[tt].append(0)
         
-        # 割合の推移をプロット
         for token_type in token_types:
             ax.plot(times, ratios[token_type], marker='o', markersize=3, 
                    label=f'{token_type} %', alpha=0.7)
@@ -702,14 +639,12 @@ class ContextUsageMonitor:
         ax.set_ylim(0, 100)
     
     def _generate_count_based_graph(self, agent_id: str, cumulative_data: List[Tuple[datetime, Dict[str, int]]]):
-        """ログ回数ベースのグラフ"""
+        """Log sayısı tabanlı grafik"""
         fig, ax = plt.subplots(figsize=(12, 8))
         
-        # X軸: ログエントリ番号
         log_counts = list(range(1, len(cumulative_data) + 1))
         totals = [tokens['total'] for _, tokens in cumulative_data]
         
-        # 色分け（使用率に応じて）
         colors = []
         for total in totals:
             if total >= self.AUTO_COMPACT_THRESHOLD * 0.95:
@@ -719,11 +654,9 @@ class ContextUsageMonitor:
             else:
                 colors.append('blue')
         
-        # 散布図と線
         ax.scatter(log_counts, totals, c=colors, s=50, alpha=0.7, edgecolors='black')
         ax.plot(log_counts, totals, 'b-', alpha=0.3)
         
-        # 閾値ライン
         ax.axhline(y=self.AUTO_COMPACT_THRESHOLD, color='red', 
                   linestyle='--', linewidth=2, label='Auto-compact')
         ax.axhline(y=self.WARNING_THRESHOLD, color='orange', 
@@ -742,7 +675,7 @@ class ContextUsageMonitor:
         plt.close()
     
     def _plot_growth_rates(self, ax, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]):
-        """トークン増加率を可視化"""
+        """Token artış oranını görselleştir"""
         
         for agent_id, cumulative_data in all_agent_data.items():
             if len(cumulative_data) < 2:
@@ -751,7 +684,6 @@ class ContextUsageMonitor:
             times = [t for t, _ in cumulative_data]
             totals = [tokens['total'] for _, tokens in cumulative_data]
             
-            # 増加率を計算（トークン/時間）
             growth_rates = []
             growth_times = []
             
@@ -1067,7 +999,6 @@ def main():
         update_once()
 
 if __name__ == "__main__":
-    # 必要なパッケージがインストールされているか確認
     try:
         import matplotlib
         import numpy

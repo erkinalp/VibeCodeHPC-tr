@@ -180,7 +180,7 @@ def get_required_files(agent_id):
             "_remote_info/",
             "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
             "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md",
-            "requirement_definition.md（存在する場合）"
+            "requirement_definition.md(varsa)"
         ],
         "SE": [
             "instructions/SE.md",
@@ -188,16 +188,16 @@ def get_required_files(agent_id):
         ],
         "PG": [
             "instructions/PG.md",
-            "現在のディレクトリのChangeLog.md",
+            "Geçerli dizindeki ChangeLog.md",
             "Agent-shared/change_log/ChangeLog_format.md",
-            "Agent-shared/change_log/ChangeLog_format_PM_override.md（存在する場合）"
+            "Agent-shared/change_log/ChangeLog_format_PM_override.md(varsa)"
         ],
         "CD": [
             "instructions/CD.md"
         ],
         "SOLO": [
             "instructions/SOLO.md",
-            "requirement_definition.md（存在する場合）"
+            "requirement_definition.md(varsa)"
         ]
     }
     
@@ -213,39 +213,39 @@ def generate_context(source, agent_id, agent_type):
     context_parts = []
     
     if source in ['startup', 'clear']:
-        context_parts.append("## ⚠️ セッション開始")
+        context_parts.append("## ⚠️ Oturum başlangıcı")
         context_parts.append("")
-        context_parts.append("VibeCodeHPCエージェントとして起動しました。")
-        context_parts.append("以下の手順で必須ファイルを読み込んでください：")
+        context_parts.append("VibeCodeHPC ajanı olarak başlatıldınız.")
+        context_parts.append("Aşağıdaki adımlarla gerekli dosyaları yükleyin:")
         context_parts.append("")
         
         # 必須ファイルリスト
         files = get_required_files(agent_id)
-        context_parts.append("### 1. 必須ファイルの再読み込み")
+        context_parts.append("### 1. Gerekli dosyaları yeniden yükle")
         for file in files:
             context_parts.append(f"- {file}")
         
         context_parts.append("")
-        context_parts.append("### 2. ディレクトリ構造の確認")
+        context_parts.append("### 2. Dizin yapısını doğrula")
         context_parts.append("```bash")
-        context_parts.append("pwd  # 現在位置確認")
+        context_parts.append("pwd  # Mevcut konumu doğrula")
         context_parts.append("ls -R ../../../../Agent-shared/")
         context_parts.append("ls -R ../../../../instructions/")
         context_parts.append("```")
         
         if agent_type == 'polling':
             context_parts.append("")
-            context_parts.append("### 3. ポーリング型エージェントとしての再開")
-            context_parts.append("あなたはポーリング型エージェントです。")
-            context_parts.append("待機状態に入らず、定期的にタスクを確認してください。")
+            context_parts.append("### 3. Polling tipi ajan olarak devam")
+            context_parts.append("Siz bir polling tipi ajansınız.")
+            context_parts.append("Bekleme durumuna geçmeden düzenli aralıklarla görevleri kontrol edin.")
         
         # CDまたはSOLOエージェントへのgit push推奨
         if agent_id == 'CD' or agent_id == 'SOLO':
             context_parts.append("")
-            context_parts.append("### 📌 Git管理の推奨事項")
-            context_parts.append("要件定義書で明示的に禁止されていない限り、")
-            context_parts.append("**こまめにgit pushして**ユーザが進捗を確認できるようにしてください。")
-            context_parts.append("小さな変更でも定期的にコミット・プッシュすることを推奨します。")
+            context_parts.append("### 📌 Git yönetimi için öneriler")
+            context_parts.append("Gereksinimler belgesinde açıkça yasaklanmadıkça,")
+            context_parts.append("kullanıcının ilerlemeyi görebilmesi için **sık sık git push** yapın.")
+            context_parts.append("Küçük değişikliklerde bile düzenli olarak commit ve push önerilir.")
     
     return "\n".join(context_parts) if context_parts else None
 
