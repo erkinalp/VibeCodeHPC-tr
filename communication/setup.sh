@@ -615,12 +615,12 @@ show_execution_plan() {
     local worker_count=$1
     
     echo ""
-    echo "📋 セットアップ情報:"
+    echo "📋 Kurulum bilgileri:"
     echo "===================="
-    echo "ワーカー数: $worker_count (PM除く)"
-    echo "ペイン数: $worker_count"
+    echo "İşçi sayısı: $worker_count (PM hariç)"
+    echo "Panel sayısı: $worker_count"
     echo ""
-    echo "参考構成例（実際の配置はPMが決定）:"
+    echo "Örnek yapılandırmalar (nihai yerleşimi PM belirler):"
     echo "  2人: SE(1) + PG(1) ※最小構成"
     echo "  6人: SE(2) + PG(4)"
     echo "  8人: SE(2) + PG(5) + CD(1)"
@@ -653,7 +653,7 @@ main() {
                 ;;
             --project)
                 if [[ $# -lt 2 ]]; then
-                    log_error "--project オプションにはプロジェクト名が必要です"
+                    log_error "--project seçeneği için proje adı gerekli"
                     exit 1
                 fi
                 PROJECT_NAME="$2"
@@ -662,11 +662,11 @@ main() {
                 ;;
             --hooks)
                 if [[ $# -lt 2 ]]; then
-                    log_error "--hooks オプションにはバージョン（v2|v3）が必要です"
+                    log_error "--hooks seçeneği için sürüm (v2|v3) gerekli"
                     exit 1
                 fi
                 if [[ "$2" != "v2" && "$2" != "v3" ]]; then
-                    log_error "hooksバージョンは v2 または v3 を指定してください"
+                    log_error "hooks sürümü v2 veya v3 olmalıdır"
                     exit 1
                 fi
                 HOOKS_VERSION="$2"
@@ -674,24 +674,24 @@ main() {
                 ;;
             --periodic-enter)
                 if [[ $# -lt 2 ]]; then
-                    log_error "--periodic-enter オプションには秒数が必要です"
+                    log_error "--periodic-enter seçeneği için saniye değeri gerekli"
                     exit 1
                 fi
                 if ! [[ "$2" =~ ^[0-9]+$ ]]; then
-                    log_error "--periodic-enter には数値を指定してください"
+                    log_error "--periodic-enter için sayısal bir değer belirtin"
                     exit 1
                 fi
                 PERIODIC_ENTER_INTERVAL="$2"
                 shift 2
                 ;;
             --clean-only)
-                log_info "クリーンアップモード"
+                log_info "Temizlik modu"
                 # _old_つきのセッションを削除
                 tmux list-sessions 2>/dev/null | grep -E "_old_" | cut -d: -f1 | while read session; do
-                    tmux kill-session -t "$session" 2>/dev/null && log_info "${session}削除"
+                    tmux kill-session -t "$session" 2>/dev/null && log_info "${session} silindi"
                 done
                 rm -rf ./tmp/agent*_done.txt 2>/dev/null
-                log_success "✅ クリーンアップ完了"
+                log_success "✅ Temizlik tamamlandı"
                 exit 0
                 ;;
             --dry-run)
@@ -700,7 +700,7 @@ main() {
                 ;;
             *)
                 if [[ ! "$1" =~ ^[0-9]+$ ]]; then
-                    log_error "不明なオプションまたはエージェント数: $1"
+                    log_error "Bilinmeyen seçenek veya ajan sayısı: $1"
                     show_usage
                     exit 1
                 fi
@@ -712,19 +712,19 @@ main() {
     
     # ワーカー数が指定されていない場合
     if [ -z "$worker_count" ]; then
-        log_error "ワーカー数を指定してください"
+        log_error "İşçi sayısını belirtin"
         show_usage
         exit 1
     fi
     
     # エージェント数チェック（PMを除く、0はシングルエージェントモード）
     if [[ $worker_count -eq 0 ]]; then
-        log_info "シングルエージェントモード: PMペインのみ作成"
+        log_info "Tek ajan modu: yalnızca PM paneli oluşturulacak"
     elif [[ $worker_count -eq 1 ]]; then
-        log_error "エージェント数1は無効です（0:シングルモード、2以上:マルチモード）"
+        log_error "Ajan sayısı 1 geçersizdir (0: tek mod, 2 ve üzeri: çok aracılı mod)"
         exit 1
     elif [[ $worker_count -lt 2 ]]; then
-        log_error "マルチエージェントモードは2以上を指定してください（PM除く、最小構成: SE + PG）"
+        log_error "Çok aracılı mod için en az 2 belirtin (PM hariç, minimum: SE + PG)"
         exit 1
     fi
     
@@ -734,24 +734,24 @@ main() {
     # 実行計画表示（シンプル版）
     show_execution_plan $worker_count
     if [ "$USE_DEFAULT_NAMES" = false ]; then
-        echo "プロジェクト名: ${PROJECT_NAME}"
-        echo "PMセッション名: ${PROJECT_NAME}_PM"
-        echo "ワーカーセッション名: ${PROJECT_NAME}_Workers1"
+        echo "Proje adı: ${PROJECT_NAME}"
+        echo "PM oturum adı: ${PROJECT_NAME}_PM"
+        echo "İşçi oturum adı: ${PROJECT_NAME}_Workers1"
     else
-        echo "PMセッション名: $DEFAULT_PM_SESSION (デフォルト)"
-        echo "ワーカーセッション名: $DEFAULT_WORKER_SESSION (デフォルト)"
+        echo "PM oturum adı: $DEFAULT_PM_SESSION (varsayılan)"
+        echo "İşçi oturum adı: $DEFAULT_WORKER_SESSION (varsayılan)"
     fi
     echo ""
     
     # dry-runの場合はここで終了
     if [ "$DRY_RUN" = true ]; then
-        log_info "dry-runモード: 実際のセットアップは行いません"
+        log_info "dry-run modu: gerçek kurulum yapılmayacak"
         exit 0
     fi
     
     # セッション名の衝突チェック
     if ! check_session_conflicts; then
-        log_error "セットアップを中断します"
+        log_error "Kurulum durduruluyor"
         exit 1
     fi
     
@@ -760,25 +760,25 @@ main() {
     
     # エージェント数をファイルに記録（PMがリソース配分計画に使用）
     echo "$worker_count" > ./Agent-shared/max_agent_number.txt
-    log_info "エージェント数を記録: $worker_count (PM除く)"
+    log_info "Ajan sayısı kaydedildi: $worker_count (PM hariç)"
     
     # hooksバージョンを記録
     echo "$HOOKS_VERSION" > ./hooks/.hooks_version
-    log_info "🎣 hooksバージョンを設定: $HOOKS_VERSION"
+    log_info "🎣 hooks sürümü ayarlandı: $HOOKS_VERSION"
     
     # PMセッション作成
     create_pm_session
     
     # シングルモードの場合はワーカーセッション作成をスキップ
     if [[ $worker_count -eq 0 ]]; then
-        log_info "シングルエージェントモード: ワーカーセッション作成をスキップ"
+        log_info "Tek ajan modu: işçi oturumu oluşturma atlandı"
         
         # シングルモード用のagent_and_pane_id_table.jsonl生成
         mkdir -p ./Agent-shared
         local jsonl_table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
         > "$jsonl_table_file"
         echo '{"agent_id": "SOLO", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
-        log_success "✅ シングルモード用agent_and_pane_id_table.jsonl生成完了"
+        log_success "✅ Tek mod için agent_and_pane_id_table.jsonl oluşturma tamamlandı"
     else
         # ワーカーセッション作成
         local total_panes=$worker_count
@@ -790,24 +790,24 @@ main() {
     
     # 完了メッセージ
     echo ""
-    log_success "🎉 VibeCodeHPC環境セットアップ完了！"
+    log_success "🎉 VibeCodeHPC ortam kurulumu tamamlandı!"
     echo ""
-    echo "📋 次のステップ:"
-    echo "  1. 🔗 セッションアタッチ:"
+    echo "📋 Sonraki adımlar:"
+    echo "  1. 🔗 Oturuma bağlan:"
     if [[ $worker_count -eq 0 ]]; then
-        echo "     # シングルエージェントモード"
+        echo "     # Tek ajan modu"
         echo "     tmux attach-session -t $PM_SESSION"
     else
-        echo "     # ターミナルタブ1: PM用"
+        echo "     # Terminal sekmesi 1: PM için"
         echo "     tmux attach-session -t $PM_SESSION"
         echo ""
-        echo "     # ターミナルタブ2: その他のエージェント用"
+        echo "     # Terminal sekmesi 2: diğer ajanlar için"
         if [ $total_panes -le 12 ]; then
             echo "     tmux attach-session -t $WORKER_SESSION"
         else
-            echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}1"  # 最初のワーカーセッション
+            echo "     tmux attach-session -t ${WORKER_SESSION_PREFIX}1"  # İlk işçi oturumu
             echo ""
-            echo "     # 13体以上の場合、追加セッション:"
+            echo "     # 13+ durumda ek oturumlar:"
             local session_num=2
             local remaining=$((total_panes - 12))
             while [ $remaining -gt 0 ]; do
@@ -818,34 +818,34 @@ main() {
         fi
     fi
     echo ""
-    echo "  2. 🤖 エージェント起動:"
-    echo "     # $PM_SESSION で以下を実行:"
+    echo "  2. 🤖 Ajan başlatma:"
+    echo "     # $PM_SESSION içinde şunları çalıştırın:"
     if [[ $worker_count -eq 0 ]]; then
         echo "     ./start_solo.sh"
     else
         echo "     ./start_PM.sh"
     fi
     echo ""
-    echo "  3. 📊 エージェント配置:"
-    echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl  # ペイン番号確認（JSONL形式）"
-    echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl # ペイン番号確認"
-    echo "     cat ./Agent-shared/max_agent_number.txt          # ワーカー数: $worker_count"
+    echo "  3. 📊 Ajan yerleşimi:"
+    echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl  # Panel numarası kontrolü (JSONL)"
+    echo "     cat ./Agent-shared/agent_and_pane_id_table.jsonl # Panel numarası kontrolü"
+    echo "     cat ./Agent-shared/max_agent_number.txt          # İşçi sayısı: $worker_count"
     echo ""
     
     # セッション作成確認
-    echo "🔍 セッション作成確認:"
+    echo "🔍 Oturum oluşturma doğrulaması:"
     if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
-        echo "  ✅ $PM_SESSION: 作成成功"
+        echo "  ✅ $PM_SESSION: Oluşturma başarılı"
     else
-        echo "  ❌ $PM_SESSION: 作成失敗"
+        echo "  ❌ $PM_SESSION: Oluşturma başarısız"
     fi
     
     # 複数ワーカーセッションの確認
     if [ $total_panes -le 12 ]; then
         if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
-            echo "  ✅ $WORKER_SESSION: 作成成功"
+            echo "  ✅ $WORKER_SESSION: Oluşturma başarılı"
         else
-            echo "  ❌ $WORKER_SESSION: 作成失敗"
+            echo "  ❌ $WORKER_SESSION: Oluşturma başarısız"
         fi
     else
         local session_num=1
@@ -853,9 +853,9 @@ main() {
         while [ $remaining -gt 0 ]; do
             local session_name="${WORKER_SESSION_PREFIX}${session_num}"
             if tmux has-session -t "$session_name" 2>/dev/null; then
-                echo "  ✅ $session_name: 作成成功"
+                echo "  ✅ $session_name: Oluşturma başarılı"
             else
-                echo "  ❌ $session_name: 作成失敗"
+                echo "  ❌ $session_name: Oluşturma başarısız"
             fi
             remaining=$((remaining - 12))
             session_num=$((session_num + 1))
