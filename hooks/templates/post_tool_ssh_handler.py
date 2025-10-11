@@ -57,7 +57,7 @@ Desktop Commander MCP ile oturum yönetimi:
 • ssh_sftp_sessions.json ile oturum yönetimi gereklidir
 {"• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin" if has_sessions else "• Oturum dosyası oluşturulmamış - start_process ile başlayın"}
 
-【Önemli】Aşağıdaki adımlarla oturum yönetimi yapın:
+[Önemli]Aşağıdaki adımlarla oturum yönetimi yapın:
 1. ssh_sftp_sessions.json dosyasını oluştur/güncelle ve PID {pid} kaydet
 2. interact_with_process ile komut çalıştır (PID: {pid})
 3. Oturum bittiğinde force_terminate (PID: {pid})
@@ -81,7 +81,7 @@ Desktop Commander MCP ile oturum yönetimi:
                 message = f"""
 ⚠️ Bash aracıyla doğrudan SSH/SFTP/SCP çalıştırdınız.
 
-【Öneri】Desktop Commander MCP kullanın:
+[Öneri]Desktop Commander MCP kullanın:
 • /Agent-shared/ssh_sftp_guide.md dosyasına bakın
 • ssh_sftp_sessions.json ile oturum yönetimi gereklidir
 {"• Var olan oturum dosyası bulundu - interact_with_process kullanımını değerlendirin" if has_sessions else "• Oturum dosyası oluşturulmamış - start_process ile başlayın"}

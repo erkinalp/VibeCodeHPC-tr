@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-budget_tracker.pyのテスト用デバッグコード
-ダミーのChangeLog.mdを作成して予算集計の動作を確認
+budget_tracker.py için test hata ayıklama kodu
+Dummy ChangeLog.md oluşturarak bütçe toplama işlemini doğrulama
 """
 
 import os
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import tempfile
 import shutil
 
-# プロジェクトルートを探してbudget_trackerをインポート
+# Proje kök dizinini bul ve budget_tracker'ı içe aktar
 def find_project_root(start_path):
     """Proje kökünü (VibeCodeHPC-jp) bul"""
     current = Path(start_path).resolve()
@@ -29,7 +29,7 @@ if not project_root:
     print("ERROR: Proje kökü bulunamadı")
     sys.exit(1)
 
-# budget_trackerをインポート
+# budget_tracker'ı içe aktarın
 sys.path.insert(0, str(project_root / "Agent-shared" / "budget"))
 from budget_tracker import BudgetTracker
 
@@ -111,14 +111,14 @@ def run_test():
             print(f"Toplam tüketilen puan: {total_points:.2f}")
             print(f"Beklenen değer: {0.028 * 1800:.2f} (cx-small: 4GPU x 0.007/sec x 1800sec)")
         
-        # テストシナリオ2: 並列ジョブ
+        # Test Senaryosu 2: Paralel İş
         print("\n[Test2] Paralel iş hesaplama")
         print("-" * 40)
         
-        # PG1.1.1のジョブ（既存）
-        # PG1.1.2のジョブ（部分的に重複）
-        job2_start = job1_start + timedelta(minutes=15)  # job1の途中で開始
-        job2_end = job1_end + timedelta(minutes=10)     # job1の後に終了
+        # PG1.1.1 iş (mevcut)
+        # PG1.1.2 iş (kısmen örtüşen)
+        job2_start = job1_start + timedelta(minutes=15)  # job1'in ortasında başlatıldı
+        job2_end = job1_end + timedelta(minutes=10)     # job1'in ardından sonlandırılır
         
         create_test_changelog(temp_path / "Flow/TypeII/single-node/gcc/MPI", "PG1.1.2", [{
             'version': '1.0.0', 
@@ -139,10 +139,10 @@ def run_test():
             total_points = timeline[-1][1]
             print(f"Toplam tüketilen puan: {total_points:.2f}")
             
-            # Beklenen değer       # 期待値計算（手動）
+            # Beklenen değer       # Beklenen değer hesaplama (manuel)
             # job1: 0.028 * 1800 = 50.4
-            # job2: 0.028 * 1500 = 42.0  (cx-middleも4GPU x 0.007)
-            # 合計: 92.4
+            # job2: 0.028 * 1500 = 42.0  (cx-middle de 4GPU x 0.007)
+            # Toplam: 92.4
             print(f"Beklenen değer: 92.4 (job1: 50.4 + job2: 42.0)")
         
         print("\n[Test3] Çalışan iş hesaplama")
@@ -171,7 +171,7 @@ def run_test():
             print(f"Toplam tüketilen puan (çalışan dahil): {total_points:.2f}")
             print("Not: Çalışan işler mevcut zamana kadar hesaplanır")
         
-        # テストシナリオ4: レポート生成
+        # Test Senaryosu 4: Rapor Oluşturma
         print("\n[Test4] Rapor oluşturma")
         print("-" * 40)
         
@@ -187,19 +187,19 @@ def run_test():
         print(f"  - Çalışan: {report['running_jobs']}")
         print(f"  - Zaman çizgisi noktaları: {report['timeline_points']}")
         
-        # ファイル確認
+        # Dosya kontrolü
         latest_file = snapshot_dir / "latest.json"
         if latest_file.exists():
             print(f"  - latest.json oluşturma: ✅")
         else:
             print(f"  - latest.json oluşturma: ❌")
         
-        # テストシナリオ5: サマリー表示
+        # Test senaryosu 5: Özet görüntüleme
         print("\n[Test5] Özet görüntüleme")
         print("-" * 40)
         tracker.print_summary()
         
-        # テストシナリオ6: グラフ生成
+        # Test senaryosu 6: Grafik oluşturma
         print("\n[Test6] Grafik oluşturma")
         print("-" * 40)
         

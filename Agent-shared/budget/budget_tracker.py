@@ -222,7 +222,7 @@ class BudgetTracker:
             'timeline': [(t.isoformat(), p) for t, p in timeline]
         }
 
-        # latest.jsonのみ上書き（タイムスタンプ付きファイルは生成しない）
+        # Sadece latest.json dosyasını üzerine yaz (zaman damgalı dosya oluşturulmaz)
         with open(snapshot_dir / 'latest.json', 'w') as f:
             json.dump(report_full, f, indent=2, default=str)
         
@@ -292,7 +292,7 @@ class BudgetTracker:
                         ]
                         pred_points = [slope * t + intercept for t in pred_times_numeric]
                     else:
-                        # 実行中のジョブがない場合も線形回帰を使用
+                        # Çalışan bir iş olmadığında bile doğrusal regresyon kullanılır
                         last_time = times[-1]
                         future_time = last_time + timedelta(hours=1)
                         
@@ -376,7 +376,7 @@ class BudgetTracker:
             
             print(f"Grafik kaydedildi: {output_path}")
             
-            # 実行中ジョブの警告
+            # Çalışan işlerin uyarısı
             if running_jobs:
                 print(f"Not: {len(running_jobs)} adet çalışan iş içerdiği için grafiğin sağ uç değerleri tahminidir")
             
@@ -387,7 +387,7 @@ class BudgetTracker:
             print(f"Grafik oluşturma hatası: {e}")
     
     def print_summary(self, as_of: datetime = None):
-        """簡易サマリー表示"""
+        """Basit özet gösterimi"""
         jobs = self.extract_jobs()
         timeline = self.calculate_timeline(jobs, as_of)
         
@@ -399,7 +399,7 @@ class BudgetTracker:
         print(f"Toplam tüketim: {total:.1f} puan")
         print(f"İş sayısı: tamamlanan={completed}, çalışan={running}")
         
-        # 予算に対する割合（仮定値）
+        # Bütçeye oran (varsayılan değer)
         budget_limits = {'Minimum': 100, 'Beklenen': 500, 'Üst sınır': 1000}
         for label, limit in budget_limits.items():
             percentage = (total / limit * 100) if limit > 0 else 0
@@ -422,7 +422,7 @@ def main():
     
     args = parser.parse_args()
     
-    # プロジェクトルートを探す
+    # Proje kök dizinini bulmak için
     project_root = find_project_root(Path.cwd())
     if not project_root:
         print("ERROR: Proje kökü bulunamadı", file=sys.stderr)
@@ -430,11 +430,11 @@ def main():
     
     tracker = BudgetTracker(project_root)
     
-    # --as-of パラメータの解析
+    # --as-of parametresinin analizi
     as_of = None
     if args.as_of:
         try:
-            # ISO 8601形式でパース (Z を UTC として解釈)
+            # ISO 8601 formatında ayrıştırma (Z'yi UTC olarak yorumlar)
             as_of_str = args.as_of.replace('Z', '+00:00')
             as_of = datetime.fromisoformat(as_of_str)
             if as_of.tzinfo is None:
@@ -454,12 +454,12 @@ def main():
         output_path = Path(args.output) if args.output else None
         tracker.visualize_budget(output_path, as_of)
     else:
-        # デフォルト動作：レポート生成とグラフ保存
+        # Varsayılan davranış: Rapor oluşturma ve grafik kaydetme
         report = tracker.generate_report(as_of)
         print(f"Rapor oluşturuldu: {report['total_points']:.1f} puan tüketildi")
         print(f"Ayrıntılar: Agent-shared/budget/snapshots/latest.json")
         
-        # グラフも自動生成（画像を読み込まずに保存のみ）
+        # Grafikler de otomatik oluşturulur (resim yüklemeden sadece kaydetme)
         tracker.visualize_budget(as_of=as_of)
 
 

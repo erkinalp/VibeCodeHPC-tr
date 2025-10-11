@@ -15,9 +15,9 @@ from typing import Dict, List, Tuple, Optional
 class ContextQuickStatus:
     """Bağlam kullanım oranını hızlıca doğrulama sınıfı"""
     
-    # Claude Codeのコンテキスト制限
-    AUTO_COMPACT_THRESHOLD = 160000  # 実際のauto-compact発生点（推定）
-    WARNING_THRESHOLD = 140000  # 警告閾値
+    # Claude Code'un bağlam sınırlaması
+    AUTO_COMPACT_THRESHOLD = 160000  # Gerçek auto-compact oluşum noktası (tahmini)
+    WARNING_THRESHOLD = 140000  # Uyarı eşik değeri
     
     def __init__(self, project_root: Path):
         self.project_root = project_root
@@ -26,8 +26,8 @@ class ContextQuickStatus:
     def get_latest_usage(self, agent_id: Optional[str] = None) -> Dict[str, Dict]:
         """En güncel token kullanım durumunu al (hızlı sürüm)"""
         
-        # プロジェクトディレクトリ名を生成
-        # Claude Codeの変換ルール: 英数字以外のすべての文字を'-'に置換
+        # Proje dizini adını oluşturur
+        # Claude Code dönüşüm kuralı: İngilizce harf ve rakamlar dışındaki tüm karakterler '-' ile değiştirilir
         import re
         project_dir_name = re.sub(r'[^a-zA-Z0-9]', '-', str(self.project_root))
         if project_dir_name.startswith('-'):
@@ -38,21 +38,21 @@ class ContextQuickStatus:
         if not project_claude_dir.exists():
             return {}
             
-        # session_idとエージェントの対応を取得
+        # session_id ile ajan arasındaki eşleşmeyi alır
         agent_sessions = self._get_agent_sessions()
         
-        # 各JSONLファイルの最新エントリのみを取得
+        # Her JSONL dosyasının yalnızca en son girişini alır
         agent_status = {}
         
         for jsonl_file in project_claude_dir.glob("*.jsonl"):
             session_id = jsonl_file.stem
             current_agent_id = agent_sessions.get(session_id, f"Unknown_{session_id[:8]}")
             
-            # 特定エージェントの指定がある場合はフィルタ
+            # Belirli bir ajan belirtilmişse filtre uygula
             if agent_id and agent_id.upper() not in current_agent_id.upper():
                 continue
             
-            # ファイルの最後から逆順に読んで最新のusageを探す
+            # Dosyanın sonundan geriye doğru okuyarak en son usage değerini bulur
             latest_usage = self._get_latest_usage_from_file(jsonl_file)
             
             if latest_usage:
@@ -83,21 +83,21 @@ class ContextQuickStatus:
     def _get_latest_usage_from_file(self, jsonl_file: Path) -> Optional[Dict]:
         """JSONL dosyasından en güncel kullanım bilgisini al (sondan tarama)"""
         
-        # ファイルを逆順で読む（効率的）
+        # Dosyayı ters sırayla okuma (verimli)
         with open(jsonl_file, 'rb') as f:
-            # ファイルの終端から読む
-            f.seek(0, 2)  # ファイル終端へ
+            # Dosyanın sonundan okuma
+            f.seek(0, 2)  # Dosya sonuna kadar
             file_size = f.tell()
             
-            # 最大10MBまで遡って探索
+            # Maksimum 10MB kadar geriye doğru arama yapar
             search_size = min(file_size, 10 * 1024 * 1024)
             f.seek(max(0, file_size - search_size))
             
-            # 残りを読み込み
+            # Kalanı oku
             content = f.read().decode('utf-8', errors='ignore')
             lines = content.strip().split('\n')
             
-            # 逆順で処理
+            # Ters sırayla işleme
             for line in reversed(lines):
                 if line.strip():
                     try:
@@ -105,7 +105,7 @@ class ContextQuickStatus:
                         if 'message' in entry and isinstance(entry['message'], dict):
                             msg = entry['message']
                             if 'usage' in msg and isinstance(msg['usage'], dict):
-                                # 累積計算
+                                # Kümülatif hesaplama
                                 usage = msg['usage']
                                 total = (usage.get('input_tokens', 0) + 
                                        usage.get('cache_creation_input_tokens', 0) +
@@ -138,13 +138,13 @@ class ContextQuickStatus:
         print(f"{'Agent':<10} {'Total':>10} {'%':>6} {'Status':<10} {'Last Update'}")
         print("-"*70)
         
-        # ソート用データ準備
+        # Sıralama için veri hazırlığı
         sorted_agents = []
         for agent_id, usage in agent_status.items():
             total = usage['total']
             percentage = (total / self.AUTO_COMPACT_THRESHOLD) * 100
             
-            # 状態判定
+            # Durum değerlendirmesi
             if total >= self.AUTO_COMPACT_THRESHOLD * 0.95:
                 status = "🔴 CRITICAL"
             elif total >= self.WARNING_THRESHOLD:
@@ -152,7 +152,7 @@ class ContextQuickStatus:
             else:
                 status = "🟢 OK"
             
-            # タイムスタンプ処理
+            # Zaman damgası işlemi
             timestamp = usage.get('timestamp', 'N/A')
             if timestamp != 'N/A':
                 try:
@@ -177,10 +177,10 @@ class ContextQuickStatus:
                 'time_str': time_str
             })
         
-        # トークン数でソート
+        # Token sayısına göre sıralama
         sorted_agents.sort(key=lambda x: x['total'], reverse=True)
         
-        # 出力
+        # Çıktı
         for agent in sorted_agents:
             print(f"{agent['agent_id']:<10} {agent['total']:>10,} {agent['percentage']:>5.1f}% "
                   f"{agent['status']:<10} {agent['time_str']}")
@@ -222,22 +222,22 @@ def main():
     
     args = parser.parse_args()
     
-    # プロジェクトルートを取得
+    # Proje kök dizinini alır
     project_root = Path.cwd()
     status_checker = ContextQuickStatus(project_root)
     
-    # 最新状態を取得
+    # En güncel durumu alır
     agent_status = status_checker.get_latest_usage(args.agent)
     
     if args.json:
-        # JSON形式で出力
+        # JSON formatında çıktı verir
         print(json.dumps(agent_status, indent=2))
     elif args.otel:
-        # OpenTelemetry形式で出力（将来の実装）
+        # OpenTelemetry formatında çıktı (gelecekteki uygulama)
         metrics = status_checker.export_to_otel_format(agent_status)
         print(json.dumps(metrics, indent=2))
     else:
-        # 通常の表示
+        # Normal görüntüleme
         status_checker.print_status(agent_status)
 
 if __name__ == "__main__":

@@ -254,7 +254,7 @@ Ardından aşağıdaki paralel görevleri yürüt:
 
 """
     
-    # 役割別の並行タスク（既存のコードから）
+    # Görev bazlı paralel görevler (mevcut koddan)
     if "PM" in agent_id:
         reason += """[PM için paralel görevler]
 1. Tüm aracılarda (SE, PG, CD) ilerleme kontrolü ve dolaşım
@@ -308,36 +308,36 @@ Yine de beklemek gerekiyorsa, sleep 10 vb. kullanın.
 
 def main():
     try:
-        # JSONを読み込み
+        # JSON dosyasını yükle
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
         
-        # 自分のエージェント情報を取得
+        # Kendi ajan bilgilerini alır
         agent_info = get_agent_info_from_cwd()
         
         if agent_info:
-            # STOP回数をインクリメント
+            # STOP sayısını artırır
             stop_count = increment_stop_count()
             
-            # デバッグログ（必要に応じて有効化）
+            # Hata ayıklama günlüğü (gerekirse etkinleştir)
             # debug_log = Path.cwd() / ".claude" / "hooks" / "stop_debug.log"
             # with open(debug_log, 'a') as f:
             #     f.write(f"[{datetime.now()}] Stop #{stop_count}, agent={agent_info.get('agent_id')}\n")
             
-            # ポーリング型エージェントの場合は停止をブロック
+            # Polling tipi ajanlar için durdurmayı engelle
             reason = generate_block_reason(agent_info, stop_count)
             
             if reason:
-                # 終了コード2でstderrに出力
+                # Çıkış kodu 2 ile stderr'ye çıktı verir
                 print(reason, file=sys.stderr)
                 sys.exit(2)
         
-        # 通常終了
+        # Normal sonlandırma
         sys.exit(0)
         
     except Exception:
-        # エラーは静かに処理
+        # Hatalar sessizce işlenir
         sys.exit(0)
 
 

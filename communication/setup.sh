@@ -8,7 +8,7 @@ set -e  # Hata durumunda dur
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# グローバル変数
+# Küresel değişkenler
 PROJECT_NAME=""  # Kullanıcının belirleyeceği proje adı
 USE_DEFAULT_NAMES=true  # Varsayılan ad kullanım bayrağı
 DRY_RUN=false  # dry-run bayrağı
@@ -115,17 +115,17 @@ generate_agent_names() {
         agents+=("SE${i}")
     done
     
-    # PG（階層的な番号付け）
-    # SEが1人の場合: PG1.1, PG1.2, ...
-    # SEが2人の場合: SE1配下→PG1.1, PG1.2, ..., SE2配下→PG2.1, PG2.2, ...
+    # PG (Hiyerarşik numaralandırma)
+    # SE 1 kişi olduğunda: PG1.1, PG1.2, ...
+    # SE 2 kişi olduğunda: SE1 altında → PG1.1, PG1.2, ..., SE2 altında → PG2.1, PG2.2, ...
     local pg_idx=1
     if [ $se_count -eq 1 ]; then
-        # 全てのPGをSE1配下に
+        # Tüm PG'leri SE1 altına yerleştir
         for ((p=1; p<=pg_count; p++)); do
             agents+=("PG1.$((p))")
         done
     else
-        # PGを各SEに均等配分
+        # PG'yi her SE'ye eşit olarak dağıtma
         local pg_per_se=$(( (pg_count + se_count - 1) / se_count ))
         for ((s=1; s<=se_count; s++)); do
             for ((p=1; p<=pg_per_se && pg_idx<=pg_count; p++)); do
@@ -141,7 +141,7 @@ generate_agent_names() {
     echo "${agents[@]}"
 }
 
-# セッション名の決定
+# Oturum adının belirlenmesi
 determine_session_names() {
     if [ "$USE_DEFAULT_NAMES" = true ]; then
         PM_SESSION="$DEFAULT_PM_SESSION"
@@ -154,19 +154,19 @@ determine_session_names() {
     fi
 }
 
-# セッション名の衝突チェック
+# Oturum adı çakışma kontrolü
 check_session_conflicts() {
     local conflicts=false
     
     log_info "🔍 Oturum adlarının çakışması kontrol ediliyor..."
     
-    # PMセッションのチェック
+    # PM oturumunun kontrolü
     if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
         log_error "❌ '$PM_SESSION' oturumu zaten mevcut"
         conflicts=true
     fi
     
-    # ワーカーセッションのチェック
+    # Worker oturumunun kontrolü
     if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
         log_error "❌ '$WORKER_SESSION' oturumu zaten mevcut"
         conflicts=true
@@ -188,11 +188,11 @@ check_session_conflicts() {
     return 0
 }
 
-# セッション重複チェックとリネーム
+# Oturum tekrar kontrolü ve yeniden adlandırma
 handle_existing_sessions() {
-    log_info "🔍 既存セッションの確認と処理..."
+    log_info "🔍 Mevcut oturumların kontrolü ve işlenmesi..."
     
-    # ディレクトリ準備
+    # Dizin hazırlığı
     mkdir -p ./Agent-shared
     mkdir -p ./communication/logs
     mkdir -p ./tmp
@@ -202,14 +202,14 @@ handle_existing_sessions() {
     log_success "✅ Oturum hazırlığı tamam"
 }
 
-# PMセッション作成
+# PM oturumu oluşturma
 create_pm_session() {
     log_info "📺 PM oturumu oluşturuluyor: $PM_SESSION"
     
-    # 新しいPMセッション作成
+    # Yeni PM oturumu oluşturma
     tmux new-session -d -s "$PM_SESSION" -n "project-manager"
     
-    # セッションが作成されたか確認
+    # Oturumun oluşturulup oluşturulmadığını kontrol et
     if ! tmux has-session -t "$PM_SESSION" 2>/dev/null; then
         log_error "${PM_SESSION} oluşturulamadı"
         log_info "Mevcut oturumlar:"
@@ -219,10 +219,10 @@ create_pm_session() {
     
     tmux send-keys -t "${PM_SESSION}:project-manager" "cd $PROJECT_ROOT" C-m
 
-    # CLI_HOOKS_MODE環境変数を設定（親シェルから継承または auto）
+    # CLI_HOOKS_MODE ortam değişkenini ayarla (ebeveyn shell'den devralındı veya auto)
     tmux send-keys -t "${PM_SESSION}:project-manager" "export CLI_HOOKS_MODE='${CLI_HOOKS_MODE:-auto}'" C-m
 
-    # bash/zsh対応プロンプト設定
+    # bash/zsh uyumlu istem ayarı
     tmux send-keys -t "${PM_SESSION}:project-manager" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "  export PROMPT=$'%{\033[1;35m%}(PM)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
     tmux send-keys -t "${PM_SESSION}:project-manager" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
@@ -242,21 +242,21 @@ create_pm_session() {
     log_success "✅ PM oturumu oluşturuldu"
 }
 
-# 状態表示pane更新関数生成
+# Durum gösterimi pane güncelleme fonksiyonu oluşturma
 generate_status_display_script() {
     local agents=($1)
     local script_file="./tmp/update_status_display.sh"
     
     cat > "$script_file" << 'EOF'
 #!/bin/bash
-# 状態表示更新スクリプト
+# Durum gösterimi güncelleme betiği
 
 while true; do
     clear
     echo "[VibeCodeHPC Ajan Yerleşim Şeması]"
     echo "================================"
     
-    # TODO: 実際の配置に基づいて動的に生成
+    # TODO: Gerçek yerleşime dayalı olarak dinamik şekilde oluşturulacak
     
     sleep 5
 done
@@ -265,65 +265,65 @@ EOF
     chmod +x "$script_file"
 }
 
-# 単一ワーカーセッション作成（12ペインまで）
+# Tek bir işçi oturumu oluşturma (12 pencereye kadar)
 create_single_worker_session() {
     local session_name=$1
     local start_pane=$2
     local end_pane=$3
     local panes_in_session=$((end_pane - start_pane + 1))
     
-    log_info "📺 ワーカーセッション作成: $session_name (${panes_in_session}ペイン)..."
+    log_info "📺 Çalışan oturumu oluşturma: $session_name (${panes_in_session}panel)..."
     
-    # 固定レイアウト計算
+    # Sabit düzen hesaplaması
     local cols rows
     if [ $panes_in_session -le 4 ]; then
         cols=2; rows=2
     elif [ $panes_in_session -le 9 ]; then
         cols=3; rows=3
     elif [ $panes_in_session -le 12 ]; then
-        cols=4; rows=3  # 4列x3行（標準設定）
+        cols=4; rows=3  # 4 sütun x 3 satır (varsayılan ayar)
     elif [ $panes_in_session -le 16 ]; then
         cols=4; rows=4
     else
         cols=5; rows=4
     fi
     
-    log_info "グリッド構成: ${cols}列 x ${rows}行"
+    log_info "Izgara yapılandırması: ${cols}sütun x ${rows}satır"
     
-    # セッションを作成
+    # Oturum oluşturuldu
     tmux new-session -d -s "$session_name" -n "hpc-agents"
     
-    # セッションが作成されたか確認
+    # Oturumun oluşturulup oluşturulmadığını kontrol et
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        log_error "${session_name}セッションの作成に失敗しました"
+        log_error "${session_name}oturumu oluşturulamadı"
         return 1
     fi
     
     sleep 1
     
-    # グリッド作成（エラーハンドリング付き）
+    # Izgara oluşturma (hata yönetimi ile birlikte)
     local pane_count=1
     local creation_failed=false
     
-    # 最初の列を作成
+    # İlk sütunu oluşturuyor
     for ((j=1; j < rows && pane_count < panes_in_session; j++)); do
         if ! tmux split-window -v -t "${session_name}:hpc-agents" 2>&1 | grep -q "no space for new pane"; then
             ((pane_count++))
         else
-            log_error "⚠️ ペイン作成失敗: no space for new pane (ペイン $pane_count/$panes_in_session)"
+            log_error "⚠️ Panel oluşturma başarısız: no space for new pane (panel $pane_count/$panes_in_session)"
             creation_failed=true
             break
         fi
     done
     
-    # 残りの列を作成（最初の列で失敗していない場合のみ）
+    # Kalan sütunları oluştur (sadece ilk sütunda hata yoksa)
     if [ "$creation_failed" = false ]; then
         for ((i=1; i < cols && pane_count < panes_in_session; i++)); do
             tmux select-pane -t "${session_name}:hpc-agents.0"
             if ! tmux split-window -h -t "${session_name}:hpc-agents" 2>&1 | grep -q "no space for new pane"; then
                 ((pane_count++))
             else
-                log_error "⚠️ ペイン作成失敗: no space for new pane (ペイン $pane_count/$panes_in_session)"
+                log_error "⚠️ Panel oluşturma başarısız: no space for new pane (panel $pane_count/$panes_in_session)"
                 creation_failed=true
                 break
             fi
@@ -333,7 +333,7 @@ create_single_worker_session() {
                     if ! tmux split-window -v -t "${session_name}:hpc-agents" 2>&1 | grep -q "no space for new pane"; then
                         ((pane_count++))
                     else
-                        log_error "⚠️ ペイン作成失敗: no space for new pane (ペイン $pane_count/$panes_in_session)"
+                        log_error "⚠️ Panel oluşturma başarısız: no space for new pane (panel $pane_count/$panes_in_session)"
                         creation_failed=true
                         break
                     fi
@@ -342,18 +342,18 @@ create_single_worker_session() {
         done
     fi
     
-    # ペイン作成が失敗した場合、作成できたペイン数を返す
+    # Pane oluşturma başarısız olursa, oluşturulabilen pane sayısını döndürür
     if [ "$creation_failed" = true ]; then
-        log_error "❌ 要求された ${panes_in_session} ペインのうち、${pane_count} ペインのみ作成可能"
-        # セッションを削除して失敗を返す
+        log_error "❌ İstenen ${panes_in_session} panel arasından sadece ${pane_count} panel oluşturulabilir"
+        # Oturumu sil ve hata döndür
         tmux kill-session -t "$session_name" 2>/dev/null
         return 1
     fi
     
-    # レイアウト調整
+    # Düzen ayarı
     tmux select-layout -t "${session_name}:hpc-agents" tiled
     
-    # 全ペインの初期化
+    # Tüm panellerin başlatılması
     local pane_indices=($(tmux list-panes -t "${session_name}:hpc-agents" -F "#{pane_index}"))
     
     for i in "${!pane_indices[@]}"; do
@@ -362,7 +362,7 @@ create_single_worker_session() {
         
         tmux send-keys -t "$pane_target" "cd $PROJECT_ROOT" C-m
 
-        # OpenTelemetry環境変数を設定（全ペイン共通）
+        # OpenTelemetry ortam değişkenlerini ayarla (tüm paneller için ortak)
         tmux send-keys -t "$pane_target" "export CLAUDE_CODE_ENABLE_TELEMETRY=1" C-m
         tmux send-keys -t "$pane_target" "export OTEL_METRICS_EXPORTER=otlp" C-m
         tmux send-keys -t "$pane_target" "export OTEL_METRIC_EXPORT_INTERVAL=10000" C-m
@@ -371,15 +371,15 @@ create_single_worker_session() {
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc" C-m
         tmux send-keys -t "$pane_target" "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" C-m
 
-        # CLI_HOOKS_MODE環境変数を設定（親シェルから継承または auto）
+        # CLI_HOOKS_MODE ortam değişkenini ayarla (ebeveyn shell'den devralındı veya auto)
         tmux send-keys -t "$pane_target" "export CLI_HOOKS_MODE='${CLI_HOOKS_MODE:-auto}'" C-m
 
-        # 全ペインをワーカー用に設定
+        # Tüm panelleri işçi için ayarla
         local global_pane_num=$((start_pane + i))
-        if false; then  # 旧コード（保守用）
-            # 旧コード
+        if false; then  # Eski kod (bakım için)
+            # Eski kod
             tmux select-pane -t "$pane_target" -T "STATUS"
-            # bash/zsh対応プロンプト設定
+            # bash/zsh uyumlu istem ayarı
             tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
             tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;37m%}(STATUS)%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
             tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
@@ -390,19 +390,19 @@ create_single_worker_session() {
             tmux send-keys -t "$pane_target" "echo '================================'" C-m
             tmux send-keys -t "$pane_target" "echo 'PM aracıları yerleştiriyor...'" C-m
             tmux send-keys -t "$pane_target" "echo ''" C-m
-            # グローバル変数を参照（create_worker_sessionsで設定）
+            # Global değişkenlere referans (create_worker_sessions içinde ayarlandı)
             tmux send-keys -t "$pane_target" "echo 'Çalışan sayısı: $GLOBAL_TOTAL_WORKERS'" C-m
             tmux send-keys -t "$pane_target" "echo 'directory_pane_map.md dosyasına bakın'" C-m
         else
-            # その他のペインはエージェント配置待ち
+            # Diğer paneller ajan yerleşimi bekliyor
             local pane_number=$global_pane_num
             tmux select-pane -t "$pane_target" -T "Pane${pane_number}"
             
-            # エージェント用のOTEL_RESOURCE_ATTRIBUTES準備（後でagent_idが決まったら更新）
+            # Ajan için OTEL_RESOURCE_ATTRIBUTES hazırlığı (daha sonra agent_id belirlendiğinde güncellenecek)
             tmux send-keys -t "$pane_target" "export TMUX_PANE_ID='${pane_index}'" C-m
             tmux send-keys -t "$pane_target" "export OTEL_RESOURCE_ATTRIBUTES=\"tmux_pane=\${TMUX_PANE},pane_index=${pane_index}\"" C-m
             
-            # bash/zsh対応プロンプト設定
+            # bash/zsh uyumlu istem ayarı
             tmux send-keys -t "$pane_target" "if [ -n \"\$ZSH_VERSION\" ]; then" C-m
             tmux send-keys -t "$pane_target" "  export PROMPT=$'%{\033[1;90m%}(Beklemede${pane_number})%{\033[0m%} %{\033[1;32m%}%~%{\033[0m%}$ '" C-m
             tmux send-keys -t "$pane_target" "elif [ -n \"\$BASH_VERSION\" ]; then" C-m
@@ -423,39 +423,39 @@ create_single_worker_session() {
     return 0
 }
 
-# 複数ワーカーセッション作成（メイン関数）
+# Birden fazla işçi oturumu oluşturma (ana fonksiyon)
 create_worker_sessions() {
-    local total_panes=$1  # ユーザ入力数 + 1 (STATUS用)
+    local total_panes=$1  # Kullanıcı girişi sayısı + 1 (STATUS için)
     
-    # グローバル変数として総ワーカー数を記録
+    # Toplam işçi sayısını global değişken olarak kaydet
     GLOBAL_TOTAL_WORKERS=$((total_panes - 1))
     
-    # まず単一セッションで試行
+    # Öncelikle tek bir oturumda deneme yapın
     log_info "🔧 Tek oturumda oluşturma denemesi yapılıyor..."
     if create_single_worker_session "$WORKER_SESSION" 0 $((total_panes - 1)); then
-        log_success "✅ 単一セッションで作成成功"
+        log_success "✅ Tek oturumda oluşturma başarılı"
         return 0
     fi
     
-    # 単一セッションで失敗した場合、自動的に複数セッションに分割
+    # Tek bir oturumda başarısız olunursa, otomatik olarak birden fazla oturuma bölünür
     log_info "📦 'no space for new pane' hatası tespit edildi. Otomatik olarak birden çok oturuma bölünüyor"
     
-    # より小さいペイン数で再試行
+    # Daha küçük pane sayısıyla yeniden dene
     local max_panes_per_session=12
     local test_panes=12
     
-    # 実際に作成可能な最大ペイン数を探る（12から順に減らして試行）
+    # Gerçekten oluşturulabilir maksimum pencere sayısını araştır (12'den başlayarak sırayla azaltıp dene)
     while [ $test_panes -ge 4 ]; do
         log_info "🔍 ${test_panes} panel ile test..."
         local test_session="${WORKER_SESSION_PREFIX}_test"
         
-        # テストセッション作成
+        # Test oturumu oluşturma
         tmux new-session -d -s "$test_session" -n "test" 2>/dev/null
         
         local test_success=true
         local pane_count=1
         
-        # レイアウトテスト（4x3を基準に）
+        # Düzen testi (4x3 temel alınarak)
         local cols=4
         local rows=3
         if [ $test_panes -le 9 ]; then
@@ -466,7 +466,7 @@ create_worker_sessions() {
             cols=2; rows=2
         fi
         
-        # ペイン作成テスト
+        # Pane oluşturma testi
         for ((j=1; j < rows && pane_count < test_panes; j++)); do
             if tmux split-window -v -t "${test_session}:test" 2>&1 | grep -q "no space for new pane"; then
                 test_success=false
@@ -494,7 +494,7 @@ create_worker_sessions() {
             done
         fi
         
-        # テストセッション削除
+        # Test oturumu silme
         tmux kill-session -t "$test_session" 2>/dev/null
         
         if [ "$test_success" = true ]; then
@@ -503,12 +503,12 @@ create_worker_sessions() {
             break
         fi
         
-        # 次の試行は3ペイン減らす
+        # Bir sonraki denemede 3 panel azaltılacak
         test_panes=$((test_panes - 3))
     done
     
-    # 複数セッションに分割して作成
-    log_info "📦 ${max_panes_per_session}ペインごとに分割して作成します"
+    # Birden fazla oturuma bölerek oluşturma
+    log_info "📦 ${max_panes_per_session} panel başına bölünerek oluşturulacak"
     
     local session_num=1
     local start_pane=0
@@ -545,7 +545,7 @@ create_worker_sessions() {
     fi
 }
 
-# agent_and_pane_id_table生成（初期状態、複数セッション対応）
+# agent_and_pane_id_table oluşturma (ilk durum, çoklu oturum desteği)
 generate_agent_pane_table() {
     local total_panes=$1
     
@@ -555,27 +555,27 @@ generate_agent_pane_table() {
     
     mkdir -p ./Agent-shared
     
-    # JSONL形式のファイル（コメントなしのピュアなJSONL）
+    # JSONL formatında dosya (yorum içermeyen saf JSONL)
     > "$jsonl_table_file"
     
-    # PMエントリ（working_dirは空文字列で初期化）
+    # PM girişi (working_dir boş bir dize ile başlatılır)
     echo '{"agent_id": "PM", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
     
-    # 複数のワーカーセッションのペイン（初期状態）
+    # Birden fazla işçi oturumunun panelleri (başlangıç durumu)
     local global_agent_count=0
     
     if [ $total_panes -le 12 ]; then
-        # 単一セッションの場合
+        # Tek oturum durumunda
         local pane_indices=($(tmux list-panes -t "${WORKER_SESSION}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
         
         for i in "${!pane_indices[@]}"; do
             local pane_id="${pane_indices[$i]}"
-            # 全ペインを待機中として登録
+            # Tüm panelleri beklemede olarak kaydet
             local agent_id="Beklemede$((i + 1))"
             echo '{"agent_id": "'$agent_id'", "tmux_session": "'$WORKER_SESSION'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
         done
     else
-        # 複数セッションの場合
+        # Birden fazla oturum durumunda
         local session_num=1
         local remaining_panes=$total_panes
         
@@ -589,13 +589,13 @@ generate_agent_pane_table() {
             
             local session_name="${WORKER_SESSION_PREFIX}${session_num}"
             
-            # セッションが存在する場合のみ処理
+            # Oturum mevcutsa işlem yapılır
             if tmux has-session -t "$session_name" 2>/dev/null; then
                 local pane_indices=($(tmux list-panes -t "${session_name}:hpc-agents" -F "#{pane_index}" 2>/dev/null || echo ""))
                 
                 for i in "${!pane_indices[@]}"; do
                     local pane_id="${pane_indices[$i]}"
-                    # 全ペインを待機中として登録
+                    # Tüm panelleri beklemede olarak kaydet
                     global_agent_count=$((global_agent_count + 1))
                     local agent_id="Beklemede${global_agent_count}"
                     echo '{"agent_id": "'$agent_id'", "tmux_session": "'$session_name'", "tmux_window": 0, "tmux_pane": '$pane_id', "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
@@ -610,7 +610,7 @@ generate_agent_pane_table() {
     log_success "✅ agent_and_pane_id_table.jsonl oluşturma tamamlandı"
 }
 
-# 実行計画表示（シンプル版）
+# Çalıştırma planı görüntüleme (Basit sürüm)
 show_execution_plan() {
     local worker_count=$1
     
@@ -631,19 +631,19 @@ show_execution_plan() {
     echo ""
 }
 
-# メイン処理
+# Ana işlem
 main() {
     echo "🧬 VibeCodeHPC Multi-Agent HPC Environment Setup"
     echo "==============================================="
     echo ""
     
-    # 引数チェック
+    # Argüman kontrolü
     if [[ $# -eq 0 ]]; then
         show_usage
         exit 1
     fi
     
-    # オプション処理
+    # Seçenek işlemi
     local worker_count=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -709,14 +709,14 @@ main() {
         esac
     done
     
-    # ワーカー数が指定されていない場合
+    # Eğer işçi sayısı belirtilmemişse
     if [ -z "$worker_count" ]; then
         log_error "İşçi sayısını belirtin"
         show_usage
         exit 1
     fi
     
-    # エージェント数チェック（PMを除く、0はシングルエージェントモード）
+    # Ajan sayısı kontrolü (PM hariç, 0 tek ajan modu)
     if [[ $worker_count -eq 0 ]]; then
         log_info "Tek ajan modu: yalnızca PM paneli oluşturulacak"
     elif [[ $worker_count -eq 1 ]]; then
@@ -727,10 +727,10 @@ main() {
         exit 1
     fi
     
-    # セッション名を決定
+    # Oturum adını belirle
     determine_session_names
     
-    # 実行計画表示（シンプル版）
+    # Çalıştırma planı görüntüleme (Basit sürüm)
     show_execution_plan $worker_count
     if [ "$USE_DEFAULT_NAMES" = false ]; then
         echo "Proje adı: ${PROJECT_NAME}"
@@ -742,52 +742,52 @@ main() {
     fi
     echo ""
     
-    # dry-runの場合はここで終了
+    # dry-run durumunda burada sonlandırılır
     if [ "$DRY_RUN" = true ]; then
         log_info "dry-run modu: gerçek kurulum yapılmayacak"
         exit 0
     fi
     
-    # セッション名の衝突チェック
+    # Oturum adı çakışma kontrolü
     if ! check_session_conflicts; then
         log_error "Kurulum durduruluyor"
         exit 1
     fi
     
-    # 既存セッションの処理
+    # Mevcut oturumun işlenmesi
     handle_existing_sessions
     
-    # エージェント数をファイルに記録（PMがリソース配分計画に使用）
+    # Ajan sayısını dosyaya kaydet (PM kaynak tahsis planlamasında kullanır)
     echo "$worker_count" > ./Agent-shared/max_agent_number.txt
     log_info "Ajan sayısı kaydedildi: $worker_count (PM hariç)"
     
-    # hooksバージョンを記録
+    # hooks sürümünü kaydet
     echo "$HOOKS_VERSION" > ./hooks/.hooks_version
     log_info "🎣 hooks sürümü ayarlandı: $HOOKS_VERSION"
     
-    # PMセッション作成
+    # PM oturumu oluşturma
     create_pm_session
     
-    # シングルモードの場合はワーカーセッション作成をスキップ
+    # Tek mod durumunda worker oturumu oluşturmayı atla
     if [[ $worker_count -eq 0 ]]; then
         log_info "Tek ajan modu: işçi oturumu oluşturma atlandı"
         
-        # シングルモード用のagent_and_pane_id_table.jsonl生成
+        # Tek mod için agent_and_pane_id_table.jsonl oluşturma
         mkdir -p ./Agent-shared
         local jsonl_table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
         > "$jsonl_table_file"
         echo '{"agent_id": "SOLO", "tmux_session": "'$PM_SESSION'", "tmux_window": 0, "tmux_pane": 0, "working_dir": "", "claude_session_id": null, "status": "not_started", "last_updated": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> "$jsonl_table_file"
         log_success "✅ Tek mod için agent_and_pane_id_table.jsonl oluşturma tamamlandı"
     else
-        # ワーカーセッション作成
+        # Çalışan oturumu oluşturma
         local total_panes=$worker_count
         create_worker_sessions $total_panes
         
-        # agent_and_pane_id_table.jsonl生成（初期状態）
+        # agent_and_pane_id_table.jsonl oluşturma (ilk durum)
         generate_agent_pane_table $total_panes
     fi
     
-    # 完了メッセージ
+    # Tamamlama mesajı
     echo ""
     log_success "🎉 VibeCodeHPC ortam kurulumu tamamlandı!"
     echo ""
@@ -831,7 +831,7 @@ main() {
     echo "     cat ./Agent-shared/max_agent_number.txt          # İşçi sayısı: $worker_count"
     echo ""
     
-    # セッション作成確認
+    # Oturum oluşturma doğrulaması
     echo "🔍 Oturum oluşturma doğrulaması:"
     if tmux has-session -t "$PM_SESSION" 2>/dev/null; then
         echo "  ✅ $PM_SESSION: Oluşturma başarılı"
@@ -839,7 +839,7 @@ main() {
         echo "  ❌ $PM_SESSION: Oluşturma başarısız"
     fi
     
-    # 複数ワーカーセッションの確認
+    # Birden fazla işçi oturumunun kontrolü
     if [ $total_panes -le 12 ]; then
         if tmux has-session -t "$WORKER_SESSION" 2>/dev/null; then
             echo "  ✅ $WORKER_SESSION: Oluşturma başarılı"

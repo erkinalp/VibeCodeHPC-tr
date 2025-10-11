@@ -50,7 +50,7 @@ class ContextUsageMonitor:
     WARNING_THRESHOLD = 140000  # Uyarı eşiği
     
     def __init__(self, project_root: Path, use_cache: bool = True, max_minutes: Optional[int] = None):
-        self.project_root = project_root
+        """Bağlam kullanım monitörünü başlat"""
         self.claude_projects_dir = self._get_claude_projects_dir()
         self.output_dir = project_root / "User-shared" / "visualizations"
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -62,16 +62,16 @@ class ContextUsageMonitor:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
     
     def _get_claude_projects_dir(self) -> Path:
-        """Platforma göre Claude projects dizinini al"""
+        """TODO: Add docstring"""
         return Path.home() / ".claude" / "projects"
     
     def get_cache_path(self, agent_id: str, jsonl_file: Path) -> Path:
-        """Önbellek dosya yolunu üret"""
+        """TODO: Add docstring"""
         cache_name = f"{agent_id}_{jsonl_file.stem}.pkl.gz"
         return self.cache_dir / cache_name
     
     def load_from_cache(self, cache_path: Path, jsonl_file: Path) -> Optional[List[Dict]]:
-        """Veriyi önbellekten yükle"""
+        """TODO: Add docstring"""
         if not self.use_cache or not cache_path.exists():
             return None
             
@@ -88,7 +88,7 @@ class ContextUsageMonitor:
             return None
     
     def save_to_cache(self, cache_path: Path, data: List[Dict]):
-        """Veriyi önbelleğe kaydet"""
+        """TODO: Add docstring"""
         if not self.use_cache:
             return
             
@@ -99,7 +99,7 @@ class ContextUsageMonitor:
             pass  # Önbelleğe alma başarısızsa yoksay
     
     def find_project_jsonl_files(self) -> Dict[str, List[Path]]:
-        """agent_and_pane_id_table.jsonl içinden oturum ID’lerini okuyup ilgili JSONL dosyalarını bul"""
+        """TODO: Add docstring"""
         agent_table_path = self.project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
         
         if not agent_table_path.exists():
@@ -212,7 +212,7 @@ class ContextUsageMonitor:
         return filtered_entries
     
     def _apply_time_filter(self, entries: List[Dict], max_minutes: Optional[int]) -> List[Dict]:
-        """Zaman sınırını uygulayarak girdileri filtrele"""
+        """TODO: Add docstring"""
         if not max_minutes or not entries:
             return entries
         
@@ -241,7 +241,7 @@ class ContextUsageMonitor:
         return filtered
     
     def calculate_cumulative_tokens(self, usage_entries: List[Dict], cumulative: bool = False) -> List[Tuple[datetime, Dict[str, int]]]:
-        """Token sayısını hesapla (kümülatif veya anlık görüntü)"""
+        """TODO: Add docstring"""
         token_data = []
         total_input = 0
         total_cache_creation = 0
@@ -400,7 +400,7 @@ class ContextUsageMonitor:
         print(f"✅ Genel görünüm grafiği oluşturuldu: {output_path}")
     
     def _get_project_start_time(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]) -> Optional[datetime]:
-        """Proje başlangıç zamanını al"""
+        """TODO: Add docstring"""
         start_time_file = self.project_root / "Agent-shared" / "project_start_time.txt"
         project_start = None
         
@@ -505,7 +505,7 @@ class ContextUsageMonitor:
         print(f"✅ Yığılmış grafik oluşturuldu ({x_axis} ekseni): {output_path}")
     
     def generate_timeline_graph(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]):
-        """auto-compact öngörüsüne odaklı zaman çizelgesi grafiği"""
+        """TODO: Add docstring"""
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), 
                                        gridspec_kw={'height_ratios': [2, 1]})
         
@@ -549,7 +549,7 @@ class ContextUsageMonitor:
         print(f"✅ Zaman çizelgesi grafiği oluşturuldu: {output_path}")
     
     def generate_agent_detail_graphs(self, agent_id: str, cumulative_data: List[Tuple[datetime, Dict[str, int]]]):
-        """Ajan bazında detay grafikler (2 tür)"""
+        """TODO: Add docstring"""
         
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), 
                                        gridspec_kw={'height_ratios': [2, 1]})
@@ -631,7 +631,7 @@ class ContextUsageMonitor:
         ax.set_ylim(0, 100)
     
     def _generate_count_based_graph(self, agent_id: str, cumulative_data: List[Tuple[datetime, Dict[str, int]]]):
-        """Log sayısı tabanlı grafik"""
+        """TODO: Add docstring"""
         fig, ax = plt.subplots(figsize=(12, 8))
         
         log_counts = list(range(1, len(cumulative_data) + 1))
@@ -667,7 +667,7 @@ class ContextUsageMonitor:
         plt.close()
     
     def _plot_growth_rates(self, ax, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]):
-        """Token artış oranını görselleştir"""
+        """TODO: Add docstring"""
         
         for agent_id, cumulative_data in all_agent_data.items():
             if len(cumulative_data) < 2:
@@ -680,7 +680,7 @@ class ContextUsageMonitor:
             growth_times = []
             
             for i in range(1, len(times)):
-                time_diff = (times[i] - times[i-1]).total_seconds() / 3600  # 時間単位
+                time_diff = (times[i] - times[i-1]).total_seconds() / 3600  # Zaman birimi
                 if time_diff > 0:
                     token_diff = totals[i] - totals[i-1]
                     rate = token_diff / time_diff
@@ -700,7 +700,7 @@ class ContextUsageMonitor:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
     
     def generate_summary_report(self, all_agent_data: Dict[str, List[Tuple[datetime, Dict[str, int]]]]):
-        """Özet raporu Markdown formatında oluştur"""
+        """TODO: Add docstring"""
         report_path = self.output_dir / "context_usage_report.md"
         
         with open(report_path, 'w') as f:
@@ -715,7 +715,7 @@ class ContextUsageMonitor:
             f.write("| Aracı | Toplam [token] | Kullanım oranı | Cache Read | Cache Create | Input | Output | Tahmini süre |\n")
             f.write("|-------|-----------------|----------------|------------|--------------|-------|--------|--------------|\n")
             
-            # エージェントデータを整理
+            # Ajan verilerini düzenle
             agent_summaries = []
             
             for agent_id, cumulative_data in all_agent_data.items():
@@ -726,10 +726,10 @@ class ContextUsageMonitor:
                 total = latest_tokens['total']
                 percentage = (total / self.AUTO_COMPACT_THRESHOLD) * 100
                 
-                # auto-compactまでの推定時間
+                # auto-compact için tahmini süre
                 est_hours = "N/A"
                 if len(cumulative_data) >= 2:
-                    # 直近の増加率から推定
+                    # Son artış oranından tahmin edilir
                     recent_data = cumulative_data[-min(10, len(cumulative_data)):]
                     time_span = (recent_data[-1][0] - recent_data[0][0]).total_seconds() / 3600
                     token_increase = recent_data[-1][1]['total'] - recent_data[0][1]['total']
@@ -740,9 +740,9 @@ class ContextUsageMonitor:
                         if remaining_tokens > 0:
                             est_hours = f"{remaining_tokens / rate:.1f}h"
                 
-                # 状態アイコン（累積モードでは常に緑）
+                # Durum simgesi (birikimli modda her zaman yeşil)
                 if hasattr(self, 'is_cumulative') and self.is_cumulative:
-                    status = "🟢"  # 累積モードでは閾値判定なし
+                    status = "🟢"  # Kümülatif modda eşik değeri kontrolü yoktur
                 else:
                     if total >= self.AUTO_COMPACT_THRESHOLD * 0.95:
                         status = "🔴"
@@ -760,7 +760,7 @@ class ContextUsageMonitor:
                     'est_hours': est_hours
                 })
             
-            # トークン数でソート
+            # Token sayısına göre sıralama
             agent_summaries.sort(key=lambda x: x['total'], reverse=True)
             
             for summary in agent_summaries:
@@ -814,7 +814,7 @@ class ContextUsageMonitor:
         print(f"VibeCodeHPC Context Usage Status - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*60)
         
-        # エージェントをフィルタリング
+        # Ajanları filtreleme
         if target_agent:
             filtered_data = {k: v for k, v in all_agent_data.items() 
                            if target_agent.upper() in k.upper()}
@@ -825,11 +825,11 @@ class ContextUsageMonitor:
             print(f"❌ Agent '{target_agent}' not found")
             return
         
-        # テーブル形式で出力
+        # Tablo formatında çıktı verme
         print(f"{'Agent':<10} {'Total':>10} {'%':>6} {'Status':<8} {'Est.Time':<10}")
         print("-"*50)
         
-        # データを整理してソート
+        # Verileri düzenle ve sırala
         agent_infos = []
         for agent_id, cumulative_data in filtered_data.items():
             if not cumulative_data:
@@ -839,7 +839,7 @@ class ContextUsageMonitor:
             total = latest_tokens['total']
             percentage = (total / self.AUTO_COMPACT_THRESHOLD) * 100
             
-            # 状態判定
+            # Durum belirleme
             if total >= self.AUTO_COMPACT_THRESHOLD * 0.95:
                 status = "🔴 CRITICAL"
             elif total >= self.WARNING_THRESHOLD:
@@ -847,7 +847,7 @@ class ContextUsageMonitor:
             else:
                 status = "🟢 OK"
             
-            # 推定時間
+            # Tahmini süre
             est_time = "N/A"
             if len(cumulative_data) >= 2:
                 recent_data = cumulative_data[-min(10, len(cumulative_data)):]
@@ -872,10 +872,10 @@ class ContextUsageMonitor:
                 'est_time': est_time
             })
         
-        # トークン数でソート
+        # Token sayısına göre sıralama
         agent_infos.sort(key=lambda x: x['total'], reverse=True)
         
-        # 出力
+        # Çıktı
         for info in agent_infos:
             print(f"{info['agent_id']:<10} {info['total']:>10,} {info['percentage']:>5.1f}% "
                   f"{info['status']:<8} {info['est_time']:<10}")
@@ -883,7 +883,7 @@ class ContextUsageMonitor:
         print("\n" + "="*60)
 
 def get_python_command():
-    """利用可能なPythonコマンドを取得"""
+    """Kullanılabilir Python komutlarını al"""
     commands = ['python3', 'python']
     
     for cmd in commands:
@@ -894,11 +894,11 @@ def get_python_command():
         except FileNotFoundError:
             continue
     
-    # デフォルト
+    # Varsayılan
     return 'python3'
 
 def main():
-    """メイン処理"""
+    """Ana işlem"""
     parser = argparse.ArgumentParser(description='Monitor Claude Code context usage')
     parser.add_argument('--last-n', type=int, default=None,
                        help='Analyze only the last N log entries per agent')
@@ -925,11 +925,11 @@ def main():
     
     args = parser.parse_args()
     
-    # プロジェクトルートを取得
+    # Proje kök dizinini alır
     project_root = Path(__file__).parent.parent
     monitor = ContextUsageMonitor(project_root, use_cache=not args.no_cache, max_minutes=args.max_minutes)
     
-    # キャッシュクリア
+    # Önbellek temizleme
     if args.clear_cache and monitor.cache_dir.exists():
         import shutil
         shutil.rmtree(monitor.cache_dir)
@@ -937,7 +937,7 @@ def main():
         print("✅ Cache cleared")
     
     def update_once():
-        """一度だけ更新"""
+        """Sadece bir kez güncelle"""
         print("🔍 Scanning agent_and_pane_id_table.jsonl for session IDs...")
         jsonl_files = monitor.find_project_jsonl_files()
         
@@ -948,37 +948,37 @@ def main():
         
         print(f"📊 Found {len(jsonl_files)} agents with logs")
         
-        # 各エージェントのデータを収集
+        # Her bir ajan için verileri toplar
         all_agent_data = {}
         for agent_id, files in jsonl_files.items():
-            if not args.status:  # ステータス表示時は進捗を省略
+            if not args.status:  # Durum gösterilirken ilerleme atlanır
                 print(f"  - Processing {agent_id}...")
             
-            # 複数ファイルがある場合は結合
+            # Birden fazla dosya varsa birleştirilecek
             all_usage_entries = []
             for jsonl_file in sorted(files):
                 entries = monitor.parse_usage_data(jsonl_file, agent_id, args.last_n, args.max_minutes)
                 all_usage_entries.extend(entries)
             
             if all_usage_entries:
-                # 時系列でソート
+                # Zaman serisine göre sıralama
                 all_usage_entries.sort(key=lambda x: x['timestamp'])
                 cumulative_data = monitor.calculate_cumulative_tokens(all_usage_entries, args.cumulative)
                 all_agent_data[agent_id] = cumulative_data
         
         if all_agent_data:
             if args.status:
-                # クイックステータス表示
+                # Hızlı Durum Görüntüleme
                 monitor.print_quick_status(all_agent_data, args.agent)
             else:
-                # グラフとレポート生成
+                # Grafik ve rapor oluşturma
                 monitor.generate_all_graphs(all_agent_data, args.graph_type, args.time_unit, args.cumulative)
                 monitor.generate_summary_report(all_agent_data)
                 print("✅ Context usage monitoring complete")
         else:
             print("❌ No usage data found in JSONL files")
     
-    # 実行
+    # Çalıştırma
     if args.watch:
         import time
         print(f"👁️  Watching mode enabled (interval: {args.interval}s)")
