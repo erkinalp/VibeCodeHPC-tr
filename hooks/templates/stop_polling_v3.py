@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC Stop Hook v3 for Polling Agents
-ファイル内容の直接埋め込みとインテリジェントな選択
+Dosya içeriğinin doğrudan gömülmesi ve akıllı seçim
 """
 
 import json
@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-tr) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """Geçerli dizindeki stop_count.txt dosyasından sayıyı al"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -38,7 +38,7 @@ def get_stop_count():
 
 
 def increment_stop_count():
-    """stop_count.txtをインクリメント"""
+    """stop_count.txt değerini artır"""
     hooks_dir = Path.cwd() / ".claude" / "hooks"
     hooks_dir.mkdir(parents=True, exist_ok=True)
     
@@ -51,14 +51,13 @@ def increment_stop_count():
 
 
 def get_agent_info_from_cwd():
-    """現在のディレクトリから自分のエージェント情報を取得"""
-    # agent_id.txtから直接読み取り
+    """Geçerli dizinden kendi ajan bilgini al"""
+    # agent_id.txt’den doğrudan oku
     agent_id_file = Path.cwd() / ".claude" / "hooks" / "agent_id.txt"
     if agent_id_file.exists():
         agent_id = agent_id_file.read_text().strip()
         return {"agent_id": agent_id}
     
-    # フォールバック：working_dirでマッチング
     cwd = Path.cwd()
     project_root = find_project_root(cwd)
     
@@ -88,7 +87,7 @@ def get_agent_info_from_cwd():
 
 
 def get_stop_threshold(agent_id):
-    """エージェント種別ごとのSTOP回数閾値を返す"""
+    """Ajan türüne göre STOP sayısı eşiğini döndür"""
     if not agent_id:
         return 30
     

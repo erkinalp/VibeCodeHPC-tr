@@ -390,7 +390,7 @@ cd VibeCodeHPC-main
 ```
 
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
-PM, SE, PG için HPC ortamına SSH/SFTP bağlantı yönetiminde kullanılır
+PM, SE, PG için YBH (yüksek başarımlı hesaplama) ortamına SSH/SFTP bağlantı yönetiminde kullanılır
 ```bash
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
@@ -715,7 +715,7 @@ O andaki en yüksek performans olan SOTA (State-of-the-Art) vurgulanır.
 
 ![Budget Usage Timeline](_images/budget_usage.png)
 
-HPC bütçe tüketimi gerçek zamanlı izlenir; doğrusal regresyon ile tahmin ve eşik erişim zamanı (ETA) gösterilir. Birçok süperbilgisayarda yalnızca bir önceki güne kadar toplu veriler görülebilirken, ChangeLog.md üzerinden anlık tahmin üretilir.
+YBH bütçe tüketimi gerçek zamanlı izlenir; doğrusal regresyon ile tahmin ve eşik erişim zamanı (ETA) gösterilir. Birçok süperbilgisayarda yalnızca bir önceki güne kadar toplu veriler görülebilirken, ChangeLog.md üzerinden anlık tahmin üretilir.
 
 ### ChangeLog.md birleşik biçimi
 

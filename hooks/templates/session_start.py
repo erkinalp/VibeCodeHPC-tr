@@ -125,7 +125,7 @@ def update_agent_table(session_id, source):
                                     ['bash', str(periodic_script)],
                                     stdout=subprocess.DEVNULL,
                                     stderr=subprocess.DEVNULL,
-                                    start_new_session=False  # tmuxセッションに紐づける
+                                    start_new_session=False  # tmux oturumuna bağlı çalıştır
                                 )
                                 with open(debug_file, 'a') as f:
                                     f.write(f"Periyodik izleyici başlatıldı: {periodic_script}\n")
@@ -150,13 +150,11 @@ def update_agent_table(session_id, source):
 
 def get_required_files(agent_id):
     """Ajana göre gerekli dosya listesini döndür"""
-    # 共通ファイル
     common_files = [
         "CLAUDE.md",
         "Agent-shared/directory_pane_map.txt"
     ]
     
-    # 役割を抽出（例: PG1.1.1 -> PG）
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
@@ -237,7 +235,7 @@ def main():
     try:
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
-        source = input_data.get('source', 'startup')  # startup(新規起動), resume(--continue), clear(/clear)
+        source = input_data.get('source', 'startup')  # startup(yeni başlatma), resume(--continue), clear(/clear)
         
         agent_id, agent_type = update_agent_table(session_id, source)
         

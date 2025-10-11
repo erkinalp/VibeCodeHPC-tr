@@ -1,4 +1,4 @@
-# VibeCodeHPC - Multi-Agent HPC Optimization System
+# VibeCodeHPC - Multi-Agent YBH Optimization System
 # .gitignore - Critical security files only
 # CD agent handles file-by-file review and anonymization
 
@@ -25,7 +25,7 @@ project_id.txt
 *.env
 .env*
 
-# HPC authentication and credentials
+# YBH authentication and credentials
 .queuerc
 .slurmrc
 *_credentials*

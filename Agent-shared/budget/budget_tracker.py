@@ -408,7 +408,7 @@ class BudgetTracker:
             # 軸の設定
             ax.set_xlabel('Time (UTC)')
             ax.set_ylabel('Points')
-            ax.set_title('HPC Budget Usage Timeline')
+            ax.set_title('YBH Budget Usage Timeline')
             
             # X軸の日付フォーマット
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))

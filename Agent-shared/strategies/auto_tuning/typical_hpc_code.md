@@ -1,4 +1,4 @@
-# Tipik HPC Kodu Optimizasyon Stratejisi
+# Tipik YBH Kodu Optimizasyon Stratejisi
 
 ## 1. Katman: Ortam Kurulum Dizini
 - module list, makefile ve shell script'i okuyan LLM otomatik olarak 📂 oluşturur

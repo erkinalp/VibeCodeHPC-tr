@@ -33,9 +33,9 @@ def main():
                 print("Örnek: ./communication/agent_send.sh SE1 \"[Rapor] Görev tamamlandı\"", file=sys.stderr)
                 print("", file=sys.stderr)
                 print("echo yalnızca ekranda gösterir, diğer ajanlara ulaşmaz.", file=sys.stderr)
-                return 2  # Claudeに警告を表示
+                return 2  # Claude’da uyarı göster
             
-            message_keywords = ['報告', '依頼', '質問', '完了', '連絡', '通知']
+            message_keywords = ['Rapor', 'İstek', 'Soru', 'Tamamlandı', 'İletişim', 'Bildirim']
             for keyword in message_keywords:
                 if keyword in command:
                     print("⚠️ Mesaj göndermek için agent_send.sh kullanın", file=sys.stderr)
@@ -50,7 +50,7 @@ def main():
             print("", file=sys.stderr)
             print("tmux send-keys yalnızca Claude başlamadan önce komut göndermek veya PM'in acil durdurması için kullanılır.", file=sys.stderr)
             print("Ajanlar arası iletişim için mutlaka agent_send.sh kullanın.", file=sys.stderr)
-            return 2  # Claudeに警告を表示
+            return 2  # Claude’da uyarı göster
     
     return 0
 

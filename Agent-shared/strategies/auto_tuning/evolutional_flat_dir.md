@@ -27,7 +27,7 @@ Kök📂
 　　　└📁A+B (talimat.md "Yalnızca A ve B'ye başvuru izni")
 ```
 Özellikle aşağıdaki gibi paralel dağıtık (hızlandırma) yaklaşımlarına uygulanır
-#### Tipik HPC Kodu
+#### Tipik YBH Kodu
 ```
 📁MPI
 📁OpenMP
