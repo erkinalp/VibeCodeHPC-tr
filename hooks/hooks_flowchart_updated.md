@@ -44,7 +44,7 @@ flowchart TB
           SSHHandler -->|Uyarı göster| SSHGuide[SSH yönetim kılavuzu<br/>• session.json güncelleme talimatı<br/>• STOP’tan kaçınma talimatı]
       end
 
-      %% スタイリング
+      %% Stil
       style StartScripts fill:#fff8fc,stroke:#c2185b,stroke-width:2px
       style CommonFlow fill:#e3f2fd,stroke:#0288d1,stroke-width:3px
       style HookEvents fill:#fff3e0,stroke:#ff9800,stroke-width:2px
@@ -93,7 +93,7 @@ flowchart TB
       
       Display --> Guide[Claude’da göster<br/>• ssh_sftp_guide.md'ye bak<br/>• oturum yönetimi talimatı<br/>• STOP’tan kaçınma talimatı]
       
-      %% スタイリング
+      %% Stil
       style Handler fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
       style ExtractPID fill:#e3f2fd,stroke:#0288d1,stroke-width:2px
       style SessionCheck fill:#e3f2fd,stroke:#0288d1,stroke-width:2px

@@ -30,28 +30,28 @@ Bu belge, VibeCodeHPC projesinde ChangeLog.md için temel yazım biçimini tanı
 
 <details>
 
-- **生成時刻**: `[YYYY-MM-DDTHH:MM:SSZ]` ※UTC
+- **Oluşturma zamanı**: `[YYYY-MM-DDTHH:MM:SSZ]` ※UTC
 - [x/✗] **compile**
     - status: `[success/warning/error]`
-    - message: "[エラーや警告の内容]" ※エラー/警告時のみ
-    - log: `[ログファイルパス]`
+    - message: "[Hata veya uyarı içeriği]" ※Hata/uyarı durumunda
+    - log: `[Log dosya yolu]`
 - [x/✗] **job**
-    - id: `[ジョブID]`
-    - resource_group: `[リソースグループ名]` # 予算計算に必須
-    - start_time: `[YYYY-MM-DDTHH:MM:SSZ]` # 予算計算に必須
-    - end_time: `[YYYY-MM-DDTHH:MM:SSZ]` # 完了時必須（またはcancelled_time）
-    - runtime_sec: `[秒数]` # 実行時間（秒）
+    - id: `[İş ID]`
+    - resource_group: `[Kaynak grubu adı]` # Bütçe hesabı için zorunlu
+    - start_time: `[YYYY-MM-DDTHH:MM:SSZ]` # Bütçe hesabı için zorunlu
+    - end_time: `[YYYY-MM-DDTHH:MM:SSZ]` # Tamamlandığında zorunlu (veya cancelled_time)
+    - runtime_sec: `[Saniye]` # Yürütme süresi (saniye)
     - status: `[success/error/timeout/cancelled/running]`
 - [x/✗] **test**
     - status: `[pass/fail]`
-    - performance: `[数値]`
-    - unit: `[単位]`
-    - accuracy: `[精度値]` ※必要に応じて
+    - performance: `[Sayısal değer]`
+    - unit: `[Birim]`
+    - accuracy: `[Hassasiyet değeri]` ※Gerekirse
 - [x/✗] **sota**
-    - scope: `[local/hardware/project]` ※更新時のみ
+    - scope: `[local/hardware/project]` ※Güncelleme zamanında
 - **params**:
-    - nodes: `[ノード数]`
-    - その他の実行パラメータ
+    - nodes: `[Düğüm sayısı]`
+    - Diğer yürütme parametreleri
 
 </details>
 ```
@@ -76,15 +76,15 @@ Bu belge, VibeCodeHPC projesinde ChangeLog.md için temel yazım biçimini tanı
 ### 4. Zorunlu ve isteğe bağlı alanlar
 #### Zorunlu alanlar
 - version
-- 変更点
-- compile情報（status）
-- details内の項目:
-  - 生成時刻（UTC形式: YYYY-MM-DDTHH:MM:SSZ）
-  - job実行時の予算関連項目:
-    - resource_group（リソースグループ名）
-    - start_time（開始時刻）
-    - end_time（終了時刻）またはcancelled_time（キャンセル時刻）
-    - runtime_sec（実行時間（秒））
+- Değişiklikler
+- compile bilgisi (status)
+- details içindeki öğeler:
+  - Oluşturma zamanı (UTC formatı: YYYY-MM-DDTHH:MM:SSZ)
+  - İş yürütme sırasında bütçe ile ilgili öğeler:
+    - resource_group (Kaynak grubu adı)
+    - start_time (Başlangıç zamanı)
+    - end_time (Bitiş zamanı) veya cancelled_time (İptal zamanı)
+    - runtime_sec (Yürütme süresi (saniye))
 
 #### İsteğe bağlı alanlar
 - message (hata/uyarı durumunda zorunlu)
@@ -95,13 +95,13 @@ Bu belge, VibeCodeHPC projesinde ChangeLog.md için temel yazım biçimini tanı
 ## PG tarafından ekleme usulü
 
 ### PG (Programcı) sorumlulukları
-1. 新バージョンエントリの作成
-2. 変更点とコメントの記述
-3. **生成時刻の記録**（details内の最初に記載）
-4. compile実行とstatus記録
-5. 基本的なparams設定
-6. compile結果の更新（status, log, message）
-7. job情報の追記（id, status）
+1. Yeni sürüm girdisinin oluşturulması
+2. Değişiklikler ve yorumların yazılması
+3. **Oluşturma zamanının kaydı** (details içinde ilk sırada)
+4. compile yürütme ve status kaydı
+5. Temel params ayarları
+6. compile sonuçlarının güncellenmesi (status, log, message)
+7. job bilgilerinin eklenmesi (id, status)
 8. **Bütçe ile ilişkili bilgilerin kaydı** (resource_group, start_time, end_time, runtime_sec)
 9. test sonuçlarının güncellenmesi
 10. Performans değerlerinin kaydı

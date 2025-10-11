@@ -22,9 +22,9 @@ projenin "bağımlılık ilişkileri" ve "başvuru kapsamını" mantıksal olara
 Örneğin, derin hiyerarşi hiç kullanmadan, aşağıdaki gibi başvuru izni vererek hiyerarşi ilişkisini ifade edebiliriz
 ```
 Kök📂
-　　　ー📁A 　(talimat.md "Yalnızca A'ya başvuru izni")
-　　　ー📁B 　(talimat.md "Yalnızca B'ye başvuru izni")
-　　　ー📁A+B (talimat.md "Yalnızca A ve B'ye başvuru izni")
+　　　├📁A 　(talimat.md "Yalnızca A'ya başvuru izni")
+　　　├📁B 　(talimat.md "Yalnızca B'ye başvuru izni")
+　　　└📁A+B (talimat.md "Yalnızca A ve B'ye başvuru izni")
 ```
 Özellikle aşağıdaki gibi paralel dağıtık (hızlandırma) yaklaşımlarına uygulanır
 #### Tipik HPC Kodu
@@ -59,16 +59,16 @@ Ek bilgiler MPI-opt1 gibi - ile yazılır. Sürüm varsayılan ise atlanır
 durum 1
 ```
 Kök📂
-　　　ー📂A 
-　　　　　 ー📁/B 
-　　　ー📁B 　
+　　　├📂A 
+　　　│　　└📁/B 
+　　　└📁B 　
 ```
 durum 2
 ```
 Kök📂
-　　　ー📁A 
-　　　ー📂B 
-　　　   　　 ー📁/A 
+　　　├📁A 
+　　　└📂B 
+　　　   　　└📁/A 
 ```
 2 farklı desen mevcut ve görünürlük kötüleşir
 A + B + C gibi kombinasyonlar üstel olarak arttığında

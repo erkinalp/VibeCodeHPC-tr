@@ -7,12 +7,12 @@ ChangeLog.md’de kaydedilen zaman bilgilerine dayanarak projenin bütçe tüket
 
 ### 1. İş betiğine zaman kaydı ekleme
 ```bash
-# スクリプト先頭
+# Betik başlangıcı
 source $PROJECT_ROOT/Agent-shared/budget/job_time_template.sh
-# または必要部分をコピー
+# veya gerekli kısmı kopyala
 
 # Kaynak grubunu belirtin (önemli)
-RESOURCE_GROUP="cx-small"  # 使用するリソースグループ
+RESOURCE_GROUP="cx-small"  # Kullanılan kaynak grubu
 ```
 
 ### 2. ChangeLog.md’ye kayıt (zorunlu)
@@ -71,7 +71,7 @@ python Agent-shared/budget/budget_tracker.py --report
 # - latest.json(en güncel)
 ```
 
-### 3. グラフ生成（デフォルトで自動生成）
+### 3. Grafik oluşturma (varsayılan olarak otomatik oluşturulur)
 ```bash
 # Varsayılan davranış (argümansız) ile grafik otomatik üretilir
 python Agent-shared/budget/budget_tracker.py
@@ -79,7 +79,7 @@ python Agent-shared/budget/budget_tracker.py
 
 # --graph seçeneği önerilmez (deprecated)
 # Varsayılan olarak üretildiğinden ayrıca belirtmeye gerek yok
-python Agent-shared/budget/budget_tracker.py --graph  # 非推奨
+python Agent-shared/budget/budget_tracker.py --graph  # Önerilmez
 ```
 
 ### 4. periodic_monitor.sh ile tümleştirme
