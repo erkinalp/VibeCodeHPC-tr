@@ -103,7 +103,7 @@ def run_test():
         
         tracker = BudgetTracker(temp_path)
         jobs = tracker.extract_jobs()
-        print(f"抽出されたジョブ数: {lenİş sayısı: {len(jobs)}")
+        print(f"İş sayısı: {len(jobs)}")
         
         timeline = tracker.calculate_timeline(jobs)
         if timeline:
@@ -132,7 +132,7 @@ def run_test():
         
         tracker = BudgetTracker(temp_path)
         jobs = tracker.extract_jobs()
-        print(f"抽出されたジョブ数: {lenİş sayısı: {len(jobs)}")
+        print(f"İş sayısı: {len(jobs)}")
         
         timeline = tracker.calculate_timeline(jobs)
         if timeline:
@@ -145,8 +145,7 @@ def run_test():
             # 合計: 92.4
             print(f"Beklenen değer: 92.4 (job1: 50.4 + job2: 42.0)")
         
-        # テストシナリオ3: 実行中のジョブÇalışanリオ3: 実行中のジョブ
-        print("\n[テスト3] 実行中ジョブÇalışan\n[テスト3] 実行中ジョブの計算")
+        print("\n[Test3] Çalışan iş hesaplama")
         print("-" * 40)
         
         job3_start = datetime.utcnow() - timedelta(minutes=5)
@@ -156,22 +155,21 @@ def run_test():
             'job_id': 'job_003',
             'resource_group': 'cx-share',  # 1 GPU
             'start_time': job3_start.isoformat() + 'Z',
-            # end_timeなし - 実行中Çalışan
             'status': 'running'
         }])
         
         tracker = BudgetTracker(temp_path)
         jobs = tracker.extract_jobs()
-        print(f"抽出されたジョブ数: {lenİş sayısı: {len(jobs)}")
+        print(f"İş sayısı: {len(jobs)}")
         
         running_jobs = [j for j in jobs if j.get('status') == 'running']
-        print(f"Çalışannt(f"実行中ジョブ数: {len(running_jobs)}")
+        print(f"Çalışan iş sayısı: {len(running_jobs)}")
         
         timeline = tracker.calculate_timeline(jobs)
         if timeline:
             total_points = timeline[-1][1]
-            print(f"総消費ポイント（実行中含む）: {total_pÇalışanント（実行中含む）: {total_points:.2f}")
-            print("※実行Çalışan            print("※実行中ジョブは現在時刻まで計算")
+            print(f"Toplam tüketilen puan (çalışan dahil): {total_points:.2f}")
+            print("Not: Çalışan işler mevcut zamana kadar hesaplanır")
         
         # テストシナリオ4: レポート生成
         print("\n[Test4] Rapor oluşturma")

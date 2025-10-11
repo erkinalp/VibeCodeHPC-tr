@@ -99,7 +99,7 @@ PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Login-G   
 PyTorch - using CUDA (Python module)  pytorch-gpu/2.5.1               Miyabi-G    cuda/12.4
 ```
 
-Olası kombinasyonları kapsamlı biçimde değerlendirerek hardware📂 altında /gcc11.3.0, /intel2022.3 gibi dizinler oluştur. Sorunsuz çalışıp çalışmadığını doğrulamak PM’in görevidir. YalnıPMrulamak PM’in görevidir. Yalnızca yöntem özeti için gcc11.3.0 altında setup.md bulundurulması önerilir.
+Olası kombinasyonları kapsamlı biçimde değerlendirerek hardware📂 altında /gcc11.3.0, /intel2022.3 gibi dizinler oluştur. Sorunsuz çalışıp çalışmadığını doğrulamak PM’in görevidir. Yalnızca yöntem özeti için gcc11.3.0 altında setup.md bulundurulması önerilir.r.
 
 Not: Bağımlılıkları olmayan aynı modülün birden fazla sürümü varsa, o kod için kullanım geçmişi olan sürümü, default’u veya en son sürümü öncelikle dene.
 
