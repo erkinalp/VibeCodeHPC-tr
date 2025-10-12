@@ -32,7 +32,7 @@ class BudgetTracker:
         
     def load_rates(self) -> Dict:
         """Kaynak gruplarına göre ücret oranı ayarı"""
-        # # Varsayılan ayarlar (Furou TypeII)
+# Varsayılan ayarlar (Furou TypeII)
         rates = {
             'cx-share': {'gpu': 1, 'rate': 0.007},
             'cx-interactive': {'gpu': 1, 'rate': 0.007},
@@ -75,20 +75,20 @@ class BudgetTracker:
         except:
             return jobs
         
-        # # Her versiyon girdisi için işlem
+# Her versiyon girdisi için işlem
         version_pattern = r'### v(\d+\.\d+\.\d+)(.*?)(?=###|\Z)'
         
         for match in re.finditer(version_pattern, content, re.DOTALL):
             version, section = match.groups()
             
-            # # job bölümünü ara
+# job bölümünü ara
             job_match = re.search(r'- \[.\] \*\*job\*\*(.*?)(?=- \[.\] \*\*|\Z)', section, re.DOTALL)
             if not job_match:
                 continue
                 
             job_section = job_match.group(1)
             
-            # # Gerekli alanları çıkar
+# Gerekli alanları çıkar
             job_info = {
                 'version': version,
                 'path': str(changelog_path),
@@ -101,7 +101,7 @@ class BudgetTracker:
                 'status': self.extract_field(job_section, 'status'),
             }
             
-            # # Yalnızca geçerli işleri ekle
+# Yalnızca geçerli işleri ekle
             if job_info['job_id'] and job_info['resource_group']:
                 # runtime_sec yoksa hesaplansın
                 if not job_info['runtime_sec'] and job_info['start_time'] and job_info['end_time']:
@@ -131,7 +131,7 @@ class BudgetTracker:
         """
         events = []
         
-        # # Proje başlangıç zamanı
+# Proje başlangıç zamanı
         start_file = self.project_root / "Agent-shared/project_start_time.txt"
         if start_file.exists():
             try:
@@ -143,19 +143,19 @@ class BudgetTracker:
         else:
             project_start = datetime.now(timezone.utc) - timedelta(hours=1)
         
-        # # Her işten etkinlik oluştur
+# Her işten etkinlik oluştur
         for job in jobs:
             if not job.get('start_time'):
                 continue
                 
-            # # Bitiş zamanını belirle
+# Bitiş zamanını belirle
             end_time_str = job.get('end_time') or job.get('cancelled_time')
             if not end_time_str:
-                # # running durumunda mevcut zamanı kullan (pending hariç)
+# running durumunda mevcut zamanı kullan (pending hariç)
                 if job.get('status') == 'running':
                     end_time_str = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 else:
-                    # # pending veya diğer durumlarda atla
+# pending veya diğer durumlarda atla
                     continue
             
             try:
@@ -164,7 +164,7 @@ class BudgetTracker:
             except:
                 continue
             
-            # # Oran hesaplama
+# Oran hesaplama
             resource_group = job.get('resource_group', 'cx-small')
             rate_info = self.rates.get(resource_group, {'gpu': 4, 'rate': 0.007})
             points_per_sec = rate_info['rate'] * rate_info['gpu']
@@ -182,24 +182,24 @@ class BudgetTracker:
                 'job': job
             })
         
-        # # Zamanla sırala
+# Zamanla sırala
         events.sort(key=lambda x: x['time'])
         
-        # # Zaman çizelgesi oluştur
+# Zaman çizelgesi oluştur
         timeline = [(project_start, 0.0)]
         current_rate = 0.0
         total_points = 0.0
         last_time = project_start
         
         for event in events:
-            # # Önceki etkinlikten tüketimi hesapla
+# Önceki etkinlikten tüketimi hesapla
             duration = (event['time'] - last_time).total_seconds()
             if duration > 0:
                 total_points += current_rate * duration
             
             timeline.append((event['time'], total_points))
             
-            # # Oran güncelle
+# Oran güncelle
             if event['type'] == 'start':
                 current_rate += event['rate']
             else:
@@ -209,7 +209,7 @@ class BudgetTracker:
         
         # Çalışan işler olsa bile, mevcut zaman noktasını ekleme
             
-        # # Zaman çizelgesi sadece etkinliklerden (başlat/durdur) oluşur
+# Zaman çizelgesi sadece etkinliklerden (başlat/durdur) oluşur
         return timeline
     
     def generate_report(self, as_of: datetime = None) -> Dict:
@@ -217,17 +217,17 @@ class BudgetTracker:
         jobs = self.extract_jobs()
         timeline = self.calculate_timeline(jobs, as_of)
         
-        # # Mevcut toplam tüketim
+# Mevcut toplam tüketim
         current_total = timeline[-1][1] if timeline else 0
         
-        # # Anlık görüntü kaydet
+# Anlık görüntü kaydet
         snapshot_dir = self.project_root / 'Agent-shared/budget/snapshots'
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
         cutoff_time = as_of if as_of else datetime.now(timezone.utc)
         timestamp = cutoff_time.strftime('%Y-%m-%dT%H-%M-%SZ')
         
-        # # Rapor oluştur
+# Rapor oluştur
         report = {
             'timestamp': timestamp,
             'total_points': current_total,
@@ -236,7 +236,7 @@ class BudgetTracker:
             'timeline_points': len(timeline),
         }
         
-        # # JSON kaydetme
+# JSON kaydetme
         report_full = {
             **report,
             'jobs': jobs,
@@ -258,7 +258,7 @@ class BudgetTracker:
             import numpy as np
             from scipy import stats
             
-            # # Japonca font ayarı (mevcutsa)
+# Japonca font ayarı (mevcutsa)
             try:
                 rcParams['font.sans-serif'] = ['DejaVu Sans', 'Helvetica', 'Arial', 'sans-serif']
             except:
@@ -271,120 +271,120 @@ class BudgetTracker:
                 print("Grafiğe dönüştürülecek veri yok")
                 return
             
-            # # Zaman çizelgesi verilerini grafik için düzenleme
+# Zaman çizelgesi verilerini grafik için düzenleme
             times = [t[0] for t in timeline]
             points = [t[1] for t in timeline]
             
-            # # Grafik oluşturma
+# Grafik oluşturma
             fig, ax = plt.subplots(figsize=(14, 7))
             
-            # # Çizgi grafiği (iş çalışırken doğrusal artış)
+# Çizgi grafiği (iş çalışırken doğrusal artış)
             ax.plot(times, points, linewidth=2, color='blue', label='Budget Usage', marker='o', markersize=4)
             ax.fill_between(times, points, alpha=0.3, color='blue')
             
-            # # Çalışan iş olup olmadığını kontrol et
+# Çalışan iş olup olmadığını kontrol et
             running_jobs = [j for j in jobs if j.get('status') == 'running']
             
-            # # Doğrusal regresyon ile tahmin (en son veriler kullanılarak)
+# Doğrusal regresyon ile tahmin (en son veriler kullanılarak)
             if len(times) >= 2:
-                # # Zamanı sayısala dönüştürme (ilk zamandan itibaren saniye cinsinden)
+# Zamanı sayısala dönüştürme (ilk zamandan itibaren saniye cinsinden)
                 times_numeric = [(t - times[0]).total_seconds() for t in times]
                 
-                # # En son verilerle doğrusal regresyon (son %30 veri kullanılarak)
+# En son verilerle doğrusal regresyon (son %30 veri kullanılarak)
                 recent_start = max(0, int(len(times) * 0.7))
                 recent_times = times_numeric[recent_start:]
                 recent_points = points[recent_start:]
                 
                 if len(recent_times) >= 2:
-                    # # Doğrusal regresyon
+# Doğrusal regresyon
                     slope, intercept, r_value, p_value, std_err = stats.linregress(recent_times, recent_points)
                     
-                    # # Şimdiki zaman ayarı
+# Şimdiki zaman ayarı
                     current_time = as_of or datetime.now(timezone.utc)
                     
-                    # # Çalışan iş varsa mevcut oranı dikkate al
+# Çalışan iş varsa mevcut oranı dikkate al
                     if running_jobs:
-                        # # Son olaydan şu ana kadar çalışma
+# Son olaydan şu ana kadar çalışma
                         last_time = times[-1]
                         
-                        # # Şu an çalışan oranı hesaplama
+# Şu an çalışan oranı hesaplama
                         current_rate = 0
                         for job in running_jobs:
                             resource_group = job.get('resource_group', 'cx-small')
                             rate_info = self.rates.get(resource_group, {'gpu': 4, 'rate': 0.007})
                             current_rate += rate_info['rate'] * rate_info['gpu']
                         
-                        # # Çalışan işlere göre şu ana kadar tahmini değer
+# Çalışan işlere göre şu ana kadar tahmini değer
                         duration = (current_time - last_time).total_seconds()
                         estimated_current = points[-1] + current_rate * duration
                         
-                        # # Tahmin çizgisi oluşturma (doğrusal regresyon kullanılarak, son noktadan)
+# Tahmin çizgisi oluşturma (doğrusal regresyon kullanılarak, son noktadan)
                         future_time = last_time + timedelta(hours=1)
                         
-                        # # Tahmin için zaman noktalarını sayısala dönüştürme
+# Tahmin için zaman noktalarını sayısala dönüştürme
                         pred_times = [last_time, future_time]
                         pred_times_numeric = [
                             (last_time - times[0]).total_seconds(),
                             (future_time - times[0]).total_seconds()
                         ]
-                        # # Doğrusal regresyona dayalı tahmin değerleri
+# Doğrusal regresyona dayalı tahmin değerleri
                         pred_points = [slope * t + intercept for t in pred_times_numeric]
                     else:
                         # Çalışan bir iş olmadığında bile doğrusal regresyon kullanılır
                         last_time = times[-1]
                         future_time = last_time + timedelta(hours=1)
                         
-                        # # Tahmin için zaman noktalarını sayısala dönüştürme
+# Tahmin için zaman noktalarını sayısala dönüştürme
                         pred_times = [last_time, future_time]
                         pred_times_numeric = [
                             (last_time - times[0]).total_seconds(),
                             (future_time - times[0]).total_seconds()
                         ]
-                        # # Doğrusal regresyona dayalı tahmin değerleri
+# Doğrusal regresyona dayalı tahmin değerleri
                         pred_points = [slope * t + intercept for t in pred_times_numeric]
                         
-                        # # Çalışan iş olmadığından tahmini değer son nokta
+# Çalışan iş olmadığından tahmini değer son nokta
                         estimated_current = points[-1]
                     
-                    # # Tahmin çizgisini çiz (doğrusal regresyon sonucu kullanılarak)
+# Tahmin çizgisini çiz (doğrusal regresyon sonucu kullanılarak)
                     ax.plot(pred_times, pred_points, '--', linewidth=2, color='purple', 
                            label=f'Prediction (rate: {slope*3600:.1f} pt/hr)', alpha=0.7)
                     
-                    # # Eşik değere ulaşma zamanının hesaplanması
+# Eşik değere ulaşma zamanının hesaplanması
                     budget_limits = {
                         'Minimum (100pt)': 100,
                         'Expected (500pt)': 500,
                         'Deadline (1000pt)': 1000
                     }
                     
-                    # # Mevcut nokta (çalışan iş varsa tahmini değer)
+# Mevcut nokta (çalışan iş varsa tahmini değer)
                     if running_jobs:
                         current_points = estimated_current
                     else:
                         current_points = points[-1]
                     
-                    # # Her eşik değere ulaşma tahmini
+# Her eşik değere ulaşma tahmini
                     predictions_text = []
                     for label, limit in budget_limits.items():
                         if current_points < limit and slope > 0:
-                            # # Doğrusal regresyona dayalı tahmin
-                            # # Ulaşana kadar geçen saniye sayısı
+# Doğrusal regresyona dayalı tahmin
+# Ulaşana kadar geçen saniye sayısı
                             seconds_to_limit = (limit - intercept) / slope
-                            # # Ulaşma zamanı
+# Ulaşma zamanı
                             eta = times[0] + timedelta(seconds=seconds_to_limit)
-                            # # Son veri noktasından geçen süre
+# Son veri noktasından geçen süre
                             hours_from_last = (eta - times[-1]).total_seconds() / 3600
                             if hours_from_last > 0:
                                 predictions_text.append(f"{label}: {eta.strftime('%m-%d %H:%M')} (+{hours_from_last:.1f}h from last data)")
                     
-                    # # Tahmin bilgilerini grafiğe ekle (sağ üst köşeye yerleştir)
+# Tahmin bilgilerini grafiğe ekle (sağ üst köşeye yerleştir)
                     if predictions_text:
                         prediction_str = "ETA:\n" + "\n".join(predictions_text)
                         ax.text(0.98, 0.98, prediction_str, transform=ax.transAxes,
                                verticalalignment='top', horizontalalignment='right', fontsize=10,
                                bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
             
-            # # Bütçe eşiği için yatay çizgi
+# Bütçe eşiği için yatay çizgi
             budget_limits = {
                 'Minimum (100pt)': 100,
                 'Expected (500pt)': 500,
@@ -395,40 +395,40 @@ class BudgetTracker:
             for (label, limit), color in zip(budget_limits.items(), colors):
                 ax.axhline(y=limit, color=color, linestyle='--', alpha=0.7, label=label)
             
-            # # Çalışan iş varsa açıklama
+# Çalışan iş varsa açıklama
             running_jobs = [j for j in jobs if j.get('status') == 'running']
             if running_jobs:
-                # # Son noktaya açıklama ekle
+# Son noktaya açıklama ekle
                 ax.annotate('Running jobs\n(estimated)', 
                            xy=(times[-1], points[-1]),
                            xytext=(10, 10), textcoords='offset points',
                            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                            arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
             
-            # # Eksen ayarları
+# Eksen ayarları
             ax.set_xlabel('Time (UTC)')
             ax.set_ylabel('Points')
             ax.set_title('YBH Budget Usage Timeline')
             
-            # # X ekseni tarih formatı
+# X ekseni tarih formatı
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
             ax.xaxis.set_major_locator(mdates.AutoDateLocator())
             fig.autofmt_xdate()  # Tarih etiketlerini eğimli yap
             
-            # # Izgara ve açıklama
+# Izgara ve açıklama
             ax.grid(True, alpha=0.3)
             ax.legend(loc='upper left')
             
-            # # Y eksenini 0'dan başlat
+# Y eksenini 0'dan başlat
             ax.set_ylim(bottom=0)
             
-            # # Çıktı hedefini belirle
+# Çıktı hedefini belirle
             if output_path is None:
                 output_path = self.project_root / "User-shared" / "visualizations" / "budget_usage.png"
             
             output_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # # Kaydet
+# Kaydet
             plt.tight_layout()
             plt.savefig(output_path, dpi=100, bbox_inches='tight')
             plt.close()

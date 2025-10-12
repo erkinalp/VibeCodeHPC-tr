@@ -35,11 +35,11 @@ class SOTAVisualizer:
         self.project_root = Path(project_root)
         self.config = config or self._load_config()
         
-        # # Veri önbelleği (bellek verimliliği için)
+# Veri önbelleği (bellek verimliliği için)
         self.data_cache = {}
         self.changelog_cache = {}
         
-        # # Çıktı dizini
+# Çıktı dizini
         self.output_base = self.project_root / "User-shared/visualizations/sota"
         self.output_dirs = {
             'project': self.output_base / 'project',
@@ -48,10 +48,10 @@ class SOTAVisualizer:
             'local': self.output_base / 'local'
         }
         
-        # # Proje başlangıç zamanı
+# Proje başlangıç zamanı
         self.project_start_time = self._get_project_start_time()
         
-        # # Teorik performans (hardware_info.md'den okunur)
+# Teorik performans (hardware_info.md'den okunur)
         self.theoretical_performance = None
         
     def _load_config(self) -> Dict:
@@ -65,7 +65,7 @@ class SOTAVisualizer:
             except Exception as e:
                 print(f"Config load error: {e}, using defaults")
         
-        # # Varsayılan ayarlar
+# Varsayılan ayarlar
         return {
             "pipeline": {
                 "levels": ["local", "family", "hardware", "project"],  # Yürütme sırası
@@ -104,7 +104,7 @@ class SOTAVisualizer:
             except:
                 pass
         
-        # # Varsayılan: Şimdiki zaman
+# Varsayılan: Şimdiki zaman
         now = datetime.now(timezone.utc)
         start_file.parent.mkdir(parents=True, exist_ok=True)
         start_file.write_text(now.isoformat())
@@ -135,7 +135,7 @@ class SOTAVisualizer:
     def _run_pipeline_mode(self, **params) -> bool:
         """TODO: Add docstring"""
         
-        # # Kritik bölüm kontrolü
+# Kritik bölüm kontrolü
         lock_file = self.project_root / "Agent-shared/.sota_pipeline.lock"
         
         if self.config['pipeline']['critical_section'] and not params.get('force'):
@@ -152,13 +152,13 @@ class SOTAVisualizer:
         try:
             print(f"[{start_time.strftime('%H:%M:%S')}] Pipeline started")
             
-            # # 1. Veri toplama aşaması (tüm ChangeLog.md dosyalarını sadece bir kez okur)
+# 1. Veri toplama aşaması (tüm ChangeLog.md dosyalarını sadece bir kez okur)
             self._collect_all_data()
             
-            # # 2. DPI ayarları
+# 2. DPI ayarları
             dpi_config = self._get_dpi_config(params)
             
-            # # 3. Çalıştırma seviyesi
+# 3. Çalıştırma seviyesi
             levels = params.get('levels', self.config['pipeline']['levels'])
             
             generated_files = []
@@ -167,16 +167,16 @@ class SOTAVisualizer:
                 level_start = datetime.now()
                 
                 if level == 'local':
-                    # # local bireysel işlem (bellek verimliliği)
+# local bireysel işlem (bellek verimliliği)
                     files = self._process_local_level(dpi_config['local'], params)
                 elif level == 'family':
-                    # # family (2. nesil ve sonrası birleşik teknoloji)
+# family (2. nesil ve sonrası birleşik teknoloji)
                     files = self._process_family_level(dpi_config['family'], params)
                 elif level == 'hardware':
                     # hardware: local'den doğrudan birleştirme
                     files = self._process_hardware_level(dpi_config['hardware'], params)
                 elif level == 'project':
-                    # # project (genel toplama)
+# project (genel toplama)
                     files = self._process_project_level(dpi_config['project'], params)
                 else:
                     continue
@@ -185,14 +185,14 @@ class SOTAVisualizer:
                 elapsed = (datetime.now() - level_start).seconds
                 print(f"  {level}: {len(files)} graphs in {elapsed}s")
                 
-                # # IO yükünü azaltma
+# IO yükünü azaltma
                 if not params.get('no_delay'):
                     time.sleep(self.config['io_optimization'].get('io_delay_ms', 500) / 1000)
             
             total_elapsed = (datetime.now() - start_time).seconds
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Completed: {len(generated_files)} files in {total_elapsed}s")
             
-            # # Eski dosyaların silinmesi (depolama yönetimi)
+# Eski dosyaların silinmesi (depolama yönetimi)
             if self.config['io_optimization'].get('cleanup_old_hours'):
                 self._cleanup_old_files()
             
@@ -231,13 +231,13 @@ class SOTAVisualizer:
             current_entry = {}
             
             for line in lines:
-                # # Versiyon satırı
+# Versiyon satırı
                 if line.startswith('### v'):
                     if current_entry and 'performance' in current_entry:
                         entries.append(current_entry.copy())
                     current_entry = {'version': line.replace('### ', '').strip()}
                 
-                # # Performans değerlerinin çıkarılması (çoklu format desteği)
+# Performans değerlerinin çıkarılması (çoklu format desteği)
                 elif 'GFLOPS' in line or 'TFLOPS' in line:
                     import re
                     # "312.4 GFLOPS" veya "`0.312 TFLOPS`" gibi
@@ -248,7 +248,7 @@ class SOTAVisualizer:
                             value *= 1000  # TFLOPS→GFLOPS dönüşümü
                         current_entry['performance'] = value
                 
-                # # Oluşturulma zamanı (details içinde, backtick zorunlu)
+# Oluşturulma zamanı (details içinde, backtick zorunlu)
                 elif 'Oluşturma zamanı' in line:
                     # `2025-08-19T23:45:00Z` biçimini çıkar
                     import re
@@ -258,20 +258,20 @@ class SOTAVisualizer:
                         try:
                             timestamp = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
                             current_entry['timestamp'] = timestamp
-                            # # Geçen zaman hesaplama
+# Geçen zaman hesaplama
                             elapsed = (timestamp - self.project_start_time).total_seconds()
                             current_entry['elapsed_seconds'] = elapsed
                         except:
                             pass
                 
-                # # Hassasiyet bilgisi (isteğe bağlı)
+# Hassasiyet bilgisi (isteğe bağlı)
                 elif 'Doğruluk' in line or 'accuracy' in line.lower():
                     import re
                     match = re.search(r'([\d.]+)\s*%', line)
                     if match:
                         current_entry['accuracy'] = float(match.group(1))
                 
-                # # Hata bilgisi (bilimsel gösterim desteği)
+# Hata bilgisi (bilimsel gösterim desteği)
                 elif 'Hata' in line or 'error' in line.lower():
                     import re
                     # "2.7e-4" veya "±0.003" biçimi
@@ -283,7 +283,7 @@ class SOTAVisualizer:
                         except:
                             pass
             
-            # # Son giriş
+# Son giriş
             if current_entry and 'performance' in current_entry:
                 entries.append(current_entry)
                 
@@ -296,35 +296,35 @@ class SOTAVisualizer:
         """TODO: Add docstring"""
         generated = []
         
-        # # Belirli ajan DPI belirtimini analiz et
+# Belirli ajan DPI belirtimini analiz et
         specific_dpis = self._parse_specific_dpis(params.get('specific', ''))
         
         # ChangeLog olan dizinleri işle (local düzeyi = teknoloji dizini bazında)
         local_dirs = {}
         for path, entries in self.changelog_cache.items():
             if entries:
-                # # Yoldan okunabilir bir tanımlayıcı oluştur (örnek: "intel2024/OpenMP")
+# Yoldan okunabilir bir tanımlayıcı oluştur (örnek: "intel2024/OpenMP")
                 path_parts = path.split('/')
                 if len(path_parts) >= 2:
-                    # # Son 2 katmanı kullan (örnek: intel2024/OpenMP)
+# Son 2 katmanı kullan (örnek: intel2024/OpenMP)
                     dir_id = '/'.join(path_parts[-2:])
                 else:
                     dir_id = path_parts[-1] if path_parts else path
                 
                 local_dirs[dir_id] = entries
         
-        # # Maksimum işlem sayısı sınırı
+# Maksimum işlem sayısı sınırı
         max_agents = params.get('max_local', self.config['pipeline']['max_local_agents'])
         
         for i, (dir_id, entries) in enumerate(list(local_dirs.items())[:max_agents]):
-            # # DPI belirleme (bireysel belirleme veya varsayılan)
+# DPI belirleme (bireysel belirleme veya varsayılan)
             dpi = specific_dpis.get(dir_id, dpi_config['linear'])
             
-            # # SOTA çıkarımı (monoton artış)
+# SOTA çıkarımı (monoton artış)
             sota_entries = self._extract_sota_progression(entries)
             
             if sota_entries:
-                # # Grafik oluşturma
+# Grafik oluşturma
                 for x_axis in params.get('x_axes', ['time']):
                     output_path = self._generate_graph(
                         f'local/{dir_id.replace("/", "_")}',
@@ -351,7 +351,7 @@ class SOTAVisualizer:
             # donanım katmanını belirle
             hw_key = self._extract_hardware_key(path)
             if hw_key:
-                # # Derleyici bazında grup oluşturma
+# Derleyici bazında grup oluşturma
                 if hw_key not in hardware_groups:
                     hardware_groups[hw_key] = []
                 hardware_groups[hw_key].extend(entries)
@@ -362,9 +362,9 @@ class SOTAVisualizer:
                     hardware_merged[hw_base] = []
                 hardware_merged[hw_base].extend(entries)
         
-        # # Derleyici bazında grafik oluşturma
+# Derleyici bazında grafik oluşturma
         for hw_key, all_entries in hardware_groups.items():
-            # # Zaman serisine göre SOTA güncelleme
+# Zaman serisine göre SOTA güncelleme
             sota_entries = self._aggregate_sota_by_time(all_entries)
             
             if sota_entries:
@@ -382,7 +382,7 @@ class SOTAVisualizer:
         
         # Donanım genelinde (derleyici entegrasyonu) grafik oluşturma
         for hw_base, all_entries in hardware_merged.items():
-            # # Zaman serisine göre SOTA güncelleme
+# Zaman serisine göre SOTA güncelleme
             sota_entries = self._aggregate_sota_by_time(all_entries)
             
             if sota_entries:
@@ -404,12 +404,12 @@ class SOTAVisualizer:
         """TODO: Add docstring"""
         generated = []
         
-        # # Tüm girişleri zaman serisine göre toplama
+# Tüm girişleri zaman serisine göre toplama
         all_entries = []
         for entries in self.changelog_cache.values():
             all_entries.extend(entries)
         
-        # # SOTA güncelleme geçmişi
+# SOTA güncelleme geçmişi
         sota_entries = self._aggregate_sota_by_time(all_entries)
         
         if sota_entries:
@@ -435,7 +435,7 @@ class SOTAVisualizer:
         """TODO: Add docstring"""
         generated = []
         
-        # # family belirleme (OpenMP_MPI, OpenMP_AVX2 gibi)
+# family belirleme (OpenMP_MPI, OpenMP_AVX2 gibi)
         family_found = set()
         
         for path in self.changelog_cache.keys():
@@ -447,18 +447,18 @@ class SOTAVisualizer:
                         family_found.add(part)
                         break
         
-        # # Her family için işlem yapma (ebeveyn teknoloji dahil)
+# Her family için işlem yapma (ebeveyn teknoloji dahil)
         for family_key in family_found:
-            # # Ebeveyn teknolojiyi belirleme (örnek: OpenMP_MPI → ['OpenMP', 'MPI'])
+# Ebeveyn teknolojiyi belirleme (örnek: OpenMP_MPI → ['OpenMP', 'MPI'])
             parent_techs = family_key.split('_')
             
-            # # İlgili tüm verileri toplama
+# İlgili tüm verileri toplama
             multi_series_data = {}
             
-            # # 1. family'nin kendi verisi
+# 1. family'nin kendi verisi
             for path, entries in self.changelog_cache.items():
                 if family_key in path:
-                    # # Yoldan tanımlayıcı isim oluşturma (örnek: intel2024/OpenMP_MPI)
+# Yoldan tanımlayıcı isim oluşturma (örnek: intel2024/OpenMP_MPI)
                     path_parts = path.split('/')
                     if len(path_parts) >= 2:
                         series_key = '/'.join(path_parts[-2:])
@@ -521,7 +521,7 @@ class SOTAVisualizer:
                     print(f"  ❌ Hata: Zaman bilgisi bulunmuyor. Bu grafik atlanacak")
                     return None
                 
-                # # Zaman sırasına göre sıralama (Önemli!)
+# Zaman sırasına göre sıralama (Önemli!)
                 entries = sorted(entries, key=lambda e: e['elapsed_seconds'])
                 
                 x_data = [e['elapsed_seconds'] / 60 for e in entries]  # Dakika bazında
@@ -560,7 +560,7 @@ class SOTAVisualizer:
             
             y_data = [e['performance'] for e in entries]
             
-            # # Doğruluk filtresi
+# Doğruluk filtresi
             if params.get('accuracy_threshold'):
                 filtered = [(x, y, e) for x, y, e in zip(x_data, y_data, entries)
                            if e.get('accuracy', 100) >= params['accuracy_threshold']]
@@ -641,7 +641,7 @@ class SOTAVisualizer:
                 if not valid_entries:
                     continue
                 
-                # # Zaman sırasına göre sıralama
+# Zaman sırasına göre sıralama
                 valid_entries = sorted(valid_entries, key=lambda e: e['elapsed_seconds'])
                 
                 # Veri hazırlığı
@@ -691,7 +691,7 @@ class SOTAVisualizer:
             # Zaman damgası yoksa orijinal sıralamayı koru
             valid_entries = entries
         
-        # # Zaman damgasına göre sıralama
+# Zaman damgasına göre sıralama
         sorted_entries = sorted(valid_entries, key=lambda e: e.get('elapsed_seconds', float('inf')))
         
         sota = []
@@ -716,7 +716,7 @@ class SOTAVisualizer:
             # Zaman damgası yoksa orijinal sıralamayı koru
             valid_entries = entries
         
-        # # Zaman damgasına göre sıralama
+# Zaman damgasına göre sıralama
         sorted_entries = sorted(valid_entries, key=lambda e: e.get('elapsed_seconds', float('inf')))
         
         sota = []
@@ -942,22 +942,22 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # # Normal pipeline çalıştırma (periyodik çalışma için)
+# Normal pipeline çalıştırma (periyodik çalışma için)
   python sota_visualizer.py
   
-  # # Hata ayıklama modu (düşük çözünürlük)
+# Hata ayıklama modu (düşük çözünürlük)
   python sota_visualizer.py --debug
   
-  # # Özet gösterimi (grafik oluşturulmaz)
+# Özet gösterimi (grafik oluşturulmaz)
   python sota_visualizer.py --summary
   
-  # # Belirli PG için yüksek çözünürlük
+# Belirli PG için yüksek çözünürlük
   python sota_visualizer.py --specific PG1.2:150
   
-  # # Veri dışa aktarma
+# Veri dışa aktarma
   python sota_visualizer.py --export
   
-  # # SE özel çalıştırma
+# SE özel çalıştırma
   python sota_visualizer.py --levels local,project --dpi 80
         """
     )
