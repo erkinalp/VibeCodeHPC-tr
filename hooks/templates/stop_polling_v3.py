@@ -58,6 +58,7 @@ def get_agent_info_from_cwd():
         agent_id = agent_id_file.read_text().strip()
         return {"agent_id": agent_id}
     
+    # # Geri dönüş: working_dir ile eşleştirme
     cwd = Path.cwd()
     project_root = find_project_root(cwd)
     
@@ -100,15 +101,18 @@ def get_stop_threshold(agent_id):
                     config = json.load(f)
                     thresholds = config.get('thresholds', {})
                     
+                    # # Öncelikle tam eşleşmeyi dene
                     if agent_id in thresholds:
                         return thresholds[agent_id]
                     
+                    # # Önek eşleşmesini dene
                     for prefix in ['PM', 'CD', 'SE', 'PG']:
                         if agent_id.startswith(prefix) and prefix in thresholds:
                             return thresholds[prefix]
             except:
                 pass
     
+    # # Geri dönüş değeri
     if agent_id == "PM":
         return 50
     elif agent_id == "SOLO":
@@ -134,6 +138,7 @@ def load_config(project_root):
         except:
             pass
     
+    # # Geri dönüş ayarı
     return {
         "file_provision": {
             "always_full": [
@@ -160,9 +165,11 @@ def should_provide_file(file_config, stop_count):
     file_path = file_config.get("file", "")
     probability = file_config.get("probability", 0.5)
     
+    # # Olasılığı tam sayı oranına dönüştür
     numerator = int(probability * 100)
     denominator = 100
     
+    # # Dosya yolunun hash değeriyle dağıt
     hash_offset = hash(file_path) % denominator
     
     return ((stop_count + hash_offset) % denominator) < numerator
@@ -182,9 +189,11 @@ def read_file_content(file_path, project_root, latest_entries=None):
         if file_path.endswith('ChangeLog.md') and latest_entries:
             entries = content.split('### v')
             if len(entries) > 1:
+                # # Belirtilen sayıda en yeni girdiyi al
                 recent = '### v' + '### v'.join(entries[1:min(latest_entries + 1, len(entries))])
                 return recent[:10000]  # ChangeLog sınırını gevşet
         
+        # # Boyut sınırı (tam metin sağlanır ancak çok büyük dosyalar sınırlandırılır)
         if len(content) > 10000:
             return content[:10000] + "\n\n...[Dosya çok büyük olduğu için devamı kısaltıldı]"
         
@@ -195,12 +204,15 @@ def read_file_content(file_path, project_root, latest_entries=None):
 
 def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths=None):
     """TODO: Add docstring"""
+    # # ./ ile başlayan göreli yol
     if file_path.startswith("./"):
         resolved = agent_working_dir / file_path[2:]
         if resolved.exists():
             return resolved
+        # # Geri dönüş: proje kökünden
         return project_root / file_path[2:]
     
+    # # ../ ile başlayan göreli yol
     if file_path.startswith("../"):
         resolved = agent_working_dir / file_path
         if resolved.exists():
@@ -216,6 +228,7 @@ def resolve_file_path(file_path, project_root, agent_working_dir, fallback_paths
             if candidate.exists():
                 return candidate
     
+    # # Diğer durumlarda proje kökünden göreli yol
     return project_root / file_path
 
 
@@ -223,13 +236,16 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
     """TODO: Add docstring"""
     config = load_config(project_root)
     
+    # # Ajan rolünü al (SOLO ise olduğu gibi)
     role = agent_id if agent_id == "SOLO" else (agent_id.split('.')[0] if '.' in agent_id else agent_id)
     
+    # # Mevcut çalışma dizinini al
     agent_working_dir = Path.cwd()
     
     embedded_parts = []
     reference_parts = []
     
+    # # 1. Her zaman tam metin sağla
     embedded_parts.append("## 📄 Zorunlu dosya içerikleri\n")
     for file_path in config["file_provision"]["always_full"]:
         formatted_path = file_path.replace("{role}", role)
@@ -240,6 +256,7 @@ def generate_embedded_content(stop_count, threshold, agent_id, project_root):
             embedded_parts.append(content)
             embedded_parts.append("```\n")
     
+    # # 2. Ortak yüksek olasılık sağlama (common_full)
     provided_any = False
     common_full = config["file_provision"].get("common_full", [])
     for file_config in common_full:
@@ -511,6 +528,7 @@ Aksi takdirde, bu STOP hooks tarafından yaklaşık 10K token yeniden girilir.
 
 def main():
     """TODO: Add docstring"""
+    try:
         # JSON dosyasını yükle
         input_data = json.load(sys.stdin)
         stop_hook_active = input_data.get('stop_hook_active', False)

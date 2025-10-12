@@ -5,6 +5,7 @@
 
 set -e  # Hata durumunda dur
 
+# # Proje kök dizininin alınması (setup.sh'nin üst dizini)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
@@ -20,10 +21,12 @@ DEFAULT_PM_SESSION="Team1_PM"
 DEFAULT_WORKER_SESSION="Team1_Workers1"
 DEFAULT_WORKER_SESSION_PREFIX="Team1_Workers"  # 13+ durumları için
 
+# # Gerçekten kullanılacak oturum adı (determine_session_names ile ayarlanır)
 PM_SESSION=""
 WORKER_SESSION=""
 WORKER_SESSION_PREFIX=""
 
+# # Renkli log fonksiyonu
 log_info() {
     echo -e "\033[1;32m[INFO]\033[0m $1"
 }
@@ -36,6 +39,7 @@ log_error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1"
 }
 
+# # Kullanım gösterimi
 show_usage() {
     cat << EOF
 🧬 VibeCodeHPC çok aracılı YBH (yüksek başarımlı hesaplama) ortam kurulumu
@@ -74,19 +78,23 @@ Oturum adlandırma kuralları:
 EOF
 }
 
+# # Ajan yapılandırma hesaplaması
 calculate_agent_distribution() {
     local total=$1  # PM hariç sayı
     
+    # # Minimum yapılandırma kontrolü
     if [ $total -lt 2 ]; then
         log_error "Ajan sayısı çok az. En az 2 ajan (PM hariç) gerekir."
         return 1
     fi
     
+    # # CD (2 kişilik yapılandırma dışındakiler genellikle dahil edilir, PM gereksinim tanımında ayarlar)
     local cd_count=0
     if [ $total -ne 2 ]; then
         cd_count=1
     fi
     
+    # # Kalanlar SE, PG'ye dağıtılır (varsayılan değer, PM tarafından gerçek ayarlama yapılır)
     local remaining=$((total - cd_count))
     
     local se_count
@@ -103,6 +111,7 @@ calculate_agent_distribution() {
     echo "$se_count $pg_count $cd_count"
 }
 
+# # Ajan adı oluşturma (gruplama desteği)
 generate_agent_names() {
     local se_count=$1
     local pg_count=$2
@@ -257,6 +266,7 @@ while true; do
     echo "================================"
     
     # TODO: Gerçek yerleşime dayalı olarak dinamik şekilde oluşturulacak
+    # TODO: Gerçek yerleşime göre dinamik olarak oluşturulacak
     
     sleep 5
 done
@@ -686,6 +696,7 @@ main() {
                 ;;
             --clean-only)
                 log_info "Temizlik modu"
+                # # _old_ ekli oturumların silinmesi
                 tmux list-sessions 2>/dev/null | grep -E "_old_" | cut -d: -f1 | while read session; do
                     tmux kill-session -t "$session" 2>/dev/null && log_info "${session} silindi"
                 done

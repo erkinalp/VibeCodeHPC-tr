@@ -74,17 +74,21 @@ def run_test():
     print("budget_tracker.py test başlangıcı")
     print("=" * 60)
     
+    # # Geçici dizin oluşturma
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         
+        # # Proje yapısını taklit etme
         (temp_path / "Agent-shared").mkdir()
         (temp_path / "CLAUDE.md").touch()
         
+        # # Proje başlangıç zamanı
         start_time = datetime.utcnow() - timedelta(hours=2)
         (temp_path / "Agent-shared" / "project_start_time.txt").write_text(
             start_time.isoformat() + "Z"
         )
         
+        # # Test senaryosu 1: Tek iş
         print("\n[Test1] Tek iş hesaplama")
         print("-" * 40)
         
@@ -145,6 +149,7 @@ def run_test():
             # Toplam: 92.4
             print(f"Beklenen değer: 92.4 (job1: 50.4 + job2: 42.0)")
         
+        # # Test senaryosu 3: Çalışan iş
         print("\n[Test3] Çalışan iş hesaplama")
         print("-" * 40)
         
@@ -155,6 +160,7 @@ def run_test():
             'job_id': 'job_003',
             'resource_group': 'cx-share',  # 1 GPU
             'start_time': job3_start.isoformat() + 'Z',
+            # # end_time yok - Çalışıyor
             'status': 'running'
         }])
         

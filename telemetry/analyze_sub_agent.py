@@ -34,6 +34,7 @@ class SubAgentAnalyzer:
             for line in f:
                 try:
                     record = json.loads(line.strip())
+                    # # Zaman damgasını datetime formatına dönüştür
                     record['datetime'] = datetime.fromisoformat(record['timestamp'].replace('Z', '+00:00'))
                     records.append(record)
                 except Exception as e:
@@ -47,6 +48,7 @@ class SubAgentAnalyzer:
         if not records:
             return {}
         
+        # # Ajan bazında toplama
         by_agent = defaultdict(lambda: {
             'calls': 0,
             'total_input_tokens': 0,
@@ -75,6 +77,7 @@ class SubAgentAnalyzer:
             if record.get('success', False):
                 by_agent[agent]['success_count'] += 1
             
+            # # Dosya referanslarını kaydet
             files = record.get('files_referenced', '')
             if files:
                 for f in files.split(','):

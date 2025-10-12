@@ -64,6 +64,7 @@ def get_agent_info_from_cwd():
         agent_id = agent_id_file.read_text().strip()
         return {"agent_id": agent_id}
     
+    # # Yedekleme: working_dir ile eşleştirme
     try:
         relative_dir = str(cwd.relative_to(project_root))
         if relative_dir == ".":
@@ -91,6 +92,7 @@ def get_stop_threshold(agent_id):
     if not agent_id:
         return 30
     
+    # # Proje kökünü bul
     project_root = find_project_root(Path.cwd())
     if project_root:
         threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
@@ -101,15 +103,18 @@ def get_stop_threshold(agent_id):
                     config = json.load(f)
                     thresholds = config.get('thresholds', {})
                     
+                    # # Önce tam eşleşmeyi dene
                     if agent_id in thresholds:
                         return thresholds[agent_id]
                     
+                    # # Önek eşleşmesini dene
                     for prefix in ['PM', 'CD', 'SE', 'PG']:
                         if agent_id.startswith(prefix) and prefix in thresholds:
                             return thresholds[prefix]
             except:
                 pass
     
+    # # Yedekleme değeri
     if agent_id == "PM":
         return 50
     elif agent_id.startswith("CD"):
@@ -186,6 +191,7 @@ def generate_block_reason(agent_info, stop_count):
     agent_id = agent_info.get('agent_id', 'unknown')
     threshold = get_stop_threshold(agent_id)
     
+    # # Eşik değere ulaşıldığında
     if stop_count >= threshold:
         reason = f"""
 ⚠️ STOP deneme sayısı üst sınıra ({threshold} kez) ulaştı.
@@ -217,6 +223,7 @@ Not: ESC tuşu gönderilmiş bir ajan “kullanıcı tarafından kesildi” benz
     
     required_files = get_required_files(agent_id)
     
+    # # Normal bloklama nedeni
     reason = f"""Sen bir polling tipi ajansın ({agent_id}). Bekleme moduna geçmek izinli değildir.
 [STOP denemesi: {stop_count}/{threshold}]
 
