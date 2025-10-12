@@ -3,7 +3,7 @@
 Süper bilgisayara özgü bağlantı bilgileri ve proje ayarlarını saklayan dizindir.
 
 ⚠️ **Önemli**: Bu dizin Git yönetimi dışındadır.
-Gizli bilgi içerdiğinden kesinlikle commit edilmemelidir.
+Gizli bilgi içerdiğinden kesinlikle Git yönetimine işlenmemelidir.
 
 ## Klasör Yapısı Örneği
 
