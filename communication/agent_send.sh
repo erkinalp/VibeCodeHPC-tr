@@ -7,37 +7,70 @@ load_agent_map() {
     local table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
     
     if [[ ! -f "$table_file" ]]; then
-        echo "❌ Hata: agent_and_pane_id_table.jsonl bulunamadı"
-        echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın"
+        echo "❌ Hata: agent_and_pane_id_table.jsonl bulunamadı" >&2
+        echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın" >&2
+        return 1
+    fi
+    
+    if [[ ! -r "$table_file" ]]; then
+        echo "❌ Hata: agent_and_pane_id_table.jsonl okunamıyor" >&2
         return 1
     fi
     
     declare -gA AGENT_MAP
+    local line_number=0
+    local valid_entries=0
     
     while IFS= read -r line; do
+        ((line_number++))
+        
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${line// }" ]] && continue
         
+        if [[ ! "$line" =~ ^\{.*\}$ ]]; then
+            echo "⚠️  Uyarı: Satır $line_number geçersiz JSON formatı" >&2
+            continue
+        fi
+        
+        local agent_name=""
+        local session=""
+        local window=""
+        local pane=""
+        
         if [[ "$line" =~ \"agent_id\":[[:space:]]*\"([^\"]+)\" ]]; then
-            local agent_name="${BASH_REMATCH[1]}"
-            
-            if [[ "$line" =~ \"tmux_session\":[[:space:]]*\"([^\"]+)\" ]]; then
-                local session="${BASH_REMATCH[1]}"
-            fi
-            
-            if [[ "$line" =~ \"tmux_window\":[[:space:]]*([0-9]+) ]]; then
-                local window="${BASH_REMATCH[1]}"
-            fi
-            
-            if [[ "$line" =~ \"tmux_pane\":[[:space:]]*([0-9]+) ]]; then
-                local pane="${BASH_REMATCH[1]}"
-            fi
-            
-            if [[ -n "$agent_name" && -n "$session" && -n "$window" && -n "$pane" ]]; then
-                AGENT_MAP["$agent_name"]="$session:$window.$pane"
-            fi
+            agent_name="${BASH_REMATCH[1]}"
+        else
+            echo "⚠️  Uyarı: Satır $line_number agent_id içermiyor" >&2
+            continue
+        fi
+        
+        if [[ "$line" =~ \"tmux_session\":[[:space:]]*\"([^\"]+)\" ]]; then
+            session="${BASH_REMATCH[1]}"
+        fi
+        
+        if [[ "$line" =~ \"tmux_window\":[[:space:]]*([0-9]+) ]]; then
+            window="${BASH_REMATCH[1]}"
+        fi
+        
+        if [[ "$line" =~ \"tmux_pane\":[[:space:]]*([0-9]+) ]]; then
+            pane="${BASH_REMATCH[1]}"
+        fi
+        
+        if [[ -n "$agent_name" && -n "$session" && -n "$window" && -n "$pane" ]]; then
+            AGENT_MAP["$agent_name"]="$session:$window.$pane"
+            ((valid_entries++))
+        else
+            echo "⚠️  Uyarı: Satır $line_number eksik alan içeriyor (agent: $agent_name)" >&2
         fi
     done < "$table_file"
+    
+    if [[ $valid_entries -eq 0 ]]; then
+        echo "❌ Hata: Geçerli aracı girişi bulunamadı" >&2
+        return 1
+    fi
+    
+    echo "✅ $valid_entries aracı yüklendi" >&2
+    return 0
 }
 
 get_agent_target() {

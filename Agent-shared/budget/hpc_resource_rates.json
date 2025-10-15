@@ -1,0 +1,59 @@
+{
+  "rates": {
+    "cx-share": {
+      "gpu": 1,
+      "rate": 0.007,
+      "description": "Shared compute resource"
+    },
+    "cx-interactive": {
+      "gpu": 1,
+      "rate": 0.007,
+      "description": "Interactive compute resource"
+    },
+    "cx-debug": {
+      "gpu": 1,
+      "rate": 0.007,
+      "description": "Debug compute resource"
+    },
+    "cx-single": {
+      "gpu": 4,
+      "rate": 0.007,
+      "description": "Single compute resource"
+    },
+    "cx-small": {
+      "gpu": 4,
+      "rate": 0.007,
+      "description": "Small compute resource"
+    },
+    "cx-middle": {
+      "gpu": 4,
+      "rate": 0.007,
+      "description": "Middle compute resource"
+    },
+    "cx-large": {
+      "gpu": 4,
+      "rate": 0.007,
+      "description": "Large compute resource"
+    },
+    "cx-middle2": {
+      "gpu": 4,
+      "rate": 0.014,
+      "description": "Middle compute resource (2x rate)"
+    },
+    "cxgfs-small": {
+      "gpu": 4,
+      "rate": 0.007,
+      "description": "CX GFS small compute resource"
+    },
+    "cxgfs-middle": {
+      "gpu": 4,
+      "rate": 0.007,
+      "description": "CX GFS middle compute resource"
+    }
+  },
+  "default": {
+    "gpu": 4,
+    "rate": 0.007,
+    "description": "Default compute resource rate"
+  }
+}

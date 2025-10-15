@@ -11,6 +11,13 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Tuple
 import sys
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 def find_project_root(start_path):
@@ -32,8 +39,10 @@ class BudgetTracker:
         
     def load_rates(self) -> Dict:
         """Kaynak gruplarına göre ücret oranı ayarı"""
-# Varsayılan ayarlar (Furou TypeII)
-        rates = {
+        config_path = self.project_root / "Agent-shared" / "budget" / "hpc_resource_rates.json"
+        
+        # Varsayılan ayarlar (yedek olarak)
+        default_rates = {
             'cx-share': {'gpu': 1, 'rate': 0.007},
             'cx-interactive': {'gpu': 1, 'rate': 0.007},
             'cx-debug': {'gpu': 1, 'rate': 0.007},
@@ -41,15 +50,29 @@ class BudgetTracker:
             'cx-small': {'gpu': 4, 'rate': 0.007},
             'cx-middle': {'gpu': 4, 'rate': 0.007},
             'cx-large': {'gpu': 4, 'rate': 0.007},
-            'cx-middle2': {'gpu': 4, 'rate': 0.014},  # 2x oran
+            'cx-middle2': {'gpu': 4, 'rate': 0.014},
             'cxgfs-small': {'gpu': 4, 'rate': 0.007},
             'cxgfs-middle': {'gpu': 4, 'rate': 0.007},
         }
         
-        # node_resource_groups.md'den ek bilgi yükleme (gelecekte)
-        # config_path = self.project_root / "_remote_info/flow/node_resource_groups.md"
-        
-        return rates
+        try:
+            if config_path.exists():
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    rates = {}
+                    for key, value in config['rates'].items():
+                        rates[key] = {'gpu': value['gpu'], 'rate': value['rate']}
+                    logger.info(f"Loaded HPC resource rates from {config_path}")
+                    return rates
+            else:
+                logger.warning(f"Configuration file not found at {config_path}, using default rates")
+                return default_rates
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error(f"Error loading configuration file: {e}. Using default rates.")
+            return default_rates
+        except IOError as e:
+            logger.error(f"Error reading configuration file: {e}. Using default rates.")
+            return default_rates
     
     def extract_jobs(self) -> List[Dict]:
         """Tüm ChangeLog.md dosyalarından iş bilgilerini çıkar"""
@@ -72,7 +95,8 @@ class BudgetTracker:
         try:
             with open(changelog_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-        except:
+        except (IOError, OSError, UnicodeDecodeError) as e:
+            logger.error(f"Failed to read changelog file {changelog_path}: {e}")
             return jobs
         
 # Her versiyon girdisi için işlem
@@ -109,7 +133,8 @@ class BudgetTracker:
                         start = datetime.fromisoformat(job_info['start_time'].replace('Z', '+00:00'))
                         end = datetime.fromisoformat(job_info['end_time'].replace('Z', '+00:00'))
                         job_info['runtime_sec'] = str(int((end - start).total_seconds()))
-                    except:
+                    except (ValueError, AttributeError) as e:
+                        logger.warning(f"Failed to calculate runtime for job {job_info.get('job_id', 'unknown')}: {e}")
                         pass
                         
                 jobs.append(job_info)
@@ -138,7 +163,8 @@ class BudgetTracker:
                 project_start = datetime.fromisoformat(
                     start_file.read_text().strip().replace('Z', '+00:00')
                 )
-            except:
+            except (ValueError, IOError, OSError) as e:
+                logger.warning(f"Failed to parse project start time from {start_file}: {e}. Using default.")
                 project_start = datetime.now(timezone.utc) - timedelta(hours=1)
         else:
             project_start = datetime.now(timezone.utc) - timedelta(hours=1)
@@ -161,7 +187,8 @@ class BudgetTracker:
             try:
                 start_time = datetime.fromisoformat(job['start_time'].replace('Z', '+00:00'))
                 end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
-            except:
+            except (ValueError, AttributeError) as e:
+                logger.warning(f"Failed to parse timestamps for job {job.get('job_id', 'unknown')}: {e}")
                 continue
             
 # Oran hesaplama
