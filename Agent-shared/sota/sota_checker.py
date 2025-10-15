@@ -9,6 +9,13 @@ import os
 import json
 from pathlib import Path
 import glob
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 class SOTAChecker:
     def __init__(self, current_dir):
@@ -255,7 +262,11 @@ def get_virtual_parent_sota(current_dir):
                         if perf > parent_sota:
                             parent_sota = perf
                             best_info = str(sota_file)
-                except (ValueError, IndexError):
+                except (ValueError, IndexError) as e:
+                    logger.warning(f"Failed to parse SOTA file {sota_file}: {e}")
+                    continue
+                except (IOError, OSError) as e:
+                    logger.error(f"Failed to read SOTA file {sota_file}: {e}")
                     continue
     
     return parent_sota, best_info
