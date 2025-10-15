@@ -1,6 +1,6 @@
 # VibeCodeHPC - Multi Agentic Vibe Coding for YBH
 
-VibeCodeHPC, YBH (yüksek başarımlı hesaplama) için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çoklu aracı bir sistemdir.
+VibeCodeHPC, YBH (yüksek başarımlı hesaplama) için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çok aracılı bir sistemdir.
 Claude Code gibi CLI ortamlarında tmux tabanlı iletişimle birden fazla yapay zekâ aracısı birlikte çalışır.
 
 ![Çoklu aracı çalışması ekran görüntüsü](_images/MultiAgentUI.png)
