@@ -1,33 +1,33 @@
-# Budget Tracker Configuration
+# Bütçe Takip Sistemi Yapılandırması
 
-## HPC Resource Rates Configuration
+## HPC Kaynak Oranları Yapılandırması
 
-The HPC resource rates are now externalized in a configuration file for easy updates without code changes.
+HPC kaynak oranları artık kod değişikliği gerekmeden kolay güncellemeler için bir yapılandırma dosyasına aktarılmıştır.
 
-### Configuration File
+### Yapılandırma Dosyası
 
-**Location**: `Agent-shared/budget/hpc_resource_rates.json`
+**Konum**: `Agent-shared/budget/hpc_resource_rates.json`
 
 ### Format
 
 ```json
 {
   "rates": {
-    "resource-group-name": {
-      "gpu": <number_of_gpus>,
-      "rate": <rate_per_second>,
-      "description": "Optional description"
+    "kaynak-grubu-adı": {
+      "gpu": <gpu_sayısı>,
+      "rate": <saniye_başına_oran>,
+      "description": "Opsiyonel açıklama"
     }
   },
   "default": {
-    "gpu": <default_gpu_count>,
-    "rate": <default_rate>,
-    "description": "Default rate when resource group not found"
+    "gpu": <varsayılan_gpu_sayısı>,
+    "rate": <varsayılan_oran>,
+    "description": "Kaynak grubu bulunamadığında kullanılacak varsayılan oran"
   }
 }
 ```
 
-### Example
+### Örnek
 
 ```json
 {
@@ -35,43 +35,43 @@ The HPC resource rates are now externalized in a configuration file for easy upd
     "cx-small": {
       "gpu": 4,
       "rate": 0.007,
-      "description": "Small compute resource"
+      "description": "Küçük hesaplama kaynağı"
     },
     "cx-large": {
       "gpu": 8,
       "rate": 0.010,
-      "description": "Large compute resource"
+      "description": "Büyük hesaplama kaynağı"
     }
   },
   "default": {
     "gpu": 4,
     "rate": 0.007,
-    "description": "Default compute resource rate"
+    "description": "Varsayılan hesaplama kaynağı oranı"
   }
 }
 ```
 
-### Updating Rates
+### Oranları Güncelleme
 
-To update the HPC resource rates:
+HPC kaynak oranlarını güncellemek için:
 
-1. Edit the `hpc_resource_rates.json` file
-2. Add, modify, or remove resource groups as needed
-3. Save the file
-4. The budget tracker will automatically load the new rates on the next run
+1. `hpc_resource_rates.json` dosyasını düzenleyin
+2. Gerektiğinde kaynak gruplarını ekleyin, değiştirin veya kaldırın
+3. Dosyayı kaydedin
+4. Bütçe takip sistemi bir sonraki çalıştırmada yeni oranları otomatik olarak yükleyecektir
 
-### Fallback Behavior
+### Yedek Davranış
 
-If the configuration file is not found or cannot be parsed:
-- The budget tracker will use built-in default rates
-- A warning will be logged to help identify the issue
-- The system will continue to operate with default values
+Yapılandırma dosyası bulunamazsa veya ayrıştırılamazsa:
+- Bütçe takip sistemi yerleşik varsayılan oranları kullanacaktır
+- Sorunu belirlemeye yardımcı olmak için bir uyarı kaydedilecektir
+- Sistem varsayılan değerlerle çalışmaya devam edecektir
 
-### Error Handling
+### Hata İşleme
 
-The budget tracker includes comprehensive error handling:
-- **JSON parsing errors**: Logged with details, falls back to defaults
-- **Missing file**: Warning logged, uses built-in defaults
-- **I/O errors**: Error logged with details, falls back to defaults
+Bütçe takip sistemi kapsamlı hata işleme içerir:
+- **JSON ayrıştırma hataları**: Ayrıntılarıyla kaydedilir, varsayılanlara geri döner
+- **Eksik dosya**: Uyarı kaydedilir, yerleşik varsayılanları kullanır
+- **G/Ç hataları**: Ayrıntılarıyla hata kaydedilir, varsayılanlara geri döner
 
-All errors are logged with meaningful messages to help diagnose configuration issues.
+Tüm hatalar, yapılandırma sorunlarının teşhisine yardımcı olmak için anlamlı mesajlarla kaydedilir.
