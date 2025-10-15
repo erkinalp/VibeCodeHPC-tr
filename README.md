@@ -1,4 +1,4 @@
-# VibeCodeHPC - Multi Agentic Vibe Coding for YBH
+# VibeCodeHPC – YBH için Çok Aracılı Hissiyatçı Kodlama
 
 VibeCodeHPC, YBH (yüksek başarımlı hesaplama) için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çok aracılı bir sistemdir.
 Claude Code gibi CLI ortamlarında tmux tabanlı iletişimle birden fazla yapay zekâ aracısı birlikte çalışır.
@@ -32,11 +32,11 @@ graph TD
     User[👤 User] --> PM[🤖 PM<br/>Project Manager]
     PM --> SE1[🤖 SE1<br/>System Engineer]
     PM --> CD[🤖 CD<br/>Continuous Delivery]
-    
+
     SE1 <--> PG1[🤖 PG1.1<br/>OpenMP]
     SE1 <--> PG2[🤖 PG1.2<br/>MPI]
     SE1 <--> PG3[🤖 PG1.3<br/>CUDA]
-    
+
     CD --> GitHub[📦 GitHub Repository]
 ```
 
@@ -101,7 +101,7 @@ VibeCodeHPC/🤖PM
 flowchart TB
       %% Başlatma betiklerinin kapsama ilişkisi
       subgraph StartScripts["🚀 Başlatma Betikleri"]
-      User[👤 Kullanıcı] 
+      User[👤 Kullanıcı]
       PM[🤖 PM]
       User -->StartPM[start_PM.sh<br/>Sadece PM süreci için]
       PM -->StartAgent[start_agent.sh<br/>Diğer aracıları başlatır]
@@ -161,17 +161,17 @@ sequenceDiagram
     participant SE as SE
     participant PG as PG
     participant HPC as Süperbilgisayar
-    
+
     PM->>PG: Optimizasyon görevlerinin atanması
     PG->>HPC: SSH/SFTP bağlantısının kurulması
-    
+
     loop Optimizasyon döngüsü
         PG->>PG: Kod üretimi/düzeltme ve ChangeLog.md kaydı
         PG->>HPC: Kod transferi, derleme ve iş gönderimi
         HPC-->>PG: Çalıştırma çıktıları ve performans verisi
         PG->>SE: SOTA başarı raporu
     end
-    
+
     SE->>SE: İstatistik analiz ve görselleştirme (asenkron)
 ```
 
@@ -188,7 +188,7 @@ Bu sistemi kullanmadan önce aşağıdaki ortamın kurulu olduğunu doğrulayın
 
 > [!NOTE]
 > Aşağıdaki sebeplerle VibeCodeHPC için git clone yerine zip indirip açmanız önerilir
-> 
+>
 > GitHub/📁 içindeki anonim proje kopyalarını yöneten CD aracısının Git kimliğiyle karışıklığı önlemek
 
 #### GUI için
@@ -219,12 +219,12 @@ cd VibeCodeHPC-jp-{sürüm}
 ### ☑️ **SSH aracısı ayarı (ssh-agent)**
 - Süper bilgisayara parolasız SSH için `ssh-agent` içine özel anahtarınızı ekleyin.
 - ssh-agent etkinleştirme adımları için [bu Google Sunuları’na bakın](https://docs.google.com/presentation/d/1Nrz6KbSsL5sbaKk1nNS8ysb4sfB2dK8JZeZooPx4NSg/edit?usp=sharing)
-  
+
   ssh-agent’i başlatın:
   ```bash
   eval "$(ssh-agent -s)"
   ```
-  
+
   Özel anahtar ekleyin:
   ```bash
   ssh-add ~/.ssh/your_private_key
@@ -545,7 +545,7 @@ Ayrıntılar için `instructions/SOLO.md` dosyasına bakın.
 > - **Worker oturumu**: Diğer aracılar (SE, PG, CD)
 >   - Varsayılan: `Team1_Workers1`
 >   - Proje verildiğinde: `{ProjectName}_Workers1`
-> 
+>
 > En az aracı sayısı 2’dir (SE + PG)
 
 ```bash
@@ -726,9 +726,9 @@ Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 ---
 
 ### v1.1.0
-**Değişiklikler**: "Bloklama optimizasyonu ve iş parçacığı sayısı ayarı"  
-**Sonuç**: Teorik performansın %65,1’i elde edildi `312.4 GFLOPS`  
-**Yorum**: "Blok boyutu 64’ten 128’e çıkarıldı; önbellek verimliliği belirgin iyileşti"  
+**Değişiklikler**: "Bloklama optimizasyonu ve iş parçacığı sayısı ayarı"
+**Sonuç**: Teorik performansın %65,1’i elde edildi `312.4 GFLOPS`
+**Yorum**: "Blok boyutu 64’ten 128’e çıkarıldı; önbellek verimliliği belirgin iyileşti"
 
 <details>
 
@@ -760,9 +760,9 @@ Aracılar arasında bilgi paylaşımını sağlayan birleşik günlük sistemi.
 ---
 
 ### v1.0.0
-**Değişiklikler**: "İlk OpenMP uygulaması"  
-**Sonuç**: Başlangıç düzeyi belirlendi `248.3 GFLOPS`  
-**Yorum**: "Temel OpenMP paralelleştirmesi dış döngüye uygulandı"  
+**Değişiklikler**: "İlk OpenMP uygulaması"
+**Sonuç**: Başlangıç düzeyi belirlendi `248.3 GFLOPS`
+**Yorum**: "Temel OpenMP paralelleştirmesi dış döngüye uygulandı"
 
 <details>
 

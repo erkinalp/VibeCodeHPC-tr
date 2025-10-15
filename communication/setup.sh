@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🧬 VibeCodeHPC Multi-Agent HPC Environment Setup
-# Dynamic tmux session creation for user-specified agent count
+# 🧬 VibeCodeHPC çok aracılı YBH ortam kurulumu
+# Kullanıcı belirtimli aracı sayısı için dinamik tmux oturumu oluşturma
 
 set -e  # Hata durumunda dur
 
@@ -643,8 +643,8 @@ show_execution_plan() {
 
 # Ana işlem
 main() {
-    echo "🧬 VibeCodeHPC Multi-Agent HPC Environment Setup"
-    echo "==============================================="
+    echo "🧬 VibeCodeHPC çok aracılı YBH ortam kurulumu"
+    echo "==========================================="
     echo ""
     
     # Argüman kontrolü
