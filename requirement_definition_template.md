@@ -119,7 +119,7 @@ batch veya etkileşimli job kullanımını kuvvetle öneririz.
 
 ### Aracı yapısı
 - [ ] SOLO modu (tek aracı tüm rolleri üstlenir)
-- [ ] Çoklu aracı (PM, SE, PG, CD ayrı ayrı)
+- [ ] Çok aracılı (PM, SE, PG, CD ayrı ayrı)
 
 ### Diğer yönergeler
 [Aracılara ek talimatlar varsa yazın]

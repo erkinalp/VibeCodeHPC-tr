@@ -69,7 +69,7 @@ todos = [
   - Görselleştirme: `User-shared/visualizations/`
 
 ### ChangeLog.md ve SOTA yönetimi
-Çoklu aracı ile aynı mekanizma kullanılır:
+Çok aracılı ile aynı mekanizma kullanılır:
 - `Agent-shared/change_log/ChangeLog_format.md`’e göre kayıt tut
 - `Agent-shared/sota/sota_management.md` ölçütlerine göre SOTA değerlendirmesi yap
 - `Agent-shared/sota/sota_checker_usage.md` ile SOTA değerlendirmesi ve txt dosyası güncellemesi yap
@@ -140,7 +140,7 @@ mcp__desktop-commander__interact_with_process(pid=ssh_pid, input="module avail")
 4. [ ] Bütçe kullanımının son kaydı
 
 ### Veri toplama (deneysel değerlendirme için)
-Çoklu aracı ile aynı biçimde veri kaydet:
+Çok aracılı ile aynı biçimde veri kaydet:
 - ChangeLog.md’den üretim sayısı ve performans eğrisi
 - sota_local.txt’den SOTA erişim durumu
 - budget_history.md’den bütçe tüketimi

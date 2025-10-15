@@ -3,18 +3,18 @@
 VibeCodeHPC, YBH (yüksek başarımlı hesaplama) için tam otomatik ortam kurulumunu ve kod optimizasyonunu gerçekleştiren çok aracılı bir sistemdir.
 Claude Code gibi CLI ortamlarında tmux tabanlı iletişimle birden fazla yapay zekâ aracısı birlikte çalışır.
 
-![Çoklu aracı çalışması ekran görüntüsü](_images/MultiAgentUI.png)
+![Çok aracılı çalışması ekran görüntüsü](_images/MultiAgentUI.png)
 
 ## Makale
 - [📝arXiv (2025/10/02)](https://arxiv.org/abs/2510.00031)
 - [🎞️Google Slaytlar (Deneyler)](https://docs.google.com/presentation/d/1u9aK52nouAgjFTTchJAiZm5HglynGwl-Hwi97EK2Gis/edit?usp=sharing)
-- [Çoklu aracı deney sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
+- [Çok aracılı deney sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-multi-ex1/blob/all_local_and_remote_files/User-shared/final_report.md)
 - [Tek aracı deney sonuçları](https://github.com/Katagiri-Hoshino-Lab/VibeCodeHPC-demo-0.6.10-solo-ex1/blob/solo_commited_push_later/User-shared/reports/final_report.md)
 
 ## Sistem Özeti
 
 ### Özellikler
-- **Hiyerarşik çoklu aracı**: PM → SE ↔ PG kurumsal iş bölümü
+- **Hiyerarşik çok aracılı**: PM → SE ↔ PG kurumsal iş bölümü
 - **Proje haritası**: Organizasyonu gerçek zamanlı görselleştiren `directory_pane_map`
 - **Evrimsel arama**: Alttan-üstte `Flat`📁 yapı ile verimli keşif
 - **Otomatik optimizasyon**: OpenMP, MPI, OpenACC, CUDA... ile kademeli paralelleştirme ve teknoloji bileşimi
@@ -255,7 +255,7 @@ cd VibeCodeHPC-jp-{sürüm}
 
 VibeCodeHPC’nin tüm özelliklerinden yararlanmak için aşağıdaki araçları kurmanız önerilir:
 
-#### **tmux** - Terminal çoklayıcı (çoklu aracı iletişim altyapısı)
+#### **tmux** - Terminal çoklayıcı (çok aracılı iletişim altyapısı)
 
 Ubuntu/WSL:
 ```bash
@@ -535,7 +535,7 @@ Ayrıntılar için `instructions/SOLO.md` dosyasına bakın.
 </details>
 
 
-### Çoklu Aracı: tmux oturumu oluşturma
+### Çok Aracılı: tmux oturumu oluşturma
 
 > [!IMPORTANT]
 > VibeCodeHPC birden çok tmux oturumu kullanır:

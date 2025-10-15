@@ -11,7 +11,7 @@ v0.6.3 ve sonrasında, proje özelliklerine göre iki sürümden biri seçilebil
 ### v3 (varsayılan, önerilen)
 - **Özellikler**: Dosya içeriğini olasılıksal olarak gömer, aracının özerkliğini vurgular
 - **Ayar**: `Agent-shared/strategies/auto_tuning/auto_tuning_config.json` ile özelleştirilebilir
-- **Kullanım**: Uzun soluklu projeler, auto-compact önlemleri, büyük ölçekli çoklu aracı
+- **Kullanım**: Uzun soluklu projeler, auto-compact önlemleri, büyük ölçekli çok aracılı
 
 ### v2
 - **Özellikler**: Yalnızca dosya yollarını sağlar, hafif çalışır
