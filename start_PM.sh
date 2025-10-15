@@ -1,19 +1,15 @@
 #!/bin/bash
-# PM起動用統合スクリプト
-# hooks設定とtelemetry起動を自動化
 
 set -e
 
-# スクリプトのディレクトリからプロジェクトルートを取得
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
-echo "🎯 VibeCodeHPC PM起動スクリプト"
+echo "🎯 VibeCodeHPC PM Başlatma Scripti"
 echo "================================"
 
-# 1. PM用のhooks設定（VIBECODE_ENABLE_HOOKSがfalseでない限り有効）
 if [ "${VIBECODE_ENABLE_HOOKS}" != "false" ]; then
-    # CLI_HOOKS_MODEを取得（デフォルト: auto）
+    # CLI_HOOKS_MODE değerini al (varsayılan: auto)
     CLI_HOOKS_MODE="${CLI_HOOKS_MODE:-auto}"
     echo "🔧 Setting up hooks for PM..."
     echo "   CLI_HOOKS_MODE: $CLI_HOOKS_MODE"
@@ -26,11 +22,11 @@ else
     echo "⚠️  Hooks disabled by VIBECODE_ENABLE_HOOKS=false"
 fi
 
-# 1.5. TMUX_PANE環境変数の確認と記録
+# 1.5. TMUX_PANE ortam değişkenini kontrol et ve kaydet
 echo "🔍 Checking TMUX environment..."
 if [ -n "$TMUX_PANE" ]; then
     echo "  TMUX_PANE: $TMUX_PANE"
-    # settings.local.jsonに環境変数を追加（Claude Codeに引き継がれない可能性への対策）
+    # settings.local.json içine ortam değişkeni ek notu (Claude Code devralmayabilir)
     if [ -f "$PROJECT_ROOT/.claude/settings.local.json" ]; then
         echo "  ⚠️  Note: Claude Code may not inherit TMUX_PANE environment variable"
     fi
@@ -38,7 +34,6 @@ else
     echo "  ⚠️  Warning: Not running in tmux pane"
 fi
 
-# 2. プロジェクト開始時刻を記録（hooksが動作しない場合の保険）
 START_TIME_FILE="$PROJECT_ROOT/Agent-shared/project_start_time.txt"
 if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     echo "📅 Recording project start time..."
@@ -46,7 +41,6 @@ if [ ! -f "$START_TIME_FILE" ] || [ ! -s "$START_TIME_FILE" ]; then
     date -u +"%Y-%m-%dT%H:%M:%SZ" > "$START_TIME_FILE"
 fi
 
-# 2.5. PMのworking_dirを更新（プロジェクトルート = 空文字列）
 if command -v jq &> /dev/null; then
     TABLE_FILE="$PROJECT_ROOT/Agent-shared/agent_and_pane_id_table.jsonl"
     if [ -f "$TABLE_FILE" ]; then
@@ -56,7 +50,6 @@ if command -v jq &> /dev/null; then
             if [[ -z "$line" || "$line" =~ ^# ]]; then
                 echo "$line"
             else
-                # JSONとして解析して、PMの場合はworking_dirを更新
                 updated_line=$(echo "$line" | jq -c '
                     if .agent_id == "PM" then
                         . + {working_dir: "", last_updated: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))}
@@ -72,31 +65,31 @@ if command -v jq &> /dev/null; then
     fi
 fi
 
-# 3. Claude起動
+# 3. Claude’u başlat
 echo ""
-echo "起動後、以下のプロンプトをコピーして貼り付けてください："
+echo "Başladıktan sonra aşağıdaki istemi kopyalayıp yapıştırın:"
 echo "================================================================"
 cat << 'EOF'
-あなたはPM（Project Manager）です。VibeCodeHPCプロジェクトを開始します。
+Siz bir PM’siniz (Project Manager). VibeCodeHPC projesini başlatın.
 
-まず以下のファイルを読み込んでプロジェクトの全体像を把握してください：
-- CLAUDE.md（全エージェント共通ルール）
-- instructions/PM.md（あなたの役割詳細）
-- requirement_definition.md（プロジェクト要件）※存在する場合
-- Agent-shared/以下の全ての.mdと.txtファイル（ただし、.pyファイル、_template、_exampleを除く）
+Önce şu dosyaları okuyarak genel resmi anlayın:
+- CLAUDE.md (tüm aracılar için ortak kurallar)
+- instructions/PM.md (rolünüzün ayrıntıları)
+- requirement_definition.md (proje gereksinimleri) — varsa
+- Agent-shared/ altındaki tüm .md ve .txt dosyaları (.py, _template, _example hariç)
 
-特に重要：
-- max_agent_number.txt（利用可能なワーカー数）
-- agent_and_pane_id_table.jsonl（セッション構成とエージェント管理）
-- directory_pane_map.txt（エージェント配置とペイン管理）
-- sota_management.md（SOTA管理方法とfamilyの重要性）
+Özellikle önemli:
+- max_agent_number.txt (kullanılabilir çalışan sayısı)
+- agent_and_pane_id_table.jsonl (oturum yapısı ve aracı yönetimi)
+- directory_pane_map.txt (aracı yerleşimi ve pencere/pane yönetimi)
+- sota_management.md (SOTA yönetimi ve family kavramının önemi)
 
-全て読み込んだ後、該当する既存の tmux セッションを活用してプロジェクトを初期化してください。新規セッションは作成しないでください。
+Hepsini okuduktan sonra mevcut ilgili tmux oturumlarını kullanarak projeyi başlatın. Yeni oturum oluşturmayın.
 EOF
 echo "================================================================"
 echo ""
 
-# テレメトリ設定に基づいてClaude起動
+# Telemetri ayarına göre Claude’u başlat
 if [ "${VIBECODE_ENABLE_TELEMETRY}" = "false" ]; then
     echo "📊 Telemetry disabled - starting PM without telemetry"
     exec claude --dangerously-skip-permissions "$@"

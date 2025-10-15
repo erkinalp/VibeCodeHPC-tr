@@ -1,142 +1,142 @@
-# 予算集計システム使用ガイド
+# Bütçe Toplama Sistemi Kullanım Kılavuzu
 
-## 概要
-ChangeLog.mdに記録された時刻情報から、プロジェクトの予算消費を自動集計するシステムです。
+## Genel Bakış
+ChangeLog.md’de kaydedilen zaman bilgilerine dayanarak projenin bütçe tüketimini otomatik toplayan bir sistemdir.
 
-## PG向け：ジョブ実行時の記録方法
+## PG için: İş çalıştırma sırasında kayıt yöntemi
 
-### 1. ジョブスクリプトに時刻記録を追加
+### 1. İş betiğine zaman kaydı ekleme
 ```bash
-# スクリプト先頭
+# Betik başlangıcı
 source $PROJECT_ROOT/Agent-shared/budget/job_time_template.sh
-# または必要部分をコピー
+# veya gerekli kısmı kopyala
 
-# リソースグループを明記（重要）
-RESOURCE_GROUP="cx-small"  # 使用するリソースグループ
+# Kaynak grubunu belirtin (önemli)
+RESOURCE_GROUP="cx-small"  # Kullanılan kaynak grubu
 ```
 
-### 2. ChangeLog.mdへの記録（必須）
+### 2. ChangeLog.md’ye kayıt (zorunlu)
 ```markdown
 ### v1.2.0
-**変更点**: "OpenMP並列化実装"
-**結果**: 理論性能の65%達成 `312.4 GFLOPS`
+**Değişiklikler**: "OpenMP paralelleştirme uygulaması"
+**Sonuç**: Teorik performansın %65’i elde edildi `312.4 GFLOPS`
 
 <details>
 
-- **生成時刻**: `2025-01-30T10:00:00Z`
+- **Oluşturma zamanı**: `2025-01-30T10:00:00Z`
 - [x] **job**
     - id: `12345`
-    - resource_group: `cx-small`  # 必須：料金計算に使用
-    - start_time: `2025-01-30T10:00:00Z`  # 必須
-    - end_time: `2025-01-30T10:45:32Z`  # 必須（完了時）
-    - runtime_sec: `2732`  # 必須（完了時）
+    - resource_group: `cx-small`  # Zorunlu: ücret hesabında kullanılır
+    - start_time: `2025-01-30T10:00:00Z`  # Zorunlu
+    - end_time: `2025-01-30T10:45:32Z`  # Zorunlu (tamamlandığında)
+    - runtime_sec: `2732`  # Zorunlu (tamamlandığında)
     - status: `completed`
 
 </details>
 ```
 
-### 3. キャンセル時の記録
+### 3. İptal durumunda kayıt
 ```markdown
 - [ ] **job**
     - id: `12345`
     - resource_group: `cx-small`
     - start_time: `2025-01-30T10:00:00Z`
-    - cancelled_time: `2025-01-30T10:15:00Z`  # end_timeの代わり
-    - runtime_sec: `900`  # キャンセルまでの実行時間
+    - cancelled_time: `2025-01-30T10:15:00Z`  # end_time yerine
+    - runtime_sec: `900`  # İptale kadar geçen çalışma süresi
     - status: `cancelled`
 ```
 
-## SE向け：集計と監視
+## SE için: Toplama ve izleme
 
-### 1. 即座に現在の消費量を確認
+### 1. Anlık tüketimi görüntüleme
 ```bash
-# プロジェクトのどこからでも実行可能
+# Projenin herhangi bir yerinden çalıştırılabilir
 python Agent-shared/budget/budget_tracker.py --summary
 
-# 出力例：
-# === 予算集計サマリー ===
-# 総消費: 1234.5 ポイント
-# ジョブ数: 完了=10, 実行中=2
-# 最低: 123.5%
-# 目安: 49.4%
-# 上限: 24.7%
+# Örnek çıktı:
+# === Bütçe Toplama Özeti ===
+# Toplam tüketim: 1234.5 puan
+# İş sayısı: tamamlandı=10, çalışıyor=2
+# Alt sınır: 123.5%
+# Hedef: 49.4%
+# Üst sınır: 24.7%
 ```
 
-### 2. 詳細レポート生成
+### 2. Ayrıntılı rapor oluşturma
 ```bash
 python Agent-shared/budget/budget_tracker.py --report
 
-# snapshots/に以下が生成される：
-# - budget_YYYY-MM-DDTHH-MM-SSZ.json（タイムスタンプ付き）
-# - latest.json（最新版）
+# snapshots/ içine şunlar oluşturulur:
+# - budget_YYYY-MM-DDTHH-MM-SSZ.json(zaman damgalı)
+# - latest.json(en güncel)
 ```
 
-### 3. グラフ生成（デフォルトで自動生成）
+### 3. Grafik oluşturma (varsayılan olarak otomatik oluşturulur)
 ```bash
-# デフォルト動作（引数なし）で自動的にグラフも生成されます
+# Varsayılan davranış (argümansız) ile grafik otomatik üretilir
 python Agent-shared/budget/budget_tracker.py
-# → User-shared/visualizations/budget_usage.png が生成される
+# → User-shared/visualizations/budget_usage.png oluşturulur
 
-# --graphオプションは非推奨（deprecated）
-# デフォルトで生成されるため、明示的に指定する必要はありません
-python Agent-shared/budget/budget_tracker.py --graph  # 非推奨
+# --graph seçeneği önerilmez (deprecated)
+# Varsayılan olarak üretildiğinden ayrıca belirtmeye gerek yok
+python Agent-shared/budget/budget_tracker.py --graph  # Önerilmez
 ```
 
-### 4. periodic_monitor.shへの統合
+### 4. periodic_monitor.sh ile tümleştirme
 ```bash
-# 3分ごとに自動集計（periodic_monitor.shに設定済み）
+# Her 3 dakikada bir otomatik toplama (periodic_monitor.sh içinde ayarlı)
 if [ $((ELAPSED_MINUTES % 3)) -eq 0 ]; then
     python "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" --report
 fi
 ```
 
-### 5. JSON形式での取得（可視化用）
+### 5. JSON biçiminde alma (görselleştirme için)
 ```bash
 python Agent-shared/budget/budget_tracker.py --json > budget.json
 ```
 
-### 6. 特定時刻でのスナップショット（--as-of）
+### 6. Belirli zamanda anlık görüntü (--as-of)
 ```bash
-# 特定時刻までのデータを集計・可視化
+# Belirli zamana kadar olan veriyi topla ve görselleştir
 python Agent-shared/budget/budget_tracker.py --as-of 2025-08-20T01:00:00Z
 
-# マイルストーン時点での集計
+# Kilometre taşı anındaki toplama
 python Agent-shared/budget/budget_tracker.py --graph --as-of 2025-08-19T23:30:00Z
 ```
 
-## リソースグループごとのレート
+## Kaynak grubu başına hızlar
 
-### 不老TypeII（デフォルト設定）
-| リソースグループ | GPU数 | レート（ポイント/秒） |
+### Furou TypeII (varsayılan ayar)
+| Kaynak grubu | GPU sayısı | Hız (puan/saniye) |
 |---------------|------|-------------------|
 | cx-share      | 1    | 0.007            |
 | cx-small      | 4    | 0.028            |
 | cx-middle     | 4    | 0.028            |
-| cx-middle2    | 4    | 0.056（2倍）      |
+| cx-middle2    | 4    | 0.056 (2x)       |
 
-### 他のスパコンへの対応
-`budget_tracker.py`の`load_rates()`メソッドを編集するか、
-`_remote_info/[スパコン名]/node_resource_groups.md`から自動読み込み（将来実装）
+### Diğer süper bilgisayarlara uyarlama
+`budget_tracker.py` içindeki `load_rates()` metodunu düzenleyin veya
+`_remote_info/[süper bilgisayar adı]/node_resource_groups.md` yolundan otomatik yükleme (ileride)
 
-## トラブルシューティング
+## Sorun Giderme
 
-### Q: ジョブのポイントが計算されない
-A: ChangeLog.mdに以下が記載されているか確認：
-- resource_group（必須）
-- start_time（必須）
-- end_timeまたはcancelled_time（実行後必須）
+### S: İşin puanı hesaplanmıyor
+C: ChangeLog.md’de şu alanların olduğundan emin olun:
+- resource_group(zorunlu)
+- start_time(zorunlu)
+- end_time veya cancelled_time (çalışma sonrası zorunlu)
 
-### Q: 集計結果が0ポイント
-A: プロジェクト開始時刻が記録されているか確認：
+### S: Toplama sonucu 0 puan
+C: Proje başlangıç zamanının kaydedildiğini kontrol edin:
 ```bash
 cat Agent-shared/project_start_time.txt
 ```
 
-### Q: 実行中のジョブが反映されない
-A: statusが`running`になっているか確認。end_timeが無い場合は現在時刻まで計算されます。
+### S: Çalışan işler yansımıyor
+C: status alanının `running` olduğundan emin olun. end_time yoksa mevcut zamana kadar hesaplanır.
 
-## 注意事項
+## Dikkat Edilecekler
 
-- **ステートレス実行**: 毎回全ChangeLog.mdを読み直すため、ファイル数が多い場合は時間がかかる可能性があります
-- **リアルタイム性**: ChangeLog.mdへの記録タイミングに依存します（PGが記録するまで反映されません）
-- **精度**: 秒単位での計算のため、実際の課金との誤差は最大で数ポイント程度です
+- **Durumsuz yürütme**: Her seferinde tüm ChangeLog.md dosyaları okunur; dosya çoksa zaman alabilir
+- **Gerçek zamanlılık**: ChangeLog.md’ye yazma zamanlamasına bağlıdır (PG yazana kadar yansımaz)
+- **Hassasiyet**: Saniye bazlı hesap nedeniyle gerçek ücretlendirmeye göre birkaç puan sapma olabilir

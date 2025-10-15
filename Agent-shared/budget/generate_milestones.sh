@@ -1,10 +1,10 @@
 #!/bin/bash
-# マイルストーンスナップショット生成スクリプト
+# Kilometre taşı anlık görüntü oluşturma betiği
 
 PROJECT_ROOT=$(pwd)
 PYTHON_CMD="${PYTHON_CMD:-python3}"
 
-# プロジェクト開始時刻を取得
+# Proje başlangıç zamanını al
 if [ -f "$PROJECT_ROOT/Agent-shared/project_start_time.txt" ]; then
     START_TIME=$(cat "$PROJECT_ROOT/Agent-shared/project_start_time.txt")
 else
@@ -12,46 +12,47 @@ else
     exit 1
 fi
 
-# ISO 8601形式に変換（必要な場合）
+# ISO 8601 formatına dönüştür (gerekirse)
 START_EPOCH=$(date -d "$START_TIME" +%s 2>/dev/null)
 if [ $? -ne 0 ]; then
     echo "ERROR: Failed to parse start time: $START_TIME"
     exit 1
 fi
 
-echo "プロジェクト開始時刻: $START_TIME"
-echo "マイルストーンスナップショットを生成中..."
+echo "Proje başlangıç zamanı: $START_TIME"
+echo "Kilometre taşı anlık görüntüleri oluşturuluyor..."
 
-# マイルストーン時刻（分）
+# Kilometre taşı zamanları (dakika)
 MILESTONES=(30 60 90 120 180)
 
 for MINUTES in "${MILESTONES[@]}"; do
-    # マイルストーン時刻を計算
+    # Kilometre taşı zamanını hesapla
     MILESTONE_EPOCH=$((START_EPOCH + MINUTES * 60))
     MILESTONE_TIME=$(date -u -d "@$MILESTONE_EPOCH" +"%Y-%m-%dT%H:%M:%SZ")
     
     echo ""
-    echo "=== ${MINUTES}分マイルストーン ==="
-    echo "時刻: $MILESTONE_TIME"
+    echo "=== ${MINUTES} dakika kilometre taşı ==="
+    echo "Zaman: $MILESTONE_TIME"
     
-    # 出力ファイル名
+    # Çıktı dosya adı
     OUTPUT_PATH="$PROJECT_ROOT/User-shared/visualizations/budget_usage_${MINUTES}min.png"
     
-    # グラフ生成
+    # Grafik oluştur
     $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" \
         --graph \
         --as-of "$MILESTONE_TIME" \
         --output "$OUTPUT_PATH"
     
-    # JSONレポートも生成
+    # JSON raporu da oluştur
     REPORT_PATH="$PROJECT_ROOT/Agent-shared/budget/snapshots/milestone_${MINUTES}min.json"
     $PYTHON_CMD "$PROJECT_ROOT/Agent-shared/budget/budget_tracker.py" \
         --json \
         --as-of "$MILESTONE_TIME" > "$REPORT_PATH"
     
-    echo "グラフ: $OUTPUT_PATH"
-    echo "レポート: $REPORT_PATH"
+    echo "Grafik: $OUTPUT_PATH"
+    echo "Rapor: $REPORT_PATH"
 done
 
 echo ""
-echo "全マイルストーンスナップショット生成完了"
+echo "Tüm kilometre taşı anlık görüntüleri oluşturma tamamlandı"
+

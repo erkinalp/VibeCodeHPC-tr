@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC Stop Hook for SOLO Agent
-シングルエージェント用 - 時間管理と継続タスク提示
+Tekli ajan için - zaman yönetimi ve devam görevleri bildirimi
 """
 
 import json
@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-tr) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -26,7 +26,7 @@ def find_project_root(start_path):
 
 
 def get_stop_count():
-    """現在のディレクトリのstop_count.txtから回数を取得"""
+    """Geçerli dizindeki stop_count.txt dosyasından sayıyı al"""
     stop_count_file = Path.cwd() / ".claude" / "hooks" / "stop_count.txt"
     
     if stop_count_file.exists():
@@ -38,7 +38,7 @@ def get_stop_count():
 
 
 def increment_stop_count():
-    """stop_count.txtをインクリメント"""
+    """stop_count.txt değerini artır"""
     hooks_dir = Path.cwd() / ".claude" / "hooks"
     hooks_dir.mkdir(parents=True, exist_ok=True)
     
@@ -51,7 +51,7 @@ def increment_stop_count():
 
 
 def get_elapsed_time():
-    """プロジェクト開始からの経過時間を取得"""
+    """Proje başlangıcından geçen süreyi al"""
     project_root = find_project_root(Path.cwd())
     if not project_root:
         return None
@@ -71,7 +71,7 @@ def get_elapsed_time():
 
 
 def get_stop_threshold():
-    """SOLOエージェントのSTOP回数閾値を返す"""
+    """SOLO ajanı için STOP deneme eşiğini döndür"""
     project_root = find_project_root(Path.cwd())
     if project_root:
         threshold_file = project_root / "Agent-shared" / "stop_thresholds.json"
@@ -86,108 +86,104 @@ def get_stop_threshold():
             except:
                 pass
     
-    # デフォルト値（シングルエージェントは長めに設定）
     return 100
 
 
 def format_elapsed_time(elapsed):
-    """経過時間を読みやすい形式でフォーマット"""
     if not elapsed:
-        return "不明"
+        return "bilinmiyor"
     
     total_seconds = int(elapsed.total_seconds())
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     
     if hours > 0:
-        return f"{hours}時間{minutes}分"
+        return f"{hours} saat {minutes} dakika"
     else:
-        return f"{minutes}分"
+        return f"{minutes} dakika"
 
 
 def generate_block_reason(stop_count):
-    """SOLOエージェント用のブロック理由を生成"""
+    """SOLO ajan için engelleme gerekçesini üret"""
     threshold = get_stop_threshold()
     elapsed = get_elapsed_time()
     elapsed_str = format_elapsed_time(elapsed)
     
-    # 閾値に達した場合
     if stop_count >= threshold:
         reason = f"""
-⚠️ STOP回数が上限（{threshold}回）に達しました。
-経過時間: {elapsed_str}
+⚠️ STOP denemesi sayısı üst sınıra ulaştı (sınır: {threshold} kez)
+Geçen süre: {elapsed_str}
 
-📝 **重要**: プロジェクトを終了する場合、requirement_definition.mdを再読み込みし、
-   全ての要件を満たしているか項目ごとに ☑ 確認すること。
+📝 Önemli: Projeyi kapatacaksanız requirement_definition.md dosyasını yeniden gözden geçirin ve
+   tüm gereksinimlerin madde madde karşılandığını ☑ doğrulayın.
 
-SOLOエージェントとして以下の終了前タスクを実行してください：
+SOLO ajanı olarak kapanış öncesi şu görevleri uygulayın:
 
-1. [PM] 要件確認と最終評価:
-   - requirement_definition.mdの全項目を確認
-   - 達成した性能と理論性能の比較
-   - 予算使用状況の最終確認
+1. [PM] Gereksinim kontrolü ve nihai değerlendirme:
+   - requirement_definition.md içindeki tüm maddeleri kontrol edin
+   - Elde edilen performans ile teorik performansı karşılaştırın
+   - Bütçe kullanım durumunun son kontrolünü yapın
 
-2. [PG] 成果物の整理:
-   - ChangeLog.mdの最終更新
-   - SOTA達成コードの確認
-   - 作業ディレクトリの整理
+2. [PG] Çıktıların düzenlenmesi:
+   - ChangeLog.md’yi son kez güncelleyin
+   - SOTA başarım kodlarını doğrulayın
+   - Çalışma dizinini düzenleyin
 
-3. [SE] 統計と可視化（可能な範囲で）:
-   - SOTA推移グラフの生成
-   - 最終レポートの作成
+3. [SE] İstatistik ve görselleştirme (mümkün olduğu ölçüde):
+   - SOTA eğilim grafiğini üretin
+   - Nihai raporu oluşturun
 
-4. [CD] GitHub同期（必要な場合）:
-   - GitHub/ディレクトリへのコピー
+4. [CD] GitHub senkronizasyonu (gerekiyorsa):
+   - GitHub/dizine kopyalama
    - git commit
 
-その後、exitコマンドで終了してください。
+Ardından exit komutuyla çıkın.
 """
         return reason
     
-    # 通常のブロック理由
-    reason = f"""あなたはSOLOエージェント（シングルモード）です。待機状態に入ることは許可されていません。
-[STOP試行: {stop_count}/{threshold}] [経過時間: {elapsed_str}]
+    reason = f"""SOLO ajansınız (tekli mod). Bekleme durumuna geçmek izinli değildir.
+[STOP denemesi: {stop_count}/{threshold}] [Geçen süre: {elapsed_str}]
 
-【必須ファイルの再読み込み】
-以下のファイルから最新状態を確認してください（未読または10行のみ読んだものを優先）：
+[Zorunlu dosyaların yeniden gözden geçirilmesi]
+Aşağıdaki dosyalardan güncel durumu kontrol edin (okunmamış olanları veya yalnızca 10 satır okunmuş olanları önceleyin):
 - CLAUDE.md
 - instructions/SOLO.md
 - requirement_definition.md
 - Agent-shared/directory_pane_map.txt
 - Agent-shared/strategies/auto_tuning/typical_hpc_code.md
 - Agent-shared/budget/budget_history.md
-- Agent-shared/sota/sota_visualizer.py（SOTA可視化必須タスク）
-- telemetry/context_usage_monitor.py（コンテキスト監視必須タスク）
-- Agent-shared/ssh_sftp_guide.md（SSH/SFTP接続・実行ガイド）
-- hardware_info.md（理論性能目標）
-- 現在のディレクトリのChangeLog.md
+- Agent-shared/sota/sota_visualizer.py (SOTA görselleştirme zorunlu görev)
+- telemetry/context_usage_monitor.py (kontekst izleme zorunlu görev)
+- Agent-shared/ssh_sftp_guide.md (SSH/SFTP bağlantı/çalıştırma kılavuzu)
+- hardware_info.md (teorik performans hedefi)
+- Mevcut dizindeki ChangeLog.md
 
-【必須の非同期タスク（優先順）】
-1. **最優先: コンテキスト使用率可視化**（auto-compact防止）
+[Zorunlu asenkron görevler (öncelik sırasıyla)]
+1. En yüksek öncelik: Konteks kullanım oranı görselleştirme (auto-compact önleme)
    python3 telemetry/context_usage_monitor.py --graph-type overview
-   （30分ごと、30/60/90/120/180分でマイルストーン保存）
+   (Her 30 dakikada, 30/60/90/120/180 dakikalarda milestone kaydı)
 
-2. **優先: SOTA性能グラフ**（成果可視化）
+2. Öncelik: SOTA performans grafiği (çıktıların görselleştirilmesi)
    for level in project family hardware local; do
        python3 Agent-shared/sota/sota_visualizer.py --level $level
    done
 
-3. **通常: 予算推移**（可能な場合）
+3. Normal: Bütçe eğilimi (mümkünse)
    python3 Agent-shared/budget/budget_tracker.py --graph
 
-【役割別の継続タスク】
+[Role göre devam görevleri]
 
-[PG] コード実装:
-- 次バージョンの最適化実装
-- ジョブ結果の確認（pjstat/pjstat2）
-- パラメータチューニング
+[PG] Kod uygulama:
+- Bir sonraki sürüm için optimizasyon uygulamaları
+- İş sonuçlarının kontrolü (pjstat/pjstat2)
+- Parametre ayarlamaları
 
-[CD] GitHub継続的同期:
-- SOTA達成コードの定期commit（一回きりではない）
-- ChangeLog.md更新の同期
+[CD] GitHub sürekli senkronizasyon:
+- SOTA başarım kodlarının düzenli commit edilmesi (tek seferlik değil)
+- ChangeLog.md güncellemeleriyle senkron
 
-現在最も優先すべきタスクをToDoリストで管理し、実行してください。
-（残りSTOP試行可能回数: {threshold - stop_count}回）
+En öncelikli görevi ToDo listesiyle yönetin ve uygulayın.
+(Kalan STOP deneme hakkı: {threshold - stop_count} kez)
 """
     
     return reason
@@ -195,27 +191,21 @@ SOLOエージェントとして以下の終了前タスクを実行してくだ�
 
 def main():
     try:
-        # JSONを読み込み
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
         stop_hook_active = input_data.get('stop_hook_active', False)
         
-        # STOP回数をインクリメント
         stop_count = increment_stop_count()
         
-        # SOLOエージェント用のブロック理由を生成
         reason = generate_block_reason(stop_count)
         
         if reason:
-            # 終了コード2でstderrに出力
             print(reason, file=sys.stderr)
             sys.exit(2)
         
-        # 通常終了
         sys.exit(0)
         
     except Exception:
-        # エラーは静かに処理
         sys.exit(0)
 
 

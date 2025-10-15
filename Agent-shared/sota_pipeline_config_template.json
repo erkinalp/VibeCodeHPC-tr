@@ -50,7 +50,7 @@
     "compress_export": false
   },
   "se_custom": {
-    "comment": "SEがカスタマイズしたい設定をここに追加",
+    "comment": "SE’nin özelleştirmek istediği ayarları buraya ekleyin",
     "special_agents": {
       "PG1.2": {
         "dpi": 120,

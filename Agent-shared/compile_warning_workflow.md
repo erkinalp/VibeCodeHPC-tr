@@ -1,79 +1,79 @@
-# コンパイル警告文の処理ワークフロー
+# Derleme uyarı metinlerinin işlenme iş akışı
 
-## 概要
-並列化モジュール（OpenMP、MPI、CUDA等）のmake時に出力される警告文を適切にPGに伝達し、ジョブ実行の可否を判断する仕組み。
+## Genel Bakış
+Paralelleştirme modülleri (OpenMP, MPI, CUDA vb.) için make sırasında üretilen uyarıları PG’ye uygun biçimde iletip, işin yürütülüp yürütülmeyeceğini belirleme mekanizması.
 
-## 実装内容
+## Uygulama içeriği
 
-### 1. ChangeLog.mdフォーマットの拡張
-以下のフィールドを追加：
+### 1. ChangeLog.md formatının genişletilmesi
+Aşağıdaki alanlar eklenir:
 - `compile_status`: success | fail | **warning** | pending
-- `compile_warnings`: 警告メッセージの要約
-- `compile_output_path`: コンパイルログの保存パス
+- `compile_warnings`: Uyarı mesajlarının özeti
+- `compile_output_path`: Derleme günlüğünün kayıt yolu
 
-### 2. PGエージェントの処理フロー
-1. **make実行時の出力保存**
+### 2. PG aracısının işlem akışı
+1. **make yürütme çıktısının kaydı**
    ```bash
    make 2>&1 | tee /results/compile_v1.2.3.log
    ```
 
-2. **警告文の解析と分類**
-   - 並列化無効化の警告（重要度：高）
-   - データ競合の可能性（重要度：高）
-   - 最適化の提案（重要度：低）
+2. **Uyarıların analizi ve sınıflandırılması**
+   - Paralelleştirmenin devre dışı bırakıldığı uyarısı (önem derecesi: yüksek)
+   - Veri yarışması olasılığı (önem derecesi: yüksek)
+   - Optimizasyon önerileri (önem derecesi: düşük)
 
-3. **ChangeLog.md更新**
-   `<details>`内の`message`欄に警告を記載：
+3. **ChangeLog.md güncellemesi**
+   `<details>` içindeki `message` alanına uyarıyı yaz:
    ```markdown
    - [x] **compile**
        - status: `warning`
-       - message: "OpenMP: ループ依存性の警告 - collapse句が最適化されない可能性"
+       - message: "OpenMP: Döngü bağımlılığı uyarısı - collapse tümcesi optimize edilmeyebilir"
        - log: `/results/compile_v1.2.3.log`
    ```
 
-4. **警告の記録**
-   ChangeLog.mdのmessage欄に警告内容を記載
+4. **Uyarıların kaydı**
+   ChangeLog.md içindeki message alanına uyarı içeriğini yazın
 
-### 3. 警告に対する判断基準
+### 3. Uyarılar için karar kriterleri
 
-#### ジョブ実行を中止すべき警告
-- ループ依存性による並列化無効
-- データ競合の警告
-- メモリアクセスパターンの問題
-- 並列化ディレクティブの無視
+#### İşi durdurması gereken uyarılar
+- Döngü bağımlılığı nedeniyle paralelleştirmenin etkisiz olması
+- Veri yarışmasına ilişkin uyarılar
+- Bellek erişim deseni sorunları
+- Paralelleştirme direktiflerinin yok sayılması
 
-#### ジョブ実行可能な警告
-- 最適化レベルの推奨
-- パフォーマンス改善の提案
-- 非推奨機能の使用警告
+#### İzin verilebilir uyarılar
+- Önerilen optimizasyon seviyeleri
+- Performans iyileştirme önerileri
+- Kullanımı önerilmeyen (deprecated) özelliklerle ilgili uyarılar
 
-### 4. 警告の例
+### 4. Uyarı örnekleri
 
-#### OpenMP関連
+#### OpenMP ile ilgili
 ```
 warning: ignoring #pragma omp parallel for [-Wunknown-pragmas]
 warning: loop not vectorized: loop contains data dependences
 warning: collapse clause will be ignored because the loops are not perfectly nested
 ```
 
-#### MPI関連
+#### MPI ile ilgili
 ```
 warning: MPI_Send/MPI_Recv may cause deadlock in this pattern
 warning: collective operation in conditional branch may cause hang
 ```
 
-#### CUDA関連
+#### CUDA ile ilgili
 ```
 warning: __global__ function uses too much shared memory
 warning: potential race condition in kernel execution
 ```
 
-## 効果
-- 無駄なジョブ実行の削減
-- 並列化が正しく適用されない問題の早期発見
-- 計算資源の効率的な利用
+## Etkiler
+- Gereksiz iş yürütmelerinin azaltılması
+- Paralelleştirmenin doğru uygulanmadığı durumların erken tespiti
+- Hesaplama kaynaklarının verimli kullanımı
 
-## 運用上の注意
-- すべての警告でジョブを止める必要はない
-- PGが警告の重要度を判断する
-- 必要に応じてcompile_output_pathのログを確認
+## İşletimsel dikkatler
+- Her uyarıda işi durdurmak gerekmez
+- Uyarıların önem derecesini PG belirler
+- Gerektiğinde compile_output_path altındaki günlük dosyasını inceleyin

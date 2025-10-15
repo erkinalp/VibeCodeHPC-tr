@@ -1,111 +1,113 @@
-## 既存のトップダウン型📁階層の問題点
-- [x] ディレクトリ階層木が一意に定まらない （/並列モジュール名　/コンパイラ名　等の親子順序）
-- [x] SIMD実装などが深い階層に散在して把握しにくくなる
+# Evrimsel Flat Directory Stratejisi
+
+## Mevcut Yukarıdan Aşağıya 📁 Hiyerarşisinin Sorunları
+- [x] Dizin hiyerarşi ağacı benzersiz olarak belirlenemiyor (paralelleştirme modülü adı / derleyici adı gibi üst-alt sırası)
+- [x] SIMD uygulaması gibi öğeler derin hiyerarşide dağılarak anlaşılması zorlaşıyor
 - /MPI/gcc/SIMD (AVX2)
 - /MPI/intel/SIMD (AVX512)
 - /openMP/SIMD
 - /hybrid_MPI_openMP/SIMD
 
-…かと言って📁を一切使わずに，実行ファイルだけ増やしていくと
-ジョブスクリプトやmakefileの修正が発生しversion管理が手間
+...Öte yandan 📁 hiç kullanmadan yalnızca yürütülebilir dosyaları artırırsak
+İş betiği ve makefile değişiklikleri gerekir ve sürüm yönetimi zahmetli olur
 
 
 ## Flat Directory
-このパラダイムは、物理的な階層構造に縛られず、CLIエージェントが全自動で
-プロジェクトの「依存関係」や「参照範囲」を論理的に管理できる能力を最大限に活用
+Bu paradigma, fiziksel hiyerarşi yapısına bağlı kalmadan, CLI aracısının tamamen otomatik olarak
+projenin "bağımlılık ilişkileri" ve "başvuru kapsamını" mantıksal olarak yönetebilme yeteneğini maksimum düzeyde kullanır
 
-📁実質的にファイル階層は木構造という制約を受けない
+📁 Aslında dosya hiyerarşisi ağaç yapısı kısıtlamasına tabi değildir
 
-### 具体例
-例えば，深い階層を一切使わなくても，以下のように参照許可を与えれば階層関係を表せる
+### Somut Örnek
+Örneğin, derin hiyerarşi hiç kullanmadan, aşağıdaki gibi başvuru izni vererek hiyerarşi ilişkisini ifade edebiliriz
 ```
-ルート📂
-　　　ー📁A 　(指示書.md “Aのみ参照許可”)
-　　　ー📁B 　(指示書.md “Bのみ参照許可”)
-　　　ー📁A+B (指示書.md “AとBのみ参照許可”)
+Kök📂
+  ├📁A  (talimat.md "Yalnızca A'ya başvuru izni")
+  ├📁B  (talimat.md "Yalnızca B'ye başvuru izni")
+  └📁A+B (talimat.md "Yalnızca A ve B'ye başvuru izni")
 ```
-具体的には以下のような並列分散（高速化）アプローチに適用する
-#### 典型的なHPCコード
+Özellikle aşağıdaki gibi paralel dağıtık (hızlandırma) yaklaşımlarına uygulanır
+#### Tipik YBH Kodu
 ```
 📁MPI
 📁OpenMP
 📁OpenMP_MPI
 ```
-#### LLMの分散並列戦略
+#### LLM Dağıtık Paralel Stratejisi
 ```
 📁PP
 📁TP
 📁PP_TP
 ```
-などが有効である
-各モジュールの記述順は以下のルールにより統一する
+gibi etkilidir
+Her modülün yazım sırası aşağıdaki kurallarla birleştirilir
 
-### フォルダ名を一意に定めるための命名規則
+### Klasör Adını Benzersiz Belirleme İçin Adlandırma Kuralları
 ```
-◎  OpenACC_CUDA（先にOpenACCをfor文に適応してから→それ以外をCUDAで）
+◎  OpenACC_CUDA (önce OpenACC'yi for döngüsüne uygula → sonra geri kalanını CUDA ile)
 ✖  CUDA_OpenACC
 
-◎  MPI_AVX2（大局的→局所的 ※マルチコア→シングルコア）
+◎  MPI_AVX2 (global→lokal ※çok çekirdek→tek çekirdek)
 ✖  AVX2_MPI
 
-◎  PP_TP_EP（パイプライン垂直並列→Tensor水平並列→FFN層限定Expert並列）
+◎  PP_TP_EP (Pipeline dikey paralel→Tensor yatay paralel→FFN katmanı sınırlı Expert paralel)
 ```
-自然な実装(検討)順になるように 別の並列(高速化)戦略を _で区切る
-付属する情報はMPI-opt1のように-で書く．バージョンはdefaultなら省略
+Doğal uygulama (inceleme) sırasına göre farklı paralel (hızlandırma) stratejilerini _ ile ayır
+Ek bilgiler MPI-opt1 gibi - ile yazılır. Sürüm varsayılan ise atlanır
 
-### Flat Directoryを使わないデメリット
-case 1
+### Flat Directory Kullanmamanın Dezavantajları
+durum 1
 ```
-ルート📂
-　　　ー📂A 
-　　　　　 ー📁/B 
-　　　ー📁B 　
+Kök📂
+  ├📂A 
+  │    └📁/B 
+  └📁B
 ```
-case 2
+durum 2
 ```
-ルート📂
-　　　ー📁A 
-　　　ー📂B 
-　　　   　　 ー📁/A 
+Kök📂
+  ├📁A 
+  └📂B 
+        └📁/A 
 ```
-の２通りのパターンが存在し，見通しが悪くなる
-A + B + Cのように組み合わせが指数的に増えていくと
+2 farklı desen mevcut ve görünürlük kötüleşir
+A + B + C gibi kombinasyonlar üstel olarak arttığında
 - /MPI/OpenMP/SIMD
 - /OpenMP/SIMD/MPI
-のように別のエージェントが深い階層で同じ実装をしている事態を招く可能性が高まる
+gibi farklı aracıların derin hiyerarşide aynı uygulamayı yapma olasılığı artar
 
 
 
-## 進化的探索に適したボトムアップ型の📁階層設計
+## Evrimsel Aramaya Uygun Aşağıdan Yukarıya 📁 Hiyerarşi Tasarımı
 
-1. 最初に単純な要素（単一技術）を個別に最適化し、
-2. その中で**有望だったもの同士を「交配」させる**ように新しい世代を生み出していく
+1. İlk olarak basit öğeleri (tekil teknoloji) ayrı ayrı optimize et,
+2. Bunlar arasında **umut vadeden olanları "çaprazlayarak"** yeni nesiller üret
 
-効率的な探索アプローチ。※スパコン間をまたいだAuto-Tuningでも有効
+Verimli arama yaklaşımı. ※Süper bilgisayarlar arası Auto-Tuning'de de etkili
 
-ルート📂はハードウェアのみ指定する
-例: /Flow/TypeII/single-node📂
-※直下のhardware_info.mdにバンド幅やキャッシュを含む詳細なスペックを集積すること
+Kök📂 yalnızca donanımı belirtir
+Örnek: /Flow/TypeII/single-node📂
+※Doğrudan altındaki hardware_info.md'de bant genişliği ve önbellek dahil ayrıntılı özellikleri topla
 
-ルート📂直下にミドルウェアを指定する階層を挟むことを推奨
-※ さらにこの直下にはバンド幅等のベンチマークを
+Kök📂 altına ara katman yazılımını belirten katman eklenmesi önerilir
+※ Ayrıca bunun altına bant genişliği vb. kıyaslama
 
-例:
+Örnek:
 ```
 /Flow/TypeII/single-node📂
                         /gcc11.3.0📂
                         /intel2022.3📂
 ```
 
-### 命名規則
-複数ある場合，module loadする順番に左から右にかけて書く
-例）
+### Adlandırma Kuralları
+Birden fazla varsa, module load sırasına göre soldan sağa yaz
+Örnek:
 - /go1.24.4/opencode0.0.55📂
-- /singularity4.1.2/コンテナ名📂
+- /singularity4.1.2/konteyner_adı📂
 
-以下/Flow/TypeII/single-node/gcc11.3.0📂直下の階層のみに限定して説明する
-### 【第1世代：種子期 🌱】
-個々の基本技術を、使用する並列モジュール単体で探求
+Aşağıda yalnızca /Flow/TypeII/single-node/gcc11.3.0📂 altındaki katmanla sınırlı açıklama
+### [1. Nesil: Tohum Dönemi 🌱]
+Her temel teknolojiyi, kullanılan paralel modül tek başına keşfet
 ```
 /AVX2📁🤖
 /CUDA📁🤖
@@ -113,32 +115,33 @@ A + B + Cのように組み合わせが指数的に増えていくと
 /OpenMP📁🤖
 ```
 
-### 【第2世代：交配期 🌿】
-第1世代の有望な成果同士を「融合」させるか、あるいは単一技術をさらに「深化」させる
+### [2. Nesil: Çaprazlama Dönemi 🌿]
+1. neslin umut veren sonuçlarını "füzyon" et veya tekil teknolojiyi daha da "derinleştir"
 ```
 /AVX2📁
 /CUDA📁
-/CUDA-shardMem📁🤖（深化）
+/CUDA-shardMem📁🤖 (derinleştirme)
 /MPI📁🤖
 /OpenMP📁
-/OpenMP_AVX2📁🤖（融合）
-/OpenMP_MPI📁🤖（融合）
+/OpenMP_AVX2📁🤖 (füzyon)
+/OpenMP_MPI📁🤖 (füzyon)
 ```
 
-### 【第3世代：品種改良期 🌳】
-第2世代で生まれた最高傑作に、さらに別の有望な技術を組み合わせ、究極の品種を創出
+### [3. Nesil: Islah Dönemi 🌳]
+2. nesilde doğan en iyi başyapıta, daha başka umut veren teknolojileri birleştirerek nihai türü üret
 ```
 /AVX2📁
 /CUDA📁
 /CUDA-shardMem📁
 /MPI📁
-/MPI_CUDA-shardMem📁🤖(融合)
+/MPI_CUDA-shardMem📁🤖(füzyon)
 /OpenMP📁
-/OpenMP_CUDA📁🤖(融合)
+/OpenMP_CUDA📁🤖(füzyon)
 /OpenMP_AVX2📁
 /OpenMP_MPI📁
-/OpenMP_MPI_AVX2📁🤖(融合)
+/OpenMP_MPI_AVX2📁🤖(füzyon)
 ```
 
-※これらの進化的Flat📁以下では最大1名のworker🤖が稼働でき，
-その📁においてworkerは何階層でも自由にディレクトリを作成できる
+※Bu evrimsel Flat📁 altında maksimum 1 worker🤖 çalışabilir,
+ve bu 📁'de worker kaç katman olursa olsun özgürce dizin oluşturabilir
+

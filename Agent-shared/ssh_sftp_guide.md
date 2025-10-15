@@ -1,50 +1,49 @@
-# 🔌 SSH/SFTP接続・実行ガイド (Desktop Commander MCP版)
+# 🔌 SSH/SFTP Bağlantı ve Yürütme Kılavuzu (Desktop Commander MCP)
 
-## 概要
+## Genel Bakış
 
-PG/SE/PMエージェントが自身でリモート環境にSSH/SFTP接続してコマンド実行・ファイル転送を行うためのガイドです。
-Desktop Commander MCPを活用することで以下を実現します：
-- 2段階認証の回避（一度接続すれば再認証不要）
-- 大容量ファイル転送の効率化
-- 複数セッションの並列管理
-- 大量の標準出力によるコンテキスト浪費の防止
+PG/SE/PM aracılarının uzaktaki ortama SSH/SFTP ile bağlanıp komut çalıştırmaları ve dosya transferi yapmaları için bir kılavuzdur.
+Desktop Commander MCP kullanılarak şunlar sağlanır:
+- İki aşamalı kimlik doğrulamada tekrar gereksinimini azaltma (bir kez bağlanınca yeniden doğrulama gerekmez)
+- Büyük dosya transferlerinde verimlilik
+- Birden çok oturumun paralel yönetimi
+- Aşırı standart çıktı kaynaklı bağlam israfının önlenmesi
 
-## 前提条件
+## Ön Koşullar
 
-### ssh-agentのセットアップ（必須）
-ユーザがcommunication/setup.sh開始前に実行
+### ssh-agent kurulumu (zorunlu)
+Kullanıcı, `communication/setup.sh` çalıştırılmadan önce ayarlamalıdır.
 
-
-### Desktop Commander MCPの事前設定
+### Desktop Commander MCP ön ayarı
 ```bash
-# PMエージェント起動前に設定
+# PM aracısı başlatılmadan önce yapılandırın
 claude mcp add desktop-commander -- npx -y @wonderwhy-er/desktop-commander
 ```
 
-## 🚀 最短接続手順
+## 🚀 En Hızlı Bağlantı Prosedürü
 
-### 1. SSHセッション確立（コマンド実行用）
-返されたPIDを記録（例: ssh_pid=37681）
+### 1. SSH Oturumu Kurma (Komut yürütme için)
+Döndürülen PID'yi kaydedin (örnek: ssh_pid=37681)
 ```python
-# Desktop Commander MCPで接続
+# Desktop Commander MCP ile bağlan
 ssh_pid = mcp__desktop-commander__start_process(
-    command="ssh -tt user@hostname",  # -ttでPTY確保
+    command="ssh -tt user@hostname",  # -tt ile PTY sağla
     timeout_ms=10000
 )
 ```
 
-### 2. SFTPセッション確立（ファイル転送用）
-適切な自分専用の階層を確認(確保)した後、SFTPセッションも確立
+### 2. SFTP Oturumu Kurma (Dosya transferi için)
+Uygun kendi özel hiyerarşinizi doğrulayıp (ayırdıktan) sonra, SFTP oturumunu da kurun
 ```python
 sftp_pid = mcp__desktop-commander__start_process(
     command="sftp user@hostname",
     timeout_ms=10000
 )
-# 返されたPIDを記録（例: sftp_pid=37682）
+# Döndürülen PID'yi kaydedin (örnek: sftp_pid=37682)
 ```
 
-### 3. コマンド実行
-interact_with_processでコマンド実行
+### 3. Komut Yürütme
+interact_with_process ile komut yürütün
 ```python
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
@@ -53,10 +52,10 @@ mcp__desktop-commander__interact_with_process(
 )
 ```
 
-## 📁 セッション管理
+## 📁 Oturum Yönetimi
 
-### セッション情報の記録（重要）
-各エージェントは必ずカレントディレクトリに`ssh_sftp_sessions.json`を作成・管理
+### Oturum Bilgilerinin Kaydı (Önemli)
+Her aracı mutlaka mevcut dizinde `ssh_sftp_sessions.json` oluşturmalı ve yönetmelidir
 ```json
 {
   "last_updated": "2025-01-30T12:34:56Z",
@@ -67,7 +66,7 @@ mcp__desktop-commander__interact_with_process(
       "host": "hpc.example.jp",
       "purpose": "main_commands",
       "created": "2025-01-30T10:23:45Z",
-      "notes": "メインのコマンド実行用"
+      "notes": "Ana komut yürütme için"
     },
     {
       "type": "sftp",
@@ -75,27 +74,27 @@ mcp__desktop-commander__interact_with_process(
       "host": "hpc.example.jp",
       "purpose": "file_transfer",
       "created": "2025-01-30T10:25:12Z",
-      "notes": "ファイル転送専用"
+      "notes": "Dosya transferi özel"
     }
   ]
 }
 ```
 
-### セッション状態確認
+### Oturum Durumu Kontrolü
 ```python
-# 定期的にセッション状態を確認
+# Periyodik olarak oturum durumunu kontrol et
 mcp__desktop-commander__list_sessions()
 
-# 特定セッションの出力確認
+# Belirli oturumun çıktısını kontrol et
 mcp__desktop-commander__read_process_output(pid=ssh_pid, timeout_ms=1000)
 ```
 
-## 🔄 用途別コマンド実例
-実際のコマンドは_remote_info以下で提供される情報やSSH先で確認できる(サンプルスクリプト)等を参考とせよ
+## 🔄 Kullanım Alanına Göre Komut Örnekleri
+Gerçek komutlar _remote_info altında sağlanan bilgiler ve SSH hedefinde doğrulanabilir (örnek betik) vb. referans alınmalıdır
 
-### コンパイル実行
+### Derleme Yürütme
 ```python
-# makeの出力を保存しながら実行
+# make çıktısını kaydederken yürüt
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="cd /project/path && make 2>&1 | tee compile_v1.2.3.log",
@@ -103,23 +102,23 @@ mcp__desktop-commander__interact_with_process(
 )
 ```
 
-### バッチジョブ投入例
+### Toplu İş Gönderimi Örneği
 ```python
-# ジョブスクリプト作成
+# İş betiği oluşturma
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="cat > job.sh << 'EOF'\n#!/bin/bash\n#SBATCH -N 1\n#SBATCH -t 00:10:00\n./program\nEOF",
     timeout_ms=5000
 )
 
-# ジョブ投入
+# İş gönderimi
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="sbatch job.sh",
     timeout_ms=5000
 )
 
-# ジョブ状態確認
+# İş durumu kontrolü
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="squeue -u $USER",
@@ -127,23 +126,23 @@ mcp__desktop-commander__interact_with_process(
 )
 ```
 
-### ファイル転送例（SFTP使用）
+### Dosya Transferi Örneği (SFTP Kullanımı)
 ```python
-# アップロード
+# Yükleme
 mcp__desktop-commander__interact_with_process(
     pid=sftp_pid,
     input="put optimized_code.c",
     timeout_ms=30000
 )
 
-# ダウンロード
+# İndirme
 mcp__desktop-commander__interact_with_process(
     pid=sftp_pid,
     input="get job_12345.out",
     timeout_ms=30000
 )
 
-# 複数ファイル
+# Birden fazla dosya
 mcp__desktop-commander__interact_with_process(
     pid=sftp_pid,
     input="mget *.log",
@@ -151,21 +150,21 @@ mcp__desktop-commander__interact_with_process(
 )
 ```
 
-### 環境調査（SE用 - hardware_info.md作成）
-**重要**: ハードウェア情報は計算ノードで取得する必要があります。
-ログインノードとは異なるCPU/GPU構成の場合があるため、必ずバッチジョブまたはインタラクティブジョブで計算ノードに入って、実行してください。
+### Ortam Araştırması (SE için - hardware_info.md oluşturma)
+**Önemli**: Donanım bilgisi hesaplama düğümünde alınmalıdır.
+Giriş düğümünden farklı CPU/GPU yapılandırması olabilir, bu nedenle mutlaka toplu iş veya etkileşimli iş ile hesaplama düğümüne girerek yürütün.
 
-詳細は `/Agent-shared/hardware_info_guide.md` を参照してください。
+Ayrıntılar için `/Agent-shared/hardware_info_guide.md` dosyasına bakın.
 
 ```python
-# バッチジョブスクリプト作成
+# Toplu iş betiği oluşturma
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="cat > hardware_check.sh << 'EOF'\n#!/bin/bash\n#SBATCH -N 1\n#SBATCH -t 00:05:00\nlscpu > hardware_info.txt\nnvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv >> hardware_info.txt 2>&1\nmodule avail 2>&1 | head -50 >> hardware_info.txt\nEOF",
     timeout_ms=5000
 )
 
-# ジョブ投入して計算ノードで実行
+# İşi gönder ve hesaplama düğümünde yürüt
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="sbatch hardware_check.sh",
@@ -173,53 +172,53 @@ mcp__desktop-commander__interact_with_process(
 )
 ```
 
-## ⚠️ エラー処理とフォールバック
+## ⚠️ Hata İşleme ve Yedek Yöntem
 
-### Desktop Commander失敗時の対処
+### Desktop Commander Başarısız Olduğunda Çözüm
 ```python
-# 1. MCPでの試行（推奨）
+# 1. MCP ile deneme (önerilen)
 try:
     ssh_pid = mcp__desktop-commander__start_process(
         command="ssh -tt user@host",
         timeout_ms=10000
     )
 except:
-    # 2. 失敗時は標準Bashツールにフォールバック
+    # 2. Başarısız olursa standart Bash aracına geri dön
     Bash(command="ssh user@host 'cd /path && sbatch job.sh'")
     
-    # 3. PMに報告
-    agent_send.sh("PM", "[PG1.1.1] SSH実行失敗：Desktop Commander MCPエラー。Bashフォールバックを使用")
+    # 3. PM'ye rapor et
+    agent_send.sh("PM", "[PG1.1.1] SSH yürütme başarısız: Desktop Commander MCP hatası. Bash yedek yöntemi kullanıldı")
 ```
 
-### セッション切断時の再接続
+### Oturum Kesildiğinde Yeniden Bağlanma
 ```python
-# セッションが切断された場合
+# Oturum kesildiğinde
 if session_disconnected:
-    # ssh_sftp_sessions.jsonから古いPIDを削除
-    # 新しいセッションを確立
+    # ssh_sftp_sessions.json'dan eski PID'yi sil
+    # Yeni oturum kur
     new_ssh_pid = mcp__desktop-commander__start_process(
         command="ssh -tt user@host",
         timeout_ms=10000
     )
-    # ssh_sftp_sessions.jsonを更新
+    # ssh_sftp_sessions.json'ı güncelle
 ```
 
-## 🎯 ベストプラクティス
+## 🎯 En İyi Uygulamalar
 
-### 1. PIDの確実な管理
-- セッション作成時は必ず`ssh_sftp_sessions.json`を更新
-- プロジェクト終了時は全セッションを`force_terminate`で終了
+### 1. PID'nin Güvenilir Yönetimi
+- Oturum oluşturulduğunda mutlaka `ssh_sftp_sessions.json`'ı güncelle
+- Proje bitiminde tüm oturumları `force_terminate` ile sonlandır
 
-### 2. 大量出力の対処
+### 2. Büyük Çıktı İle Başa Çıkma
 ```python
-# 大量出力が予想される場合はファイルにリダイレクト
+# Büyük çıktı bekleniyorsa dosyaya yönlendir
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="./large_output_program > output.txt 2>&1",
     timeout_ms=60000
 )
 
-# 後でtailやheadで必要部分のみ確認
+# Sonra tail veya head ile yalnızca gerekli kısmı kontrol et
 mcp__desktop-commander__interact_with_process(
     pid=ssh_pid,
     input="tail -n 100 output.txt",
@@ -227,17 +226,17 @@ mcp__desktop-commander__interact_with_process(
 )
 ```
 
-### 3. ディレクトリ構造の維持
-- リモート環境でもローカルと同じディレクトリ階層を維持
-- これによりmakefileや設定ファイルの混乱を防ぐ
+### 3. Dizin Yapısının Korunması
+- Uzak ortamda da yerel ile aynı dizin hiyerarşisini koru
+- Bu sayede makefile ve yapılandırma dosyası karışıklığı önlenir
 
-## 📝 万が一動作しない場合のチェックリスト
-- [ ] ssh-agentが設定されている（ユーザにより事前セットアップ済みを想定）
-- [ ] Desktop Commander MCPが設定されている（MCPのドキュメントがない）
-- [ ] ssh_sftp_sessions.jsonがいつ作成されたものか確認
-- [ ] 接続先やユーザのuser_idは_remote_info等で提供されたものを使用しているか
+## 📝 Çalışmazsa Kontrol Listesi
+- [ ] ssh-agent ayarlanmış mı (kullanıcı tarafından önceden kurulum varsayılır)
+- [ ] Desktop Commander MCP ayarlanmış mı (MCP dokümantasyonu yok)
+- [ ] ssh_sftp_sessions.json ne zaman oluşturuldu kontrol et
+- [ ] Bağlantı hedefi ve kullanıcının user_id'si _remote_info vb. ile sağlanan mı
 
-## まとめ
+## Özet
 
-Desktop Commander MCPを使用することで、効率的なSSH/SFTP接続管理が可能になります。
-各エージェント（PG/SE/PM）は必要に応じて自身でセッションを管理し、PID記録により確実な制御を実現します。
+Desktop Commander MCP kullanarak verimli SSH/SFTP bağlantı yönetimi mümkün olur.
+Her aracı (PG/SE/PM) gerektiğinde kendi oturumunu yönetir ve PID kaydıyla güvenilir kontrol sağlar.

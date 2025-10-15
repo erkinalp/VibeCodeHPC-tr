@@ -1,83 +1,84 @@
-# SOTA Checker 使用ガイド
+# SOTA Checker Kullanım Kılavuzu
 
-## 概要
-`sota_checker.py`は、VibeCodeHPCプロジェクトの4階層SOTA（State-of-the-Art）を判定・記録するツールです。
-PGエージェントが新しい性能値を達成した際に実行し、各階層のsota_*.txtファイルを自動更新します。
+## Genel Bakış
+`sota_checker.py`, VibeCodeHPC projesinin 4 katmanlı SOTA (State-of-the-Art) değerlendirmesini yapar ve kaydeder.
+PG aracısı yeni bir performans değeri elde ettiğinde çalıştırılır ve her katmanın sota_*.txt dosyalarını otomatik olarak günceller.
 
-## 4階層のSOTA
-1. **Local**: 各技術ディレクトリごとの最高性能（sota_local.txt）
-2. **Family**: Virtual Parent（親技術）との比較（実行時算出、ファイル出力なし）
-3. **Hardware**: ハードウェア構成での最高性能（sota_hardware.txt）
-4. **Project**: プロジェクト全体での最高性能（sota_project.txt）
+## 4 Katmanlı SOTA
+1. **Local**: Her teknoloji dizini için en yüksek performans (sota_local.txt)
+2. **Family**: Virtual Parent (üst teknoloji) ile karşılaştırma (çalışma zamanında hesaplanır, dosya çıktısı yok)
+3. **Hardware**: Donanım yapılandırmasında en yüksek performans (sota_hardware.txt)
+4. **Project**: Proje genelinde en yüksek performans (sota_project.txt)
 
-## 使用方法
+## Kullanım Yöntemi
 
-### コマンドライン実行
+### Komut Satırı Yürütme
 ```bash
-# 基本形式
-python Agent-shared/sota/sota_checker.py <性能値> [ディレクトリ] [バージョン] [agent_id]
+# Temel format
+python Agent-shared/sota/sota_checker.py <performans_değeri> [dizin] [sürüm] [agent_id]
 
-# PGが自分のディレクトリで実行（相対パス使用）
+# PG kendi dizininde yürütür (göreli yol kullanımı)
 python ../../../../../../Agent-shared/sota/sota_checker.py "350.0 GFLOPS" . v1.2.3 PG1.1
 
-# SOLOがプロジェクトルートから任意のディレクトリを指定
+# SOLO proje kök dizininden herhangi bir dizini belirtir
 python Agent-shared/sota/sota_checker.py "350.0 GFLOPS" Flow/TypeII/single-node/intel2024/OpenMP v1.2.3 SOLO
 ```
 
-### Python内での使用
+### Python İçinde Kullanım
 ```python
 import sys
 from pathlib import Path
 
-# Agent-shared/sotaをパスに追加
+# Agent-shared/sota'yı yola ekle
 sys.path.append(str(Path(__file__).parent / "../../../../../../Agent-shared/sota"))
 from sota_checker import SOTAChecker
 
-# 現在のディレクトリでSOTA判定
+# Mevcut dizinde SOTA değerlendirmesi
 checker = SOTAChecker(".")
 results = checker.check_sota_levels("350.0 GFLOPS")
 
-# 結果確認
+# Sonuç doğrulama
 for level, is_sota in results.items():
     if is_sota:
-        print(f"{level}: NEW SOTA!")
+        print(f"{level}: YENİ SOTA!")
 
-# SOTAファイル更新（いずれかのレベルでSOTA達成時）
+# SOTA dosyası güncelleme (herhangi bir katmanda SOTA başarısı durumunda)
 if any(results.values()):
     from datetime import datetime
     timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     checker.update_sota_files("v1.2.3", timestamp, "PG1.1")
 ```
 
-## 実行タイミング
-1. **ChangeLog.md更新後**: 新バージョンの性能測定が完了したら実行
-2. **ジョブ実行結果取得後**: 性能値が確定したタイミング
-3. **SOTA判定が必要な時**: PMやSEから指示があった場合
+## Yürütme Zamanlaması
+1. **ChangeLog.md güncellemesinden sonra**: Yeni sürümün performans ölçümü tamamlandığında yürüt
+2. **İş yürütme sonucu alındıktan sonra**: Performans değeri kesinleştiğinde
+3. **SOTA değerlendirmesi gerektiğinde**: PM veya SE'den talimat geldiğinde
 
-## ファイル配置
+## Dosya Yerleşimi
 ```
 VibeCodeHPC/
-├── sota_project.txt              # Project階層SOTA
+├── sota_project.txt              # Project katmanı SOTA
 ├── Flow/TypeII/single-node/
-│   ├── sota_hardware.txt         # Hardware階層SOTA
+│   ├── sota_hardware.txt         # Hardware katmanı SOTA
 │   └── intel2024/OpenMP/
-│       ├── ChangeLog.md          # 性能記録
-│       └── sota_local.txt        # Local階層SOTA
+│       ├── ChangeLog.md          # Performans kaydı
+│       └── sota_local.txt        # Local katmanı SOTA
 ```
 
-## Virtual Parent (Family)について
-- **ファイル出力なし**: Family階層は実行時に動的算出
-- **参照先**: PG_visible_dir.mdの"Virtual parent"セクション
-- **例**: OpenMP_MPIの親技術はOpenMPとMPI（同一コンパイラ下）
+## Virtual Parent (Family) Hakkında
+- **Dosya çıktısı yok**: Family katmanı çalışma zamanında dinamik olarak hesaplanır
+- **Başvuru kaynağı**: PG_visible_dir.md'nin "Virtual parent" bölümü
+- **Örnek**: OpenMP_MPI'nin üst teknolojisi OpenMP ve MPI'dır (aynı derleyici altında)
 
-## 注意事項
-- 性能値は必ず`"XXX.X GFLOPS"`形式で指定
-- ディレクトリ未指定時は現在のディレクトリを使用
-- 相対パス・絶対パスどちらも対応
-- プロジェクト名が"VibeCodeHPC"で始まることを前提
+## Dikkat Edilmesi Gerekenler
+- Performans değeri mutlaka `"XXX.X GFLOPS"` formatında belirtilmelidir
+- Dizin belirtilmediğinde mevcut dizin kullanılır
+- Göreli yol ve mutlak yol her ikisi de desteklenir
+- Proje adının "VibeCodeHPC" ile başladığı varsayılır
 
-## トラブルシューティング
-- **"Project root not found"**: プロジェクトルートが見つからない
-  - 解決: 絶対パスで実行するか、プロジェクト内から実行
-- **"sota_local.txt not found"**: 初回実行で正常（ファイルが作成される）
-- **権限エラー**: sota_*.txtの書き込み権限を確認
+## Sorun Giderme
+- **"Project root not found"**: Proje kök dizini bulunamadı
+  - Çözüm: Mutlak yol ile yürüt veya proje içinden yürüt
+- **"sota_local.txt not found"**: İlk yürütmede normaldir (dosya oluşturulur)
+- **İzin hatası**: sota_*.txt yazma izinlerini doğrula
+

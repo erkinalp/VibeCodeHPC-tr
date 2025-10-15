@@ -1,41 +1,43 @@
-## 第１階層：環境構築ディレクトリ
-- module listやmakefile, シェルscriptを読んだLLMが自動で📂を作成
-- 「どうやって、環境構築・ビルド・実行するのか」という主要な構成を定義
+# Tipik YBH Kodu Optimizasyon Stratejisi
 
-## 第２階層：戦略ディレクトリ
-- CUDA-MPI-OMP-{SIMD}-コンパイラ最適化レベル などのモジュールレベルで分業
-- ※アルゴリズムレベルの高速化実装：nonBlock, 転置, ループアンローリング… 等は各PGに任せる
+## 1. Katman: Ortam Kurulum Dizini
+- module list, makefile ve shell script'i okuyan LLM otomatik olarak 📂 oluşturur
+- "Nasıl ortam kurulur, derlenir ve yürütülür" ana yapısını tanımlar
 
-初期ディレクトリ構成例
+## 2. Katman: Strateji Dizini
+- CUDA-MPI-OMP-{SIMD}-derleyici optimizasyon seviyesi gibi modül seviyesinde iş bölümü
+- ※Algoritma seviyesi hızlandırma uygulaması: nonBlock, transpoz, döngü açma... vb. her PG'ye bırakılır
 
-環境構築📁直下に置く
+İlk dizin yapısı örneği
 
-### 要件定義の例
-ユーザへの質疑応答の結果、以下の指定があったケースで考える
-- 不老TypeIIを使用
-- AutoTuningPlannerを除くエージェント数：12
-- single-nodeの並列化が7割程度完成したらmulti-nodeへ
-- singularityは使用しない
+Ortam kurulum📁 altına yerleştir
 
-
-🤖はActiveなエージェントが存在することを意味する
-
-下記のようにAgentリソースを適切に割り振り、効率的な最適化を行います
-
-### 記法
-- 🤖🥇(PM) プロジェクトで1体
-- 🤖🥈(SE1) 1体~複数体： ハードウェア単位で置く
-- 🤖(PG1.1) SEの下、または環境別ディレクトリに配置： 戦略ごとに割り当て
-- 🤖(CD) プロジェクトで最大1体
-閉じた📁は直下のエージェントが自由にフォルダを作成して良いことを表す。
-それ以外は、開いた📂で書く
+### Gereksinim Tanımı Örneği
+Kullanıcıyla soru-cevap sonucu, aşağıdaki belirtimlerin olduğu durumu düşünelim
+- Furo TypeII kullanımı
+- AutoTuningPlanner hariç aracı sayısı: 12
+- single-node paralelleştirmesi yaklaşık %70 tamamlandığında multi-node'a geç
+- singularity kullanılmıyor
 
 
-### 初期化直後
+🤖 Aktif aracının varlığını gösterir
+
+Aşağıdaki gibi Agent kaynaklarını uygun şekilde tahsis ederek verimli optimizasyon yapılır
+
+### Gösterim
+- 🤖🥇(PM) Projede 1 adet
+- 🤖🥈(SE1) 1 adet~birden fazla: Donanım bazında yerleştir
+- 🤖(PG1.1) SE altında veya ortam bazlı dizine yerleştir: Strateji bazında ata
+- 🤖(CD) Projede maksimum 1 adet
+Kapalı📁 altındaki aracının özgürce klasör oluşturabileceğini gösterir.
+Diğerleri açık📂 ile yazılır
+
+
+### Başlatma Sonrası
 ```
 VibeCodeHPC📂
-├── CLAUDE.md📄 (共通の指示)
-├── assign_history.txt📄 (エージェントのアサイン記録)
+├── CLAUDE.md📄 (ortak talimatlar)
+├── assign_history.txt📄 (aracı atama kaydı)
 ├── 🤖🥇(PM)
 ├── GitHub📁🤖(CD)
 └── Flow/TypeII📂
@@ -56,11 +58,11 @@ VibeCodeHPC📂
 ```
 
 
-### 一定時間経過後
+### Belirli Süre Sonra
 ```
 VibeCodeHPC📂
-├── CLAUDE.md📄 (共通の指示)
-├── assign_history.txt📄 (エージェントのアサイン記録)
+├── CLAUDE.md📄 (ortak talimatlar)
+├── assign_history.txt📄 (aracı atama kaydı)
 ├── 🤖🥇(PM)
 ├── GitHub📁🤖(CD)
 └── Flow/TypeII📂
@@ -82,15 +84,15 @@ VibeCodeHPC📂
             └── OpenACC📁🤖(PG1.7)
     └── multi-node📂
 
- Not Assigned PG1.2.3 🤖
+ Atanmamış PG1.2.3 🤖
 ```
 
 
-### さらに一定時間経過後
+### Daha Fazla Süre Sonra
 ```
 VibeCodeHPC📂
-├── CLAUDE.md📄 (共通の指示)
-├── assign_history.txt📄 (エージェントのアサイン記録)
+├── CLAUDE.md📄 (ortak talimatlar)
+├── assign_history.txt📄 (aracı atama kaydı)
 ├── 🤖🥇(PM)
 ├── GitHub📁🤖(CD)
 └── Flow/TypeII📂
@@ -114,31 +116,32 @@ VibeCodeHPC📂
     └── multi-node📂
         ├── 🤖🥈(SE2)
         └── gcc11.3.0📂
-            ├── MPI📁🤖(PG2.1)     <-- 元PG1.6が再配置
-            └── OpenACC📁🤖(PG2.2) <-- 元PG1.7が再配置
+            ├── MPI📁🤖(PG2.1)     <-- Eski PG1.6 yeniden yerleştirildi
+            └── OpenACC📁🤖(PG2.2) <-- Eski PG1.7 yeniden yerleştirildi
 ```
 
-### PMがエージェントを割り当てる際のTips
-- multi-nodeのように新たなハードウェア環境を開拓する場合
-SE + PGの最低２人が必要になるので、
-待機中のエージェントを一定数ストックしておくのも戦略
+### PM Aracı Atarken İpuçları
+- multi-node gibi yeni donanım ortamını keşfederken
+SE + PG minimum 2 kişi gerekir,
+bu nedenle bekleyen aracıları belirli sayıda stoklamak da bir stratejidir
 
-- この待機中エージェントをPM直属の部下として仕事を依頼することもできるが、
-コード生成に関する貴重な知見が記憶(コンテキスト)からドロップアウトする可能性があるので、
-まずは`claude -p`によるサブエージェントの活用を検討し、
-それでも不足する場合はSEへのサブタスクを依頼を推奨（CDはGitHub管理に専念）
+- Bu bekleyen aracıyı PM'nin doğrudan astı olarak görevlendirmek de mümkündür, ancak
+kod üretimi ile ilgili değerli bilgiler hafızadan (bağlamdan) düşebilir,
+bu nedenle önce `claude -p` ile alt aracı kullanımını değerlendirin,
+yine de yetersizse SE'ye alt görev atamayı önerin (CD GitHub yönetimine odaklanır)
 
 
-### SE🤖🥈視点
+### SE🤖🥈 Bakış Açısı
 ```
-PGの監視
-各エージェントが自分の責務を果たしているかを確認
+PG izleme
+Her aracının sorumluluğunu yerine getirip getirmediğini doğrula
 
-☑ 参照範囲設定 📁OpenMP_MPI🤖PGに対して
-　　　　　　　　同階層の📁MPI,📁OpenMPのみへの参照許可を与えているか
-　　　　　　　　別階層の例：gcc📂とintel📂で異なるが（別のSEの管轄だが）MPI📁が存在するので許可
-☑ PGが答えをそのまま出力するような不正なコードを生成していないか
-☑ 有用テストコードの共有
-☑ PGが適切にmodule loadやmakeを行っているか
-☑ ChangeLog.mdへの記録が適切に行われているか
+☑ Başvuru kapsamı ayarı 📁OpenMP_MPI🤖PG için
+              aynı katmandaki 📁MPI, 📁OpenMP'ye yalnızca başvuru izni verilmiş mi
+              farklı katman örneği: gcc📂 ve intel📂 farklı (başka SE'nin yetki alanı) ama MPI📁 var, izin ver
+☑ PG'nin cevabı doğrudan çıkaran hile kod üretip üretmediği
+☑ Yararlı test kodunun paylaşımı
+☑ PG'nin uygun şekilde module load ve make yapıp yapmadığı
+☑ ChangeLog.md'ye kaydın uygun şekilde yapılıp yapılmadığı
 ```
+

@@ -1,2 +1,2 @@
-CDエージェントによって管理されるプロジェクトの匿名版コピーです。
-GitHubとのやり取りは全てこの /GitHub📁以下で行います。
+Bu, CD aracısı tarafından yönetilen projenin anonim kopyasıdır.
+GitHub ile tüm etkileşimler /GitHub📁 dizini altında gerçekleştirilir.

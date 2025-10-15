@@ -1,1 +1,1 @@
-既存のオリジナルコードを置くディレクトリ
+Mevcut özgün kodların yerleştirileceği dizin

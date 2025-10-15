@@ -1,50 +1,50 @@
 # Hooks System Flowchart (Updated)
 
-## エージェント起動とHooksシステムの全体フロー
+## Aracı başlatma ve Hooks sistemi genel akışı
 
 ```mermaid
 flowchart TB
-      %% 起動スクリプトの包含関係
-      subgraph StartScripts["🚀 起動スクリプト"]
-      User[👤 ユーザー] 
+      %% Başlatma betiklerinin kapsama ilişkisi
+      subgraph StartScripts["🚀 Başlatma betikleri"]
+      User[👤 Kullanıcı] 
       PM[🤖 PM]
-      User -->StartPM[start_PM.sh<br/>PMプロセス専用]
-      PM -->StartAgent[start_agent.sh<br/>他エージェント用]
+      User -->StartPM[start_PM.sh<br/>PM sürecine özel]
+      PM -->StartAgent[start_agent.sh<br/>Diğer aracıları başlatma]
 
-          StartPM -->|直接実行| LaunchClaude
-          StartAgent -->|生成| LocalScript[start_agent_local.sh]
-          LocalScript -->|実行| LaunchClaude
+          StartPM -->|doğrudan çalıştır| LaunchClaude
+          StartAgent -->|oluştur| LocalScript[start_agent_local.sh]
+          LocalScript -->|çalıştır| LaunchClaude
       end
 
-      %% 共通処理の流れ
-      subgraph CommonFlow["🔄 共通処理フロー"]
+      %% Ortak işlem akışı
+      subgraph CommonFlow["🔄 Ortak işlem akışı"]
           LaunchClaude[launch_claude_with_env.sh]
-          LaunchClaude -->|1.hooks設定判定| SetupHooks[setup_agent_hooks.sh]
-          LaunchClaude -->|2.telemetry設定判定| EnvSetup[環境変数設定<br/>.env読み込み]
-          LaunchClaude -->|"3. --dangerously-skip-permissionsで起動"| ClaudeCode[Claude Code]
+          LaunchClaude -->|1. kanca ayar kontrolü| SetupHooks[setup_agent_hooks.sh]
+          LaunchClaude -->|2. telemetri ayar kontrolü| EnvSetup[Ortam değişkeni ayarı<br/>.env yükleme]
+          LaunchClaude -->|"3. --dangerously-skip-permissions ile başlat"| ClaudeCode[Claude Code]
       end
 
-      %% データフロー
-      subgraph DataFlow["💾 データ管理"]
-          SetupHooks -->|配置| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt]
-
-          LocalScript -->|working_dir記録| JSONL
-          ClaudeCode -.->|SessionStartイベント| SessionHook[session_start.py]
-          SessionHook -->|agent_id.txt参照<br/>claude_session_id記録| JSONL
+      %% Veri akışı
+      subgraph DataFlow["💾 Veri yönetimi"]
+          SetupHooks -->|yerleştir| HooksDir[.claude/📂settings.local.json<br/>hooks/📂<br/>session_start.py<br/>stop.py<br/>post_tool_ssh_handler.py<br/>agent_id.txt]
+          
+          LocalScript -->|working_dir kaydı| JSONL
+          ClaudeCode -.->|SessionStart olayı| SessionHook[session_start.py]
+          SessionHook -->|agent_id.txt başvurusu<br/>claude_session_id kaydı| JSONL
 
           JSONL[(agent_and_pane_id_table.jsonl)]
       end
 
-      %% Hook イベントフロー
-      subgraph HookEvents["🪝 Hookイベント"]
-          ClaudeCode -.->|Stopイベント| StopHook[stop.py]
-          StopHook -->|polling型| PreventWait[待機防止タスク提示]
+      %% Kanca olay akışı
+      subgraph HookEvents["🪝 Kanca olayları"]
+          ClaudeCode -.->|Stop olayı| StopHook[stop.py]
+          StopHook -->|yoklama tipi| PreventWait[Beklemeyi önleme görevleri öner]
           
-          ClaudeCode -.->|"PostToolUseイベント<br/>(SSH接続を試行後)"| SSHHandler[post_tool_ssh_handler.py]
-          SSHHandler -->|警告表示| SSHGuide[SSH管理ガイダンス<br/>• session.json更新指示<br/>• STOP回避指示]
+          ClaudeCode -.->|"PostToolUse olayı<br/>(SSH bağlantısı denendikten sonra)"| SSHHandler[post_tool_ssh_handler.py]
+          SSHHandler -->|Uyarı göster| SSHGuide[SSH yönetim kılavuzu<br/>• session.json güncelleme talimatı<br/>• STOP’tan kaçınma talimatı]
       end
 
-      %% スタイリング
+      %% Stil
       style StartScripts fill:#fff8fc,stroke:#c2185b,stroke-width:2px
       style CommonFlow fill:#e3f2fd,stroke:#0288d1,stroke-width:3px
       style HookEvents fill:#fff3e0,stroke:#ff9800,stroke-width:2px
@@ -65,35 +65,35 @@ flowchart TB
       style PreventWait fill:#fff9c4,stroke:#f9a825,stroke-width:2px
 ```
 
-## PostToolUse Hook詳細フロー
+## PostToolUse Kancası ayrıntılı akışı
 
 ```mermaid
 flowchart TB
-      Start[ツール実行完了] -->|PostToolUseイベント| Handler[post_tool_ssh_handler.py]
+      Start[Araç çalışması tamamlandı] -->|PostToolUse olayı| Handler[post_tool_ssh_handler.py]
       
-      Handler --> CheckTool{ツール判定}
-      CheckTool -->|"Bash"| CheckBashCmd{コマンド確認}
-      CheckTool -->|"DC::start_process"| CheckDCCmd{コマンド確認}
-      CheckTool -->|その他| Exit[終了]
+      Handler --> CheckTool{Araç türü}
+      CheckTool -->|"Bash"| CheckBashCmd{Komut kontrolü}
+      CheckTool -->|"DC::start_process"| CheckDCCmd{Komut kontrolü}
+      CheckTool -->|Diğer| Exit[Çıkış]
       
-      CheckBashCmd -->|"ssh/sftp/scp"| BashWarn[Bash警告処理]
-      CheckBashCmd -->|その他| Exit
+      CheckBashCmd -->|"ssh/sftp/scp"| BashWarn[Bash uyarı işlemi]
+      CheckBashCmd -->|Diğer| Exit
       
-      CheckDCCmd -->|"ssh/sftp"| ExtractPID[PID抽出]
-      CheckDCCmd -->|その他| Exit
+      CheckDCCmd -->|"ssh/sftp"| ExtractPID[PID çıkar]
+      CheckDCCmd -->|Diğer| Exit
       
-      ExtractPID --> SessionCheck{session.json<br/>存在確認}
+      ExtractPID --> SessionCheck{session.json<br/>varlık kontrolü}
       BashWarn --> SessionCheck
       
-      SessionCheck -->|あり| UpdateMsg[更新指示メッセージ]
-      SessionCheck -->|なし| CreateMsg[作成指示メッセージ]
+      SessionCheck -->|var| UpdateMsg[Güncelleme talimatı mesajı]
+      SessionCheck -->|yok| CreateMsg[Oluşturma talimatı mesajı]
       
-      UpdateMsg --> Display[stderr出力<br/>exit code 2]
+      UpdateMsg --> Display[stderr çıktısı<br/>çıkış kodu 2]
       CreateMsg --> Display
       
-      Display --> Guide[Claudeに表示<br/>• ssh_sftp_guide.md参照<br/>• セッション管理指示<br/>• STOP回避指示]
+      Display --> Guide[Claude’da göster<br/>• ssh_sftp_guide.md'ye bak<br/>• oturum yönetimi talimatı<br/>• STOP’tan kaçınma talimatı]
       
-      %% スタイリング
+      %% Stil
       style Handler fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
       style ExtractPID fill:#e3f2fd,stroke:#0288d1,stroke-width:2px
       style SessionCheck fill:#e3f2fd,stroke:#0288d1,stroke-width:2px

@@ -1,101 +1,101 @@
-# VibeCodeHPC テレメトリシステム
+# VibeCodeHPC Telemetri Sistemi
 
-このディレクトリは、エージェントのメトリクス収集・可視化とOpenTelemetry設定を管理します。
+Bu dizin, aracılar için metrik toplama/görselleştirme ve OpenTelemetry yapılandırmasını yönetir.
 
-## 📊 機能
+## 📊 Özellikler
 
-### 1. OpenTelemetry監視
-- **OTLP (gRPC)** プロトコルでメトリクスとログをエクスポート
-- エージェントID、チームID、作業ディレクトリでタグ付け
-- Grafana、LangFuse等のバックエンドで可視化
+### 1. OpenTelemetry izleme
+- Metrik ve logları OTLP (gRPC) protokolüyle dışa aktarır
+- Aracı ID, takım ID ve çalışma dizinine göre etiketleme
+- Grafana, LangFuse vb. arka uçlarda görselleştirme
 
-### 2. コンテキスト使用率監視  
-- 各エージェントの使用トークン数を追跡（200,000トークン上限）
-- Auto-compact発生を検知・記録
-- 時系列グラフで可視化
+### 2. Bağlam kullanım oranı izleme
+- Her aracının kullandığı token sayısını takip (200.000 sınır)
+- Otomatik sıkıştırma (auto-compact) olaylarını tespit ve kaydetme
+- Zaman serisi grafikleri ile görselleştirme
 
-### 3. サブエージェント統計
-- `claude -p` の使用状況を分析
-- トークン節約効果の定量化
+### 3. Alt aracı istatistikleri
+- `claude -p` kullanımını analiz eder
+- Token tasarrufu etkisini nicelleştirir
 
-## 🚀 使用方法
+## 🚀 Kullanım
 
-### エージェント起動
+### Aracı başlatma
 ```bash
-# OpenTelemetry自動設定でエージェントを起動
+# OpenTelemetry otomatik ayarlarıyla aracı başlat
 ./telemetry/launch_claude_with_env.sh PG1.1.1
 ```
 
-起動時に以下が自動設定されます：
-- OpenTelemetry有効化（`otel_config.env.example`から自動生成）
-- エージェント識別属性の設定
-- サブエージェント統計の有効化
+Başlangıçta otomatik ayarlananlar:
+- OpenTelemetry etkinleştirme (`otel_config.env.example` temel alınır)
+- Aracı kimlik nitelikleri
+- Alt aracı istatistikleri
 
-### 設定のカスタマイズ
+### Yapılandırmayı özelleştirme
 
-`otel_config.env`を編集してエンドポイントや認証情報を設定：
+Uç nokta ve kimlik doğrulama bilgileri için `otel_config.env` dosyasını düzenleyin:
 ```bash
-# デフォルトはローカルのOTel Collector
+# Varsayılan yerel OTel Collector
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 
-# LangFuse等の外部サービスを使用する場合
+# LangFuse gibi harici hizmetler için
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://your-endpoint.com
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-token"
 ```
 
-## 📁 ディレクトリ構造
+## 📁 Dizin yapısı
 
 ```
 telemetry/
-├── otel_config.env.example    # OpenTelemetry設定テンプレート  
-├── docker-compose.yml         # ローカルテスト環境（Grafana + Prometheus）
-├── sub_agent/                 # サブエージェント使用ログ（claude_p_wrapper.shが生成）
-├── sub_agent_logs/            # サブエージェント統計ログ（launch_claude_with_env.shが生成）
-└── visualization/             # 生成されたグラフ（analyze_sub_agent.pyが使用）
+├── otel_config.env.example    # OpenTelemetry yapılandırma şablonu  
+├── docker-compose.yml         # Yerel test ortamı (Grafana + Prometheus)
+├── sub_agent/                 # Alt aracı kullanım logları (claude_p_wrapper.sh üretir)
+├── sub_agent_logs/            # Alt aracı istatistik logları (launch_claude_with_env.sh üretir)
+└── visualization/             # Üretilen grafikler (analyze_sub_agent.py kullanır)
 ```
 
-## 🔧 バックエンド設定
+## 🔧 Arka uç ayarları
 
-### ローカル開発環境
+### Yerel geliştirme ortamı
 ```bash
-# Docker ComposeでOTel Collector、Prometheus、Grafanaを起動
+# Docker Compose ile OTel Collector, Prometheus, Grafana’yı başlat
 docker-compose -f telemetry/docker-compose.yml up -d
 
-# Grafanaにアクセス
+# Grafana erişimi
 # http://localhost:3000 (admin/admin)
 ```
 
-### 本番環境
+### Üretim ortamı
 - Grafana Cloud
-- LangFuse（OpenTelemetryトレーシング対応）
-- Datadog、New Relic等のOTLP対応サービス
+- LangFuse (OpenTelemetry izleme uyumlu)
+- Datadog, New Relic gibi OTLP uyumlu servisler
 
-## 📈 可視化ツール
+## 📈 Görselleştirme araçları
 
-### コンテキスト使用率監視
+### Bağlam kullanım izleme
 ```bash
-# 詳細な可視化
+# Ayrıntılı görselleştirme
 python telemetry/context_usage_monitor.py
 
-# クイックステータス確認
+# Hızlı durum
 python telemetry/context_usage_quick_status.py
 ```
 
-### サブエージェント統計
+### Alt aracı istatistikleri
 ```bash
 python telemetry/analyze_sub_agent.py
 ```
 
-### コンテキスト使用状況監視
+### Bağlam kullanım durumu izleme
 ```bash
-# 全エージェントの状況を可視化
+# Tüm aracıların durumunu görselleştir
 python telemetry/context_usage_monitor.py
 
-# クイックステータス確認
+# Hızlı durum
 python telemetry/context_usage_quick_status.py
 ```
 
-## 📚 参考資料
+## 📚 Kaynaklar
 
-- [Claude Code監視ドキュメント](https://docs.anthropic.com/ja/docs/claude-code/monitoring-usage)
-- [OpenTelemetry仕様](https://opentelemetry.io/docs/)
+- Claude Code izleme dokümantasyonu: https://docs.anthropic.com/ja/docs/claude-code/monitoring-usage
+- OpenTelemetry dokümantasyonu: https://opentelemetry.io/docs/

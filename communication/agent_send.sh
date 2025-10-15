@@ -1,28 +1,23 @@
 #!/bin/bash
 
-# 🧬 VibeCodeHPC Agent間メッセージ送信システム
-# HPC最適化用マルチエージェント通信
+# 🧬 VibeCodeHPC Aracılar arası mesaj gönderim sistemi
 
-# agent_and_pane_id_table.jsonl読み込み
+# agent_and_pane_id_table.jsonl yükleme
 load_agent_map() {
     local table_file="./Agent-shared/agent_and_pane_id_table.jsonl"
     
     if [[ ! -f "$table_file" ]]; then
-        echo "❌ エラー: agent_and_pane_id_table.jsonl が見つかりません"
-        echo "先に ./communication/setup.sh を実行してください"
+        echo "❌ Hata: agent_and_pane_id_table.jsonl bulunamadı"
+        echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın"
         return 1
     fi
     
-    # associative array宣言
     declare -gA AGENT_MAP
     
-    # JSONL形式の解析
     while IFS= read -r line; do
-        # コメントと空行をスキップ
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${line// }" ]] && continue
         
-        # JSON解析（jqが使えない環境でも動作するよう簡易解析）
         if [[ "$line" =~ \"agent_id\":[[:space:]]*\"([^\"]+)\" ]]; then
             local agent_name="${BASH_REMATCH[1]}"
             
@@ -45,14 +40,12 @@ load_agent_map() {
     done < "$table_file"
 }
 
-# エージェント→tmuxターゲット変換
 get_agent_target() {
     local agent_name="$1"
     
-    # 大文字小文字を統一
     agent_name=$(echo "$agent_name" | tr '[:lower:]' '[:upper:]')
     
-    # AGENT_MAPから取得
+    # AGENT_MAP içinden al
     if [[ -n "${AGENT_MAP[$agent_name]}" ]]; then
         echo "${AGENT_MAP[$agent_name]}"
     else
@@ -60,110 +53,102 @@ get_agent_target() {
     fi
 }
 
-# エージェント役割取得
 get_agent_role() {
     local agent_name="$1"
     
     case "${agent_name:0:2}" in
-        "PM") echo "プロジェクト管理・要件定義" ;;
-        "SE") echo "システム設計・監視" ;;
-        "PG") echo "コード生成・最適化" ;;
-        "CD") echo "GitHub・デプロイ管理" ;;
-        *) echo "専門エージェント" ;;
+        "PM") echo "Proje yönetimi ve gereksinim tanımı" ;;
+        "SE") echo "Sistem tasarımı ve izleme" ;;
+        "PG") echo "Kod üretimi ve optimizasyon" ;;
+        "CD") echo "GitHub ve dağıtım yönetimi" ;;
+        *) echo "Uzman aracı" ;;
     esac
 }
 
-# エージェント色コード取得（グループ対応）
 get_agent_color() {
     local agent_name="$1"
     
     case "${agent_name:0:2}" in
-        "PM") echo "1;35" ;;  # マゼンタ
-        "SE") echo "1;36" ;;  # シアン
+        "PM") echo "1;35" ;;  # Macenta
+        "SE") echo "1;36" ;;  # Camgöbeği
         "PG") 
-            # グループごとに色を変える
             if [[ "$agent_name" =~ PG1\.1 ]]; then
-                echo "1;32"  # 緑
+                echo "1;32"  # Yeşil
             elif [[ "$agent_name" =~ PG1\.2 ]]; then
-                echo "1;92"  # 明るい緑
+                echo "1;92"  # Açık yeşil
             elif [[ "$agent_name" =~ PG2\. ]]; then
-                echo "1;33"  # 黄
+                echo "1;33"  # Sarı
             else
-                echo "1;32"  # デフォルト緑
+                echo "1;32"  # Varsayılan yeşil
             fi
             ;;
-        "CD") echo "1;31" ;;  # 赤
-        *) echo "1;37" ;;     # 白
+        "CD") echo "1;31" ;;  # Kırmızı
+        *) echo "1;37" ;;     # Beyaz
     esac
 }
 
-# 使用方法表示
 show_usage() {
     cat << EOF
-🧬 VibeCodeHPC Agent間メッセージ送信システム
+🧬 VibeCodeHPC Aracılar arası mesaj gönderim sistemi
 
-使用方法:
-  $0 [エージェント名] [メッセージ]
+Kullanım:
+  $0 [aracı_adı] [mesaj]
   $0 --list
   $0 --status
-  $0 --broadcast [メッセージ]
+  $0 --broadcast [mesaj]
 
-基本コマンド:
-  PM "requirement_definition.mdを確認してください"
-  SE1 "監視状況を報告してください"
-  PG1.1.1 "コード最適化を開始してください"
-  CD "GitHub同期を実行してください"
+Temel komutlar:
+  PM "requirement_definition.md dosyasını lütfen kontrol edin"
+  SE1 "İzleme durumunu lütfen rapor edin"
+  PG1.1.1 "Lütfen kod optimizasyonuna başlayın"
+  CD "Lütfen GitHub senkronizasyonunu çalıştırın"
 
-特殊コマンド:
-  --list        : 利用可能エージェント一覧表示
-  --status      : 全エージェント状態確認
-  --broadcast   : 全エージェントにメッセージ送信
-  --help        : このヘルプを表示
+Özel komutlar:
+  --list        : Kullanılabilir aracılar listesini gösterir
+  --status      : Tüm aracıların durumunu gösterir
+  --broadcast   : Tüm aracılara mesaj gönderir
+  --help        : Bu yardım ekranını gösterir
 
-メッセージ種別 (推奨フォーマット):
-  [依頼] コンパイル実行お願いします
-  [報告] SOTA更新: 285.7 GFLOPS達成
-  [質問] visible_paths.txtの更新方法は？
-  [完了] プロジェクト初期化完了しました
+Mesaj türleri (önerilen format):
+  [İstek] Derlemeyi çalıştırın lütfen
+  [Rapor] SOTA güncellemesi: 285.7 GFLOPS elde edildi
+  [Soru] visible_paths.txt nasıl güncellenir?
+  [Tamamlandı] Proje başlatma tamamlandı
 
-特殊コマンド (PMの管理用):
-  "!cd /path/to/directory"              # エージェント再配置（記憶維持）
+Özel komutlar (PM yönetimi için):
+  "!cd /path/to/directory"              # Aracıyı yeniden konumlandırma (durum korunur)
   
-注意: 再配置は各エージェントの現在位置からの移動
+Not: Yeniden konumlandırma, her aracının mevcut konumundan yapılır
 
-例:
-  $0 SE1 "[依頼] PG1.1.1にOpenMP最適化タスクを配布してください"
-  $0 PG1.1.1 "[質問] OpenACCの並列化警告が出ています。どう対処しますか？"
-  $0 PG1.1 "[報告] job_12345 実行完了、性能データ 285.7 GFLOPS達成"
+Örnekler:
+  $0 SE1 "[İstek] PG1.1.1’e OpenMP optimizasyon görevini dağıtın lütfen"
+  $0 PG1.1.1 "[Soru] OpenACC paralelleştirme uyarısı var. Nasıl ilerleyelim?"
+  $0 PG1.1 "[Rapor] job_12345 tamamlandı, performans verisi: 285.7 GFLOPS"
   
-  # 再配置例（絶対パス）
   $0 PG1.1.1 "!cd /absolute/path/to/VibeCodeHPC/Flow/TypeII/single-node/gcc/OpenMP_MPI"
   
-  # 再配置例（相対パス - エージェントの現在位置から）
-  $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # 同階層の別戦略へ移動
-  $0 SE1 "!cd ../multi-node"                  # 上位階層へ移動
+  $0 PG1.2.1 "!cd ../../../gcc/CUDA"          # Aynı hiyerarşide başka stratejiye geç
+  $0 SE1 "!cd ../multi-node"                  # Üst hiyerarşiye geç
   
-  $0 --broadcast "[緊急] 全エージェント状況報告してください"
+  $0 --broadcast "[Acil] Tüm aracıların durum raporunu iletin"
 EOF
 }
 
-# エージェント一覧表示
 show_agents() {
-    echo "📋 VibeCodeHPC エージェント一覧:"
+    echo "📋 VibeCodeHPC Aracı Listesi:"
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
-        echo "❌ エージェントが見つかりません"
-        echo "先に ./communication/setup.sh を実行してください"
+        echo "❌ Aracı bulunamadı"
+        echo "Lütfen önce ./communication/setup.sh komutunu çalıştırın"
         return 1
     fi
     
-    # エージェント種別ごとに表示
     local agent_types=("PM" "SE" "PG" "CD")
     
     for type in "${agent_types[@]}"; do
         echo ""
-        echo "📍 ${type} エージェント:"
+        echo "📍 ${type} Aracılar:"
         local found=false
         
         for agent in "${!AGENT_MAP[@]}"; do
@@ -172,33 +157,31 @@ show_agents() {
                 local role=$(get_agent_role "$agent")
                 local color=$(get_agent_color "$agent")
                 
-                # セッション存在確認
                 local session="${target%%:*}"
                 if tmux has-session -t "$session" 2>/dev/null; then
                     echo -e "  \033[${color}m$agent\033[0m → $target ($role)"
                 else
-                    echo -e "  \033[${color}m$agent\033[0m → [未起動] ($role)"
+                    echo -e "  \033[${color}m$agent\033[0m → [başlatılmadı] ($role)"
                 fi
                 found=true
             fi
         done
         
         if [[ "$found" == false ]]; then
-            echo "  (該当エージェントなし)"
+            echo "  (Uygun aracı yok)"
         fi
     done
     
     echo ""
-    echo "総エージェント数: ${#AGENT_MAP[@]}"
+    echo "Toplam aracı sayısı: ${#AGENT_MAP[@]}"
 }
 
-# エージェント状態確認
 show_status() {
-    echo "📊 VibeCodeHPC エージェント状態:"
+    echo "📊 VibeCodeHPC Aracı Durumu:"
     echo "================================"
     
     if [[ ${#AGENT_MAP[@]} -eq 0 ]]; then
-        echo "❌ エージェントが見つかりません"
+        echo "❌ Aracı bulunamadı"
         return 1
     fi
     
@@ -212,39 +195,35 @@ show_status() {
         local window="${window_pane%%.*}"
         local pane="${window_pane##*.}"
         
-        # セッション・ペイン存在確認
         if tmux has-session -t "$session" 2>/dev/null; then
             if tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
-                echo "✅ $agent : アクティブ"
+                echo "✅ $agent : aktif"
                 ((active_count++))
             else
-                echo "⚠️  $agent : セッション存在、ペイン不明"
+                echo "⚠️  $agent : oturum var, pencere/pane bilinmiyor"
             fi
         else
-            echo "❌ $agent : 未起動"
+            echo "❌ $agent : başlatılmamış"
         fi
     done
     
     echo ""
-    echo "アクティブ: $active_count / $total_count"
+    echo "Aktif: $active_count / $total_count"
     
-    # tmuxセッション情報
     echo ""
-    echo "📺 tmuxセッション情報:"
-    # アクティブなセッションをすべて表示
+    echo "📺 tmux oturum bilgileri:"
     tmux list-sessions 2>/dev/null | while IFS=: read -r session rest; do
         local pane_count=$(tmux list-panes -t "$session" 2>/dev/null | wc -l)
         echo "$session: $pane_count panes"
     done
 }
 
-# ブロードキャスト送信
 broadcast_message() {
     local message="$1"
     local sent_count=0
     local failed_count=0
     
-    echo "📢 ブロードキャスト送信開始: '$message'"
+    echo "📢 Yayın gönderimi başlatıldı: '$message'"
     echo "================================"
     
     for agent in "${!AGENT_MAP[@]}"; do
@@ -258,13 +237,12 @@ broadcast_message() {
     done
     
     echo ""
-    echo "📊 ブロードキャスト結果:"
-    echo "  成功: $sent_count"
-    echo "  失敗: $failed_count"
-    echo "  総計: $((sent_count + failed_count))"
+    echo "📊 Yayın sonuçları:"
+    echo "  Başarılı: $sent_count"
+    echo "  Başarısız: $failed_count"
+    echo "  Toplam: $((sent_count + failed_count))"
 }
 
-# メッセージ送信
 send_message() {
     local target="$1"
     local message="$2"
@@ -275,33 +253,28 @@ send_message() {
     local window="${window_pane%%.*}"
     local pane="${window_pane##*.}"
     
-    # セッション存在確認
     if ! tmux has-session -t "$session" 2>/dev/null; then
-        echo "❌ $agent_name: セッション '$session' が見つかりません"
+        echo "❌ $agent_name: Oturum '$session' bulunamadı"
         return 1
     fi
     
-    # ペイン存在確認
     if ! tmux list-panes -t "$session:$window" -F "#{pane_index}" 2>/dev/null | grep -q "^$pane$"; then
-        echo "❌ $agent_name: ペイン '$pane' が見つかりません"
+        echo "❌ $agent_name: Pencere/pane '$pane' bulunamadı"
         return 1
     fi
     
-    # メッセージ送信
     echo "📤 $agent_name ← '$message'"
     
-    # メッセージ送信（クリア不要 - 新しい入力は自動的に置き換わる）
+    # Mesaj gönderimi     # Mesaj gönderimi (temizleme gerekmez - yeni giriş otomatik olarak değiştirilir)
     tmux send-keys -t "$session:$window.$pane" "$message"
     sleep 0.1
     
-    # エンター押下
     tmux send-keys -t "$session:$window.$pane" C-m
     sleep 0.3
     
     return 0
 }
 
-# ログ記録
 log_message() {
     local agent="$1"
     local message="$2"
@@ -311,20 +284,17 @@ log_message() {
     echo "[$timestamp] $agent: \"$message\"" >> ./communication/logs/send_log.txt
 }
 
-# メイン処理
 main() {
-    # agent_and_pane_id_table.jsonl読み込み
+    # agent_and_pane_id_table.jsonl yükleme
     if ! load_agent_map; then
         exit 1
     fi
     
-    # 引数チェック
     if [[ $# -eq 0 ]]; then
         show_usage
         exit 1
     fi
     
-    # オプション処理
     case "$1" in
         --help|-h)
             show_usage
@@ -340,7 +310,7 @@ main() {
             ;;
         --broadcast|-b)
             if [[ $# -lt 2 ]]; then
-                echo "❌ ブロードキャスト用のメッセージが必要です"
+                echo "❌ Yayın için bir mesaj gereklidir"
                 exit 1
             fi
             broadcast_message "$2"
@@ -348,7 +318,7 @@ main() {
             ;;
         *)
             if [[ $# -lt 2 ]]; then
-                echo "❌ エージェント名とメッセージが必要です"
+                echo "❌ Aracı adı ve mesaj gereklidir"
                 show_usage
                 exit 1
             fi
@@ -358,25 +328,21 @@ main() {
     local agent_name="$1"
     local message="$2"
     
-    # エージェント名を大文字に統一
     agent_name=$(echo "$agent_name" | tr '[:lower:]' '[:upper:]')
     
-    # エージェントターゲット取得
     local target=$(get_agent_target "$agent_name")
     
     if [[ -z "$target" ]]; then
-        echo "❌ エラー: 不明なエージェント '$agent_name'"
-        echo "利用可能エージェント: $0 --list"
+        echo "❌ Hata: Bilinmeyen aracı '$agent_name'"
+        echo "Kullanılabilir aracılar: $0 --list"
         exit 1
     fi
     
-    # メッセージ送信
     if send_message "$target" "$message" "$agent_name"; then
-        # ログ記録
         log_message "$agent_name" "$message"
-        echo "✅ 送信完了: $agent_name"
+        echo "✅ Gönderim tamamlandı: $agent_name"
     else
-        echo "❌ 送信失敗: $agent_name"
+        echo "❌ Gönderim başarısız: $agent_name"
         exit 1
     fi
 }

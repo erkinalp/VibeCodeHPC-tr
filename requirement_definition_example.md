@@ -1,132 +1,132 @@
-# 要件定義書 
+# Gereksinim Tanımı
 (Requirement Definition)
 
-## プロジェクト情報
-- **プロジェクト名**: tmux_demo1
-- **作成日**: 2025-07-23
+## Proje Bilgileri
+- **Proje adı**: tmux_demo1
+- **Oluşturulma tarihi**: 2025-07-23
 
-## 最適化対象
-### コード取得方法
-- [x] 手元のファイル: BaseCode/以下
+## Optimizasyon Kapsamı
+### Kod edinim yöntemi
+- [x] Yerel dosyalar: BaseCode/ altı
 
-### 対象ファイル
-- **メインファイル**: mat-mat.c, mat-mat-d.c
-- **依存ファイル**: mat-mat-.bash, Makefile
+### Hedef dosyalar
+- **Ana dosyalar**: mat-mat.c, mat-mat-d.c
+- **Bağımlı dosyalar**: mat-mat-.bash, Makefile
 
-## 最適化の度合い（目標）
-### 性能目標
-- **目標性能**: 理論ピーク性能に近づける
+## Optimizasyon derecesi (hedef)
+### Performans hedefi
+- **Hedef performans**: Teorik tepe performansa yaklaşmak
 
-### 優先度
-- [x] 実行時間最小化
-- [ ] メモリ使用量最小化  
-- [ ] エネルギー効率最大化
-- [x] スケーラビリティ向上
-- [ ] その他: 
+### Öncelikler
+- [x] Çalışma süresini en aza indirme
+- [ ] Bellek kullanımını en aza indirme
+- [ ] Enerji verimliliğini en üst düzeye çıkarma
+- [x] Ölçeklenebilirliği artırma
+- [ ] Diğer:
 
-## 概要
-### アプリケーション概要
-複数の行列サイズに対して、MPIプロセス数1～576（ノード数1～12）の実行時間を測定します。
-MPIプロセス数1の時の時間を1として、576プロセスまでの速度向上（台数効果）の図を作成します。
+## Özet
+### Uygulama özeti
+Birden çok matris boyutu için, MPI süreç sayısı 1–576 (düğüm sayısı 1–12) aralığında yürütme süresi ölçülecektir.
+MPI süreç sayısı 1 için ölçülen süre 1 kabul edilerek 576 sürece kadar hızlanma (ölçek etkisi) grafiği oluşturulacaktır.
 
-### 最適化アプローチ
-以下を並列で進めます：
+### Optimizasyon yaklaşımı
+Aşağıdakiler paralel olarak ilerletilecektir:
 
-(i) Mat-Mat（通信関数が一切不要）のサンプルプログラムを並列化します。
-ここで、行列A、B、Cについての初期状態は各PEで重複したデータを持ってよいものとします。
+(i) Mat-Mat (iletişim fonksiyonu gerektirmeyen) örnek programı paralelleştirilecektir.
+Burada A, B, C matrisleri için başlangıç durumunda her PE’de kopyalı veri bulunmasına izin verilir.
 
-(ii) Mat-Mat-d（1対1通信関数が必要）
-MPIプロセス数1での実行は、(i)の逐次の行列積の時間を測定して用います。
+(ii) Mat-Mat-d (bire bir iletişim fonksiyonu gerektirir)
+MPI süreç sayısı 1’deki yürütme, (i)’deki sıralı matris çarpım süresi ölçülerek referans alınacaktır.
 
-## 制約（指定）
+## Kısıtlar (Belirtilen)
 
-### ハードウェア（サブシステム）
-#### 選択されたスパコン
-- **システム名**: 不老 (flow)
+### Donanım (Alt sistem)
+#### Seçilen süperbilgisayar
+- **Sistem adı**: Furo (flow)
 
-#### 利用可能なハードウェア
-- [x] TypeI: 1~12ノード（1ジョブあたり）
+#### Kullanılabilir donanım
+- [x] TypeI: 1–12 düğüm (iş başına)
 
-### SSH先で使用するディレクトリ
-_remote_info に記載
+### SSH tarafında kullanılacak dizin
+_remote_info içinde belirtilir
 
-### ジョブリソース（ノード数）
-#### 段階的スケールアップ
-- 毎回1~576ノードで試す必要はありません
-- デバッグ時は576ノードのみで試すなど、工夫してください
-- 行列サイズも段階的に大きくし、実行に数時間もかかるジョブを投げないようにしてください
+### İş kaynakları (düğüm sayısı)
+#### Aşamalı ölçekleme
+- Her seferinde 1–576 düğüm denemek gerekmez
+- Hata ayıklamada sadece 576 düğümde deneme gibi pratik çözüm uygulayın
+- Matris boyutunu da aşamalı büyütün; saatler süren işler göndermekten kaçının
 
-#### リソース制約
-- 最大実行時間は、原則1分で利用してください
-- 大規模なデータを取るときだけ、10分以下
+#### Kaynak kısıtları
+- Azami yürütme süresi kural olarak 1 dakika olmalıdır
+- Sadece büyük veri toplarken 10 dakikanın altı
 
-#### ジョブ実行方式
-- [x] バッチジョブ（推奨）
-- [ ] インタラクティブジョブ
-- [ ] ログインノードでの実行（非推奨）
+#### İş yürütme yöntemi
+- [x] Toplu iş (önerilir)
+- [ ] Etkileşimli iş
+- [ ] Giriş düğümünde yürütme (önerilmez)
 
-### ミドルウェア（コンパイラ・並列化モジュール）
-#### コンパイラ選択肢
+### Ara katman (derleyici/paralelleştirme modülleri)
+#### Derleyici seçenekleri
 - [x] GCC 10.4.0 (default)
-- [x] fjmpi-gcc ※ログインノードでは利用不可、バッチジョブまたはインタラクティブジョブから利用
+- [x] fjmpi-gcc (giriş düğümünde kullanılamaz; toplu veya etkileşimli işten kullanılmalıdır)
 
-#### 並列化ライブラリ
+#### Paralelleştirme kütüphaneleri
 - [x] MPI
 - [x] OpenMP
-- [x] ACLE (intrinsicなSIMD)
+- [x] ACLE (intrinsic tabanlı SIMD)
 
-### 並列化戦略（実装順序や適用箇所）
-#### 実装フェーズ
-進化的探索（様々なアルゴリズムの考案・探索は各PGに任せます）
+### Paralelleştirme stratejisi (uygulama sırası ve kapsam)
+#### Uygulama aşaması
+Evrimsel arama (çeşitli algoritmaların tasarım/keşfi ilgili PG’lere bırakılır)
 
-#### 適用箇所
-主にmat-mat(-d).cのMy-mat-matとmain関数内での呼び出し前後
+#### Uygulama noktaları
+Ağırlıklı olarak mat-mat(-d).c dosyasındaki My-mat-mat ve main fonksiyonu çağrısı öncesi/sonrası
 
-### 許容される精度（テストコード 指定/生成）
-#### 精度要件
-- [x] 既存テストと同精度
+### Kabul edilebilir doğruluk (test kodu belirtimi/üretimi)
+#### Doğruluk gereksinimi
+- [x] Mevcut testlerle aynı doğruluk
 
-### 予算（ジョブ）
-#### 計算資源予算
-- **最低消費ライン**: 1,000ポイント
-- **目安**: 3,000ポイント
-- **上限**: 10,000ポイント
-    TypeI：経過時間1秒につき0.0056ポイントに使用ノード数を乗じて得たポイント数
-- 1円当たり0.8ポイントに換算
+### Bütçe (iş)
+#### Hesaplama kaynağı bütçesi
+- **Asgari tüketim çizgisi**: 1.000 puan
+- **Hedef aralık**: 3.000 puan
+- **Üst sınır**: 10.000 puan
+    TypeI: Geçen her saniye için 0.0056 puan × kullanılan düğüm sayısı
+- 1 JPY başına 0.8 puan
 
-#### 制約
-- 最大実行時間は、原則1分で利用してください
-- 大規模なデータを取るときだけ、10分以下
+#### Kısıtlar
+- Azami yürütme süresi kural olarak 1 dakika olmalıdır
+- Sadece büyük veri toplarken 10 dakikanın altı
 
-### CD(Git Agent)を使用するか
-#### GitHub連携
-- [x] 使用する
-- [ ] 使用しない
-- [ ] 段階的導入
+### CD (Git Aracısı) kullanımı
+#### GitHub entegrasyonu
+- [x] Kullanılacak
+- [ ] Kullanılmayacak
+- [ ] Aşamalı devreye alma
 
-#### 通知設定
-- 不要
+#### Bildirim ayarı
+- Gereksiz
 
-## 追加要件・制約
-### セキュリティ要件
-- **機密レベル**: BaseCodeはGitHub（Privateリポジトリ）にコピー可能
-- **データ保護**: スパコン・ユーザ情報はGitHubにpushする前に匿名化
+## Ek gereksinimler ve kısıtlar
+### Güvenlik gereksinimleri
+- **Gizlilik seviyesi**: BaseCode GitHub’da (özel depo) kopyalanabilir
+- **Veri koruma**: Süperbilgisayar ve kullanıcı bilgileri GitHub’a push etmeden önce anonimleştirilecektir
 
-### 互換性要件
-- **他システム連携**: 特になし
-- **結果フォーマット**: CSV形式で性能データを出力
+### Uyumluluk gereksinimleri
+- **Diğer sistem entegrasyonu**: Yok
+- **Çıktı formatı**: Performans verileri CSV formatında çıktı
 
-### その他
-- これはVibeCodeHPCのtmux並列エージェント自体のテストでもあります
+### Diğerleri
+- Bu, VibeCodeHPC’nin tmux tabanlı paralel aracı yapısının bir testidir
 #### CD
-- GitHubを管理するCDエージェントは、性能に関わらず生成された全バージョンのコードもpushしてください
-- commitはメッセージが書きやすい単位で行ってください
-- GitHub/📁以下の.gitignoreはVibeCodeHPCプロジェクトルート直下のものをコピーし、必要に応じて修正してください
-- このrequirement_definition.md等も匿名化してpushしてください。実際のIDを匿名化する.pyや.shをGit管轄外で作成し、使用しても構いません
+- GitHub’ı yöneten CD aracı, performanstan bağımsız tüm üretilen sürüm kodlarını push etmelidir
+- Commit’leri mesaj yazmayı kolaylaştıracak mantıksal parçalarda yapın
+- GitHub/📁 altındaki .gitignore’ı proje kökünden kopyalayıp gerekirse düzenleyin
+- Bu requirement_definition.md vb. dosyaları anonimleştirip push edin. Gerçek kimlikleri anonimleştiren .py/.sh araçlarını Git dışında üretip kullanabilirsiniz
 
 ---
 
-## 自動生成情報（PM記入）
-- **不足項目**: [自動記入]
-- **推奨構成**: [自動記入]
-- **初期エージェント配置**: [自動記入]
+## Otomatik üretilen bilgiler (PM doldurur)
+- **Eksik kalemler**: [otomatik]
+- **Önerilen yapı**: [otomatik]
+- **Başlangıç aracı yerleşimi**: [otomatik]

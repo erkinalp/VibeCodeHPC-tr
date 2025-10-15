@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-バージョンファイル作成時のChangeLog.md整合性チェック
-_v*.* パターンのファイル作成を検知してサブエージェントでチェック
+Sürüm dosyası oluşturulduğunda ChangeLog.md tutarlılık kontrolü
+_v*.* desenindeki dosya oluşturmayı algılar ve alt ajanla kontrol eder
 """
 
 import json
@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-jp) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -25,20 +25,19 @@ def find_project_root(start_path):
 
 
 def check_changelog_with_subagent(version, cwd):
-    """サブエージェントを使ってChangeLog.mdをチェック"""
+    """Alt ajan kullanarak ChangeLog.md'yi kontrol et"""
     changelog_path = Path(cwd) / "ChangeLog.md"
     
     if not changelog_path.exists():
         return False, "ChangeLog.md not found"
     
-    # サブエージェントでチェック（トークン節約）
     query = f"""
-以下を確認してYES/NOで答えてください：
-1. v{version}のエントリが存在するか
-2. jobセクションにresource_groupが記載されているか
-3. start_timeまたはend_timeが記載されているか
+Aşağıdakileri doğrulayın ve YES/NO ile yanıtlayın:
+1. v{version} girdisi mevcut mu
+2. job bölümünde resource_group belirtilmiş mi
+3. start_time veya end_time belirtilmiş mi
 
-存在しない場合は「NO: 理由」の形式で答えてください。
+Mevcut değilse "NO: gerekçe" biçiminde yanıtlayın.
 """
     
     try:
@@ -62,7 +61,6 @@ def check_changelog_with_subagent(version, cwd):
 
 def main():
     try:
-        # hooks入力を受け取る
         input_data = json.load(sys.stdin)
         
         if input_data.get('hook_event_name') != 'PostToolUse':
@@ -73,7 +71,6 @@ def main():
         
         file_path = input_data.get('tool_input', {}).get('file_path', '')
         
-        # _v*.*パターンかチェック（拡張子は問わない）
         version_match = re.search(r'_v(\d+\.\d+\.\d+)\.\w+$', file_path)
         if not version_match:
             sys.exit(0)
@@ -81,12 +78,10 @@ def main():
         version = version_match.group(1)
         cwd = Path(input_data.get('cwd', '.'))
         
-        # プロジェクトルートを探す
         project_root = find_project_root(cwd)
         if not project_root:
             sys.exit(0)
         
-        # デバッグログ
         debug_file = project_root / "Agent-shared" / "ci_check_debug.log"
         with open(debug_file, 'a') as f:
             from datetime import datetime
@@ -94,43 +89,40 @@ def main():
             f.write(f"File: {file_path}\n")
             f.write(f"CWD: {cwd}\n")
         
-        # ChangeLog.mdチェック
+        # ChangeLog.md kontrolü
         is_valid, error_msg = check_changelog_with_subagent(version, cwd)
         
         if not is_valid:
-            # エラーメッセージをClaudeに返す（ブロッキング）
             print(f"""
-⚠️ ChangeLog.mdにv{version}の必要情報が不足しています
+⚠️ ChangeLog.md içinde v{version} için gerekli bilgiler eksik
 
 {error_msg}
 
-以下の形式で追加してください：
+Lütfen aşağıdaki biçimde ekleyin:
 
 ### v{version}
-**生成時刻**: `YYYY-MM-DDTHH:MM:SSZ`
-**変更点**: "変更内容"
-**結果**: 性能値 `XXX GFLOPS`
+**oluşturma_zamanı**: `YYYY-MM-DDTHH:MM:SSZ`
+**değişiklikler**: "değişiklik içeriği"
+**sonuç**: performans değeri `XXX GFLOPS`
 
 <details>
 
 - [ ] **job**
-    - id: `ジョブID`
-    - resource_group: `cx-small等`  # 必須
-    - start_time: `開始時刻`  # 必須
-    - end_time: `終了時刻`  # 必須（実行後）
-    - runtime_sec: `実行秒数`  # 必須（実行後）
+    - id: `job_id`
+    - resource_group: `cx-small vb.`  # zorunlu
+    - start_time: `başlangıç_zamanı`  # zorunlu
+    - end_time: `bitiş_zamanı`  # zorunlu (çalışma sonrası)
+    - runtime_sec: `çalışma_süresi_saniye`  # zorunlu (çalışma sonrası)
     - status: `pending/running/completed/cancelled`
 
 </details>
 """, file=sys.stderr)
-            sys.exit(2)  # ブロッキングエラー
+            sys.exit(2)  # Bloklayıcı hata
         
-        # 成功メッセージ（トランスクリプトモードで表示）
         print(f"✅ v{version} entry validated in ChangeLog.md")
         sys.exit(0)
         
     except Exception as e:
-        # エラーはデバッグログに記録
         try:
             debug_file = Path.cwd() / ".." / ".." / "Agent-shared" / "ci_check_debug.log"
             with open(debug_file, 'a') as f:

@@ -3,7 +3,7 @@
 
 """
 VibeCodeHPC SessionStart Hook
-各エージェントの.claude/hooks/に配置してsession_idを記録
+Her ajan için .claude/hooks/ içine yerleştirilir ve session_id kaydedilir
 """
 
 import json
@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 def find_project_root(start_path):
-    """プロジェクトルート（VibeCodeHPC-jp）を探す"""
+    """Proje kökünü (VibeCodeHPC-tr) bul"""
     current = Path(start_path).resolve()
     
     while current != current.parent:
@@ -27,18 +27,16 @@ def find_project_root(start_path):
 
 
 def update_agent_table(session_id, source):
-    """agent_and_pane_id_table.jsonlを更新"""
+    """agent_and_pane_id_table.jsonl dosyasını güncelle"""
     cwd = Path.cwd()
     
-    # hooksディレクトリから実際の作業ディレクトリを取得
-    # .claude/hooks/ から2階層上がエージェントの作業ディレクトリ
+    # .claude/hooks/ konumundan iki seviye üst, ajan çalışma dizinidir
     if cwd.name == "hooks" and cwd.parent.name == ".claude":
         agent_working_dir = cwd.parent.parent
     else:
-        # 通常はここに来ないはずだが、念のため
         agent_working_dir = cwd
     
-    # agent_id.txtから読み取り
+    # agent_id.txt’den oku
     agent_id_file = cwd / ".claude" / "hooks" / "agent_id.txt"
     target_agent_id = None
     if agent_id_file.exists():
@@ -51,7 +49,6 @@ def update_agent_table(session_id, source):
     
     table_file = project_root / "Agent-shared" / "agent_and_pane_id_table.jsonl"
     
-    # プロジェクトルートからの相対パス（OS固有の形式を保持）
     try:
         relative_path = agent_working_dir.relative_to(project_root)
         relative_dir = str(relative_path)
@@ -60,7 +57,6 @@ def update_agent_table(session_id, source):
     except ValueError:
         relative_dir = str(agent_working_dir)
     
-    # デバッグ: 環境変数の状態を記録
     debug_file = project_root / "Agent-shared" / "session_start_debug.log"
     with open(debug_file, 'a') as f:
         f.write(f"\n[{datetime.utcnow()}] SessionStart hook called\n")
@@ -71,19 +67,17 @@ def update_agent_table(session_id, source):
         f.write(f"project_root: {project_root}\n")
         f.write(f"target_agent_id: {target_agent_id}\n")
     
-    # ファイルを読み込んで更新
     updated_lines = []
     agent_id = None
     agent_type = None
     
     if not table_file.exists():
-        # ファイルが存在しない場合のデバッグ情報
         with open(debug_file, 'a') as f:
             f.write(f"WARNING: {table_file} does not exist\n")
         return None, None
     
     if not target_agent_id:
-        # agent_id.txtが読み取れない場合のデバッグ情報
+        # agent_id.txt okunamazsa hata ayıklama bilgisi
         with open(debug_file, 'a') as f:
             f.write(f"WARNING: agent_id.txt not found or empty at {agent_id_file}\n")
         return None, None
@@ -97,10 +91,10 @@ def update_agent_table(session_id, source):
                     
                 entry = json.loads(line)
                 
-                # agent_idでマッチング
+                # agent_id ile eşleştir
                 match_found = False
                 
-                # target_agent_idが取得できている場合はagent_idで比較
+                # target_agent_id alınabildiyse agent_id ile karşılaştır
                 if target_agent_id and entry.get('agent_id') == target_agent_id:
                     match_found = True
                     with open(debug_file, 'a') as f:
@@ -116,47 +110,38 @@ def update_agent_table(session_id, source):
                     entry['cwd'] = str(cwd)
                     agent_id = entry['agent_id']
                     
-                    # エージェントタイプを判定
-                    # v0.5: 全エージェントがポーリング型
-                    # v0.6以降: テスト検証エージェントの追加を検討
                     agent_type = 'polling'
                     
-                    # PMまたはSOLOが初回起動時にプロジェクト開始時刻を記録と定期実行開始
                     if (agent_id == 'PM' or agent_id == 'SOLO') and source == 'startup':
                         start_time_file = project_root / "Agent-shared" / "project_start_time.txt"
                         if not start_time_file.exists() or start_time_file.stat().st_size == 0:
                             start_time_file.write_text(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ\n'))
                         
-                        # 定期実行をバックグラウンドで開始
                         periodic_script = project_root / "telemetry" / "periodic_monitor.sh"
                         if periodic_script.exists():
                             import subprocess
                             try:
-                                # nohupでバックグラウンド実行、tmux解除でも継続しない
                                 subprocess.Popen(
                                     ['bash', str(periodic_script)],
                                     stdout=subprocess.DEVNULL,
                                     stderr=subprocess.DEVNULL,
-                                    start_new_session=False  # tmuxセッションに紐づける
+                                    start_new_session=False  # tmux oturumuna bağlı çalıştır
                                 )
                                 with open(debug_file, 'a') as f:
-                                    f.write(f"Started periodic monitor from {periodic_script}\n")
+                                    f.write(f"Periyodik izleyici başlatıldı: {periodic_script}\n")
                             except Exception as e:
                                 with open(debug_file, 'a') as f:
-                                    f.write(f"Failed to start periodic monitor: {e}\n")
+                                    f.write(f"Periyodik izleyici başlatılamadı: {e}\n")
                 
                 updated_lines.append(json.dumps(entry, ensure_ascii=False))
         
-        # ファイルを書き戻す
         try:
             with open(table_file, 'w') as f:
                 f.write('\n'.join(updated_lines) + '\n')
             
-            # デバッグ: 書き込み成功を記録
             with open(debug_file, 'a') as f:
                 f.write(f"Successfully wrote {len(updated_lines)} lines to {table_file}\n")
         except Exception as e:
-            # デバッグ: 書き込みエラーを記録
             with open(debug_file, 'a') as f:
                 f.write(f"ERROR writing to {table_file}: {str(e)}\n")
     
@@ -164,14 +149,12 @@ def update_agent_table(session_id, source):
 
 
 def get_required_files(agent_id):
-    """エージェントに応じた必須ファイルリストを返す"""
-    # 共通ファイル
+    """Ajana göre gerekli dosya listesini döndür"""
     common_files = [
         "CLAUDE.md",
         "Agent-shared/directory_pane_map.txt"
     ]
     
-    # 役割を抽出（例: PG1.1.1 -> PG）
     role = agent_id.split('.')[0].rstrip('0123456789') if agent_id else ''
     
     role_files = {
@@ -180,7 +163,7 @@ def get_required_files(agent_id):
             "_remote_info/",
             "Agent-shared/strategies/auto_tuning/typical_hpc_code.md",
             "Agent-shared/strategies/auto_tuning/evolutional_flat_dir.md",
-            "requirement_definition.md（存在する場合）"
+            "requirement_definition.md(varsa)"
         ],
         "SE": [
             "instructions/SE.md",
@@ -188,16 +171,16 @@ def get_required_files(agent_id):
         ],
         "PG": [
             "instructions/PG.md",
-            "現在のディレクトリのChangeLog.md",
+            "Geçerli dizindeki ChangeLog.md",
             "Agent-shared/change_log/ChangeLog_format.md",
-            "Agent-shared/change_log/ChangeLog_format_PM_override.md（存在する場合）"
+            "Agent-shared/change_log/ChangeLog_format_PM_override.md(varsa)"
         ],
         "CD": [
             "instructions/CD.md"
         ],
         "SOLO": [
             "instructions/SOLO.md",
-            "requirement_definition.md（存在する場合）"
+            "requirement_definition.md(varsa)"
         ]
     }
     
@@ -209,62 +192,56 @@ def get_required_files(agent_id):
 
 
 def generate_context(source, agent_id, agent_type):
-    """セッション開始時のコンテキストを生成"""
+    """Oturum başlangıcında bağlam oluştur"""
     context_parts = []
     
     if source in ['startup', 'clear']:
-        context_parts.append("## ⚠️ セッション開始")
+        context_parts.append("## ⚠️ Oturum başlangıcı")
         context_parts.append("")
-        context_parts.append("VibeCodeHPCエージェントとして起動しました。")
-        context_parts.append("以下の手順で必須ファイルを読み込んでください：")
+        context_parts.append("VibeCodeHPC ajanı olarak başlatıldınız.")
+        context_parts.append("Aşağıdaki adımlarla gerekli dosyaları yükleyin:")
         context_parts.append("")
         
-        # 必須ファイルリスト
         files = get_required_files(agent_id)
-        context_parts.append("### 1. 必須ファイルの再読み込み")
+        context_parts.append("### 1. Gerekli dosyaları yeniden yükle")
         for file in files:
             context_parts.append(f"- {file}")
         
         context_parts.append("")
-        context_parts.append("### 2. ディレクトリ構造の確認")
+        context_parts.append("### 2. Dizin yapısını doğrula")
         context_parts.append("```bash")
-        context_parts.append("pwd  # 現在位置確認")
+        context_parts.append("pwd  # Mevcut konumu doğrula")
         context_parts.append("ls -R ../../../../Agent-shared/")
         context_parts.append("ls -R ../../../../instructions/")
         context_parts.append("```")
         
         if agent_type == 'polling':
             context_parts.append("")
-            context_parts.append("### 3. ポーリング型エージェントとしての再開")
-            context_parts.append("あなたはポーリング型エージェントです。")
-            context_parts.append("待機状態に入らず、定期的にタスクを確認してください。")
+            context_parts.append("### 3. Polling tipi ajan olarak devam")
+            context_parts.append("Siz bir polling tipi ajansınız.")
+            context_parts.append("Bekleme durumuna geçmeden düzenli aralıklarla görevleri kontrol edin.")
         
-        # CDまたはSOLOエージェントへのgit push推奨
         if agent_id == 'CD' or agent_id == 'SOLO':
             context_parts.append("")
-            context_parts.append("### 📌 Git管理の推奨事項")
-            context_parts.append("要件定義書で明示的に禁止されていない限り、")
-            context_parts.append("**こまめにgit pushして**ユーザが進捗を確認できるようにしてください。")
-            context_parts.append("小さな変更でも定期的にコミット・プッシュすることを推奨します。")
+            context_parts.append("### 📌 Git yönetimi için öneriler")
+            context_parts.append("Gereksinimler belgesinde açıkça yasaklanmadıkça,")
+            context_parts.append("kullanıcının ilerlemeyi görebilmesi için **sık sık git push** yapın.")
+            context_parts.append("Küçük değişikliklerde bile düzenli olarak commit ve push önerilir.")
     
     return "\n".join(context_parts) if context_parts else None
 
 
 def main():
     try:
-        # 入力を読み込み
         input_data = json.load(sys.stdin)
         session_id = input_data.get('session_id')
-        source = input_data.get('source', 'startup')  # startup(新規起動), resume(--continue), clear(/clear)
+        source = input_data.get('source', 'startup')  # startup(yeni başlatma), resume(--continue), clear(/clear)
         
-        # テーブルを更新してエージェント情報を取得
         agent_id, agent_type = update_agent_table(session_id, source)
         
-        # コンテキストを生成
         context = generate_context(source, agent_id, agent_type)
         
         if context:
-            # コンテキストを追加
             output = {
                 "hookSpecificOutput": {
                     "hookEventName": "SessionStart",
@@ -276,7 +253,6 @@ def main():
         sys.exit(0)
         
     except Exception as e:
-        # エラーをデバッグログに記録
         try:
             from pathlib import Path
             cwd = Path.cwd()
